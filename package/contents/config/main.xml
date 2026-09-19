@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0 http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+  <kcfgfile name=""/>
+  <group name="">
+    <entry name="TargetOutputName" type="String">
+      <default></default>
+    </entry>
+    <entry name="GapTop" type="Int">
+      <default>50</default>
+    </entry>
+    <entry name="GapBottom" type="Int">
+      <default>70</default>
+    </entry>
+    <entry name="GapLeft" type="Int">
+      <default>24</default>
+    </entry>
+    <entry name="GapRight" type="Int">
+      <default>24</default>
+    </entry>
+    <entry name="InnerGap" type="Int">
+      <label>Gap between adjacent tiled windows</label>
+      <default>8</default>
+    </entry>
+    <entry name="ManageSecondaryOutput" type="Bool">
+      <default>true</default>
+    </entry>
+    <entry name="SecondaryOutputName" type="String">
+      <default>HDMI-A-1</default>
+    </entry>
+    <entry name="SecondaryGapTop" type="Int">
+      <default>24</default>
+    </entry>
+    <entry name="SecondaryGapBottom" type="Int">
+      <default>24</default>
+    </entry>
+    <entry name="SecondaryGapLeft" type="Int">
+      <default>24</default>
+    </entry>
+    <entry name="SecondaryGapRight" type="Int">
+      <default>24</default>
+    </entry>
+    <entry name="SecondaryInnerGap" type="Int">
+      <default>8</default>
+    </entry>
+    <entry name="IncludeDialogs" type="Bool">
+      <default>false</default>
+    </entry>
+    <entry name="DebugLogging" type="Bool">
+      <default>false</default>
+    </entry>
+  </group>
+</kcfg>

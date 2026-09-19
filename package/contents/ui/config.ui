@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CCNiriMaximizeConfigForm</class>
+ <widget class="QWidget" name="CCNiriMaximizeConfigForm">
+  <property name="windowTitle">
+   <string>CC Niri Maximize</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QGroupBox" name="targetGroup">
+     <property name="title"><string>Target monitor</string></property>
+     <layout class="QFormLayout" name="targetLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="targetLabel">
+        <property name="text"><string>Output name:</string></property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="kcfg_TargetOutputName">
+        <property name="placeholderText"><string>Empty = leftmost monitor</string></property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="QLabel" name="targetHelp">
+        <property name="text"><string>Use an output name such as DP-1 or HDMI-A-1. Leave empty to select the leftmost monitor automatically.</string></property>
+        <property name="wordWrap"><bool>true</bool></property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="gapsGroup">
+     <property name="title"><string>Outer gaps in logical pixels</string></property>
+     <layout class="QGridLayout" name="gapsLayout">
+      <item row="0" column="1"><widget class="QLabel" name="topLabel"><property name="text"><string>Top</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item>
+      <item row="1" column="1"><widget class="QSpinBox" name="kcfg_GapTop"><property name="maximum"><number>1000</number></property><property name="value"><number>50</number></property><property name="suffix"><string> px</string></property></widget></item>
+      <item row="2" column="0"><widget class="QLabel" name="leftLabel"><property name="text"><string>Left</string></property></widget></item>
+      <item row="2" column="1"><widget class="QLabel" name="windowLabel"><property name="text"><string>Window</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item>
+      <item row="2" column="2"><widget class="QLabel" name="rightLabel"><property name="text"><string>Right</string></property></widget></item>
+      <item row="3" column="0"><widget class="QSpinBox" name="kcfg_GapLeft"><property name="maximum"><number>1000</number></property><property name="value"><number>24</number></property><property name="suffix"><string> px</string></property></widget></item>
+      <item row="3" column="2"><widget class="QSpinBox" name="kcfg_GapRight"><property name="maximum"><number>1000</number></property><property name="value"><number>24</number></property><property name="suffix"><string> px</string></property></widget></item>
+      <item row="4" column="1"><widget class="QLabel" name="bottomLabel"><property name="text"><string>Bottom</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item>
+      <item row="5" column="1"><widget class="QSpinBox" name="kcfg_GapBottom"><property name="maximum"><number>1000</number></property><property name="value"><number>70</number></property><property name="suffix"><string> px</string></property></widget></item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="tileGroup">
+     <property name="title"><string>Quick Tile</string></property>
+     <layout class="QFormLayout" name="tileLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="innerGapLabel">
+        <property name="text"><string>Inner gap:</string></property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="kcfg_InnerGap">
+        <property name="maximum"><number>1000</number></property>
+        <property name="value"><number>8</number></property>
+        <property name="suffix"><string> px</string></property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="QLabel" name="innerGapHelp">
+        <property name="text"><string>Spacing between adjacent Left/Right, Top/Bottom, and corner tiles inside the safe area.</string></property>
+        <property name="wordWrap"><bool>true</bool></property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="secondaryGroup">
+     <property name="title"><string>Secondary monitor safe area</string></property>
+     <layout class="QGridLayout" name="secondaryLayout">
+      <item row="0" column="0" colspan="3"><widget class="QCheckBox" name="kcfg_ManageSecondaryOutput"><property name="text"><string>Enable safe-area layouts on the secondary monitor</string></property><property name="checked"><bool>true</bool></property></widget></item>
+      <item row="1" column="0"><widget class="QLabel" name="secondaryOutputLabel"><property name="text"><string>Output:</string></property></widget></item>
+      <item row="1" column="1" colspan="2"><widget class="QLineEdit" name="kcfg_SecondaryOutputName"><property name="text"><string>HDMI-A-1</string></property><property name="placeholderText"><string>Empty = rightmost non-primary monitor</string></property></widget></item>
+      <item row="2" column="1"><widget class="QLabel" name="secondaryTopLabel"><property name="text"><string>Top</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item>
+      <item row="3" column="1"><widget class="QSpinBox" name="kcfg_SecondaryGapTop"><property name="maximum"><number>1000</number></property><property name="value"><number>24</number></property><property name="suffix"><string> px</string></property></widget></item>
+      <item row="4" column="0"><widget class="QLabel" name="secondaryLeftLabel"><property name="text"><string>Left</string></property></widget></item>
+      <item row="4" column="1"><widget class="QLabel" name="secondaryWindowLabel"><property name="text"><string>Window</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item>
+      <item row="4" column="2"><widget class="QLabel" name="secondaryRightLabel"><property name="text"><string>Right</string></property></widget></item>
+      <item row="5" column="0"><widget class="QSpinBox" name="kcfg_SecondaryGapLeft"><property name="maximum"><number>1000</number></property><property name="value"><number>24</number></property><property name="suffix"><string> px</string></property></widget></item>
+      <item row="5" column="2"><widget class="QSpinBox" name="kcfg_SecondaryGapRight"><property name="maximum"><number>1000</number></property><property name="value"><number>24</number></property><property name="suffix"><string> px</string></property></widget></item>
+      <item row="6" column="1"><widget class="QLabel" name="secondaryBottomLabel"><property name="text"><string>Bottom</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item>
+      <item row="7" column="1"><widget class="QSpinBox" name="kcfg_SecondaryGapBottom"><property name="maximum"><number>1000</number></property><property name="value"><number>24</number></property><property name="suffix"><string> px</string></property></widget></item>
+      <item row="8" column="0"><widget class="QLabel" name="secondaryInnerLabel"><property name="text"><string>Inner gap:</string></property></widget></item>
+      <item row="8" column="1"><widget class="QSpinBox" name="kcfg_SecondaryInnerGap"><property name="maximum"><number>1000</number></property><property name="value"><number>8</number></property><property name="suffix"><string> px</string></property></widget></item>
+     </layout>
+    </widget>
+   </item>
+   <item><widget class="QCheckBox" name="kcfg_IncludeDialogs"><property name="text"><string>Include resizable dialog windows</string></property></widget></item>
+   <item><widget class="QCheckBox" name="kcfg_DebugLogging"><property name="text"><string>Enable debug logging</string></property></widget></item>
+   <item><spacer name="verticalSpacer"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property></spacer></item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

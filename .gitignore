@@ -1,0 +1,6 @@
+/build/
+/.agents/
+/.codex/
+/test/plasma-org.kde.plasma.desktop-appletsrc.phase8_5-backup
+*.swp
+*~

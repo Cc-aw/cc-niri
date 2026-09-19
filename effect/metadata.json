@@ -1,0 +1,14 @@
+{
+    "KPackageStructure": "KWin/Effect",
+    "KPlugin": {
+        "Name": "CC Niri Scroll Transition",
+        "Description": "Direction-correct transitions for CC Niri scrollable columns",
+        "Icon": "preferences-system-windows-effect-slide",
+        "Id": "cc-niri-maximize-scroll-transition",
+        "Version": "3.0.0-alpha.8",
+        "License": "MIT",
+        "EnabledByDefault": false,
+        "Category": "Appearance"
+    },
+    "X-Plasma-API": "javascript"
+}

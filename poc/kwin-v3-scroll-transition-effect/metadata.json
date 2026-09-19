@@ -1,0 +1,15 @@
+{
+    "KPackageStructure": "KWin/Effect",
+    "KPlugin": {
+        "Name": "CC Niri V3 Scroll Transition POC",
+        "Description": "Directional visual transition POC for scrollable columns",
+        "Icon": "preferences-system-windows-effect-slide",
+        "Id": "cc-niri-v3-scroll-transition-poc",
+        "Version": "0.3.0",
+        "License": "MIT",
+        "EnabledByDefault": false,
+        "Category": "Appearance"
+    },
+    "X-KDE-Ordering": 70,
+    "X-Plasma-API": "javascript"
+}

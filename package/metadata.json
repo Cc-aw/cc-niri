@@ -1,0 +1,16 @@
+{
+    "KPackageStructure": "KWin/Script",
+    "KPlugin": {
+        "Name": "CC Niri Maximize",
+        "Description": "Safe-area layouts with experimental main-screen scrollable columns",
+        "Icon": "view-fullscreen",
+        "Id": "cc-niri-maximize",
+        "Version": "3.0.0-alpha.18",
+        "License": "MIT",
+        "EnabledByDefault": false,
+        "Category": "Window Management"
+    },
+    "X-Plasma-API": "javascript",
+    "X-Plasma-MainScript": "code/main.js",
+    "X-KDE-ConfigModule": "kwin/effects/configs/kcm_kwin4_genericscripted"
+}
