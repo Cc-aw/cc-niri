@@ -5,7 +5,7 @@
         "Description": "Safe-area layouts with experimental main-screen scrollable columns",
         "Icon": "view-fullscreen",
         "Id": "cc-niri-maximize",
-        "Version": "3.0.0-alpha.18",
+        "Version": "3.0.0-alpha.19",
         "License": "MIT",
         "EnabledByDefault": false,
         "Category": "Window Management"

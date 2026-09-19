@@ -12,6 +12,8 @@ PLUGIN_ID="cc-niri-maximize"
 EFFECT_ID="cc-niri-maximize-scroll-transition"
 OBSOLETE_EFFECT_ID="cc-niri-v3-scroll-transition-poc"
 GEOMETRY_EFFECT_ID="kwin4_effect_geometry_change"
+FOCUS_RING_EFFECT_ID="kwin4_effect_cc_niri_focus_ring"
+DIM_INACTIVE_EFFECT_ID="diminactive"
 COMPAT_GROUP="CCNiriCompatibility"
 
 command -v kpackagetool6 >/dev/null || {
@@ -85,6 +87,18 @@ kwriteconfig6 --file kwinrc --group Plugins \
 
 kwriteconfig6 --file kwinrc --group Plugins --key "${PLUGIN_ID}Enabled" --type bool true
 kwriteconfig6 --file kwinrc --group Plugins --key "${EFFECT_ID}Enabled" --type bool true
+# Focus feedback is deliberately limited to TaskManager's native per-window
+# IsActive role. Keep the abandoned custom ring and the global Dim Inactive
+# effect disabled; KWin 6.7.5 cannot exclude the secondary output from dimming.
+kwriteconfig6 --file kwinrc --group Plugins \
+    --key "${FOCUS_RING_EFFECT_ID}Enabled" --type bool false
+kwriteconfig6 --file kwinrc --group Plugins \
+    --key "${DIM_INACTIVE_EFFECT_ID}Enabled" --type bool false
+# Phase 9.5 is mouse-first for presentation. Remove the obsolete custom
+# maximize action from KGlobalAccel's persisted KWin group as well as from the
+# script, so reinstalling or logging in cannot resurrect its old binding.
+kwriteconfig6 --file kglobalshortcutsrc --group kwin \
+    --key CCNiriMaximizeToggle --delete
 INSTALLED_MAIN="${XDG_DATA_HOME:-${HOME}/.local/share}/kwin/scripts/${PLUGIN_ID}/contents/code/main.js"
 
 if command -v qdbus6 >/dev/null; then
@@ -95,6 +109,8 @@ if command -v qdbus6 >/dev/null; then
     qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${EFFECT_ID}" >/dev/null || true
     qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${OBSOLETE_EFFECT_ID}" >/dev/null || true
     qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${GEOMETRY_EFFECT_ID}" >/dev/null || true
+    qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${FOCUS_RING_EFFECT_ID}" >/dev/null || true
+    qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${DIM_INACTIVE_EFFECT_ID}" >/dev/null || true
     qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.loadEffect "${EFFECT_ID}" >/dev/null || true
 elif command -v qdbus >/dev/null; then
     qdbus org.kde.KWin /KWin org.kde.KWin.reconfigure
@@ -104,6 +120,8 @@ elif command -v qdbus >/dev/null; then
     qdbus org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${EFFECT_ID}" >/dev/null || true
     qdbus org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${OBSOLETE_EFFECT_ID}" >/dev/null || true
     qdbus org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${GEOMETRY_EFFECT_ID}" >/dev/null || true
+    qdbus org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${FOCUS_RING_EFFECT_ID}" >/dev/null || true
+    qdbus org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${DIM_INACTIVE_EFFECT_ID}" >/dev/null || true
     qdbus org.kde.KWin /Effects org.kde.kwin.Effects.loadEffect "${EFFECT_ID}" >/dev/null || true
 elif command -v gdbus >/dev/null; then
     gdbus call --session --dest org.kde.KWin --object-path /KWin --method org.kde.KWin.reconfigure >/dev/null
@@ -119,6 +137,10 @@ elif command -v gdbus >/dev/null; then
         --method org.kde.kwin.Effects.unloadEffect "${OBSOLETE_EFFECT_ID}" >/dev/null || true
     gdbus call --session --dest org.kde.KWin --object-path /Effects \
         --method org.kde.kwin.Effects.unloadEffect "${GEOMETRY_EFFECT_ID}" >/dev/null || true
+    gdbus call --session --dest org.kde.KWin --object-path /Effects \
+        --method org.kde.kwin.Effects.unloadEffect "${FOCUS_RING_EFFECT_ID}" >/dev/null || true
+    gdbus call --session --dest org.kde.KWin --object-path /Effects \
+        --method org.kde.kwin.Effects.unloadEffect "${DIM_INACTIVE_EFFECT_ID}" >/dev/null || true
     gdbus call --session --dest org.kde.KWin --object-path /Effects \
         --method org.kde.kwin.Effects.loadEffect "${EFFECT_ID}" >/dev/null || true
 else

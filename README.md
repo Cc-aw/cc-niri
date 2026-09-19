@@ -1,6 +1,6 @@
 # CC Niri Maximize
 
-CC Niri Maximize V3 is being implemented in phases on top of the working V2 safe-area script. Version `3.0.0-alpha.18` adds bidirectional order synchronization between the primary-screen logical Column model and the `CC Scroll Tasks` Dock applet; V2 maximize, Quick Tile, fullscreen, and per-output safe areas remain present.
+CC Niri Maximize V3 is being implemented in phases on top of the working V2 safe-area script. Version `3.0.0-alpha.19` adds the Phase 9.5 mouse-first Presentation modes while retaining Phase 8.5 bidirectional Dock order synchronization.
 
 ## Current V3 phase
 
@@ -20,17 +20,23 @@ Implemented in this alpha:
 - New-window adoption remains pending until KWin confirms the requested visible Column geometry, with activation, ready-for-painting, and geometry-change retries for slow-mapping applications such as Electron windows.
 - Closing a managed window removes its Column, preserves an unrelated focused window, or focuses the right neighbor of a closed focused Column (falling back to the left neighbor), and minimally reveals the successor.
 - Activating a managed column (including clicking it or selecting it through Alt+Tab) synchronizes the focused column and minimally reveals it.
+- Left-clicking a managed task in `CC Scroll Tasks` uses a Dock-specific placement rule: the selected Column is aligned to the right side of the current safe-area viewport before activation. The first Column remains at the left edge because its requested offset clamps to zero. Keyboard focus and Alt+Tab retain minimal-reveal behavior.
 - `Meta+Shift+H/L`, window insertion, and window removal publish the canonical `columns[]` order to the Dock by exact KWin `internalId` / TaskManager `WinIdList` UUID.
 - Dragging a managed task in `CC Scroll Tasks` sends a generation-checked reorder request back to KWin. KWin validates the complete UUID set, reorders the existing Column objects, preserves focus, performs minimal reveal, and republishes the committed state.
 - Pinned launchers are kept in a separate launcher section, while managed windows use `SortManual` and `GroupDisabled`.
 - Stale, mismatched-session, incomplete, or duplicate reorder requests are rejected and followed by an authoritative resync.
 - No polling. The event-driven companion bridge is only an IPC relay; KWin remains the geometry and logical-order authority. A small KWin effect animates scrolling-column position changes without changing geometry or output ownership.
+- The Dock task context menu adds a compact `CC Scroll` section with Normal, Focus Wide, and Maximize in Safe Area. Wide is exactly 72% of the safe area and centered; Wide and Maximize park all neighboring managed windows without changing logical or Dock order.
+- KDE's native maximize button and the Dock's Maximize in Safe Area action enter the same presentation state; restore returns to the exact two-column layout.
+- Changing focus clears a temporary presentation mode, while reordering the focused column preserves it. Presentation never permanently changes the normal scroll offset.
+- `Meta+Shift+Enter` toggles the active primary-screen window between the managed Column model and Floating. Starting an interactive move or resize on a managed Column also detaches it automatically without rewriting that window's geometry; toggling it back inserts it to the right of the currently focused Column.
+- Custom Focus Ring rendering has been removed. The Dock now uses TaskManager's native per-window `IsActive`: inactive running-window icons are 90% opaque, while the active icon gets a subtle translucent green background and a centered 3 px green indicator. KWin's global Dim Inactive effect remains disabled because KWin 6.7.5 cannot exclude the secondary output. The scroll-transition effect remains independent and unchanged.
 
 Later V3 work intentionally not included here includes tabbed/multi-window Columns, Overview integration, session persistence, and secondary-screen bidirectional ordering.
 
 ## Tested environment
 
-- Fedora 44, Plasma and KWin 6.7.4, Wayland
+- Fedora 44, Plasma and KWin 6.7.5, Wayland
 - Target `DP-1`: logical `2560x1440`, scale 1.5
 - Secondary `HDMI-A-1`: logical `2560x1440`, scale 1.0
 
@@ -87,7 +93,7 @@ On the `2560x1440` secondary this produces maximize `2584,24 2512x1392`, with Le
 ./install.sh
 ```
 
-No root privileges are used. The installer builds and installs the current user's KWin script, direction-correction effect, D-Bus bridge service, and `CC Scroll Tasks` Plasma applet. It enables the service, reloads KWin components, and restarts Plasma Shell so the compiled applet is loaded.
+No root privileges are used. The installer builds and installs the current user's KWin script, direction-correction effect, D-Bus bridge service, and `CC Scroll Tasks` Plasma applet. It disables both the obsolete custom Focus Ring and the global Dim Inactive effect, reloads KWin components, and restarts Plasma Shell so the compiled applet is loaded.
 
 The third-party `Geometry Change` KWin effect also animates every script-driven
 parking jump and is incompatible with the Column transition effect. Installation
@@ -98,14 +104,18 @@ Open System Settings → Window Management → KWin Scripts to configure both ou
 
 ## Shortcut
 
-`Meta+Ctrl+M` toggles safe-area maximize for the active eligible window on either configured output. KDE's standard maximize and Quick Tile shortcuts continue to work.
-
 Current V3 alpha shortcuts:
 
 - `Meta+H`: focus the previous managed column.
 - `Meta+L`: focus the next managed column.
+- `Meta+Z`: toggle Focus Wide for the active managed column.
 - `Meta+Shift+H`: move the current column one position left.
 - `Meta+Shift+L`: move the current column one position right.
+- `Meta+Shift+Enter`: toggle the active window between managed Column and Floating.
+
+The former custom maximize binding is removed during installation. Focus Wide
+has the single `Meta+Z` convenience toggle; Dock actions and the native window
+maximize button remain the complete presentation controls.
 
 ## Maximize button limitation
 
@@ -129,6 +139,6 @@ The uninstaller disables the bridge and removes only `cc-niri-maximize` and its 
 
 ## Design
 
-Each window tracks its layout mode, original free-window geometry, the output associated with that restore geometry, its pre-fullscreen mode, pending native action, and an internal-change guard. KWin's native tile association is detected through `window.tile.relativeGeometry`, which is the API verified on KWin 6.7.4; this version does not expose usable `quickTileMode` or `geometryRestore` properties to JavaScript.
+Each window tracks its layout mode, original free-window geometry, the output associated with that restore geometry, its pre-fullscreen mode, pending native action, and an internal-change guard. KWin's native tile association is detected through `window.tile.relativeGeometry`, which is the API verified on KWin 6.7.5; this version does not expose usable `quickTileMode` or `geometryRestore` properties to JavaScript.
 
 `safeRectFor(output)` selects the output profile and `rectForLayout(mode, safeRect, innerGap)` is the shared layout calculation. `frameGeometryChanged(oldGeometry)` captures pre-tile restore geometry and narrowly corrects the recognizable native-tile reset caused by Plasma edit-mode strut changes; arbitrary geometry changes are not forced.

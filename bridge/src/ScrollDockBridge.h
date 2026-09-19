@@ -15,6 +15,7 @@ public Q_SLOTS:
     bool PublishState(const QString &json);
     QString GetState() const;
     bool RequestReorder(const QString &json);
+    bool RequestCommand(const QString &json);
     QString TakePendingCommand();
 
 Q_SIGNALS:

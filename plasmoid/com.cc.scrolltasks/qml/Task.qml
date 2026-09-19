@@ -78,6 +78,9 @@ PlasmaCore.ToolTipArea {
     readonly property bool highlighted: (inPopup && activeFocus) || (!inPopup && containsMouse)
         || (task.contextMenu && task.contextMenu.status === PlasmaExtras.Menu.Open)
         || (!!tasksRoot.groupDialog && tasksRoot.groupDialog.visualParent === task)
+    // Plasma's per-window TaskManager role is the sole focus authority. The
+    // Bridge remains responsible only for logical Column order.
+    readonly property bool activeWindowFeedback: !inPopup && model.IsWindow && model.IsActive
 
     active: !inPopup && !tasksRoot.groupDialog && task.contextMenu?.status !== PlasmaExtras.Menu.Open
     interactive: model.IsWindow || mainItem.playerData
@@ -421,6 +424,14 @@ PlasmaCore.ToolTipArea {
             if (task.active) {
                 task.hideToolTip();
             }
+            const ids = model.WinIdList;
+            const uuid = ids && ids.length === 1
+                ? tasksRoot.normalizeDockUuid(ids[0])
+                : "";
+            if (!(point.modifiers & Qt.ShiftModifier) &&
+                    tasksRoot.requestDockFocusRight(uuid, modelIndex())) {
+                return;
+            }
             TaskManagerApplet.TaskTools.activateTask(modelIndex(), model, point.modifiers, task, Plasmoid, tasksRoot, effectWatcher.registered);
         }
     }
@@ -520,6 +531,16 @@ PlasmaCore.ToolTipArea {
         }
     }
 
+    Rectangle {
+        id: activeBackground
+
+        anchors.fill: parent
+        anchors.margins: 3
+        radius: 6
+        color: "#66DCEBDD"
+        visible: task.activeWindowFeedback
+    }
+
     Loader {
         id: taskProgressOverlayLoader
 
@@ -570,8 +591,13 @@ PlasmaCore.ToolTipArea {
 
             active: task.highlighted
             enabled: true
+            opacity: task.model.IsWindow && !task.model.IsActive ? 0.9 : 1
 
             source: task.model.decoration
+
+            Behavior on opacity {
+                NumberAnimation { duration: 100 }
+            }
         }
 
         states: [
@@ -642,6 +668,19 @@ PlasmaCore.ToolTipArea {
         }
     }
 
+    Rectangle {
+        id: activeIndicator
+
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 2
+        width: Math.round(Math.min(task.width, task.height) * 0.48)
+        height: 3
+        radius: height / 2
+        color: "#4F7657"
+        visible: task.activeWindowFeedback
+    }
+
     states: [
         State {
             name: "launcher"
@@ -665,14 +704,6 @@ PlasmaCore.ToolTipArea {
 
             PropertyChanges {
                 frame.basePrefix: "minimized"
-            }
-        },
-        State {
-            name: "active"
-            when: task.model.IsActive
-
-            PropertyChanges {
-                frame.basePrefix: "focus"
             }
         }
     ]

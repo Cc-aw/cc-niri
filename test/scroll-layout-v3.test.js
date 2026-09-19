@@ -120,6 +120,11 @@ function removeColumnAt(columns, focusedIndex, removalIndex) {
         : Math.min(removalIndex, columns.length - 1);
 }
 
+function offsetAfterClosingVisibleLeft(oldOffset, removedWidth, gap, removalIndex) {
+    if (removalIndex <= 0) return 0;
+    return Math.max(0, oldOffset - removedWidth - gap);
+}
+
 assert.equal(widthForMode("third"), 832);
 assert.equal(widthForMode("half"), 1252);
 assert.equal(widthForMode("twoThirds"), 1672);
@@ -225,6 +230,10 @@ const closeUnfocusedIndex = removeColumnAt(closeUnfocusedColumns, 3, 1);
 assert.deepEqual(closeUnfocusedColumns, ["A", "C", "D"]);
 assert.equal(closeUnfocusedColumns[closeUnfocusedIndex], "D",
     "closing an unfocused column preserves the focused window identity");
+assert.equal(offsetAfterClosingVisibleLeft(1260, 1252, 8, 1), 0,
+    "closing a visible left column reveals its predecessor without moving the right slot");
+assert.equal(offsetAfterClosingVisibleLeft(0, 1252, 8, 0), 0,
+    "closing the logical first column cannot scroll into negative space");
 
 console.log("PASS V3 column model, derived positions, clamp, and minimal scrolling");
 
@@ -232,6 +241,39 @@ const mainSource = fs.readFileSync(
     path.join(__dirname, "../package/contents/code/main.js"),
     "utf8"
 );
+assert.ok(mainSource.includes("function isPlasmaShellWindow(window)"),
+    "Plasma Shell windows have an explicit eligibility guard");
+for (const identity of ["plasmashell", "org.kde.plasmashell", "org.kde.plasma.desktop"]) {
+    assert.ok(mainSource.includes(`\"${identity}\"`),
+        `Plasma edit-mode identity ${identity} is excluded`);
+}
+const scrollEligibilitySource = mainSource.slice(
+    mainSource.indexOf("function scrollEligible"),
+    mainSource.indexOf("function refreshMainScreenState")
+);
+assert.ok(scrollEligibilitySource.includes("!isPlasmaShellWindow(window)"),
+    "Plasma edit-mode windows cannot enter the scrolling Column model");
+const dockFocusSource = mainSource.slice(
+    mainSource.indexOf('if (command.type === "focus-column-right")'),
+    mainSource.indexOf('if (!Array.isArray(command.order))')
+);
+assert.ok(dockFocusSource.includes(
+    "column.logicalX + column.pixelWidth - mainScreenState.safeRect.width"
+), "Dock click right-aligns the selected column in the current viewport");
+assert.ok(dockFocusSource.includes("clampScrollOffset()"),
+    "the first column remains at the left edge instead of creating blank space");
+assert.ok(dockFocusSource.indexOf('relayout("dock-focus-right"') <
+    dockFocusSource.indexOf("workspace.activeWindow = column.window"),
+    "Dock click commits geometry before activating a parked target");
+const removalSource = mainSource.slice(
+    mainSource.indexOf("function removeColumn"),
+    mainSource.indexOf("function initializeScrollLayout")
+);
+assert.ok(removalSource.includes("removedWasVisibleLeft && index > 0"),
+    "closing the left slot uses a stable-viewport removal path");
+assert.ok(removalSource.includes(
+    "oldScrollOffsetX -\n            removedColumn.pixelWidth - mainScreenState.innerGap"
+), "the viewport retreats exactly one removed column plus its gap");
 const focusFunction = mainSource.slice(
     mainSource.indexOf("function focusRelativeColumn"),
     mainSource.indexOf("function moveFocusedColumn")
@@ -251,10 +293,37 @@ assert.ok(setupSource.includes(
 assert.ok(setupSource.includes(
     'retryPendingWindowAdoption(window, "window-shown")'),
 "inactive restored windows must retry adoption when shown");
+const retrySource = mainSource.slice(
+    mainSource.indexOf("function retryPendingWindowAdoption"),
+    mainSource.indexOf("function onWindowActivatedForScrollLayout")
+);
+assert.ok(retrySource.includes("Date.now() > startupRestoreDeadline"),
+    "runtime windows wait for activation instead of being parked as restores");
+assert.ok(mainSource.includes("STARTUP_RESTORE_GRACE_MS = 5000"),
+    "only the bounded login restore phase may silently append inactive windows");
 const outputSource = mainSource.slice(
     mainSource.indexOf("function onOutputChanged"),
     mainSource.indexOf("function onFullScreenChanged")
 );
 assert.ok(outputSource.includes('removeColumn(window, "output-left-primary", false)'),
 "a window leaving the primary output must leave the primary Column model");
+assert.ok(mainSource.includes("function setColumnVisualVisibility"),
+    "parked columns have an explicit visual visibility policy");
+assert.ok(mainSource.includes(
+    'if (placement.kind === "visible") setColumnVisualVisibility(column, true);'
+), "incoming columns become visible before their geometry animation");
+assert.ok(mainSource.includes(
+    'if (placement.kind === "parked") setColumnVisualVisibility(column, false);'
+), "KWin off-screen clamping cannot expose parked columns behind the left slot");
+const visibilitySource = mainSource.slice(
+    mainSource.indexOf("function setColumnVisualVisibility"),
+    mainSource.indexOf("/* The only geometry writer")
+);
+assert.ok(visibilitySource.includes("window.minimized = true"),
+    "parked windows have no invisible input surface behind the left slot");
+assert.ok(visibilitySource.includes("windowState.scrollParkingMinimized"),
+    "only minimization owned by the layout is reversed");
+assert.ok(mainSource.includes(
+    'placement.kind === "visible" && windowState.scrollVisuallyHidden'
+), "a returning window is positioned before it is shown");
 console.log("PASS V3 session restore adopts inactive windows and removes primary departures");

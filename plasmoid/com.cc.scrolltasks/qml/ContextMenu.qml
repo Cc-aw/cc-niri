@@ -22,6 +22,7 @@ PlasmaExtras.Menu {
     required property TaskManagerApplet.Backend backend
     required property Mpris.Mpris2Model mpris2Source
     required property /*QModelIndex*/var modelIndex
+    required property var tasksRoot
 
     readonly property var atm: TaskManager.AbstractTasksModel
 
@@ -65,6 +66,16 @@ PlasmaExtras.Menu {
 
     function get(modelProp: int): var {
         return tasksModel.data(modelIndex, modelProp)
+    }
+
+    function taskUuid(): string {
+        const ids = get(TaskManager.AbstractTasksModel.WinIdList);
+        return ids && ids.length === 1 ? tasksRoot.normalizeDockUuid(ids[0]) : "";
+    }
+
+    function isManagedTask(): bool {
+        const uuid = taskUuid();
+        return uuid !== "" && tasksRoot.dockManagedUuids.includes(uuid);
     }
 
     function show(): void {
@@ -269,6 +280,41 @@ PlasmaExtras.Menu {
 
             menu.addMenuItem(newSeparator(menu), startNewInstanceItem);
         }
+    }
+
+    PlasmaExtras.MenuItem {
+        visible: menu.isManagedTask()
+        text: i18nc("@title:group", "CC Scroll")
+        section: true
+    }
+
+    PlasmaExtras.MenuItem {
+        visible: menu.isManagedTask()
+        checkable: true
+        checked: visible && tasksRoot.presentationModeFor(menu.taskUuid()) === "normal"
+        text: i18nc("@option:check inmenu", "Normal")
+        onClicked: tasksRoot.requestPresentationMode(menu.taskUuid(), "normal")
+    }
+
+    PlasmaExtras.MenuItem {
+        visible: menu.isManagedTask()
+        checkable: true
+        checked: visible && tasksRoot.presentationModeFor(menu.taskUuid()) === "wide"
+        text: i18nc("@option:check inmenu", "Focus Wide")
+        onClicked: tasksRoot.requestPresentationMode(menu.taskUuid(), "wide")
+    }
+
+    PlasmaExtras.MenuItem {
+        visible: menu.isManagedTask()
+        checkable: true
+        checked: visible && tasksRoot.presentationModeFor(menu.taskUuid()) === "maximized"
+        text: i18nc("@option:check inmenu", "Maximize in Safe Area")
+        onClicked: tasksRoot.requestPresentationMode(menu.taskUuid(), "maximized")
+    }
+
+    PlasmaExtras.MenuItem {
+        visible: menu.isManagedTask()
+        separator: true
     }
 
     PlasmaExtras.MenuItem {

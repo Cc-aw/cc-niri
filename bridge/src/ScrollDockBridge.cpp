@@ -72,6 +72,11 @@ QString ScrollDockBridge::GetState() const
 
 bool ScrollDockBridge::RequestReorder(const QString &json)
 {
+    return RequestCommand(json);
+}
+
+bool ScrollDockBridge::RequestCommand(const QString &json)
+{
     QJsonParseError error;
     const QJsonDocument document = QJsonDocument::fromJson(json.toUtf8(), &error);
     if (error.error != QJsonParseError::NoError || !document.isObject()) {
@@ -81,12 +86,22 @@ bool ScrollDockBridge::RequestReorder(const QString &json)
 
     const QJsonObject command = document.object();
     const QString commandId = command.value(QStringLiteral("commandId")).toString();
+    const QString type = command.value(QStringLiteral("type")).toString();
+    const bool reorder = type == QStringLiteral("set-column-order") &&
+        command.value(QStringLiteral("order")).isArray();
+    const QString presentationMode = command.value(QStringLiteral("mode")).toString();
+    const bool presentation = type == QStringLiteral("set-presentation-mode") &&
+        !command.value(QStringLiteral("windowUuid")).toString().isEmpty() &&
+        (presentationMode == QStringLiteral("normal") ||
+         presentationMode == QStringLiteral("wide") ||
+         presentationMode == QStringLiteral("maximized"));
+    const bool dockFocusRight = type == QStringLiteral("focus-column-right") &&
+        !command.value(QStringLiteral("windowUuid")).toString().isEmpty();
     if (command.value(QStringLiteral("protocol")).toInt() != 1 ||
         commandId.isEmpty() ||
         command.value(QStringLiteral("sessionId")).toString().isEmpty() ||
         command.value(QStringLiteral("baseGeneration")).toInteger(-1) < 0 ||
-        command.value(QStringLiteral("type")).toString() != QStringLiteral("set-column-order") ||
-        !command.value(QStringLiteral("order")).isArray()) {
+        (!reorder && !presentation && !dockFocusRight)) {
         qCWarning(logBridge) << "rejecting command with invalid schema";
         return false;
     }

@@ -42,6 +42,8 @@ PlasmoidItem {
     property string dockSessionId: ""
     property int dockGeneration: -1
     property var dockManagedUuids: []
+    property string dockPresentationUuid: ""
+    property string dockPresentationMode: "normal"
 
     readonly property Component contextMenuComponent: Qt.createComponent("ContextMenu.qml")
     readonly property Component pulseAudioComponent: Qt.createComponent("PulseAudio.qml")
@@ -186,6 +188,10 @@ PlasmoidItem {
             dockSessionId = String(state.sessionId);
             dockGeneration = Number(state.generation);
             dockManagedUuids = desired;
+            const presentation = state.presentation || {};
+            dockPresentationUuid = normalizeDockUuid(presentation.windowUuid);
+            dockPresentationMode = ["normal", "wide", "maximized"].includes(
+                String(presentation.mode)) ? String(presentation.mode) : "normal";
             console.info("[cc-scroll-tasks] applied generation=" + dockGeneration +
                 " columns=" + desired.length);
         } finally {
@@ -265,6 +271,89 @@ PlasmoidItem {
             reply.destroy();
             requestDockState();
         });
+    }
+
+    function presentationModeFor(uuid): string {
+        const normalized = normalizeDockUuid(uuid);
+        return normalized && normalized === dockPresentationUuid
+            ? dockPresentationMode
+            : "normal";
+    }
+
+    function requestPresentationMode(uuid, mode): void {
+        const normalized = normalizeDockUuid(uuid);
+        if (!dockBridgeWatcher.registered || !dockSessionId || dockGeneration < 0 ||
+                !dockManagedUuids.includes(normalized) ||
+                !["normal", "wide", "maximized"].includes(String(mode))) {
+            requestDockState();
+            return;
+        }
+        const command = {
+            protocol: 1,
+            commandId: dockSessionId + "-presentation-" + Date.now() + "-" +
+                Math.floor(Math.random() * 0x100000000).toString(16),
+            sessionId: dockSessionId,
+            baseGeneration: dockGeneration,
+            type: "set-presentation-mode",
+            windowUuid: normalized,
+            mode: String(mode)
+        };
+        DBus.SessionBus.asyncCall({
+            service: "org.cc.ScrollDockBridge",
+            path: "/ScrollDock",
+            iface: "org.cc.ScrollDockBridge1",
+            member: "RequestCommand",
+            arguments: [JSON.stringify(command)],
+            signature: "(s)"
+        }, reply => {
+            if (!reply.value) {
+                console.warn("[cc-scroll-tasks] bridge rejected presentation command");
+                requestDockState();
+            }
+            reply.destroy();
+        }, reply => {
+            console.warn("[cc-scroll-tasks] RequestCommand failed", reply.error.message);
+            reply.destroy();
+            requestDockState();
+        });
+    }
+
+    function requestDockFocusRight(uuid, fallbackModelIndex): bool {
+        const normalized = normalizeDockUuid(uuid);
+        if (!dockBridgeWatcher.registered || !dockSessionId || dockGeneration < 0 ||
+                !dockManagedUuids.includes(normalized)) {
+            return false;
+        }
+        const command = {
+            protocol: 1,
+            commandId: dockSessionId + "-focus-right-" + Date.now() + "-" +
+                Math.floor(Math.random() * 0x100000000).toString(16),
+            sessionId: dockSessionId,
+            baseGeneration: dockGeneration,
+            type: "focus-column-right",
+            windowUuid: normalized
+        };
+        DBus.SessionBus.asyncCall({
+            service: "org.cc.ScrollDockBridge",
+            path: "/ScrollDock",
+            iface: "org.cc.ScrollDockBridge1",
+            member: "RequestCommand",
+            arguments: [JSON.stringify(command)],
+            signature: "(s)"
+        }, reply => {
+            if (!reply.value) {
+                console.warn("[cc-scroll-tasks] bridge rejected Dock focus command");
+                tasksModel.requestActivate(fallbackModelIndex);
+                requestDockState();
+            }
+            reply.destroy();
+        }, reply => {
+            console.warn("[cc-scroll-tasks] Dock focus command failed", reply.error.message);
+            reply.destroy();
+            tasksModel.requestActivate(fallbackModelIndex);
+            requestDockState();
+        });
+        return true;
     }
 
     onDragSourceChanged: {
@@ -752,6 +841,7 @@ PlasmoidItem {
             modelIndex,
             mpris2Source,
             backend,
+            tasksRoot: tasks,
         });
         return contextMenuComponent.createObject(rootTask, initialArgs);
     }
