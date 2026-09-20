@@ -62,6 +62,10 @@ let scrollLayoutInitialized = false;
 let lastShortcutFloatingWindow = null;
 let lastShortcutDetachedAt = 0;
 let floatingFocusGuardUntil = 0;
+let layoutTransactionDepth = 0;
+let layoutEpoch = 0;
+let activeLayoutReason = "";
+let lastInvariantWarning = "";
 const startupRestoreDeadline = Date.now() + STARTUP_RESTORE_GRACE_MS;
 
 function debug(message) {
@@ -634,8 +638,100 @@ function setColumnVisualVisibility(column, visible) {
     windowState.scrollVisuallyHidden = true;
 }
 
+function beginLayoutTransaction(reason) {
+    if (layoutTransactionDepth === 0) {
+        layoutEpoch += 1;
+        activeLayoutReason = reason;
+        debug(`[cc-stability] BEGIN epoch=${layoutEpoch} reason=${reason}`);
+    }
+    layoutTransactionDepth += 1;
+    return layoutEpoch;
+}
+
+function validateLayoutInvariants(reason, epoch) {
+    const errors = [];
+    const columns = mainScreenState.columns;
+    const windows = new Set();
+    const uuids = new Set();
+    let expectedLogicalX = 0;
+
+    columns.forEach((column, index) => {
+        const uuid = normalizeWindowUuid(column.window.internalId);
+        if (windows.has(column.window)) errors.push(`duplicate-window:${index}`);
+        windows.add(column.window);
+        if (!uuid || uuids.has(uuid)) errors.push(`duplicate-uuid:${uuid || index}`);
+        uuids.add(uuid);
+        if (column.logicalX !== expectedLogicalX) {
+            errors.push(`logical-x:${column.id}:${column.logicalX}:${expectedLogicalX}`);
+        }
+        if (!Number.isFinite(column.pixelWidth) || column.pixelWidth < 1) {
+            errors.push(`invalid-width:${column.id}:${column.pixelWidth}`);
+        }
+        const windowState = states.get(column.window);
+        if (!windowState || !windowState.managedByScrollLayout ||
+                windowState.columnId !== column.id || windowState.floating) {
+            errors.push(`state-ownership:${column.id}`);
+        }
+        if (mainScreenState.targetOutput &&
+                column.window.output !== mainScreenState.targetOutput) {
+            errors.push(`wrong-output:${column.id}`);
+        }
+        expectedLogicalX += column.pixelWidth + mainScreenState.innerGap;
+    });
+
+    if (!columns.length) {
+        if (mainScreenState.focusedColumnIndex !== -1) errors.push("empty-focus");
+    } else if (mainScreenState.focusedColumnIndex < 0 ||
+            mainScreenState.focusedColumnIndex >= columns.length) {
+        errors.push(`focus-index:${mainScreenState.focusedColumnIndex}`);
+    }
+
+    const maximumOffset = Math.max(0, stripWidth() -
+        (mainScreenState.safeRect ? mainScreenState.safeRect.width : 0));
+    if (mainScreenState.scrollOffsetX < 0 ||
+            mainScreenState.scrollOffsetX > maximumOffset) {
+        errors.push(`scroll-offset:${mainScreenState.scrollOffsetX}:${maximumOffset}`);
+    }
+
+    const presentation = mainScreenState.presentation;
+    if (presentation.mode === PRESENTATION_NORMAL) {
+        if (presentation.windowUuid) errors.push("normal-with-target");
+    } else {
+        const presentedIndex = columns.findIndex(column =>
+            normalizeWindowUuid(column.window.internalId) === presentation.windowUuid);
+        if (presentedIndex < 0) errors.push(`missing-presentation:${presentation.windowUuid}`);
+        if (presentedIndex >= 0 && presentedIndex !== mainScreenState.focusedColumnIndex) {
+            errors.push(`presentation-focus:${presentedIndex}:${mainScreenState.focusedColumnIndex}`);
+        }
+    }
+
+    if (!errors.length) {
+        if (lastInvariantWarning) {
+            debug(`[cc-stability] RECOVERED epoch=${epoch} reason=${reason}`);
+        }
+        lastInvariantWarning = "";
+        return true;
+    }
+
+    const signature = errors.join(",");
+    if (signature !== lastInvariantWarning) {
+        warn(`[cc-stability] INVARIANT epoch=${epoch} reason=${reason}` +
+            ` errors=${signature}`);
+        lastInvariantWarning = signature;
+    }
+    return false;
+}
+
+function endLayoutTransaction(reason, epoch) {
+    layoutTransactionDepth = Math.max(0, layoutTransactionDepth - 1);
+    if (layoutTransactionDepth !== 0) return;
+    validateLayoutInvariants(reason, epoch);
+    debug(`[cc-stability] END epoch=${epoch} reason=${activeLayoutReason}`);
+    activeLayoutReason = "";
+}
+
 /* The only geometry writer for windows managed by the scrolling layout. */
-function relayout(reason, scrollOffsets) {
+function relayoutImpl(reason, scrollOffsets) {
     if (!mainScreenState.enabled || !mainScreenState.columns.length) return;
     refreshMainScreenState();
     if (!mainScreenState.safeRect) return;
@@ -729,6 +825,15 @@ function relayout(reason, scrollOffsets) {
                 ` parkingX=${placement.rect.x} output=${outputName}`);
         }
     });
+}
+
+function relayout(reason, scrollOffsets) {
+    const epoch = beginLayoutTransaction(reason);
+    try {
+        relayoutImpl(reason, scrollOffsets);
+    } finally {
+        endLayoutTransaction(reason, epoch);
+    }
 }
 
 function columnIndexForWindow(window) {
@@ -1127,6 +1232,11 @@ function retryPendingWindowAdoption(window, reason) {
 
 function onWindowActivatedForScrollLayout(window) {
     if (!window) return;
+    if (layoutTransactionDepth > 0) {
+        debug(`[cc-stability] SUPPRESS activation epoch=${layoutEpoch}` +
+            ` caption=${window.caption}`);
+        return;
+    }
     if (lastShortcutFloatingWindow &&
             Date.now() <= floatingFocusGuardUntil &&
             states.has(lastShortcutFloatingWindow) &&
@@ -1679,7 +1789,9 @@ function setupWindow(window) {
     window.outputChanged.connect(() => onOutputChanged(window));
     window.fullScreenChanged.connect(() => onFullScreenChanged(window));
     window.activeChanged.connect(() => {
-        if (window.active) retryPendingWindowAdoption(window, "active-changed");
+        if (window.active && layoutTransactionDepth === 0) {
+            retryPendingWindowAdoption(window, "active-changed");
+        }
     });
     window.readyForPaintingChanged.connect(() => {
         retryPendingWindowAdoption(window, "ready-for-painting");
