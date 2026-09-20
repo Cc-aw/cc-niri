@@ -16,7 +16,16 @@ const COLUMN_WIDTH_TWO_THIRDS = "twoThirds";
 const PARKING_MARGIN = 4096;
 const FLOATING_FOCUS_GUARD_MS = 1200;
 const FLOATING_REATTACH_GRACE_MS = 10000;
-const STARTUP_RESTORE_GRACE_MS = 5000;
+const ADOPTION_UNTRACKED = "untracked";
+const ADOPTION_WAITING_ACTIVATION = "waiting-activation";
+const ADOPTION_WAITING_PRIMARY = "waiting-primary";
+const ADOPTION_WAITING_ELIGIBLE = "waiting-eligible";
+const ADOPTION_WAITING_NORMAL = "waiting-normal";
+const ADOPTION_ADOPTING = "adopting";
+const ADOPTION_SETTLING = "settling";
+const ADOPTION_MANAGED = "managed";
+const ADOPTION_FLOATING = "floating";
+const ADOPTION_IGNORED = "ignored";
 const DOCK_BRIDGE_SERVICE = "org.cc.ScrollDockBridge";
 const DOCK_BRIDGE_PATH = "/ScrollDock";
 const DOCK_BRIDGE_INTERFACE = "org.cc.ScrollDockBridge1";
@@ -25,7 +34,6 @@ const dockSessionId = `${Date.now().toString(16)}-` +
 let dockGeneration = 0;
 
 const states = new Map();
-const pendingNewWindows = new Set();
 const mainScreenState = {
     targetOutput: null,
     safeRect: null,
@@ -66,7 +74,6 @@ let layoutTransactionDepth = 0;
 let layoutEpoch = 0;
 let activeLayoutReason = "";
 let lastInvariantWarning = "";
-const startupRestoreDeadline = Date.now() + STARTUP_RESTORE_GRACE_MS;
 
 function debug(message) {
     if (debugLogging) console.info(`${TAG} ${message}`);
@@ -759,8 +766,12 @@ function validateLayoutInvariants(reason, epoch) {
             errors.push(`invalid-width:${column.id}:${column.pixelWidth}`);
         }
         const windowState = states.get(column.window);
+        const adoptionOwnsColumn = windowState &&
+            (windowState.adoptionPhase === ADOPTION_MANAGED ||
+             windowState.adoptionPhase === ADOPTION_SETTLING);
         if (!windowState || !windowState.managedByScrollLayout ||
-                windowState.columnId !== column.id || windowState.floating) {
+                windowState.columnId !== column.id || windowState.floating ||
+                !adoptionOwnsColumn) {
             errors.push(`state-ownership:${column.id}`);
         }
         if (mainScreenState.targetOutput &&
@@ -1069,6 +1080,7 @@ function addColumnAt(window, insertionIndex, reason) {
     windowState.managedByScrollLayout = true;
     windowState.columnId = column.id;
     windowState.floating = false;
+    windowState.adoptionPhase = ADOPTION_MANAGED;
     const index = Math.max(0, Math.min(
         Number(insertionIndex),
         mainScreenState.columns.length
@@ -1159,6 +1171,9 @@ function removeColumn(window, reason, activateSuccessor = true) {
     if (windowState) {
         windowState.managedByScrollLayout = false;
         windowState.columnId = null;
+        windowState.adoptionPhase = windowState.floating
+            ? ADOPTION_FLOATING
+            : ADOPTION_UNTRACKED;
     }
     if (!mainScreenState.columns.length) {
         mainScreenState.focusedColumnIndex = -1;
@@ -1213,6 +1228,9 @@ function removeColumn(window, reason, activateSuccessor = true) {
 }
 
 function initializeScrollLayout() {
+    /* This immutable startup snapshot is the only path allowed to adopt an
+     * inactive window. Anything arriving later through windowAdded follows
+     * the runtime state machine and waits for its first activation. */
     refreshMainScreenState();
     if (!mainScreenState.enabled || !mainScreenState.targetOutput) return;
     workspace.windowList().filter(window =>
@@ -1280,36 +1298,49 @@ function adoptNewWindowAsColumn(window, reason, focusNew = true) {
     return true;
 }
 
-function retryPendingWindowAdoption(window, reason) {
-    if (!window || !pendingNewWindows.has(window)) return false;
-    let index = columnIndexForWindow(window);
-    if (index < 0) {
-        /* A freshly launched window commonly emits readyForPainting/windowShown
-         * just before KWin grants activation. Adopting it as an inactive
-         * restore window here would append and park it before that activation
-         * can happen. Only allow inactive event-by-event adoption during the
-         * short login/session-restore window; later windows wait for their
-         * first activation and are then inserted beside the focused Column. */
-        if (!window.active && Date.now() > startupRestoreDeadline) {
-            debug(`[cc-scroll] ADOPT_WAIT_ACTIVE caption=${window.caption}` +
-                ` reason=${reason}`);
-            return false;
-        }
-        if (!adoptNewWindowAsColumn(window, reason, window.active)) return false;
-        index = columnIndexForWindow(window);
+function setAdoptionPhase(window, windowState, phase, reason) {
+    const previous = windowState.adoptionPhase;
+    windowState.adoptionPhase = phase;
+    windowState.adoptionLastEvent = reason;
+    if (previous !== phase) {
+        debug(`[cc-adoption] PHASE ${previous}->${phase}` +
+            ` caption=${window.caption} reason=${reason}`);
     }
-    if (index < 0) return false;
+}
 
-    /* Session-restored windows are commonly mapped while inactive. They must
-     * still join columns[]; only the active new-window path changes focus and
-     * requests a visible slot. */
+function adoptionWaitPhase(window, windowState) {
+    if (isPlasmaShellWindow(window)) return ADOPTION_IGNORED;
+    if (windowState.floating) return ADOPTION_FLOATING;
+    if (!mainScreenState.enabled || !mainScreenState.targetOutput ||
+            window.output !== mainScreenState.targetOutput) {
+        return ADOPTION_WAITING_PRIMARY;
+    }
+    if (window.fullScreen || isLayoutMode(windowState.layoutMode) ||
+            Number(window.maximizeMode) === FULL_MAXIMIZE_MODE ||
+            isTileMode(detectQuickTileMode(window))) {
+        return ADOPTION_WAITING_NORMAL;
+    }
+    if (!scrollEligible(window)) return ADOPTION_WAITING_ELIGIBLE;
+    if (!window.active) return ADOPTION_WAITING_ACTIVATION;
+    return null;
+}
+
+function settleAdoptedWindow(window, windowState, reason) {
+    const index = columnIndexForWindow(window);
+    if (index < 0) {
+        setAdoptionPhase(
+            window,
+            windowState,
+            ADOPTION_WAITING_ELIGIBLE,
+            `${reason}-missing-column`
+        );
+        return false;
+    }
     if (!window.active) {
-        pendingNewWindows.delete(window);
-        debug(`[cc-scroll] ADOPT_SETTLED_INACTIVE column=${
-            mainScreenState.columns[index].id} caption=${window.caption}`);
+        setAdoptionPhase(window, windowState, ADOPTION_MANAGED,
+            `${reason}-inactive-after-adopt`);
         return true;
     }
-
     const column = mainScreenState.columns[index];
     const oldScrollOffsetX = mainScreenState.scrollOffsetX;
     mainScreenState.focusedColumnIndex = index;
@@ -1325,15 +1356,64 @@ function retryPendingWindowAdoption(window, reason) {
 
     const expected = projectedRectForColumn(column);
     if (isFullyVisibleInSafeRect(expected) && sameRect(window.frameGeometry, expected)) {
-        pendingNewWindows.delete(window);
+        setAdoptionPhase(window, windowState, ADOPTION_MANAGED, reason);
         debug(`[cc-scroll] ADOPT_SETTLED column=${column.id}` +
             ` caption=${window.caption} geometry=${rectText(window.frameGeometry)}`);
         return true;
     }
+    setAdoptionPhase(window, windowState, ADOPTION_SETTLING, reason);
     debug(`[cc-scroll] ADOPT_PENDING column=${column.id}` +
         ` caption=${window.caption} actual=${rectText(window.frameGeometry)}` +
         ` expected=${rectText(expected)} reason=${reason}`);
     return false;
+}
+
+function advanceWindowAdoption(window, reason) {
+    if (!window || !states.has(window)) return false;
+    const windowState = stateFor(window);
+    if (windowState.adoptionPhase === ADOPTION_MANAGED) {
+        return columnIndexForWindow(window) >= 0;
+    }
+    if (windowState.adoptionPhase === ADOPTION_FLOATING ||
+            windowState.adoptionPhase === ADOPTION_IGNORED) return false;
+    if (windowState.adoptionPhase === ADOPTION_SETTLING &&
+            columnIndexForWindow(window) >= 0) {
+        return settleAdoptedWindow(window, windowState, reason);
+    }
+    if (windowState.adoptionPhase === ADOPTION_UNTRACKED) return false;
+
+    refreshMainScreenState();
+    const waitPhase = adoptionWaitPhase(window, windowState);
+    if (waitPhase) {
+        setAdoptionPhase(window, windowState, waitPhase, reason);
+        return false;
+    }
+
+    setAdoptionPhase(window, windowState, ADOPTION_ADOPTING, reason);
+    windowState.adoptionAttempts += 1;
+    if (!adoptNewWindowAsColumn(window, reason, true)) {
+        setAdoptionPhase(window, windowState, ADOPTION_WAITING_ELIGIBLE,
+            `${reason}-adopt-rejected`);
+        return false;
+    }
+    setAdoptionPhase(window, windowState, ADOPTION_SETTLING, reason);
+    return settleAdoptedWindow(window, windowState, reason);
+}
+
+function beginWindowAdoption(window, origin) {
+    if (!window) return false;
+    const windowState = stateFor(window);
+    if (windowState.managedByScrollLayout || columnIndexForWindow(window) >= 0) {
+        setAdoptionPhase(window, windowState, ADOPTION_MANAGED, origin);
+        return true;
+    }
+    if (windowState.floating) {
+        setAdoptionPhase(window, windowState, ADOPTION_FLOATING, origin);
+        return false;
+    }
+    windowState.adoptionOrigin = origin;
+    setAdoptionPhase(window, windowState, ADOPTION_WAITING_ELIGIBLE, origin);
+    return advanceWindowAdoption(window, origin);
 }
 
 function onWindowActivatedForScrollLayout(window) {
@@ -1352,9 +1432,7 @@ function onWindowActivatedForScrollLayout(window) {
         return;
     }
     if (Date.now() > floatingFocusGuardUntil) floatingFocusGuardUntil = 0;
-    if (pendingNewWindows.has(window)) {
-        retryPendingWindowAdoption(window, "window-activated-after-add");
-    }
+    advanceWindowAdoption(window, "window-activated-after-add");
 
     const index = columnIndexForWindow(window);
     if (index < 0) return;
@@ -1457,10 +1535,10 @@ function detachColumnToFloating(window, reason) {
     const index = columnIndexForWindow(window);
     if (!window || index < 0) return false;
     const windowState = stateFor(window);
-    pendingNewWindows.delete(window);
     /* removeColumn() never writes the removed window's geometry. Mark it as
      * floating before relayout so no concurrent signal can re-adopt it. */
     windowState.floating = true;
+    setAdoptionPhase(window, windowState, ADOPTION_FLOATING, reason);
     removeColumn(window, reason, false);
     if (window.minimized) window.minimized = false;
     if (workspace.activeWindow !== window) workspace.activeWindow = window;
@@ -1485,9 +1563,10 @@ function attachFloatingToColumns(window, reason) {
         return false;
     }
     windowState.floating = false;
-    pendingNewWindows.delete(window);
     if (!adoptNewWindowAsColumn(window, reason, true)) {
         windowState.floating = true;
+        setAdoptionPhase(window, windowState, ADOPTION_FLOATING,
+            `${reason}-rollback`);
         return false;
     }
     debug(`[cc-scroll] MANAGE caption=${window.caption}` +
@@ -1603,6 +1682,10 @@ function stateFor(window) {
             managedByScrollLayout: false,
             columnId: null,
             floating: false,
+            adoptionPhase: ADOPTION_UNTRACKED,
+            adoptionOrigin: "",
+            adoptionLastEvent: "",
+            adoptionAttempts: 0,
             temporarilyMaximized: false,
             temporarilyQuickTiled: false,
             scrollOriginalOpacity: currentOpacity > 0 ? currentOpacity : 1,
@@ -1688,8 +1771,11 @@ function leavePseudoMaximize(window, state, reason) {
 function onFrameGeometryChanged(window, oldGeometry) {
     const state = stateFor(window);
     if (state.internalChange || state.interactiveMoveResize || window.fullScreen) return;
-    if (pendingNewWindows.has(window) && window.active) {
-        retryPendingWindowAdoption(window, "pending-geometry-changed");
+    if (window.active && state.adoptionPhase !== ADOPTION_UNTRACKED &&
+            state.adoptionPhase !== ADOPTION_MANAGED &&
+            state.adoptionPhase !== ADOPTION_FLOATING &&
+            state.adoptionPhase !== ADOPTION_IGNORED) {
+        advanceWindowAdoption(window, "pending-geometry-changed");
         return;
     }
     const detectedMode = detectQuickTileMode(window);
@@ -1749,6 +1835,7 @@ function applyDetectedTile(window, signalName) {
         }
         debug(`RESTORE ${window.caption} reason=${signalName}-untile` +
             ` geometry=${rectText(window.frameGeometry)}`);
+        advanceWindowAdoption(window, `${signalName}-untile`);
     }
 }
 
@@ -1808,6 +1895,7 @@ function onMaximizedChanged(window) {
     } else if (action === "nativeRestore") {
         clearLayoutState(state);
     }
+    advanceWindowAdoption(window, `maximize-${action}`);
 }
 
 function onOutputChanged(window) {
@@ -1817,13 +1905,20 @@ function onOutputChanged(window) {
     if (columnIndexForWindow(window) >= 0 && window.output !== primary) {
         if (mainScreenState.presentation.windowUuid ===
                 normalizeWindowUuid(window.internalId)) clearPresentationState();
-        pendingNewWindows.delete(window);
         removeColumn(window, "output-left-primary", false);
+        setAdoptionPhase(window, state, ADOPTION_WAITING_PRIMARY,
+            "output-left-primary");
         debug(`[cc-scroll] LEAVE_PRIMARY caption=${window.caption}` +
             ` output=${window.output ? window.output.name : "<none>"}`);
         return;
     }
-    if (window.output !== primary) pendingNewWindows.delete(window);
+    if (window.output !== primary &&
+            state.adoptionPhase !== ADOPTION_UNTRACKED &&
+            state.adoptionPhase !== ADOPTION_FLOATING &&
+            state.adoptionPhase !== ADOPTION_IGNORED) {
+        setAdoptionPhase(window, state, ADOPTION_WAITING_PRIMARY,
+            "output-wait-primary");
+    }
     const profile = profileForOutput(window.output);
     translateRestoreGeometry(state, window.output);
     if (profile) {
@@ -1832,8 +1927,12 @@ function onOutputChanged(window) {
             applyLayoutGeometry(window, state, MAXIMIZE_MODE, "output-adopt-maximize");
         } else if (isTileMode(detectQuickTileMode(window))) {
             applyDetectedTile(window, "output-adopt-tile");
-        } else if (!pendingNewWindows.has(window)) {
-            adoptNewWindowAsColumn(window, "output-entered-primary");
+        } else if (window.output === primary) {
+            if (state.adoptionPhase === ADOPTION_UNTRACKED) {
+                beginWindowAdoption(window, "output-entered-primary");
+            } else {
+                advanceWindowAdoption(window, "output-entered-primary");
+            }
         }
         return;
     }
@@ -1872,6 +1971,8 @@ function onFullScreenChanged(window) {
         relayout("fullscreen-exit");
     } else if (onManagedOutput(window) && isLayoutMode(prior)) {
         applyLayoutGeometry(window, state, prior, "fullscreen-exit");
+    } else {
+        advanceWindowAdoption(window, "fullscreen-exit");
     }
 }
 
@@ -1901,15 +2002,15 @@ function setupWindow(window) {
     window.fullScreenChanged.connect(() => onFullScreenChanged(window));
     window.activeChanged.connect(() => {
         if (window.active && layoutTransactionDepth === 0) {
-            retryPendingWindowAdoption(window, "active-changed");
+            advanceWindowAdoption(window, "active-changed");
         }
     });
     window.readyForPaintingChanged.connect(() => {
-        retryPendingWindowAdoption(window, "ready-for-painting");
+        advanceWindowAdoption(window, "ready-for-painting");
     });
     if (window.windowShown) {
         window.windowShown.connect(() => {
-            retryPendingWindowAdoption(window, "window-shown");
+            advanceWindowAdoption(window, "window-shown");
         });
     }
     window.interactiveMoveResizeStarted.connect(() => onInteractiveMoveResizeStarted(window));
@@ -1917,7 +2018,6 @@ function setupWindow(window) {
         stateFor(window).interactiveMoveResize = false;
     });
     window.closed.connect(() => {
-        pendingNewWindows.delete(window);
         removeColumn(window, "window-closed");
         states.delete(window);
     });
@@ -1972,9 +2072,8 @@ function onScreensChanged() {
 loadConfig();
 workspace.windowList().forEach(setupWindow);
 workspace.windowAdded.connect(window => {
-    pendingNewWindows.add(window);
     setupWindow(window);
-    if (window.active) retryPendingWindowAdoption(window, "window-added-active");
+    beginWindowAdoption(window, "window-added");
 });
 workspace.windowActivated.connect(onWindowActivatedForScrollLayout);
 workspace.screensChanged.connect(onScreensChanged);

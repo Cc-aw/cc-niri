@@ -288,19 +288,19 @@ const setupSource = mainSource.slice(
     mainSource.indexOf("function reapplyManagedLayouts")
 );
 assert.ok(setupSource.includes(
-    'retryPendingWindowAdoption(window, "ready-for-painting")'),
-"inactive restored windows must retry adoption when ready for painting");
+    'advanceWindowAdoption(window, "ready-for-painting")'),
+"new windows re-evaluate eligibility when ready for painting");
 assert.ok(setupSource.includes(
-    'retryPendingWindowAdoption(window, "window-shown")'),
-"inactive restored windows must retry adoption when shown");
+    'advanceWindowAdoption(window, "window-shown")'),
+"new windows re-evaluate eligibility when shown");
 const retrySource = mainSource.slice(
-    mainSource.indexOf("function retryPendingWindowAdoption"),
+    mainSource.indexOf("function advanceWindowAdoption"),
     mainSource.indexOf("function onWindowActivatedForScrollLayout")
 );
-assert.ok(retrySource.includes("Date.now() > startupRestoreDeadline"),
+assert.ok(mainSource.includes("ADOPTION_WAITING_ACTIVATION"),
     "runtime windows wait for activation instead of being parked as restores");
-assert.ok(mainSource.includes("STARTUP_RESTORE_GRACE_MS = 5000"),
-    "only the bounded login restore phase may silently append inactive windows");
+assert.ok(!mainSource.includes("STARTUP_RESTORE_GRACE_MS"),
+    "window adoption does not depend on a startup timing heuristic");
 const outputSource = mainSource.slice(
     mainSource.indexOf("function onOutputChanged"),
     mainSource.indexOf("function onFullScreenChanged")
@@ -326,4 +326,4 @@ assert.ok(visibilitySource.includes("windowState.scrollParkingMinimized"),
 assert.ok(mainSource.includes(
     'placement.kind === "visible" && windowState.scrollVisuallyHidden'
 ), "a returning window is positioned before it is shown");
-console.log("PASS V3 session restore adopts inactive windows and removes primary departures");
+console.log("PASS V3 deterministic runtime adoption and primary-output departures");
