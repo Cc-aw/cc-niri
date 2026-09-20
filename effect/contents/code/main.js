@@ -133,24 +133,30 @@ class CCNiriScrollTransition {
                 duration: this.presentationDuration,
                 curve: QEasingCurve.OutCubic,
                 animations: [{
-                    type: Effect.Size,
+                    /* Size/Position animations interfere with scripted real
+                     * geometry changes on KWin 6.7.5 and can leave a Wide
+                     * window physically at its old 50% width. Scale and
+                     * Translation are paint-only and keep geometry authoritative. */
+                    type: Effect.Scale,
                     from: {
-                        value1: oldGeometry.width,
-                        value2: oldGeometry.height
+                        value1: oldGeometry.width / newGeometry.width,
+                        value2: oldGeometry.height / newGeometry.height
                     },
                     to: {
-                        value1: newGeometry.width,
-                        value2: newGeometry.height
+                        value1: 1,
+                        value2: 1
                     }
                 }, {
-                    type: Effect.Position,
+                    type: Effect.Translation,
                     from: {
-                        value1: oldGeometry.x + oldGeometry.width / 2,
-                        value2: oldGeometry.y + oldGeometry.height / 2
+                        value1: oldGeometry.x + oldGeometry.width / 2 -
+                            (newGeometry.x + newGeometry.width / 2),
+                        value2: oldGeometry.y + oldGeometry.height / 2 -
+                            (newGeometry.y + newGeometry.height / 2)
                     },
                     to: {
-                        value1: newGeometry.x + newGeometry.width / 2,
-                        value2: newGeometry.y + newGeometry.height / 2
+                        value1: 0,
+                        value2: 0
                     }
                 }]
             });

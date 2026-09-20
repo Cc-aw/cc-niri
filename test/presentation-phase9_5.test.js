@@ -81,8 +81,17 @@ const focusSource = mainSource.slice(
     mainSource.indexOf("function focusRelativeColumn"),
     mainSource.indexOf("function moveFocusedColumn")
 );
-assert.ok(focusSource.includes("clearPresentationState()"),
-    "H/L clears a previous presentation before focusing a neighbor");
+assert.ok(focusSource.includes("relayoutFocusedColumnTransition("),
+    "H/L uses the shared persistent Wide transition path");
+assert.ok(mainSource.includes("persistentWide: false"),
+    "Wide is stored as a per-Column property");
+assert.ok(mainSource.includes("if (column && column.persistentWide)"),
+    "returning to a fixed Wide Column automatically isolates it again");
+assert.ok(mainSource.includes('`${reason}-reveal-wide`') &&
+    mainSource.includes('`${reason}-enter-wide`'),
+    "entering Wide reveals the 50% slot before expanding to 72%");
+assert.ok(wideShortcutSource.includes(".persistentWide"),
+    "Meta+Z toggles the Column property rather than transient focus state");
 
 const reorderSource = mainSource.slice(
     mainSource.indexOf("function moveFocusedColumn"),
@@ -98,9 +107,16 @@ assert.ok(effectSource.includes("presentationTransition(oldGeometry, newGeometry
     "the effect recognizes Column to Focus Wide geometry changes");
 assert.ok(effectSource.includes("Math.abs(oldGeometry.height - newGeometry.height)"),
     "new-window adoption is not mistaken for a Focus Wide transition");
-assert.ok(effectSource.includes("type: Effect.Size") &&
-    effectSource.includes("type: Effect.Position"),
-    "Focus Wide animates both size and center position");
+assert.ok(effectSource.includes("type: Effect.Scale") &&
+    effectSource.includes("type: Effect.Translation"),
+    "Focus Wide uses paint-only scale and center translation");
+const presentationEffectSource = effectSource.slice(
+    effectSource.indexOf("if (this.presentationTransition"),
+    effectSource.indexOf("if (!this.sameSize")
+);
+assert.ok(!presentationEffectSource.includes("type: Effect.Size"));
+assert.ok(!presentationEffectSource.includes("type: Effect.Position"),
+    "presentation animation cannot intercept authoritative geometry resize");
 assert.ok(effectSource.indexOf("this.presentationTransition(oldGeometry, newGeometry") <
     effectSource.indexOf("if (!this.sameSize(oldGeometry, newGeometry)) return;"),
     "size-changing presentation transitions are handled before scroll filtering");

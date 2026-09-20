@@ -174,29 +174,25 @@ function applyPendingDockCommand() {
                     return;
                 }
 
-                const presentationCleared =
-                    mainScreenState.presentation.mode !== PRESENTATION_NORMAL &&
-                    mainScreenState.presentation.windowUuid !== windowUuid;
-                if (presentationCleared) clearPresentationState();
                 const oldScrollOffsetX = mainScreenState.scrollOffsetX;
                 mainScreenState.focusedColumnIndex = index;
                 recomputeLogicalLayout();
-                if (mainScreenState.presentation.mode === PRESENTATION_NORMAL) {
-                    mainScreenState.scrollOffsetX =
-                        column.logicalX + column.pixelWidth - mainScreenState.safeRect.width;
-                    clampScrollOffset();
-                }
+                mainScreenState.scrollOffsetX =
+                    column.logicalX + column.pixelWidth - mainScreenState.safeRect.width;
+                clampScrollOffset();
                 const newScrollOffsetX = mainScreenState.scrollOffsetX;
-                relayout("dock-focus-right", {
+                const presentationChanged = relayoutFocusedColumnTransition(
+                    column,
+                    "dock-focus-right",
                     oldScrollOffsetX,
-                    newScrollOffsetX,
-                });
+                    newScrollOffsetX
+                );
                 if (column.window.minimized) column.window.minimized = false;
                 workspace.activeWindow = column.window;
                 debug(`[cc-dock] FOCUS_RIGHT index=${index}` +
                     ` old=${oldScrollOffsetX} new=${newScrollOffsetX}` +
                     ` caption=${column.window.caption}`);
-                if (presentationCleared) commitDockState("dock-focus-right-clear-presentation");
+                if (presentationChanged) commitDockState("dock-focus-right-presentation");
                 else publishDockState("dock-focus-right");
                 return;
             }
@@ -755,6 +751,55 @@ function clearPresentationState() {
     mainScreenState.presentation.mode = PRESENTATION_NORMAL;
 }
 
+function selectPersistentPresentation(column) {
+    const oldWindowUuid = mainScreenState.presentation.windowUuid;
+    const oldMode = mainScreenState.presentation.mode;
+    clearPresentationState();
+    if (column && column.persistentWide) {
+        mainScreenState.presentation.windowUuid =
+            normalizeWindowUuid(column.window.internalId);
+        mainScreenState.presentation.mode = PRESENTATION_WIDE;
+    }
+    return oldWindowUuid !== mainScreenState.presentation.windowUuid ||
+        oldMode !== mainScreenState.presentation.mode;
+}
+
+function relayoutFocusedColumnTransition(column, reason, oldScrollOffsetX,
+        newScrollOffsetX) {
+    const oldWindowUuid = mainScreenState.presentation.windowUuid;
+    const oldMode = mainScreenState.presentation.mode;
+    const columnUuid = column
+        ? normalizeWindowUuid(column.window.internalId)
+        : null;
+    const alreadySelectedWide = Boolean(column && column.persistentWide &&
+        oldMode === PRESENTATION_WIDE && oldWindowUuid === columnUuid);
+
+    if (column && column.persistentWide && !alreadySelectedWide) {
+        /* Reveal the destination through the normal 50% logical strip first.
+         * The following paint-only half->wide transition then starts at the
+         * correct Column slot instead of making a parked Wide window pop in. */
+        clearPresentationState();
+        relayout(`${reason}-reveal-wide`, {
+            oldScrollOffsetX,
+            newScrollOffsetX,
+        });
+        selectPersistentPresentation(column);
+        relayout(`${reason}-enter-wide`, {
+            oldScrollOffsetX: newScrollOffsetX,
+            newScrollOffsetX,
+        });
+    } else {
+        selectPersistentPresentation(column);
+        relayout(reason, {
+            oldScrollOffsetX,
+            newScrollOffsetX,
+        });
+    }
+
+    return oldWindowUuid !== mainScreenState.presentation.windowUuid ||
+        oldMode !== mainScreenState.presentation.mode;
+}
+
 function setPresentationMode(windowUuid, mode, reason) {
     if (!isPresentationMode(mode)) return false;
     const normalizedUuid = normalizeWindowUuid(windowUuid);
@@ -777,9 +822,11 @@ function setPresentationMode(windowUuid, mode, reason) {
     }
 
     if (mode === PRESENTATION_NORMAL) {
+        column.persistentWide = false;
         mainScreenState.presentation.windowUuid = null;
         mainScreenState.presentation.mode = PRESENTATION_NORMAL;
     } else {
+        if (mode === PRESENTATION_WIDE) column.persistentWide = true;
         mainScreenState.presentation.windowUuid = normalizedUuid;
         mainScreenState.presentation.mode = mode;
         if (mode === PRESENTATION_MAXIMIZED) {
@@ -813,6 +860,7 @@ function addColumnAt(window, insertionIndex, reason) {
         id: mainScreenState.nextColumnId++,
         window,
         widthMode: COLUMN_WIDTH_HALF,
+        persistentWide: false,
         logicalX: 0,
         pixelWidth: 0,
     };
@@ -1052,20 +1100,17 @@ function retryPendingWindowAdoption(window, reason) {
     }
 
     const column = mainScreenState.columns[index];
-    if (mainScreenState.presentation.mode !== PRESENTATION_NORMAL &&
-            mainScreenState.presentation.windowUuid !==
-                normalizeWindowUuid(window.internalId)) {
-        clearPresentationState();
-    }
     const oldScrollOffsetX = mainScreenState.scrollOffsetX;
     mainScreenState.focusedColumnIndex = index;
     recomputeLogicalLayout();
     ensureColumnVisible(column);
     const newScrollOffsetX = mainScreenState.scrollOffsetX;
-    relayout(`${reason}-settle`, {
+    relayoutFocusedColumnTransition(
+        column,
+        `${reason}-settle`,
         oldScrollOffsetX,
-        newScrollOffsetX,
-    });
+        newScrollOffsetX
+    );
 
     const expected = projectedRectForColumn(column);
     if (isFullyVisibleInSafeRect(expected) && sameRect(window.frameGeometry, expected)) {
@@ -1097,21 +1142,26 @@ function onWindowActivatedForScrollLayout(window) {
 
     const index = columnIndexForWindow(window);
     if (index < 0) return;
-    const presentationCleared = mainScreenState.presentation.mode !== PRESENTATION_NORMAL &&
-        mainScreenState.presentation.windowUuid !== normalizeWindowUuid(window.internalId);
-    if (presentationCleared) clearPresentationState();
-    if (index === mainScreenState.focusedColumnIndex && !presentationCleared) return;
+    const column = mainScreenState.columns[index];
+    const windowUuid = normalizeWindowUuid(window.internalId);
+    const presentationMatches = column.persistentWide
+        ? mainScreenState.presentation.mode === PRESENTATION_WIDE &&
+            mainScreenState.presentation.windowUuid === windowUuid
+        : mainScreenState.presentation.mode === PRESENTATION_NORMAL;
+    if (index === mainScreenState.focusedColumnIndex && presentationMatches) return;
     const oldScrollOffsetX = mainScreenState.scrollOffsetX;
     mainScreenState.focusedColumnIndex = index;
     recomputeLogicalLayout();
-    ensureColumnVisible(mainScreenState.columns[index]);
+    ensureColumnVisible(column);
     const newScrollOffsetX = mainScreenState.scrollOffsetX;
-    relayout("window-activated", {
+    const presentationChanged = relayoutFocusedColumnTransition(
+        column,
+        "window-activated",
         oldScrollOffsetX,
-        newScrollOffsetX,
-    });
+        newScrollOffsetX
+    );
     debug(`[cc-scroll] FOCUS_ACTIVE index=${index} caption=${window.caption}`);
-    if (presentationCleared) commitDockState("focus-cleared-presentation");
+    if (presentationChanged) commitDockState("focus-selected-presentation");
     else publishDockState("window-activated");
 }
 
@@ -1124,18 +1174,18 @@ function focusRelativeColumn(delta) {
     const nextIndex = Math.max(0, Math.min(columns.length - 1, oldIndex + delta));
     if (nextIndex === oldIndex) return;
 
-    const presentationCleared = mainScreenState.presentation.mode !== PRESENTATION_NORMAL;
-    if (presentationCleared) clearPresentationState();
     mainScreenState.focusedColumnIndex = nextIndex;
     const column = columns[nextIndex];
     recomputeLogicalLayout();
     const oldScrollOffsetX = mainScreenState.scrollOffsetX;
     ensureColumnVisible(column);
     const newScrollOffsetX = mainScreenState.scrollOffsetX;
-    relayout(delta < 0 ? "focus-previous" : "focus-next", {
+    const presentationChanged = relayoutFocusedColumnTransition(
+        column,
+        delta < 0 ? "focus-previous" : "focus-next",
         oldScrollOffsetX,
-        newScrollOffsetX,
-    });
+        newScrollOffsetX
+    );
     /*
      * Never activate a window while its real geometry is still in the
      * off-screen parking area. KWin may compose one activation frame before
@@ -1144,9 +1194,9 @@ function focusRelativeColumn(delta) {
      */
     workspace.activeWindow = column.window;
     debug(`[cc-scroll] FOCUS from=${oldIndex} to=${nextIndex}`);
-    if (presentationCleared) {
-        commitDockState(delta < 0 ? "focus-previous-clear-presentation" :
-            "focus-next-clear-presentation");
+    if (presentationChanged) {
+        commitDockState(delta < 0 ? "focus-previous-presentation" :
+            "focus-next-presentation");
     } else {
         publishDockState(delta < 0 ? "focus-previous" : "focus-next");
     }
@@ -1157,8 +1207,7 @@ function toggleFocusWide(window) {
     if (!window || index < 0 || window.output !== mainScreenState.targetOutput ||
             window.fullScreen) return;
     const windowUuid = normalizeWindowUuid(window.internalId);
-    const alreadyWide = mainScreenState.presentation.mode === PRESENTATION_WIDE &&
-        mainScreenState.presentation.windowUuid === windowUuid;
+    const alreadyWide = mainScreenState.columns[index].persistentWide;
     setPresentationMode(
         windowUuid,
         alreadyWide ? PRESENTATION_NORMAL : PRESENTATION_WIDE,
@@ -1518,9 +1567,12 @@ function onMaximizedChanged(window) {
         return;
     }
     if (managedColumn && action === "leaveMaximize") {
+        const column = mainScreenState.columns[columnIndexForWindow(window)];
         setPresentationMode(
             normalizeWindowUuid(window.internalId),
-            PRESENTATION_NORMAL,
+            column && column.persistentWide
+                ? PRESENTATION_WIDE
+                : PRESENTATION_NORMAL,
             "native-restore"
         );
         return;
