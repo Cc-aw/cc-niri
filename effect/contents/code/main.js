@@ -17,6 +17,7 @@ class CCNiriScrollTransition {
         effect.configChanged.connect(this.loadConfig.bind(this));
         effect.animationEnded.connect(window => {
             if (window.ccNiriScrollAnimation) delete window.ccNiriScrollAnimation;
+            if (window.ccNiriIncomingVisual) delete window.ccNiriIncomingVisual;
         });
         effects.windowAdded.connect(this.manage.bind(this));
         for (const window of effects.stackingOrder) this.manage(window);
@@ -97,6 +98,20 @@ class CCNiriScrollTransition {
               rect.x + rect.width <= screenRect.x + screenRect.width * 0.25));
     }
 
+    incomingVisualStart(rect, translationX, scaleX, anchor, opacity) {
+        const width = rect.width * scaleX;
+        let x = rect.x + (rect.width - width) / 2;
+        if (anchor === "left") x = rect.x;
+        if (anchor === "right") x = rect.x + rect.width - width;
+        return {
+            x: x + translationX,
+            y: rect.y,
+            width,
+            height: rect.height,
+            opacity,
+        };
+    }
+
     debug(message) {
         if (this.debugLogging) {
             console.info(`[cc-niri-scroll-transition] ${message}`);
@@ -124,44 +139,63 @@ class CCNiriScrollTransition {
         const newGeometry = window.geometry;
 
         if (this.presentationTransition(oldGeometry, newGeometry, screenRect)) {
+            /* Returning to a persistent Wide Column produces two synchronous
+             * geometry commits: parked->50% slot, then 50%->72%. KWin cannot
+             * paint between them. Carry the incoming animation's visual start
+             * into the final presentation animation instead of cancelling it
+             * and flashing the already-wide geometry. */
+            const chainedIncoming = window.ccNiriIncomingVisual || null;
+            const sourceGeometry = chainedIncoming || oldGeometry;
             if (window.ccNiriScrollAnimation) {
                 cancel(window.ccNiriScrollAnimation);
                 delete window.ccNiriScrollAnimation;
             }
+            if (window.ccNiriIncomingVisual) delete window.ccNiriIncomingVisual;
+            const presentationAnimations = [{
+                /* Size/Position animations interfere with scripted real
+                 * geometry changes on KWin 6.7.5 and can leave a Wide
+                 * window physically at its old 50% width. Scale and
+                 * Translation are paint-only and keep geometry authoritative. */
+                type: Effect.Scale,
+                from: {
+                    value1: sourceGeometry.width / newGeometry.width,
+                    value2: sourceGeometry.height / newGeometry.height
+                },
+                to: {
+                    value1: 1,
+                    value2: 1
+                }
+            }, {
+                type: Effect.Translation,
+                from: {
+                    value1: sourceGeometry.x + sourceGeometry.width / 2 -
+                        (newGeometry.x + newGeometry.width / 2),
+                    value2: sourceGeometry.y + sourceGeometry.height / 2 -
+                        (newGeometry.y + newGeometry.height / 2)
+                },
+                to: {
+                    value1: 0,
+                    value2: 0
+                }
+            }];
+            if (chainedIncoming) {
+                presentationAnimations.push({
+                    type: Effect.Opacity,
+                    from: chainedIncoming.opacity,
+                    to: 1.0
+                });
+            }
             window.ccNiriScrollAnimation = animate({
                 window,
-                duration: this.presentationDuration,
+                duration: chainedIncoming
+                    ? this.duration + this.presentationDuration
+                    : this.presentationDuration,
                 curve: QEasingCurve.OutCubic,
-                animations: [{
-                    /* Size/Position animations interfere with scripted real
-                     * geometry changes on KWin 6.7.5 and can leave a Wide
-                     * window physically at its old 50% width. Scale and
-                     * Translation are paint-only and keep geometry authoritative. */
-                    type: Effect.Scale,
-                    from: {
-                        value1: oldGeometry.width / newGeometry.width,
-                        value2: oldGeometry.height / newGeometry.height
-                    },
-                    to: {
-                        value1: 1,
-                        value2: 1
-                    }
-                }, {
-                    type: Effect.Translation,
-                    from: {
-                        value1: oldGeometry.x + oldGeometry.width / 2 -
-                            (newGeometry.x + newGeometry.width / 2),
-                        value2: oldGeometry.y + oldGeometry.height / 2 -
-                            (newGeometry.y + newGeometry.height / 2)
-                    },
-                    to: {
-                        value1: 0,
-                        value2: 0
-                    }
-                }]
+                animations: presentationAnimations
             });
             this.clearPendingDelta();
-            this.debug(`PRESENTATION old=${oldGeometry.x},${oldGeometry.y}` +
+            this.debug(`${chainedIncoming ? "PRESENTATION_CHAINED" : "PRESENTATION"}` +
+                ` old=${oldGeometry.x},${oldGeometry.y}` +
                 ` ${oldGeometry.width}x${oldGeometry.height}` +
                 ` new=${newGeometry.x},${newGeometry.y}` +
                 ` ${newGeometry.width}x${newGeometry.height}`);
@@ -185,6 +219,7 @@ class CCNiriScrollTransition {
         }
 
         let animations;
+        let incomingVisual = null;
         if (oldSlot && newSlot) {
             /*
              * Script commits the continuing column first. Both coordinates
@@ -225,6 +260,13 @@ class CCNiriScrollTransition {
                     from: 0.2,
                     to: 1.0
                 }];
+                incomingVisual = this.incomingVisualStart(
+                    newGeometry,
+                    fromX,
+                    0.94,
+                    newSlot === "right" ? "right" : "left",
+                    0.2
+                );
                 this.debug(`INCOMING_UNARMED slot=${newSlot}` +
                     ` newProjectedX=${newGeometry.x}`);
             } else if (this.pendingDeltaX > 0) {
@@ -248,6 +290,13 @@ class CCNiriScrollTransition {
                     from: 0.2,
                     to: 1.0
                 }];
+                incomingVisual = this.incomingVisualStart(
+                    newGeometry,
+                    SAFE_RIGHT_EDGE_SLIDE_X,
+                    0.94,
+                    "right",
+                    0.2
+                );
                 this.debug(`INCOMING_RIGHT_SAFE delta=${this.pendingDeltaX}` +
                     ` newProjectedX=${newGeometry.x}`);
             } else {
@@ -256,6 +305,13 @@ class CCNiriScrollTransition {
                     from: { value1: this.pendingDeltaX, value2: 0 },
                     to: { value1: 0, value2: 0 }
                 }];
+                incomingVisual = this.incomingVisualStart(
+                    newGeometry,
+                    this.pendingDeltaX,
+                    1,
+                    "center",
+                    1
+                );
                 this.debug(`INCOMING delta=${this.pendingDeltaX}` +
                     ` newProjectedX=${newGeometry.x}`);
             }
@@ -292,6 +348,7 @@ class CCNiriScrollTransition {
             return;
         }
 
+        if (incomingVisual) window.ccNiriIncomingVisual = incomingVisual;
         window.ccNiriScrollAnimation = animate({
             window,
             duration: this.duration,

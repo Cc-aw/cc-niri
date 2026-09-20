@@ -5,7 +5,7 @@
         "Description": "Direction-correct transitions for CC Niri scrollable columns",
         "Icon": "preferences-system-windows-effect-slide",
         "Id": "cc-niri-maximize-scroll-transition",
-        "Version": "3.0.0-alpha.8",
+        "Version": "3.0.0-alpha.9",
         "License": "MIT",
         "EnabledByDefault": false,
         "Category": "Appearance"
