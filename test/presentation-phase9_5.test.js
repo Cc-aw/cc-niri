@@ -85,10 +85,10 @@ assert.ok(focusSource.includes("relayoutFocusedColumnTransition("),
     "H/L uses the shared persistent Wide transition path");
 assert.ok(mainSource.includes("persistentWide: false"),
     "Wide is stored as a per-Column property");
-assert.ok(mainSource.includes("if (column && column.persistentWide)"),
+assert.ok(mainSource.includes("if (column && column.persistentWide && !alreadySelectedWide)"),
     "returning to a fixed Wide Column automatically isolates it again");
 assert.ok(mainSource.includes('`${reason}-reveal-wide`') &&
-    mainSource.includes('`${reason}-enter-wide`'),
+    mainSource.includes('`${pending.reason}-enter-wide`'),
     "entering Wide reveals the 50% slot before expanding to 72%");
 assert.ok(wideShortcutSource.includes(".persistentWide"),
     "Meta+Z toggles the Column property rather than transient focus state");

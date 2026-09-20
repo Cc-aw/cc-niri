@@ -16,6 +16,7 @@ public Q_SLOTS:
     QString GetState() const;
     bool RequestReorder(const QString &json);
     bool RequestCommand(const QString &json);
+    bool RequestDeferredCommand(const QString &json, int delayMs);
     bool RequestEmergencyRestore();
     QString TakePendingCommand();
 

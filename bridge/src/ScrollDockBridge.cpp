@@ -4,6 +4,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLoggingCategory>
+#include <QTimer>
 #include <QDateTime>
 #include <QDBusConnection>
 #include <QDBusMessage>
@@ -99,11 +100,15 @@ bool ScrollDockBridge::RequestCommand(const QString &json)
     const bool dockFocusRight = type == QStringLiteral("focus-column-right") &&
         !command.value(QStringLiteral("windowUuid")).toString().isEmpty();
     const bool emergencyRestore = type == QStringLiteral("emergency-restore");
+    const bool completeWide = type == QStringLiteral("complete-wide-transition") &&
+        !command.value(QStringLiteral("windowUuid")).toString().isEmpty() &&
+        !command.value(QStringLiteral("transitionToken")).toString().isEmpty();
     if (command.value(QStringLiteral("protocol")).toInt() != 1 ||
         commandId.isEmpty() ||
         command.value(QStringLiteral("sessionId")).toString().isEmpty() ||
         command.value(QStringLiteral("baseGeneration")).toInteger(-1) < 0 ||
-        (!reorder && !presentation && !dockFocusRight && !emergencyRestore)) {
+        (!reorder && !presentation && !dockFocusRight && !emergencyRestore &&
+         !completeWide)) {
         qCWarning(logBridge) << "rejecting command with invalid schema";
         return false;
     }
@@ -114,6 +119,42 @@ bool ScrollDockBridge::RequestCommand(const QString &json)
     m_lastCommandId = commandId;
     m_pendingCommand = QString::fromUtf8(document.toJson(QJsonDocument::Compact));
     wakeKWinCommandPump();
+    return true;
+}
+
+bool ScrollDockBridge::RequestDeferredCommand(const QString &json, int delayMs)
+{
+    QJsonParseError error;
+    const QJsonDocument document = QJsonDocument::fromJson(json.toUtf8(), &error);
+    if (error.error != QJsonParseError::NoError || !document.isObject()) {
+        qCWarning(logBridge) << "rejecting invalid deferred command JSON"
+                             << error.errorString();
+        return false;
+    }
+
+    const QJsonObject command = document.object();
+    const QString sessionId = command.value(QStringLiteral("sessionId")).toString();
+    const qint64 generation =
+        command.value(QStringLiteral("baseGeneration")).toInteger(-1);
+    if (command.value(QStringLiteral("protocol")).toInt() != 1 ||
+        command.value(QStringLiteral("type")).toString() !=
+            QStringLiteral("complete-wide-transition") ||
+        command.value(QStringLiteral("commandId")).toString().isEmpty() ||
+        sessionId.isEmpty() || sessionId != m_sessionId || generation < 0 ||
+        command.value(QStringLiteral("windowUuid")).toString().isEmpty() ||
+        command.value(QStringLiteral("transitionToken")).toString().isEmpty()) {
+        qCWarning(logBridge) << "rejecting deferred command with invalid schema";
+        return false;
+    }
+
+    const int boundedDelayMs = qBound(16, delayMs, 1000);
+    QTimer::singleShot(boundedDelayMs, this,
+        [this, json, sessionId, generation]() {
+            /* A newer state means that focus or presentation changed while the
+             * reveal was rendering. Do not let the stale timer change it. */
+            if (m_sessionId != sessionId || m_generation != generation) return;
+            RequestCommand(json);
+        });
     return true;
 }
 

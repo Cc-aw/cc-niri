@@ -16,6 +16,7 @@ const COLUMN_WIDTH_TWO_THIRDS = "twoThirds";
 const PARKING_MARGIN = 4096;
 const FLOATING_FOCUS_GUARD_MS = 1200;
 const FLOATING_REATTACH_GRACE_MS = 10000;
+const WIDE_REVEAL_DELAY_MS = 200;
 const ADOPTION_UNTRACKED = "untracked";
 const ADOPTION_WAITING_ACTIVATION = "waiting-activation";
 const ADOPTION_WAITING_PRIMARY = "waiting-primary";
@@ -74,6 +75,8 @@ let layoutTransactionDepth = 0;
 let layoutEpoch = 0;
 let activeLayoutReason = "";
 let lastInvariantWarning = "";
+let pendingWideTransition = null;
+let nextWideTransitionToken = 1;
 
 function debug(message) {
     if (debugLogging) console.info(`${TAG} ${message}`);
@@ -149,7 +152,8 @@ function applyPendingDockCommand() {
                     (command.type !== "set-column-order" &&
                     command.type !== "set-presentation-mode" &&
                     command.type !== "focus-column-right" &&
-                    command.type !== "emergency-restore")) {
+                    command.type !== "emergency-restore" &&
+                    command.type !== "complete-wide-transition")) {
                 rejectDockCommand("invalid-schema");
                 return;
             }
@@ -164,6 +168,11 @@ function applyPendingDockCommand() {
 
             if (command.type === "emergency-restore") {
                 emergencyRestoreAllWindows("bridge-unload");
+                return;
+            }
+
+            if (command.type === "complete-wide-transition") {
+                completePendingWideTransition(command);
                 return;
             }
 
@@ -725,6 +734,7 @@ function emergencyRestoreAllWindows(reason) {
     /* Stop future signal-driven relayout first. This entry point is invoked by
      * install/uninstall before KWin unloads the script instance. */
     mainScreenState.enabled = false;
+    pendingWideTransition = null;
     let restored = 0;
     mainScreenState.columns.forEach((column, index) => {
         if (releaseParkingOwnership(column.window, reason, true, index)) restored += 1;
@@ -977,6 +987,62 @@ function selectPersistentPresentation(column) {
         oldMode !== mainScreenState.presentation.mode;
 }
 
+function completePendingWideTransition(command) {
+    const token = String(command.transitionToken || "");
+    if (!pendingWideTransition || token !== pendingWideTransition.token) return false;
+    const pending = pendingWideTransition;
+    pendingWideTransition = null;
+    const column = mainScreenState.columns.find(item =>
+        normalizeWindowUuid(item.window.internalId) === pending.windowUuid);
+    if (!column || !column.persistentWide ||
+            mainScreenState.columns.indexOf(column) !==
+                mainScreenState.focusedColumnIndex ||
+            column.window.output !== mainScreenState.targetOutput) {
+        debug(`[cc-presentation] DEFERRED_WIDE_CANCEL token=${token}`);
+        return false;
+    }
+
+    selectPersistentPresentation(column);
+    relayout(`${pending.reason}-enter-wide`, {
+        oldScrollOffsetX: mainScreenState.scrollOffsetX,
+        newScrollOffsetX: mainScreenState.scrollOffsetX,
+    });
+    commitDockState(`${pending.reason}-enter-wide`);
+    debug(`[cc-presentation] DEFERRED_WIDE_COMPLETE token=${token}` +
+        ` uuid=${pending.windowUuid}`);
+    return true;
+}
+
+function schedulePersistentWideTransition(column, reason, baseGeneration) {
+    const token = String(nextWideTransitionToken++);
+    const windowUuid = normalizeWindowUuid(column.window.internalId);
+    pendingWideTransition = { token, windowUuid, reason };
+    const command = {
+        protocol: 1,
+        commandId: `${dockSessionId}-wide-${token}`,
+        sessionId: dockSessionId,
+        baseGeneration,
+        type: "complete-wide-transition",
+        transitionToken: token,
+        windowUuid,
+    };
+    callDBus(
+        DOCK_BRIDGE_SERVICE,
+        DOCK_BRIDGE_PATH,
+        DOCK_BRIDGE_INTERFACE,
+        "RequestDeferredCommand",
+        JSON.stringify(command),
+        WIDE_REVEAL_DELAY_MS,
+        accepted => {
+            if (accepted) return;
+            debug(`[cc-presentation] DEFERRED_WIDE_FALLBACK token=${token}`);
+            completePendingWideTransition(command);
+        }
+    );
+    debug(`[cc-presentation] DEFERRED_WIDE_SCHEDULE token=${token}` +
+        ` uuid=${windowUuid} delay=${WIDE_REVEAL_DELAY_MS}`);
+}
+
 function relayoutFocusedColumnTransition(column, reason, oldScrollOffsetX,
         newScrollOffsetX) {
     const oldWindowUuid = mainScreenState.presentation.windowUuid;
@@ -986,21 +1052,29 @@ function relayoutFocusedColumnTransition(column, reason, oldScrollOffsetX,
         : null;
     const alreadySelectedWide = Boolean(column && column.persistentWide &&
         oldMode === PRESENTATION_WIDE && oldWindowUuid === columnUuid);
+    if (pendingWideTransition && pendingWideTransition.windowUuid !== columnUuid) {
+        debug(`[cc-presentation] DEFERRED_WIDE_SUPERSEDE` +
+            ` token=${pendingWideTransition.token} reason=${reason}`);
+        pendingWideTransition = null;
+    }
 
     if (column && column.persistentWide && !alreadySelectedWide) {
-        /* Reveal the destination through the normal 50% logical strip first.
-         * The following paint-only half->wide transition then starts at the
-         * correct Column slot instead of making a parked Wide window pop in. */
+        /* KWin cannot paint between two synchronous geometry commits. Reveal
+         * the real 50% slot now, then let the Bridge request the 72% commit
+         * after the scrolling effect has had time to render. */
         clearPresentationState();
         relayout(`${reason}-reveal-wide`, {
             oldScrollOffsetX,
             newScrollOffsetX,
         });
-        selectPersistentPresentation(column);
-        relayout(`${reason}-enter-wide`, {
-            oldScrollOffsetX: newScrollOffsetX,
-            newScrollOffsetX,
-        });
+        const presentationChangedNow = oldWindowUuid !==
+                mainScreenState.presentation.windowUuid ||
+            oldMode !== mainScreenState.presentation.mode;
+        schedulePersistentWideTransition(
+            column,
+            reason,
+            dockGeneration + (presentationChangedNow ? 1 : 0)
+        );
     } else {
         selectPersistentPresentation(column);
         relayout(reason, {
@@ -1019,6 +1093,8 @@ function setPresentationMode(windowUuid, mode, reason) {
     const column = mainScreenState.columns.find(item =>
         normalizeWindowUuid(item.window.internalId) === normalizedUuid);
     if (!column || column.window.output !== mainScreenState.targetOutput) return false;
+
+    pendingWideTransition = null;
 
     resetPresentedWindowLayoutState();
     const oldScrollOffsetX = mainScreenState.scrollOffsetX;
@@ -1438,10 +1514,12 @@ function onWindowActivatedForScrollLayout(window) {
     if (index < 0) return;
     const column = mainScreenState.columns[index];
     const windowUuid = normalizeWindowUuid(window.internalId);
-    const presentationMatches = column.persistentWide
+    const deferredWideMatches = Boolean(pendingWideTransition &&
+        pendingWideTransition.windowUuid === windowUuid);
+    const presentationMatches = deferredWideMatches || (column.persistentWide
         ? mainScreenState.presentation.mode === PRESENTATION_WIDE &&
             mainScreenState.presentation.windowUuid === windowUuid
-        : mainScreenState.presentation.mode === PRESENTATION_NORMAL;
+        : mainScreenState.presentation.mode === PRESENTATION_NORMAL);
     if (index === mainScreenState.focusedColumnIndex && presentationMatches) return;
     const oldScrollOffsetX = mainScreenState.scrollOffsetX;
     mainScreenState.focusedColumnIndex = index;
