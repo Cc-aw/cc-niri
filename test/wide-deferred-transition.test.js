@@ -10,11 +10,15 @@ const bridgeHeader = fs.readFileSync(
 const bridgeSource = fs.readFileSync(
     path.join(root, "bridge/src/ScrollDockBridge.cpp"), "utf8");
 
-assert.ok(mainSource.includes("const WIDE_REVEAL_DELAY_MS = 200"));
+assert.ok(mainSource.includes("const WIDE_REVEAL_DELAY_MS = 280"));
+assert.ok(mainSource.includes(
+    'const WIDE_REVEAL_PHASE_NORMAL_PAIR = "normal-pair"'));
 assert.ok(mainSource.includes('type: "complete-wide-transition"'));
 assert.ok(mainSource.includes('"RequestDeferredCommand"'));
 assert.ok(mainSource.includes("transitionToken: token"));
 assert.ok(mainSource.includes("DEFERRED_WIDE_COMPLETE"));
+assert.ok(mainSource.includes("revealWindowUuids"),
+    "the deferred transition records the real normal pair before Wide");
 assert.ok(mainSource.includes("deferredWideMatches ||"),
     "activation must not restart a transition already waiting for its wide commit");
 
@@ -33,6 +37,21 @@ assert.ok(bridgeHeader.includes(
 assert.ok(bridgeSource.includes("QTimer::singleShot(boundedDelayMs"));
 assert.ok(bridgeSource.includes("m_generation != generation"));
 assert.ok(bridgeSource.includes('QStringLiteral("complete-wide-transition")'));
+
+function fullyVisibleColumns(columns, viewportLeft, viewportWidth) {
+    const viewportRight = viewportLeft + viewportWidth;
+    return columns.filter(column => column.x >= viewportLeft &&
+        column.x + column.width <= viewportRight).map(column => column.id);
+}
+
+const columns = [
+    { id: "1@50", x: 0, width: 50 },
+    { id: "2@50", x: 50, width: 50 },
+    { id: "3@50", x: 100, width: 50 },
+];
+assert.deepEqual(fullyVisibleColumns(columns, 0, 100), ["1@50", "2@50"]);
+assert.deepEqual(fullyVisibleColumns(columns, 50, 100), ["2@50", "3@50"],
+    "minimal scrolling must expose the destination normal pair before Wide");
 
 function mayComplete(pending, command, focusedUuid, generation) {
     return Boolean(pending && pending.token === command.token &&

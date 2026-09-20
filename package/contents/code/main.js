@@ -16,7 +16,11 @@ const COLUMN_WIDTH_TWO_THIRDS = "twoThirds";
 const PARKING_MARGIN = 4096;
 const FLOATING_FOCUS_GUARD_MS = 1200;
 const FLOATING_REATTACH_GRACE_MS = 10000;
-const WIDE_REVEAL_DELAY_MS = 200;
+/* The scroll effect's default movement is 180 ms. Keep the destination pair
+ * intact for another 100 ms so a return to persistent Wide visibly follows
+ * 1|2 -> 2|3 -> 3@72%, rather than blending the last two states together. */
+const WIDE_REVEAL_DELAY_MS = 280;
+const WIDE_REVEAL_PHASE_NORMAL_PAIR = "normal-pair";
 const ADOPTION_UNTRACKED = "untracked";
 const ADOPTION_WAITING_ACTIVATION = "waiting-activation";
 const ADOPTION_WAITING_PRIMARY = "waiting-primary";
@@ -989,7 +993,10 @@ function selectPersistentPresentation(column) {
 
 function completePendingWideTransition(command) {
     const token = String(command.transitionToken || "");
-    if (!pendingWideTransition || token !== pendingWideTransition.token) return false;
+    if (!pendingWideTransition || token !== pendingWideTransition.token ||
+            pendingWideTransition.phase !== WIDE_REVEAL_PHASE_NORMAL_PAIR) {
+        return false;
+    }
     const pending = pendingWideTransition;
     pendingWideTransition = null;
     const column = mainScreenState.columns.find(item =>
@@ -1016,7 +1023,16 @@ function completePendingWideTransition(command) {
 function schedulePersistentWideTransition(column, reason, baseGeneration) {
     const token = String(nextWideTransitionToken++);
     const windowUuid = normalizeWindowUuid(column.window.internalId);
-    pendingWideTransition = { token, windowUuid, reason };
+    const revealWindowUuids = mainScreenState.columns
+        .filter(item => isFullyVisibleInSafeRect(projectedRectForColumn(item)))
+        .map(item => normalizeWindowUuid(item.window.internalId));
+    pendingWideTransition = {
+        token,
+        windowUuid,
+        reason,
+        phase: WIDE_REVEAL_PHASE_NORMAL_PAIR,
+        revealWindowUuids,
+    };
     const command = {
         protocol: 1,
         commandId: `${dockSessionId}-wide-${token}`,
@@ -1040,7 +1056,9 @@ function schedulePersistentWideTransition(column, reason, baseGeneration) {
         }
     );
     debug(`[cc-presentation] DEFERRED_WIDE_SCHEDULE token=${token}` +
-        ` uuid=${windowUuid} delay=${WIDE_REVEAL_DELAY_MS}`);
+        ` uuid=${windowUuid} phase=${WIDE_REVEAL_PHASE_NORMAL_PAIR}` +
+        ` visible=${revealWindowUuids.join(",")}` +
+        ` delay=${WIDE_REVEAL_DELAY_MS}`);
 }
 
 function relayoutFocusedColumnTransition(column, reason, oldScrollOffsetX,

@@ -139,11 +139,10 @@ class CCNiriScrollTransition {
         const newGeometry = window.geometry;
 
         if (this.presentationTransition(oldGeometry, newGeometry, screenRect)) {
-            /* Returning to a persistent Wide Column produces two synchronous
-             * geometry commits: parked->50% slot, then 50%->72%. KWin cannot
-             * paint between them. Carry the incoming animation's visual start
-             * into the final presentation animation instead of cancelling it
-             * and flashing the already-wide geometry. */
+            /* The script normally waits until the destination pair has
+             * finished scrolling before it commits 50%->72%. Preserve the
+             * incoming visual as a defensive fallback if custom timing or a
+             * fast follow-up makes the two animations overlap. */
             const chainedIncoming = window.ccNiriIncomingVisual || null;
             const sourceGeometry = chainedIncoming || oldGeometry;
             if (window.ccNiriScrollAnimation) {
