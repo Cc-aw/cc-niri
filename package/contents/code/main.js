@@ -141,7 +141,8 @@ function applyPendingDockCommand() {
             if (command.protocol !== 1 || !command.commandId ||
                     (command.type !== "set-column-order" &&
                     command.type !== "set-presentation-mode" &&
-                    command.type !== "focus-column-right")) {
+                    command.type !== "focus-column-right" &&
+                    command.type !== "emergency-restore")) {
                 rejectDockCommand("invalid-schema");
                 return;
             }
@@ -151,6 +152,11 @@ function applyPendingDockCommand() {
             }
             if (Number(command.baseGeneration) !== dockGeneration) {
                 rejectDockCommand("stale-generation");
+                return;
+            }
+
+            if (command.type === "emergency-restore") {
+                emergencyRestoreAllWindows("bridge-unload");
                 return;
             }
 
@@ -522,6 +528,12 @@ function virtualScreenLeft() {
     );
 }
 
+function looksLikeInheritedParking(window) {
+    const rect = window.frameGeometry;
+    return Number(window.opacity) <= 0 && window.minimized && rect &&
+        Number(rect.x) < virtualScreenLeft();
+}
+
 function parkingBaseX() {
     const maximumColumnWidth = mainScreenState.columns.reduce(
         (maximum, column) => Math.max(maximum, column.pixelWidth),
@@ -621,6 +633,7 @@ function setColumnVisualVisibility(column, visible) {
         if (windowState.scrollParkingMinimized && window.minimized) {
             window.minimized = false;
         }
+        windowState.scrollParkedByScript = false;
         windowState.scrollParkingMinimized = false;
         windowState.scrollVisuallyHidden = false;
         return;
@@ -635,7 +648,85 @@ function setColumnVisualVisibility(column, visible) {
         window.minimized = true;
         windowState.scrollParkingMinimized = true;
     }
+    windowState.scrollParkedByScript = true;
     windowState.scrollVisuallyHidden = true;
+}
+
+function parkingRecoveryRect(windowState, fallbackIndex) {
+    refreshMainScreenState();
+    const safeRect = mainScreenState.safeRect;
+    if (!safeRect) return null;
+    const source = windowState.scrollLastVisibleGeometry;
+    if (source) {
+        const width = Math.max(1, Math.min(Number(source.width), safeRect.width));
+        const height = Math.max(1, Math.min(Number(source.height), safeRect.height));
+        return {
+            x: Math.max(safeRect.x, Math.min(Number(source.x),
+                safeRect.x + safeRect.width - width)),
+            y: Math.max(safeRect.y, Math.min(Number(source.y),
+                safeRect.y + safeRect.height - height)),
+            width,
+            height,
+        };
+    }
+
+    const cascade = Math.max(0, Number(fallbackIndex) || 0) * 24;
+    const width = Math.max(1, Math.floor(safeRect.width * 0.72));
+    const height = Math.max(1, Math.floor(safeRect.height * 0.82));
+    const availableX = Math.max(0, safeRect.width - width);
+    const availableY = Math.max(0, safeRect.height - height);
+    return {
+        x: safeRect.x + Math.min(cascade, availableX),
+        y: safeRect.y + Math.min(cascade, availableY),
+        width,
+        height,
+    };
+}
+
+function releaseParkingOwnership(window, reason, ensureAccessible = false,
+        fallbackIndex = 0) {
+    const windowState = states.get(window);
+    if (!windowState) return false;
+    const owned = windowState.scrollParkedByScript ||
+        windowState.scrollVisuallyHidden || windowState.scrollParkingMinimized;
+    if (!owned) return false;
+
+    if (ensureAccessible) {
+        const target = parkingRecoveryRect(windowState, fallbackIndex);
+        if (target) {
+            windowState.internalChange = true;
+            try {
+                window.frameGeometry = target;
+            } finally {
+                windowState.internalChange = false;
+            }
+        }
+    }
+    window.opacity = windowState.scrollOriginalOpacity;
+    if (windowState.scrollParkingMinimized && window.minimized) {
+        window.minimized = false;
+    }
+    windowState.scrollParkedByScript = false;
+    windowState.scrollParkingMinimized = false;
+    windowState.scrollVisuallyHidden = false;
+    debug(`[cc-stability] RELEASE_PARKING caption=${window.caption}` +
+        ` accessible=${ensureAccessible} reason=${reason}`);
+    return true;
+}
+
+function emergencyRestoreAllWindows(reason) {
+    /* Stop future signal-driven relayout first. This entry point is invoked by
+     * install/uninstall before KWin unloads the script instance. */
+    mainScreenState.enabled = false;
+    let restored = 0;
+    mainScreenState.columns.forEach((column, index) => {
+        if (releaseParkingOwnership(column.window, reason, true, index)) restored += 1;
+    });
+    states.forEach((windowState, window) => {
+        if (columnIndexForWindow(window) >= 0) return;
+        if (releaseParkingOwnership(window, reason, true, restored)) restored += 1;
+    });
+    debug(`[cc-stability] EMERGENCY_RESTORE count=${restored} reason=${reason}`);
 }
 
 function beginLayoutTransaction(reason) {
@@ -799,6 +890,11 @@ function relayoutImpl(reason, scrollOffsets) {
         const column = item.column;
         const placement = item.placement;
         const windowState = stateFor(column.window);
+        if (placement.kind === "parked" && !windowState.scrollVisuallyHidden &&
+                isRectInsideAnyOutput(column.window.frameGeometry)) {
+            windowState.scrollLastVisibleGeometry =
+                rectCopy(column.window.frameGeometry);
+        }
         /* A parked window is positioned while still hidden, then restored.
          * Continuing visible Columns retain the normal geometry-first
          * animation transaction used by H/L. */
@@ -810,6 +906,7 @@ function relayoutImpl(reason, scrollOffsets) {
             applyColumnGeometry(column, placement.rect, reason);
         }
         if (placement.kind === "parked") setColumnVisualVisibility(column, false);
+        else windowState.scrollLastVisibleGeometry = rectCopy(placement.rect);
         const outputName = column.window.output ? column.window.output.name : "<none>";
         if (placement.kind === "visible") {
             debug(`[cc-scroll] PROJECT column=${column.id}` +
@@ -1037,7 +1134,16 @@ function removeColumn(window, reason, activateSuccessor = true) {
     const oldScrollOffsetX = mainScreenState.scrollOffsetX;
     const focusedColumn = mainScreenState.columns[mainScreenState.focusedColumnIndex] || null;
     const removedColumn = mainScreenState.columns[index];
-    if (reason !== "window-closed") setColumnVisualVisibility(removedColumn, true);
+    if (reason !== "window-closed") {
+        const needsAccessibleGeometry = reason === "shortcut-toggle-floating" ||
+            reason === "interactive-move-resize";
+        releaseParkingOwnership(
+            removedColumn.window,
+            reason,
+            needsAccessibleGeometry,
+            index
+        );
+    }
     const removedGeometry = removedColumn.window.frameGeometry;
     const removedWasVisibleLeft = mainScreenState.safeRect &&
         isFullyVisibleInSafeRect(removedGeometry) &&
@@ -1483,7 +1589,8 @@ function stateFor(window) {
     let state = states.get(window);
     if (!state) {
         const currentOpacity = Number(window.opacity);
-        const inheritedParkingHidden = currentOpacity <= 0;
+        const inheritedParkingHidden = looksLikeInheritedParking(window);
+        const currentGeometry = rectCopy(window.frameGeometry);
         state = {
             pseudoMaximized: false,
             layoutMode: NORMAL_MODE,
@@ -1500,7 +1607,11 @@ function stateFor(window) {
             temporarilyQuickTiled: false,
             scrollOriginalOpacity: currentOpacity > 0 ? currentOpacity : 1,
             scrollVisuallyHidden: inheritedParkingHidden,
+            scrollParkedByScript: inheritedParkingHidden,
             scrollParkingMinimized: inheritedParkingHidden && window.minimized,
+            scrollLastVisibleGeometry: inheritedParkingHidden
+                ? null
+                : currentGeometry,
         };
         states.set(window, state);
     }
@@ -1928,8 +2039,15 @@ registerShortcut(
 registerShortcut(
     "CCScrollApplyDockCommand",
     "CC Scroll: Apply Dock Command",
-    "",
+    "Meta+Ctrl+Alt+Shift+F11",
     applyPendingDockCommand
+);
+
+registerShortcut(
+    "CCScrollEmergencyRestore",
+    "CC Scroll: Emergency Restore Parked Windows",
+    "Meta+Ctrl+Alt+Shift+F12",
+    () => emergencyRestoreAllWindows("external-unload")
 );
 
 commitDockState("script-start");

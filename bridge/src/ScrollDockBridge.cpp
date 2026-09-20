@@ -4,6 +4,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLoggingCategory>
+#include <QDateTime>
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QDBusPendingCall>
@@ -97,11 +98,12 @@ bool ScrollDockBridge::RequestCommand(const QString &json)
          presentationMode == QStringLiteral("maximized"));
     const bool dockFocusRight = type == QStringLiteral("focus-column-right") &&
         !command.value(QStringLiteral("windowUuid")).toString().isEmpty();
+    const bool emergencyRestore = type == QStringLiteral("emergency-restore");
     if (command.value(QStringLiteral("protocol")).toInt() != 1 ||
         commandId.isEmpty() ||
         command.value(QStringLiteral("sessionId")).toString().isEmpty() ||
         command.value(QStringLiteral("baseGeneration")).toInteger(-1) < 0 ||
-        (!reorder && !presentation && !dockFocusRight)) {
+        (!reorder && !presentation && !dockFocusRight && !emergencyRestore)) {
         qCWarning(logBridge) << "rejecting command with invalid schema";
         return false;
     }
@@ -113,6 +115,25 @@ bool ScrollDockBridge::RequestCommand(const QString &json)
     m_pendingCommand = QString::fromUtf8(document.toJson(QJsonDocument::Compact));
     wakeKWinCommandPump();
     return true;
+}
+
+bool ScrollDockBridge::RequestEmergencyRestore()
+{
+    if (m_sessionId.isEmpty() || m_generation < 0) {
+        qCWarning(logBridge) << "cannot request emergency restore without KWin state";
+        return false;
+    }
+
+    QJsonObject command{
+        {QStringLiteral("protocol"), 1},
+        {QStringLiteral("commandId"), QStringLiteral("emergency-") +
+            QString::number(QDateTime::currentMSecsSinceEpoch())},
+        {QStringLiteral("sessionId"), m_sessionId},
+        {QStringLiteral("baseGeneration"), m_generation},
+        {QStringLiteral("type"), QStringLiteral("emergency-restore")},
+    };
+    return RequestCommand(QString::fromUtf8(
+        QJsonDocument(command).toJson(QJsonDocument::Compact)));
 }
 
 QString ScrollDockBridge::TakePendingCommand()
