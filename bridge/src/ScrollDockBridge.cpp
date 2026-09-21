@@ -19,6 +19,9 @@ ScrollDockBridge::ScrollDockBridge(QObject *parent)
 
 namespace
 {
+constexpr qsizetype MaxPendingCommands = 64;
+constexpr qsizetype MaxRecentCommandIds = 128;
+
 void wakeKWinCommandPump()
 {
     QDBusMessage message = QDBusMessage::createMethodCall(
@@ -57,8 +60,9 @@ bool ScrollDockBridge::PublishState(const QString &json)
 
     if (sessionId != m_sessionId) {
         qCInfo(logBridge) << "new KWin session" << sessionId;
-        m_pendingCommand.clear();
-        m_lastCommandId.clear();
+        m_pendingCommands.clear();
+        m_recentCommandIds.clear();
+        m_recentCommandOrder.clear();
     }
     m_sessionId = sessionId;
     m_generation = generation;
@@ -107,21 +111,37 @@ bool ScrollDockBridge::RequestCommand(const QString &json)
          type == QStringLiteral("complete-wide-transition")) &&
         !command.value(QStringLiteral("windowUuid")).toString().isEmpty() &&
         !command.value(QStringLiteral("transitionToken")).toString().isEmpty();
+    const bool deferredDockScroll = type == QStringLiteral("advance-dock-scroll") &&
+        !command.value(QStringLiteral("windowUuid")).toString().isEmpty() &&
+        !command.value(QStringLiteral("transitionToken")).toString().isEmpty();
     if (command.value(QStringLiteral("protocol")).toInt() != 1 ||
         commandId.isEmpty() ||
         command.value(QStringLiteral("sessionId")).toString().isEmpty() ||
         command.value(QStringLiteral("baseGeneration")).toInteger(-1) < 0 ||
         (!reorder && !presentation && !dockFocusRight && !emergencyRestore &&
-         !deferredWide)) {
+         !deferredWide && !deferredDockScroll)) {
         qCWarning(logBridge) << "rejecting command with invalid schema";
         return false;
     }
 
-    if (commandId == m_lastCommandId) {
+    if (m_recentCommandIds.contains(commandId)) {
         return true;
     }
-    m_lastCommandId = commandId;
-    m_pendingCommand = QString::fromUtf8(document.toJson(QJsonDocument::Compact));
+    if (m_pendingCommands.size() >= MaxPendingCommands && !emergencyRestore) {
+        qCWarning(logBridge) << "rejecting command because queue is full";
+        return false;
+    }
+
+    m_recentCommandIds.insert(commandId);
+    m_recentCommandOrder.enqueue(commandId);
+    while (m_recentCommandOrder.size() > MaxRecentCommandIds) {
+        m_recentCommandIds.remove(m_recentCommandOrder.dequeue());
+    }
+
+    const QString compact =
+        QString::fromUtf8(document.toJson(QJsonDocument::Compact));
+    if (emergencyRestore) m_pendingCommands.prepend(compact);
+    else m_pendingCommands.enqueue(compact);
     wakeKWinCommandPump();
     return true;
 }
@@ -145,8 +165,9 @@ bool ScrollDockBridge::RequestDeferredCommand(const QString &json, int delayMs)
         type == QStringLiteral("check-wide-transition") ||
         type == QStringLiteral("finalize-wide-transition") ||
         type == QStringLiteral("complete-wide-transition");
+    const bool deferredDockScroll = type == QStringLiteral("advance-dock-scroll");
     if (command.value(QStringLiteral("protocol")).toInt() != 1 ||
-        !deferredWide ||
+        (!deferredWide && !deferredDockScroll) ||
         command.value(QStringLiteral("commandId")).toString().isEmpty() ||
         sessionId.isEmpty() || sessionId != m_sessionId || generation < 0 ||
         command.value(QStringLiteral("windowUuid")).toString().isEmpty() ||
@@ -187,7 +208,10 @@ bool ScrollDockBridge::RequestEmergencyRestore()
 
 QString ScrollDockBridge::TakePendingCommand()
 {
-    const QString command = m_pendingCommand;
-    m_pendingCommand.clear();
+    if (m_pendingCommands.isEmpty()) return {};
+    const QString command = m_pendingCommands.dequeue();
+    if (!m_pendingCommands.isEmpty()) {
+        QTimer::singleShot(0, this, wakeKWinCommandPump);
+    }
     return command;
 }

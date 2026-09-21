@@ -9,15 +9,315 @@ const UNARMED_TRANSACTION_TTL_MS = 80;
 const PRESENTATION_MIN_WIDTH_RATIO = 0.65;
 const PRESENTATION_MAX_WIDTH_RATIO = 0.85;
 
+const MotionTokens = Object.freeze({
+    microPressMs: 90,
+    microHoverMs: 110,
+    fastMs: 170,
+    spatialMs: 220,
+    spatialFastMs: 190,
+    resizeMs: 300,
+    expressiveEnterMs: 320,
+    expressiveExitMs: 240,
+});
+
+const MotionCurves = Object.freeze({
+    standardDecel: "standardDecel",
+    expressiveSpatial: "expressiveSpatial",
+});
+
+const MotionType = Object.freeze({
+    NONE: "NONE",
+    SCROLL: "SCROLL",
+    DOCK_SCROLL: "DOCK_SCROLL",
+    CLOSE_REFILL: "CLOSE_REFILL",
+    REORDER: "REORDER",
+    WIDE_ENTER: "WIDE_ENTER",
+    WIDE_EXIT: "WIDE_EXIT",
+});
+
+function clampUnit(value) {
+    return Math.max(0, Math.min(1, Number(value) || 0));
+}
+
+function standardDecelProgress(progress) {
+    const remaining = 1 - clampUnit(progress);
+    return 1 - remaining * remaining * remaining;
+}
+
+function interpolateValue(from, to, progress) {
+    return from + (to - from) * progress;
+}
+
+function retargetedTranslation(current, oldGeometry, newGeometry) {
+    return {
+        value1: current.value1 + oldGeometry.x - newGeometry.x,
+        value2: current.value2 + oldGeometry.y - newGeometry.y,
+    };
+}
+
+function sampleMotionState(state, now) {
+    if (!state) {
+        return {
+            active: false,
+            progress: 1,
+            translation: { value1: 0, value2: 0 },
+            scale: { value1: 1, value2: 1 },
+            opacity: 1,
+        };
+    }
+    const linearProgress = clampUnit((now - state.startTime) /
+        Math.max(1, state.duration));
+    const progress = state.curve === MotionCurves.standardDecel ||
+            state.curve === MotionCurves.expressiveSpatial
+        ? standardDecelProgress(linearProgress)
+        : linearProgress;
+    const channelValue = (name, fallback) => {
+        const channel = state.channels[name];
+        if (!channel) return fallback;
+        if (name === "opacity") {
+            return interpolateValue(channel.from, channel.to, progress);
+        }
+        return {
+            value1: interpolateValue(channel.from.value1, channel.to.value1, progress),
+            value2: interpolateValue(channel.from.value2, channel.to.value2, progress),
+        };
+    };
+    return {
+        active: linearProgress < 1,
+        progress,
+        translation: channelValue("translation", { value1: 0, value2: 0 }),
+        scale: channelValue("scale", { value1: 1, value2: 1 }),
+        opacity: channelValue("opacity", 1),
+    };
+}
+
+function visualRectFor(rect, sample, anchor) {
+    const width = rect.width * sample.scale.value1;
+    const height = rect.height * sample.scale.value2;
+    let x = rect.x + (rect.width - width) / 2;
+    let y = rect.y + (rect.height - height) / 2;
+    if (anchor === "left") x = rect.x;
+    if (anchor === "right") x = rect.x + rect.width - width;
+    if (anchor === "top") y = rect.y;
+    if (anchor === "bottom") y = rect.y + rect.height - height;
+    return {
+        x: x + sample.translation.value1,
+        y: y + sample.translation.value2,
+        width,
+        height,
+        opacity: sample.opacity,
+    };
+}
+
+class MotionController {
+    constructor(owner) {
+        this.owner = owner;
+        this.states = new Map();
+        this.nextEpoch = 1;
+    }
+
+    sample(window, now) {
+        return sampleMotionState(this.states.get(window) || null, now || Date.now());
+    }
+
+    visualSnapshot(window, geometry) {
+        const state = this.states.get(window) || null;
+        const anchor = state && state.channels.scale
+            ? state.channels.scale.anchor
+            : "center";
+        return visualRectFor(geometry, sampleMotionState(state, Date.now()), anchor);
+    }
+
+    cancel(window) {
+        const state = this.states.get(window);
+        if (!state) return false;
+        this.states.delete(window);
+        if (state.animationIds && state.animationIds.length) {
+            cancel(state.animationIds);
+        }
+        if (window.ccNiriScrollAnimation === state.animationIds) {
+            delete window.ccNiriScrollAnimation;
+        }
+        return true;
+    }
+
+    cancelAll() {
+        const windows = Array.from(this.states.keys());
+        windows.forEach(window => this.cancel(window));
+    }
+
+    kwinAttribute(name) {
+        if (name === "translation") return Effect.Translation;
+        if (name === "scale") return Effect.Scale;
+        if (name === "opacity") return Effect.Opacity;
+        return Effect.Generic;
+    }
+
+    channelName(attribute) {
+        if (attribute === Effect.Translation) return "translation";
+        if (attribute === Effect.Scale) return "scale";
+        if (attribute === Effect.Opacity) return "opacity";
+        return "";
+    }
+
+    kwinAnchor(anchor) {
+        if (anchor === "left") return Effect.Left;
+        if (anchor === "right") return Effect.Right;
+        if (anchor === "top") return Effect.Top;
+        if (anchor === "bottom") return Effect.Bottom;
+        return 0;
+    }
+
+    curveType(curve) {
+        if (curve === MotionCurves.standardDecel ||
+                curve === MotionCurves.expressiveSpatial) {
+            return QEasingCurve.OutCubic;
+        }
+        return QEasingCurve.Linear;
+    }
+
+    start(window, options) {
+        const now = Date.now();
+        const previous = this.states.get(window) || null;
+        const previousSample = sampleMotionState(previous, now);
+        const desired = {};
+        options.channels.forEach(channel => {
+            const name = channel.name || this.channelName(channel.type);
+            if (name) desired[name] = channel;
+        });
+
+        if (previous) {
+            this.states.delete(window);
+            if (previous.animationIds && previous.animationIds.length) {
+                cancel(previous.animationIds);
+            }
+        }
+
+        const channels = {};
+        const names = ["translation", "scale", "opacity"];
+        names.forEach(name => {
+            const target = desired[name] || null;
+            const carried = previous && previous.channels[name]
+                ? previous.channels[name]
+                : null;
+            if (!target && !carried) return;
+
+            if (name === "translation") {
+                const from = previous
+                    ? retargetedTranslation(
+                        previousSample.translation,
+                        options.oldGeometry,
+                        options.newGeometry
+                    )
+                    : target.from;
+                channels.translation = {
+                    from,
+                    to: target ? target.to : { value1: 0, value2: 0 },
+                    anchor: "center",
+                };
+                return;
+            }
+
+            if (name === "scale") {
+                channels.scale = {
+                    from: previous ? previousSample.scale : target.from,
+                    to: target ? target.to : { value1: 1, value2: 1 },
+                    anchor: target ? (target.anchor || "center") :
+                        (carried.anchor || "center"),
+                };
+                return;
+            }
+
+            channels.opacity = {
+                from: previous ? previousSample.opacity : target.from,
+                to: target ? target.to : 1,
+                anchor: "center",
+            };
+        });
+
+        const duration = Math.max(1, Number(options.duration) || 1);
+        const animationSpecs = Object.keys(channels).map(name => {
+            const channel = channels[name];
+            const spec = {
+                type: this.kwinAttribute(name),
+                from: channel.from,
+                to: channel.to,
+            };
+            if (name === "scale" && channel.anchor !== "center") {
+                const anchor = this.kwinAnchor(channel.anchor);
+                spec.sourceAnchor = anchor;
+                spec.targetAnchor = anchor;
+            }
+            return spec;
+        });
+        const state = {
+            epoch: this.nextEpoch++,
+            type: options.type || MotionType.NONE,
+            startTime: now,
+            duration,
+            curve: options.curve || MotionCurves.standardDecel,
+            channels,
+            animationIds: [],
+        };
+        state.animationIds = animate({
+            window,
+            duration,
+            curve: this.curveType(state.curve),
+            animations: animationSpecs,
+        });
+        this.states.set(window, state);
+        window.ccNiriScrollAnimation = state.animationIds;
+
+        const startSample = sampleMotionState(state, now);
+        window.ccNiriIncomingVisual = visualRectFor(
+            options.newGeometry,
+            startSample,
+            channels.scale ? channels.scale.anchor : "center"
+        );
+        this.owner.debug(`[MOTION] ${previous ? "retarget" : "start"}` +
+            ` type=${state.type} epoch=${state.epoch}` +
+            ` duration=${duration} channels=${Object.keys(channels).join(",")}`);
+        return state;
+    }
+
+    animationEnded(window, animationId) {
+        const state = this.states.get(window);
+        if (!state) return;
+        /* KWin 6.7 reports animationId=0 for declarative animation groups.
+         * The signal is still scoped to the correct EffectWindow, and all
+         * channels in a group share one duration, so the first group-end
+         * signal completes the current epoch for that window. */
+        if (Number(animationId) === 0) {
+            this.states.delete(window);
+            if (window.ccNiriScrollAnimation) delete window.ccNiriScrollAnimation;
+            if (window.ccNiriIncomingVisual) delete window.ccNiriIncomingVisual;
+            this.owner.debug(`[MOTION] complete type=${state.type}` +
+                ` epoch=${state.epoch} group=true`);
+            return;
+        }
+        if (state.animationIds.indexOf(animationId) < 0) return;
+        state.animationIds = state.animationIds.filter(id => id !== animationId);
+        if (state.animationIds.length) {
+            window.ccNiriScrollAnimation = state.animationIds;
+            return;
+        }
+        this.states.delete(window);
+        if (window.ccNiriScrollAnimation) delete window.ccNiriScrollAnimation;
+        if (window.ccNiriIncomingVisual) delete window.ccNiriIncomingVisual;
+        this.owner.debug(`[MOTION] complete type=${state.type} epoch=${state.epoch}`);
+    }
+}
+
 class CCNiriScrollTransition {
     constructor() {
         this.pendingDeltaX = null;
         this.pendingDeltaArmedAt = 0;
+        this.motion = new MotionController(this);
         this.loadConfig();
         effect.configChanged.connect(this.loadConfig.bind(this));
-        effect.animationEnded.connect(window => {
-            if (window.ccNiriScrollAnimation) delete window.ccNiriScrollAnimation;
-            if (window.ccNiriIncomingVisual) delete window.ccNiriIncomingVisual;
+        effect.animationEnded.connect((window, animationId) => {
+            this.debug(`[MOTION] ended animationId=${String(animationId)}`);
+            this.motion.animationEnded(window, animationId);
         });
         effects.windowAdded.connect(this.manage.bind(this));
         for (const window of effects.stackingOrder) this.manage(window);
@@ -26,12 +326,13 @@ class CCNiriScrollTransition {
     loadConfig() {
         this.targetOutputName = String(effect.readConfig("TargetOutputName", "DP-1"));
         this.innerGap = Math.max(0, Number(effect.readConfig("InnerGap", 8)) || 0);
-        this.duration = animationTime(
-            Math.max(1, Number(effect.readConfig("Duration", 180)) || 180)
-        );
-        this.presentationDuration = animationTime(
+        this.duration = Math.max(1, animationTime(
+            Math.max(1, Number(effect.readConfig("Duration", MotionTokens.spatialMs)) ||
+                MotionTokens.spatialMs)
+        ));
+        this.presentationDuration = Math.max(1, animationTime(
             Math.max(1, Number(effect.readConfig("PresentationDuration", 220)) || 220)
-        );
+        ));
         this.debugLogging = Boolean(effect.readConfig("DebugLogging", false));
     }
 
@@ -143,13 +444,12 @@ class CCNiriScrollTransition {
              * finished scrolling before it commits 50%->72%. Preserve the
              * incoming visual as a defensive fallback if custom timing or a
              * fast follow-up makes the two animations overlap. */
-            const chainedIncoming = window.ccNiriIncomingVisual || null;
+            const recordedIncoming = window.ccNiriIncomingVisual || null;
+            const chainedIncoming = this.motion.states.has(window)
+                ? this.motion.visualSnapshot(window, oldGeometry)
+                : recordedIncoming;
             const sourceGeometry = chainedIncoming || oldGeometry;
-            if (window.ccNiriScrollAnimation) {
-                cancel(window.ccNiriScrollAnimation);
-                delete window.ccNiriScrollAnimation;
-            }
-            if (window.ccNiriIncomingVisual) delete window.ccNiriIncomingVisual;
+            this.motion.cancel(window);
             const presentationAnimations = [{
                 /* Size/Position animations interfere with scripted real
                  * geometry changes on KWin 6.7.5 and can leave a Wide
@@ -184,13 +484,17 @@ class CCNiriScrollTransition {
                     to: 1.0
                 });
             }
-            window.ccNiriScrollAnimation = animate({
-                window,
+            this.motion.start(window, {
+                type: this.isFocusWide(newGeometry, screenRect)
+                    ? MotionType.WIDE_ENTER
+                    : MotionType.WIDE_EXIT,
                 duration: chainedIncoming
                     ? this.duration + this.presentationDuration
                     : this.presentationDuration,
-                curve: QEasingCurve.OutCubic,
-                animations: presentationAnimations
+                curve: MotionCurves.expressiveSpatial,
+                oldGeometry,
+                newGeometry,
+                channels: presentationAnimations,
             });
             this.clearPendingDelta();
             this.debug(`${chainedIncoming ? "PRESENTATION_CHAINED" : "PRESENTATION"}` +
@@ -210,11 +514,6 @@ class CCNiriScrollTransition {
         if (!(oldSlot || oldParked) || !(newSlot || newParked) ||
                 Math.abs(oldGeometry.x - newGeometry.x) < 1) {
             return;
-        }
-
-        if (window.ccNiriScrollAnimation) {
-            cancel(window.ccNiriScrollAnimation);
-            delete window.ccNiriScrollAnimation;
         }
 
         let animations;
@@ -250,6 +549,7 @@ class CCNiriScrollTransition {
                     to: { value1: 0, value2: 0 }
                 }, {
                     type: Effect.Scale,
+                    anchor: newSlot === "right" ? "right" : "left",
                     sourceAnchor: anchor,
                     targetAnchor: anchor,
                     from: { value1: 0.94, value2: 1 },
@@ -280,6 +580,7 @@ class CCNiriScrollTransition {
                     to: { value1: 0, value2: 0 }
                 }, {
                     type: Effect.Scale,
+                    anchor: "right",
                     sourceAnchor: Effect.Right,
                     targetAnchor: Effect.Right,
                     from: { value1: 0.94, value2: 1 },
@@ -348,13 +649,29 @@ class CCNiriScrollTransition {
         }
 
         if (incomingVisual) window.ccNiriIncomingVisual = incomingVisual;
-        window.ccNiriScrollAnimation = animate({
-            window,
+        this.motion.start(window, {
+            type: MotionType.SCROLL,
             duration: this.duration,
-            curve: QEasingCurve.OutCubic,
-            animations
+            curve: MotionCurves.standardDecel,
+            oldGeometry,
+            newGeometry,
+            channels: animations,
         });
     }
 }
 
-new CCNiriScrollTransition();
+if (typeof module !== "undefined" && module.exports) {
+    module.exports = {
+        MotionTokens,
+        MotionCurves,
+        MotionType,
+        clampUnit,
+        standardDecelProgress,
+        interpolateValue,
+        retargetedTranslation,
+        sampleMotionState,
+        visualRectFor,
+    };
+} else {
+    new CCNiriScrollTransition();
+}

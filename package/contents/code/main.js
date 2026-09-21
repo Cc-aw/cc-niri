@@ -21,6 +21,7 @@ const WIDE_PAIR_HOLD_MS = 180;
 const WIDE_EXPANSION_PHASE_MS = 240;
 const WIDE_GEOMETRY_RETRY_MS = 50;
 const WIDE_GEOMETRY_MAX_ATTEMPTS = 20;
+const DOCK_SCROLL_STEP_MS = 140;
 const WIDE_REVEAL_PHASE_SCROLLING = "scrolling-to-normal-pair";
 const WIDE_REVEAL_PHASE_AWAITING_STEP = "awaiting-wide-step";
 const WIDE_REVEAL_PHASE_SETTLED = "settled-normal-pair";
@@ -86,6 +87,8 @@ let activeLayoutReason = "";
 let lastInvariantWarning = "";
 let pendingWideTransition = null;
 let nextWideTransitionToken = 1;
+let pendingDockScroll = null;
+let nextDockScrollToken = 1;
 
 function debug(message) {
     if (debugLogging) console.info(`${TAG} ${message}`);
@@ -161,6 +164,7 @@ function applyPendingDockCommand() {
                     (command.type !== "set-column-order" &&
                     command.type !== "set-presentation-mode" &&
                     command.type !== "focus-column-right" &&
+                    command.type !== "advance-dock-scroll" &&
                     command.type !== "emergency-restore" &&
                     command.type !== "settle-wide-transition" &&
                     command.type !== "check-wide-transition" &&
@@ -203,6 +207,11 @@ function applyPendingDockCommand() {
                 return;
             }
 
+            if (command.type === "advance-dock-scroll") {
+                advancePendingDockScroll(command);
+                return;
+            }
+
             if (command.type === "set-presentation-mode") {
                 const windowUuid = normalizeWindowUuid(command.windowUuid);
                 const mode = String(command.mode || "");
@@ -227,26 +236,7 @@ function applyPendingDockCommand() {
                     return;
                 }
 
-                const oldScrollOffsetX = mainScreenState.scrollOffsetX;
-                mainScreenState.focusedColumnIndex = index;
-                recomputeLogicalLayout();
-                mainScreenState.scrollOffsetX =
-                    column.logicalX + column.pixelWidth - mainScreenState.safeRect.width;
-                clampScrollOffset();
-                const newScrollOffsetX = mainScreenState.scrollOffsetX;
-                const presentationChanged = relayoutFocusedColumnTransition(
-                    column,
-                    "dock-focus-right",
-                    oldScrollOffsetX,
-                    newScrollOffsetX
-                );
-                if (column.window.minimized) column.window.minimized = false;
-                workspace.activeWindow = column.window;
-                debug(`[cc-dock] FOCUS_RIGHT index=${index}` +
-                    ` old=${oldScrollOffsetX} new=${newScrollOffsetX}` +
-                    ` caption=${column.window.caption}`);
-                if (presentationChanged) commitDockState("dock-focus-right-presentation");
-                else publishDockState("dock-focus-right");
+                beginDockScroll(column, "dock-focus-right");
                 return;
             }
 
@@ -270,6 +260,7 @@ function applyPendingDockCommand() {
                 normalizeWindowUuid(column.window.internalId),
                 column,
             ]));
+            cancelPendingDockScroll("dock-reorder");
             const focusedColumn = mainScreenState.columns[
                 mainScreenState.focusedColumnIndex
             ] || null;
@@ -769,6 +760,7 @@ function emergencyRestoreAllWindows(reason) {
      * install/uninstall before KWin unloads the script instance. */
     mainScreenState.enabled = false;
     pendingWideTransition = null;
+    cancelPendingDockScroll(reason);
     let restored = 0;
     mainScreenState.columns.forEach((column, index) => {
         if (releaseParkingOwnership(column.window, reason, true, index)) restored += 1;
@@ -1006,6 +998,168 @@ function clearPresentationState() {
     resetPresentedWindowLayoutState();
     mainScreenState.presentation.windowUuid = null;
     mainScreenState.presentation.mode = PRESENTATION_NORMAL;
+}
+
+function cancelPendingDockScroll(reason) {
+    if (!pendingDockScroll) return false;
+    debug(`[cc-dock] SCROLL_CANCEL token=${pendingDockScroll.token}` +
+        ` reason=${reason}`);
+    pendingDockScroll = null;
+    return true;
+}
+
+function boundedScrollOffset(offset) {
+    const viewportWidth = mainScreenState.safeRect
+        ? mainScreenState.safeRect.width
+        : 0;
+    const maximum = Math.max(0, stripWidth() - viewportWidth);
+    return Math.max(0, Math.min(Number(offset) || 0, maximum));
+}
+
+function dockScrollOffsetsToTarget(column) {
+    if (!column || !mainScreenState.safeRect) return [];
+    recomputeLogicalLayout();
+    clampScrollOffset();
+    if (isFullyVisibleInSafeRect(projectedRectForColumn(column))) return [];
+
+    const currentOffset = mainScreenState.scrollOffsetX;
+    const targetOffset = boundedScrollOffset(
+        column.logicalX + column.pixelWidth - mainScreenState.safeRect.width
+    );
+    if (targetOffset === currentOffset) return [];
+
+    const direction = targetOffset > currentOffset ? 1 : -1;
+    const offsets = [];
+    const seen = new Set();
+    mainScreenState.columns.forEach(item => {
+        const offset = boundedScrollOffset(
+            item.logicalX + item.pixelWidth - mainScreenState.safeRect.width
+        );
+        const between = direction > 0
+            ? offset > currentOffset && offset <= targetOffset
+            : offset < currentOffset && offset >= targetOffset;
+        if (!between || seen.has(offset)) return;
+        seen.add(offset);
+        offsets.push(offset);
+    });
+    if (!seen.has(targetOffset)) offsets.push(targetOffset);
+    offsets.sort((left, right) => direction > 0 ? left - right : right - left);
+    return offsets;
+}
+
+function requestDeferredDockScrollStep(pending) {
+    const command = {
+        protocol: 1,
+        commandId: `${dockSessionId}-dock-scroll-${pending.token}-` +
+            `${pending.deferredSequence++}`,
+        sessionId: dockSessionId,
+        baseGeneration: dockGeneration,
+        type: "advance-dock-scroll",
+        transitionToken: pending.token,
+        windowUuid: pending.windowUuid,
+    };
+    callDBus(
+        DOCK_BRIDGE_SERVICE,
+        DOCK_BRIDGE_PATH,
+        DOCK_BRIDGE_INTERFACE,
+        "RequestDeferredCommand",
+        JSON.stringify(command),
+        DOCK_SCROLL_STEP_MS,
+        accepted => {
+            if (accepted) return;
+            debug(`[cc-dock] SCROLL_DEFER_FALLBACK token=${pending.token}`);
+            advancePendingDockScroll(command);
+        }
+    );
+}
+
+function finishDockScroll(pending, column) {
+    if (!pending || pendingDockScroll !== pending || !column) return false;
+    const index = mainScreenState.columns.indexOf(column);
+    if (index < 0 || column.window.output !== mainScreenState.targetOutput) {
+        cancelPendingDockScroll("finish-target-missing");
+        return false;
+    }
+
+    pendingDockScroll = null;
+    const offset = mainScreenState.scrollOffsetX;
+    mainScreenState.focusedColumnIndex = index;
+    const presentationChanged = relayoutFocusedColumnTransition(
+        column,
+        `${pending.reason}-arrive`,
+        offset,
+        offset
+    );
+    if (column.window.minimized) column.window.minimized = false;
+    workspace.activeWindow = column.window;
+    debug(`[cc-dock] SCROLL_COMPLETE token=${pending.token}` +
+        ` index=${index} offset=${offset} caption=${column.window.caption}`);
+    if (presentationChanged) {
+        commitDockState(`${pending.reason}-presentation`);
+    } else {
+        publishDockState(pending.reason);
+    }
+    return true;
+}
+
+function advancePendingDockScroll(command) {
+    const token = String(command.transitionToken || "");
+    const pending = pendingDockScroll;
+    if (!pending || token !== pending.token ||
+            normalizeWindowUuid(command.windowUuid) !== pending.windowUuid) {
+        return false;
+    }
+    const column = mainScreenState.columns.find(item =>
+        normalizeWindowUuid(item.window.internalId) === pending.windowUuid);
+    if (!column || column.window.output !== mainScreenState.targetOutput) {
+        cancelPendingDockScroll("advance-target-missing");
+        return false;
+    }
+    if (!pending.offsets.length) return finishDockScroll(pending, column);
+
+    const oldScrollOffsetX = mainScreenState.scrollOffsetX;
+    mainScreenState.scrollOffsetX = pending.offsets.shift();
+    clampScrollOffset();
+    const newScrollOffsetX = mainScreenState.scrollOffsetX;
+    relayout(`${pending.reason}-step`, {
+        oldScrollOffsetX,
+        newScrollOffsetX,
+    });
+    debug(`[cc-dock] SCROLL_STEP token=${pending.token}` +
+        ` old=${oldScrollOffsetX} new=${newScrollOffsetX}` +
+        ` remaining=${pending.offsets.length}`);
+    if (pending.offsets.length) requestDeferredDockScrollStep(pending);
+    else finishDockScroll(pending, column);
+    return true;
+}
+
+function beginDockScroll(column, reason) {
+    if (!column || !mainScreenState.safeRect) return false;
+    cancelPendingDockScroll("superseded-by-dock-click");
+    pendingWideTransition = null;
+    const offsets = dockScrollOffsetsToTarget(column);
+
+    if (offsets.length &&
+            mainScreenState.presentation.mode !== PRESENTATION_NORMAL) {
+        clearPresentationState();
+        commitDockState(`${reason}-clear-presentation`);
+    }
+
+    const pending = {
+        token: String(nextDockScrollToken++),
+        windowUuid: normalizeWindowUuid(column.window.internalId),
+        reason,
+        offsets,
+        deferredSequence: 1,
+    };
+    pendingDockScroll = pending;
+    debug(`[cc-dock] SCROLL_BEGIN token=${pending.token}` +
+        ` target=${pending.windowUuid} steps=${offsets.join(",") || "focus-only"}`);
+    if (!offsets.length) return finishDockScroll(pending, column);
+    return advancePendingDockScroll({
+        transitionToken: pending.token,
+        windowUuid: pending.windowUuid,
+    });
 }
 
 function selectPersistentPresentation(column) {
@@ -1350,6 +1504,7 @@ function setPresentationMode(windowUuid, mode, reason) {
         normalizeWindowUuid(item.window.internalId) === normalizedUuid);
     if (!column || column.window.output !== mainScreenState.targetOutput) return false;
 
+    cancelPendingDockScroll(reason);
     pendingWideTransition = null;
 
     resetPresentedWindowLayoutState();
@@ -1475,6 +1630,7 @@ function prepareInitialColumn(window) {
 function removeColumn(window, reason, activateSuccessor = true) {
     const index = columnIndexForWindow(window);
     if (index < 0) return;
+    cancelPendingDockScroll(reason);
     const oldScrollOffsetX = mainScreenState.scrollOffsetX;
     const focusedColumn = mainScreenState.columns[mainScreenState.focusedColumnIndex] || null;
     const removedColumn = mainScreenState.columns[index];
@@ -1587,6 +1743,7 @@ function adoptNewWindowAsColumn(window, reason, focusNew = true) {
         return false;
     }
 
+    cancelPendingDockScroll(reason);
     const windowState = stateFor(window);
     if (windowState.floating || isLayoutMode(windowState.layoutMode) ||
             Number(window.maximizeMode) === FULL_MAXIMIZE_MODE ||
@@ -1768,6 +1925,7 @@ function onWindowActivatedForScrollLayout(window) {
 
     const index = columnIndexForWindow(window);
     if (index < 0) return;
+    if (pendingDockScroll) cancelPendingDockScroll("window-activated");
     const column = mainScreenState.columns[index];
     const windowUuid = normalizeWindowUuid(window.internalId);
     const deferredWideMatches = Boolean(pendingWideTransition &&
@@ -1796,6 +1954,7 @@ function onWindowActivatedForScrollLayout(window) {
 function focusRelativeColumn(delta) {
     const columns = mainScreenState.columns;
     if (!mainScreenState.enabled || !columns.length) return;
+    cancelPendingDockScroll(delta < 0 ? "focus-previous" : "focus-next");
     const activeIndex = columnIndexForWindow(workspace.activeWindow);
     if (activeIndex >= 0) mainScreenState.focusedColumnIndex = activeIndex;
     const oldIndex = mainScreenState.focusedColumnIndex;
@@ -1864,6 +2023,7 @@ function toggleFocusWide(window) {
 function moveFocusedColumn(delta) {
     const columns = mainScreenState.columns;
     if (!mainScreenState.enabled || columns.length < 2) return;
+    cancelPendingDockScroll(delta < 0 ? "move-column-left" : "move-column-right");
     const activeIndex = columnIndexForWindow(workspace.activeWindow);
     if (activeIndex >= 0) mainScreenState.focusedColumnIndex = activeIndex;
     const oldIndex = mainScreenState.focusedColumnIndex;

@@ -40,8 +40,10 @@ const presentationSource = effectSource.slice(
 );
 assert.ok(presentationSource.includes("window.ccNiriIncomingVisual || null"));
 assert.ok(presentationSource.indexOf("const chainedIncoming") <
-    presentationSource.indexOf("cancel(window.ccNiriScrollAnimation)"),
+    presentationSource.indexOf("this.motion.cancel(window)"),
 "the incoming visual origin is captured before the first animation is cancelled");
+assert.ok(presentationSource.includes("this.motion.visualSnapshot(window, oldGeometry)"),
+    "a chained Wide transition starts at the current interpolated visual rectangle");
 assert.ok(presentationSource.includes("const sourceGeometry = chainedIncoming || oldGeometry"));
 assert.ok(presentationSource.includes("this.duration + this.presentationDuration"),
 "the merged scroll-plus-wide transition has enough time to remain visible");

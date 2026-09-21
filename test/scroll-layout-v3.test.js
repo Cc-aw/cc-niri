@@ -257,14 +257,15 @@ const dockFocusSource = mainSource.slice(
     mainSource.indexOf('if (command.type === "focus-column-right")'),
     mainSource.indexOf('if (!Array.isArray(command.order))')
 );
-assert.ok(dockFocusSource.includes(
-    "column.logicalX + column.pixelWidth - mainScreenState.safeRect.width"
-), "Dock click right-aligns the selected column in the current viewport");
-assert.ok(dockFocusSource.includes("clampScrollOffset()"),
-    "the first column remains at the left edge instead of creating blank space");
-assert.ok(dockFocusSource.indexOf('relayout("dock-focus-right"') <
-    dockFocusSource.indexOf("workspace.activeWindow = column.window"),
-    "Dock click commits geometry before activating a parked target");
+assert.ok(dockFocusSource.includes('beginDockScroll(column, "dock-focus-right")'),
+    "Dock clicks enter the guarded stepwise scroll planner");
+const finishDockSource = mainSource.slice(
+    mainSource.indexOf("function finishDockScroll"),
+    mainSource.indexOf("function advancePendingDockScroll")
+);
+assert.ok(finishDockSource.indexOf("relayoutFocusedColumnTransition(") <
+    finishDockSource.indexOf("workspace.activeWindow = column.window"),
+    "Dock scrolling commits the final geometry before activating its target");
 const removalSource = mainSource.slice(
     mainSource.indexOf("function removeColumn"),
     mainSource.indexOf("function initializeScrollLayout")

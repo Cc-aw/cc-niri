@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QObject>
+#include <QQueue>
+#include <QSet>
 #include <QString>
 
 class ScrollDockBridge final : public QObject
@@ -26,7 +28,8 @@ Q_SIGNALS:
 private:
     QString m_lastState;
     QString m_sessionId;
-    QString m_pendingCommand;
-    QString m_lastCommandId;
+    QQueue<QString> m_pendingCommands;
+    QSet<QString> m_recentCommandIds;
+    QQueue<QString> m_recentCommandOrder;
     qint64 m_generation = -1;
 };
