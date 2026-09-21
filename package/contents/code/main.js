@@ -16,11 +16,16 @@ const COLUMN_WIDTH_TWO_THIRDS = "twoThirds";
 const PARKING_MARGIN = 4096;
 const FLOATING_FOCUS_GUARD_MS = 1200;
 const FLOATING_REATTACH_GRACE_MS = 10000;
-/* The scroll effect's default movement is 180 ms. Keep the destination pair
- * intact for another 100 ms so a return to persistent Wide visibly follows
- * 1|2 -> 2|3 -> 3@72%, rather than blending the last two states together. */
-const WIDE_REVEAL_DELAY_MS = 280;
-const WIDE_REVEAL_PHASE_NORMAL_PAIR = "normal-pair";
+const WIDE_SCROLL_PHASE_MS = 220;
+const WIDE_PAIR_HOLD_MS = 180;
+const WIDE_EXPANSION_PHASE_MS = 240;
+const WIDE_GEOMETRY_RETRY_MS = 50;
+const WIDE_GEOMETRY_MAX_ATTEMPTS = 20;
+const WIDE_REVEAL_PHASE_SCROLLING = "scrolling-to-normal-pair";
+const WIDE_REVEAL_PHASE_AWAITING_STEP = "awaiting-wide-step";
+const WIDE_REVEAL_PHASE_SETTLED = "settled-normal-pair";
+const WIDE_REVEAL_PHASE_EXPANDING = "expanding-wide";
+const WIDE_REVEAL_PHASE_ANIMATING = "animating-wide";
 const ADOPTION_UNTRACKED = "untracked";
 const ADOPTION_WAITING_ACTIVATION = "waiting-activation";
 const ADOPTION_WAITING_PRIMARY = "waiting-primary";
@@ -157,6 +162,9 @@ function applyPendingDockCommand() {
                     command.type !== "set-presentation-mode" &&
                     command.type !== "focus-column-right" &&
                     command.type !== "emergency-restore" &&
+                    command.type !== "settle-wide-transition" &&
+                    command.type !== "check-wide-transition" &&
+                    command.type !== "finalize-wide-transition" &&
                     command.type !== "complete-wide-transition")) {
                 rejectDockCommand("invalid-schema");
                 return;
@@ -175,8 +183,23 @@ function applyPendingDockCommand() {
                 return;
             }
 
+            if (command.type === "settle-wide-transition") {
+                settlePendingWideTransition(command);
+                return;
+            }
+
             if (command.type === "complete-wide-transition") {
                 completePendingWideTransition(command);
+                return;
+            }
+
+            if (command.type === "finalize-wide-transition") {
+                finalizePendingWideTransitionCommand(command);
+                return;
+            }
+
+            if (command.type === "check-wide-transition") {
+                checkPendingWideGeometry(command);
                 return;
             }
 
@@ -280,6 +303,13 @@ function rectText(rect) {
 function sameRect(a, b) {
     return a && b && a.x === b.x && a.y === b.y &&
         a.width === b.width && a.height === b.height;
+}
+
+function sameRectNear(a, b) {
+    return a && b && Math.abs(a.x - b.x) < 1 &&
+        Math.abs(a.y - b.y) < 1 &&
+        Math.abs(a.width - b.width) < 1 &&
+        Math.abs(a.height - b.height) < 1;
 }
 
 function sameSizeNear(a, b) {
@@ -991,32 +1021,228 @@ function selectPersistentPresentation(column) {
         oldMode !== mainScreenState.presentation.mode;
 }
 
-function completePendingWideTransition(command) {
-    const token = String(command.transitionToken || "");
-    if (!pendingWideTransition || token !== pendingWideTransition.token ||
-            pendingWideTransition.phase !== WIDE_REVEAL_PHASE_NORMAL_PAIR) {
-        return false;
-    }
-    const pending = pendingWideTransition;
-    pendingWideTransition = null;
+function pendingWideColumn(pending) {
+    if (!pending) return null;
     const column = mainScreenState.columns.find(item =>
         normalizeWindowUuid(item.window.internalId) === pending.windowUuid);
     if (!column || !column.persistentWide ||
             mainScreenState.columns.indexOf(column) !==
                 mainScreenState.focusedColumnIndex ||
             column.window.output !== mainScreenState.targetOutput) {
-        debug(`[cc-presentation] DEFERRED_WIDE_CANCEL token=${token}`);
+        return null;
+    }
+    return column;
+}
+
+function finalizePendingWideTransition(column) {
+    const pending = pendingWideTransition;
+    if (!pending || pending.phase !== WIDE_REVEAL_PHASE_ANIMATING ||
+            !column || pendingWideColumn(pending) !== column) {
         return false;
     }
-
-    selectPersistentPresentation(column);
-    relayout(`${pending.reason}-enter-wide`, {
+    pendingWideTransition = null;
+    relayout(`${pending.reason}-finalize-wide`, {
         oldScrollOffsetX: mainScreenState.scrollOffsetX,
         newScrollOffsetX: mainScreenState.scrollOffsetX,
     });
-    commitDockState(`${pending.reason}-enter-wide`);
-    debug(`[cc-presentation] DEFERRED_WIDE_COMPLETE token=${token}` +
+    commitDockState(`${pending.reason}-finalize-wide`);
+    debug(`[cc-presentation] DEFERRED_WIDE_COMPLETE token=${pending.token}` +
         ` uuid=${pending.windowUuid}`);
+    return true;
+}
+
+function finalizePendingWideTransitionCommand(command) {
+    const token = String(command.transitionToken || "");
+    if (!pendingWideTransition || token !== pendingWideTransition.token ||
+            pendingWideTransition.phase !== WIDE_REVEAL_PHASE_ANIMATING) {
+        return false;
+    }
+    const column = pendingWideColumn(pendingWideTransition);
+    if (!column || !sameRectNear(column.window.frameGeometry, presentationRect())) {
+        pendingWideTransition = null;
+        debug(`[cc-presentation] DEFERRED_WIDE_FINALIZE_CANCEL token=${token}`);
+        return false;
+    }
+    return finalizePendingWideTransition(column);
+}
+
+function acknowledgePendingWideGeometry(column) {
+    const pending = pendingWideTransition;
+    if (!pending || pending.phase !== WIDE_REVEAL_PHASE_EXPANDING ||
+            pendingWideColumn(pending) !== column ||
+            !sameRectNear(column.window.frameGeometry, presentationRect())) {
+        return false;
+    }
+    pending.phase = WIDE_REVEAL_PHASE_ANIMATING;
+    requestDeferredWideStage(
+        "finalize-wide-transition",
+        pending,
+        dockGeneration,
+        WIDE_EXPANSION_PHASE_MS
+    );
+    debug(`[cc-presentation] DEFERRED_WIDE_ACK token=${pending.token}` +
+        ` actual=${rectText(column.window.frameGeometry)}` +
+        ` animation=${WIDE_EXPANSION_PHASE_MS}`);
+    return true;
+}
+
+function checkPendingWideGeometry(command) {
+    const token = String(command.transitionToken || "");
+    if (!pendingWideTransition || token !== pendingWideTransition.token ||
+            pendingWideTransition.phase !== WIDE_REVEAL_PHASE_EXPANDING) {
+        return false;
+    }
+    const pending = pendingWideTransition;
+    const column = pendingWideColumn(pending);
+    if (!column) {
+        pendingWideTransition = null;
+        return false;
+    }
+    const target = presentationRect();
+    if (sameRectNear(column.window.frameGeometry, target)) {
+        return acknowledgePendingWideGeometry(column);
+    }
+    if (pending.geometryAttempts >= WIDE_GEOMETRY_MAX_ATTEMPTS) {
+        warn(`[cc-presentation] WIDE_GEOMETRY_TIMEOUT token=${token}` +
+            ` actual=${rectText(column.window.frameGeometry)}`);
+        pendingWideTransition = null;
+        clearPresentationState();
+        relayout(`${pending.reason}-wide-timeout`, {
+            oldScrollOffsetX: mainScreenState.scrollOffsetX,
+            newScrollOffsetX: mainScreenState.scrollOffsetX,
+        });
+        return false;
+    }
+    pending.geometryAttempts += 1;
+    applyColumnGeometry(column, target, `${pending.reason}-retry-wide`);
+    requestDeferredWideStage(
+        "check-wide-transition",
+        pending,
+        dockGeneration,
+        WIDE_GEOMETRY_RETRY_MS
+    );
+    return true;
+}
+
+function beginPendingWideExpansion(pending, column, reason) {
+    if (!pending || !column || pendingWideTransition !== pending ||
+            pendingWideColumn(pending) !== column) return false;
+    pending.reason = reason || pending.reason;
+    selectPersistentPresentation(column);
+    pending.phase = WIDE_REVEAL_PHASE_EXPANDING;
+    pending.geometryAttempts = 1;
+    const target = presentationRect();
+    /* Wayland clients may acknowledge frameGeometry asynchronously. Keep the
+     * normal-pair neighbor visible until the target really reaches 72%; the
+     * frameGeometryChanged acknowledgement finalizes parking. */
+    setColumnVisualVisibility(column, true);
+    applyColumnGeometry(column, target, `${pending.reason}-request-wide`);
+    debug(`[cc-presentation] DEFERRED_WIDE_REQUEST token=${pending.token}` +
+        ` requested=${rectText(target)}` +
+        ` actual=${rectText(column.window.frameGeometry)}`);
+    if (sameRectNear(column.window.frameGeometry, target)) {
+        acknowledgePendingWideGeometry(column);
+    } else {
+        requestDeferredWideStage(
+            "check-wide-transition",
+            pending,
+            dockGeneration,
+            WIDE_GEOMETRY_RETRY_MS
+        );
+    }
+    return true;
+}
+
+function completePendingWideTransition(command) {
+    const token = String(command.transitionToken || "");
+    if (!pendingWideTransition || token !== pendingWideTransition.token ||
+            pendingWideTransition.phase !== WIDE_REVEAL_PHASE_SETTLED) {
+        return false;
+    }
+    const pending = pendingWideTransition;
+    const column = pendingWideColumn(pending);
+    if (!column) {
+        pendingWideTransition = null;
+        debug(`[cc-presentation] DEFERRED_WIDE_CANCEL token=${token}`);
+        return false;
+    }
+    return beginPendingWideExpansion(pending, column, pending.reason);
+}
+
+function requestDeferredWideStage(type, pending, baseGeneration, delayMs) {
+    const command = {
+        protocol: 1,
+        commandId: `${dockSessionId}-wide-${pending.token}-${type}-` +
+            `${pending.deferredSequence++}`,
+        sessionId: dockSessionId,
+        baseGeneration,
+        type,
+        transitionToken: pending.token,
+        windowUuid: pending.windowUuid,
+    };
+    callDBus(
+        DOCK_BRIDGE_SERVICE,
+        DOCK_BRIDGE_PATH,
+        DOCK_BRIDGE_INTERFACE,
+        "RequestDeferredCommand",
+        JSON.stringify(command),
+        delayMs,
+        accepted => {
+            if (accepted) return;
+            debug(`[cc-presentation] DEFERRED_WIDE_FALLBACK` +
+                ` token=${pending.token} type=${type}`);
+            if (type === "settle-wide-transition") {
+                settlePendingWideTransition(command);
+            } else if (type === "check-wide-transition") {
+                checkPendingWideGeometry(command);
+            } else if (type === "finalize-wide-transition") {
+                finalizePendingWideTransitionCommand(command);
+            } else {
+                completePendingWideTransition(command);
+            }
+        }
+    );
+}
+
+function settlePendingWideTransition(command) {
+    const token = String(command.transitionToken || "");
+    if (!pendingWideTransition || token !== pendingWideTransition.token ||
+            pendingWideTransition.phase !== WIDE_REVEAL_PHASE_SCROLLING) {
+        return false;
+    }
+    const pending = pendingWideTransition;
+    const column = mainScreenState.columns.find(item =>
+        normalizeWindowUuid(item.window.internalId) === pending.windowUuid);
+    if (!column || !column.persistentWide ||
+            mainScreenState.columns.indexOf(column) !==
+                mainScreenState.focusedColumnIndex ||
+            column.window.output !== mainScreenState.targetOutput ||
+            mainScreenState.presentation.mode !== PRESENTATION_NORMAL) {
+        pendingWideTransition = null;
+        debug(`[cc-presentation] DEFERRED_PAIR_CANCEL token=${token}`);
+        return false;
+    }
+
+    /* Reassert the normal layout after the movement phase. This restores both
+     * members of the destination pair even if an activation/minimize signal
+     * raced with the initial reveal. No presentation window is selected yet. */
+    relayout(`${pending.reason}-settle-pair`, {
+        oldScrollOffsetX: mainScreenState.scrollOffsetX,
+        newScrollOffsetX: mainScreenState.scrollOffsetX,
+    });
+    pending.phase = WIDE_REVEAL_PHASE_SETTLED;
+    pending.revealWindowUuids = mainScreenState.columns
+        .filter(item => isFullyVisibleInSafeRect(projectedRectForColumn(item)))
+        .map(item => normalizeWindowUuid(item.window.internalId));
+    requestDeferredWideStage(
+        "complete-wide-transition",
+        pending,
+        Number(command.baseGeneration),
+        WIDE_PAIR_HOLD_MS
+    );
+    debug(`[cc-presentation] DEFERRED_PAIR_SETTLED token=${token}` +
+        ` visible=${pending.revealWindowUuids.join(",")}` +
+        ` hold=${WIDE_PAIR_HOLD_MS}`);
     return true;
 }
 
@@ -1030,39 +1256,39 @@ function schedulePersistentWideTransition(column, reason, baseGeneration) {
         token,
         windowUuid,
         reason,
-        phase: WIDE_REVEAL_PHASE_NORMAL_PAIR,
+        phase: WIDE_REVEAL_PHASE_SCROLLING,
         revealWindowUuids,
+        deferredSequence: 1,
     };
-    const command = {
-        protocol: 1,
-        commandId: `${dockSessionId}-wide-${token}`,
-        sessionId: dockSessionId,
+    requestDeferredWideStage(
+        "settle-wide-transition",
+        pendingWideTransition,
         baseGeneration,
-        type: "complete-wide-transition",
-        transitionToken: token,
-        windowUuid,
-    };
-    callDBus(
-        DOCK_BRIDGE_SERVICE,
-        DOCK_BRIDGE_PATH,
-        DOCK_BRIDGE_INTERFACE,
-        "RequestDeferredCommand",
-        JSON.stringify(command),
-        WIDE_REVEAL_DELAY_MS,
-        accepted => {
-            if (accepted) return;
-            debug(`[cc-presentation] DEFERRED_WIDE_FALLBACK token=${token}`);
-            completePendingWideTransition(command);
-        }
+        WIDE_SCROLL_PHASE_MS
     );
     debug(`[cc-presentation] DEFERRED_WIDE_SCHEDULE token=${token}` +
-        ` uuid=${windowUuid} phase=${WIDE_REVEAL_PHASE_NORMAL_PAIR}` +
+        ` uuid=${windowUuid} phase=${WIDE_REVEAL_PHASE_SCROLLING}` +
         ` visible=${revealWindowUuids.join(",")}` +
-        ` delay=${WIDE_REVEAL_DELAY_MS}`);
+        ` delay=${WIDE_SCROLL_PHASE_MS}`);
+}
+
+function armPersistentWideStep(column, reason, direction) {
+    const token = String(nextWideTransitionToken++);
+    const windowUuid = normalizeWindowUuid(column.window.internalId);
+    pendingWideTransition = {
+        token,
+        windowUuid,
+        reason,
+        phase: WIDE_REVEAL_PHASE_AWAITING_STEP,
+        entryDirection: direction,
+        deferredSequence: 1,
+    };
+    debug(`[cc-presentation] WIDE_STEP_ARM token=${token}` +
+        ` uuid=${windowUuid} direction=${direction}`);
 }
 
 function relayoutFocusedColumnTransition(column, reason, oldScrollOffsetX,
-        newScrollOffsetX) {
+        newScrollOffsetX, wideStepDirection = 0) {
     const oldWindowUuid = mainScreenState.presentation.windowUuid;
     const oldMode = mainScreenState.presentation.mode;
     const columnUuid = column
@@ -1075,6 +1301,14 @@ function relayoutFocusedColumnTransition(column, reason, oldScrollOffsetX,
             ` token=${pendingWideTransition.token} reason=${reason}`);
         pendingWideTransition = null;
     }
+    if (pendingWideTransition &&
+            pendingWideTransition.windowUuid === columnUuid &&
+            column && column.persistentWide && !alreadySelectedWide) {
+        debug(`[cc-presentation] DEFERRED_WIDE_REUSE` +
+            ` token=${pendingWideTransition.token} reason=${reason}`);
+        return oldWindowUuid !== mainScreenState.presentation.windowUuid ||
+            oldMode !== mainScreenState.presentation.mode;
+    }
 
     if (column && column.persistentWide && !alreadySelectedWide) {
         /* KWin cannot paint between two synchronous geometry commits. Reveal
@@ -1085,14 +1319,18 @@ function relayoutFocusedColumnTransition(column, reason, oldScrollOffsetX,
             oldScrollOffsetX,
             newScrollOffsetX,
         });
-        const presentationChangedNow = oldWindowUuid !==
-                mainScreenState.presentation.windowUuid ||
-            oldMode !== mainScreenState.presentation.mode;
-        schedulePersistentWideTransition(
-            column,
-            reason,
-            dockGeneration + (presentationChangedNow ? 1 : 0)
-        );
+        if (wideStepDirection !== 0) {
+            armPersistentWideStep(column, reason, wideStepDirection);
+        } else {
+            const presentationChangedNow = oldWindowUuid !==
+                    mainScreenState.presentation.windowUuid ||
+                oldMode !== mainScreenState.presentation.mode;
+            schedulePersistentWideTransition(
+                column,
+                reason,
+                dockGeneration + (presentationChangedNow ? 1 : 0)
+            );
+        }
     } else {
         selectPersistentPresentation(column);
         relayout(reason, {
@@ -1561,6 +1799,23 @@ function focusRelativeColumn(delta) {
     const activeIndex = columnIndexForWindow(workspace.activeWindow);
     if (activeIndex >= 0) mainScreenState.focusedColumnIndex = activeIndex;
     const oldIndex = mainScreenState.focusedColumnIndex;
+    const currentColumn = oldIndex >= 0 ? columns[oldIndex] : null;
+    const currentUuid = currentColumn
+        ? normalizeWindowUuid(currentColumn.window.internalId)
+        : null;
+    if (currentColumn && currentColumn.persistentWide &&
+            pendingWideTransition &&
+            pendingWideTransition.phase === WIDE_REVEAL_PHASE_AWAITING_STEP &&
+            pendingWideTransition.windowUuid === currentUuid &&
+            pendingWideTransition.entryDirection === delta) {
+        beginPendingWideExpansion(
+            pendingWideTransition,
+            currentColumn,
+            delta < 0 ? "focus-previous-wide-step" : "focus-next-wide-step"
+        );
+        debug(`[cc-scroll] WIDE_STEP index=${oldIndex} direction=${delta}`);
+        return;
+    }
     const nextIndex = Math.max(0, Math.min(columns.length - 1, oldIndex + delta));
     if (nextIndex === oldIndex) return;
 
@@ -1574,7 +1829,8 @@ function focusRelativeColumn(delta) {
         column,
         delta < 0 ? "focus-previous" : "focus-next",
         oldScrollOffsetX,
-        newScrollOffsetX
+        newScrollOffsetX,
+        delta
     );
     /*
      * Never activate a window while its real geometry is still in the
@@ -1867,6 +2123,16 @@ function leavePseudoMaximize(window, state, reason) {
 function onFrameGeometryChanged(window, oldGeometry) {
     const state = stateFor(window);
     if (state.internalChange || state.interactiveMoveResize || window.fullScreen) return;
+    if (pendingWideTransition &&
+            pendingWideTransition.phase === WIDE_REVEAL_PHASE_EXPANDING &&
+            pendingWideTransition.windowUuid ===
+                normalizeWindowUuid(window.internalId) &&
+            sameRectNear(window.frameGeometry, presentationRect())) {
+        acknowledgePendingWideGeometry(
+            mainScreenState.columns[columnIndexForWindow(window)]
+        );
+        return;
+    }
     if (window.active && state.adoptionPhase !== ADOPTION_UNTRACKED &&
             state.adoptionPhase !== ADOPTION_MANAGED &&
             state.adoptionPhase !== ADOPTION_FLOATING &&

@@ -100,7 +100,11 @@ bool ScrollDockBridge::RequestCommand(const QString &json)
     const bool dockFocusRight = type == QStringLiteral("focus-column-right") &&
         !command.value(QStringLiteral("windowUuid")).toString().isEmpty();
     const bool emergencyRestore = type == QStringLiteral("emergency-restore");
-    const bool completeWide = type == QStringLiteral("complete-wide-transition") &&
+    const bool deferredWide =
+        (type == QStringLiteral("settle-wide-transition") ||
+         type == QStringLiteral("check-wide-transition") ||
+         type == QStringLiteral("finalize-wide-transition") ||
+         type == QStringLiteral("complete-wide-transition")) &&
         !command.value(QStringLiteral("windowUuid")).toString().isEmpty() &&
         !command.value(QStringLiteral("transitionToken")).toString().isEmpty();
     if (command.value(QStringLiteral("protocol")).toInt() != 1 ||
@@ -108,7 +112,7 @@ bool ScrollDockBridge::RequestCommand(const QString &json)
         command.value(QStringLiteral("sessionId")).toString().isEmpty() ||
         command.value(QStringLiteral("baseGeneration")).toInteger(-1) < 0 ||
         (!reorder && !presentation && !dockFocusRight && !emergencyRestore &&
-         !completeWide)) {
+         !deferredWide)) {
         qCWarning(logBridge) << "rejecting command with invalid schema";
         return false;
     }
@@ -136,9 +140,13 @@ bool ScrollDockBridge::RequestDeferredCommand(const QString &json, int delayMs)
     const QString sessionId = command.value(QStringLiteral("sessionId")).toString();
     const qint64 generation =
         command.value(QStringLiteral("baseGeneration")).toInteger(-1);
+    const QString type = command.value(QStringLiteral("type")).toString();
+    const bool deferredWide = type == QStringLiteral("settle-wide-transition") ||
+        type == QStringLiteral("check-wide-transition") ||
+        type == QStringLiteral("finalize-wide-transition") ||
+        type == QStringLiteral("complete-wide-transition");
     if (command.value(QStringLiteral("protocol")).toInt() != 1 ||
-        command.value(QStringLiteral("type")).toString() !=
-            QStringLiteral("complete-wide-transition") ||
+        !deferredWide ||
         command.value(QStringLiteral("commandId")).toString().isEmpty() ||
         sessionId.isEmpty() || sessionId != m_sessionId || generation < 0 ||
         command.value(QStringLiteral("windowUuid")).toString().isEmpty() ||
