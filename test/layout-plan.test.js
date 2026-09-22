@@ -35,9 +35,17 @@ const scrollPlan = computeLayoutPlan({
 });
 
 assert.deepEqual(scrollPlan.scrollTransaction, {
+    id: 7,
+    epoch: 7,
+    type: "SCROLL",
+    direction: "left",
     oldScrollOffsetX: 0,
     newScrollOffsetX: 1260,
     deltaX: 1260,
+    viewport: safeRect,
+    continuing: ["B"],
+    incoming: ["C"],
+    outgoing: ["A"],
 });
 assert.deepEqual(
     scrollPlan.windows.map(item => [item.column.window.id, item.transitionRole]),

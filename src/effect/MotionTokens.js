@@ -4,6 +4,10 @@ const SAFE_RIGHT_EDGE_SLIDE_X = 20;
 const UNARMED_TRANSACTION_TTL_MS = 80;
 const PRESENTATION_MIN_WIDTH_RATIO = 0.65;
 const PRESENTATION_MAX_WIDTH_RATIO = 0.85;
+/* KWin reserves EffectWindow data roles 0..999. This role is the in-process
+ * handoff from the scripted motion effect to the native viewport clip effect. */
+const CC_NIRI_VIEWPORT_CLIP_ROLE = 1001;
+const CC_NIRI_VIEWPORT_CLIP_CAPABILITY_ROLE = 1002;
 
 const MotionTokens = Object.freeze({
     microPressMs: 90,
@@ -41,6 +45,8 @@ module.exports = {
     UNARMED_TRANSACTION_TTL_MS,
     PRESENTATION_MIN_WIDTH_RATIO,
     PRESENTATION_MAX_WIDTH_RATIO,
+    CC_NIRI_VIEWPORT_CLIP_ROLE,
+    CC_NIRI_VIEWPORT_CLIP_CAPABILITY_ROLE,
     MotionTokens,
     MotionCurves,
     MotionType,

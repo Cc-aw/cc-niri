@@ -1,6 +1,6 @@
 # CC Niri Maximize
 
-CC Niri Maximize V3 is being implemented in phases on top of the working V2 safe-area script. Version `3.0.0-alpha.37` completes the Phase 13 architecture and regression gate while retaining dual Return and keypad Enter Floating bindings, shared Motion tokens, generation-checked Dock ordering, and retargetable Column scrolling.
+CC Niri Maximize V3 is being implemented in phases on top of the working V2 safe-area script. Version `3.0.0-alpha.38` enables native-clipped full-delta Column scrolling while retaining dual Return and keypad Enter Floating bindings, shared Motion tokens, generation-checked Dock ordering, and retargetable motion.
 
 ## Current V3 phase
 
@@ -27,7 +27,8 @@ Implemented in this alpha:
 - Stale, mismatched-session, incomplete, or duplicate reorder requests are rejected and followed by an authoritative resync.
 - No polling. The event-driven companion bridge is only an IPC relay; KWin remains the geometry and logical-order authority. A small KWin effect animates scrolling-column position changes without changing geometry or output ownership.
 - Column motion uses the shared `220 ms` spatial token and an `OutCubic` deceleration curve. Repeated or reversed `Meta+H/L` input samples the current visual translation, compensates for the newly committed real geometry, and retargets from that painted position instead of snapping and restarting. Each window has an independent Motion epoch, and completion clears all temporary Translation, Scale, and Opacity state.
-- Ordinary scrolling is translation-led. Parked Columns that cannot expose their true off-screen origin use only subtle `0.985 → 1.0` Scale and `0.85 → 1.0` Opacity assists at the safe edge. No-op channels are discarded, repeated input shortens retarget duration according to remaining distance, and grouped continuing/incoming/outgoing windows share an explicit Motion Transaction.
+- Ordinary scrolling uses the complete logical offset for continuing, incoming, and outgoing Columns, with Translation only (`Scale=1`, `Opacity=1`). No-op channels are discarded, repeated input shortens retarget duration according to remaining distance, and grouped continuing/incoming/outgoing windows share an explicit Motion Transaction. Close-refill motion keeps the subtle `0.985 → 1.0` Scale and `0.85 → 1.0` Opacity assist.
+- Phase 4B adds the native `cc-niri-viewport-clip` KWin effect. The scripted motion effect publishes each active transaction's logical safe viewport through `EffectWindow` data role `1001`; the native effect converts it with KWin's `RenderViewport::mapToDeviceCoordinates()` and intersects the device paint region. Phase 5 advertises native availability through role `1002` and enables full-delta right-edge motion only after observing that marker on the affected window. If the native effect is absent or unloaded, right-edge motion automatically falls back to the existing 20 px in-slot reveal. The transaction marker is removed on completion or cancellation, and direct scanout is blocked only while marked motion windows exist.
 - The Dock task context menu adds a compact `CC Scroll` section with Normal, Focus Wide, and Maximize in Safe Area. Wide is exactly 72% of the safe area and centered; Wide and Maximize park all neighboring managed windows without changing logical or Dock order.
 - KDE's native maximize button and the Dock's Maximize in Safe Area action enter the same presentation state; restore returns to the exact two-column layout.
 - Focus Wide is a persistent per-Column property for the current KWin session. `Meta+H/L` treats a return to Wide as two discrete navigation steps rather than one timed transition: from `1|2`, the first `Meta+L` stops indefinitely at `2|3`; the second `Meta+L` expands focused column 3 to 72%. The reverse direction behaves symmetrically with `Meta+H`. The neighbor remains visible only until the target accepts its real 72% geometry, then parks immediately while the Wide paint animation finishes, so the two windows never remain visibly overlapped. Dock activation retains its automatic guarded transition. Pressing `Meta+Z` on Wide restores 50% pairing. Presentation never permanently changes the normal scroll offset.
@@ -95,12 +96,31 @@ On the `2560x1440` secondary this produces maximize `2584,24 2512x1392`, with Le
 ./install.sh
 ```
 
-No root privileges are used. The installer builds and installs the current user's KWin script, direction-correction effect, D-Bus bridge service, and `CC Scroll Tasks` Plasma applet. It disables both the obsolete custom Focus Ring and the global Dim Inactive effect, reloads KWin components, and restarts Plasma Shell so the compiled applet is loaded.
+No root privileges are used by the installer. It requires the matching KWin
+development package (`kwin-devel` on Fedora), builds the native viewport clip
+plugin into `~/.local/lib64/qt6/plugins`, and installs the current user's KWin
+script, direction-correction effect, D-Bus bridge service, and `CC Scroll Tasks`
+Plasma applet. It disables both the obsolete custom Focus Ring and the global
+Dim Inactive effect, reloads KWin components, and restarts Plasma Shell so the
+compiled applet is loaded.
+
+KWin can retain an already loaded native effect library across an in-place
+upgrade. Until the next Plasma login loads the new binary, capability role
+`1002` remains absent and scrolling safely uses the 20 px right-edge fallback;
+no full-delta motion is enabled on an unconfirmed clip implementation.
 
 The third-party `Geometry Change` KWin effect also animates every script-driven
 parking jump and is incompatible with the Column transition effect. Installation
 temporarily disables it (without uninstalling it); uninstall restores it when it
 was enabled before CC Niri Maximize was installed.
+
+KWin 6.7 exposes per-window minimize/unminimize grab roles, which the Column
+effect now holds only for CC-owned parking motion. The bundled Squash and Magic
+Lamp effects in 6.7 do not honor those roles, so installation applies the
+compatibility fallback of disabling the active minimize effect. Its previous
+enabled state is recorded and restored by `uninstall.sh`. Consequently, native
+user-triggered minimize animation is unavailable while this fallback is active;
+the window operation itself remains unchanged.
 
 Open System Settings → Window Management → KWin Scripts to configure both output names, each monitor's outer and inner gaps, dialog handling, and debug logging.
 
@@ -130,6 +150,42 @@ Enable debug logging in the script configuration, then follow KWin logs:
 ```bash
 journalctl --user -b -f | grep cc-niri-maximize
 ```
+
+The viewport-clipping proof of concept is deliberately disabled by default. To
+validate KWin's fragment-coordinate mapping, enable its non-destructive red tint:
+
+```bash
+kwriteconfig6 --file kwinrc \
+  --group Effect-cc-niri-maximize-scroll-transition \
+  --key DebugViewportClipTint --type bool true
+qdbus6 org.kde.KWin /KWin org.kde.KWin.reconfigure
+```
+
+During H/L motion, pixels that the shader considers outside the primary safe
+viewport are tinted red; they are not discarded. Check all four edges with the
+primary output at 150% and the adjacent output at 100%. Disable the key after
+the test. This shader remains diagnostic and is not part of the production
+clipping or capability decision.
+
+The 2026-09-22 mixed-DPI validation did **not** pass that gate. KWin 6.7.5
+successfully loaded and bound the shader, and the debug-only full-delta probe
+painted across both outputs, but `gl_FragCoord` produced a visibly displaced
+boundary inside the primary viewport. The effect therefore keeps the tint and
+never enables fragment discard. Production full-delta motion instead uses the
+native effect's RenderViewport-aware device-space clip; the safe-edge fallback
+is selected only when that native capability is unavailable.
+
+The Phase 4B native replacement can be observed with:
+
+```bash
+journalctl --user -b -f | grep VIEWPORT_CLIP_NATIVE
+```
+
+On the tested layout, the same logical safe rect `24,50 2512x1320` maps to
+device rect `36,75 3768x1980` on the 150% primary render viewport. During the
+secondary render pass it maps completely outside that output, so intersection
+produces no secondary paint. This conversion comes from KWin's RenderViewport,
+not from project-owned scale compensation.
 
 ## Development
 
@@ -188,6 +244,22 @@ sampling are owned by `src/effect/MotionSampler.js`. Animation lifecycle and
 retargetable state are owned by `src/effect/MotionController.js`; geometry
 classification is owned by `src/effect/MotionClassifier.js`. KWin still loads
 the generated Effect script at `effect/contents/code/main.js`.
+
+`ViewportClipController` owns the opt-in diagnostic shader and injects each
+MotionTransaction's reconstructed safe viewport. The current shader only tints
+out-of-viewport fragments. `MotionController` adds an explicit `Effect.Shader`
+animation so KWin actually binds it. Mixed-DPI visual verification showed that
+fragment coordinates are not global logical coordinates, so production discard
+remains blocked. The shader is diagnostic only and does not authorize full-delta
+motion.
+
+The production Phase 4B implementation lives in `native/viewport-clip/`.
+`MotionController` publishes and clears data role `1001`; the native effect
+clips only marked windows in device space and logs each distinct logical-to-
+device mapping. It also publishes capability role `1002` on every EffectWindow;
+the scripted effect requires that exact marker before using full-delta right-edge
+motion. It is intentionally limited to clipping—layout, motion timing, parking,
+and Dock integration remain in their existing owners.
 
 Scroll batches are represented by `src/effect/MotionTransaction.js`, with a
 stable id/epoch, motion type, delta, and grouped continuing, incoming, and

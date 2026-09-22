@@ -7,6 +7,7 @@ global.Effect = {
     Scale: 2,
     Opacity: 3,
     Generic: 4,
+    Shader: 5,
     Left: 10,
     Right: 11,
     Top: 12,
@@ -123,6 +124,91 @@ retargetController.start(retargetWindow, {
 assert.equal(animationRequest.duration, 110,
     "a retarget with about 12.5% distance remaining does not restart at 220 ms");
 Date.now = realDateNow;
+
+const transactionWindow = {};
+const transaction = {
+    id: 77,
+    layoutEpoch: 12,
+    viewport: { x: 24, y: 50, width: 2512, height: 1320 },
+};
+const transactionState = controller.startTransaction(
+    transactionWindow,
+    transaction,
+    "incoming",
+    {
+        type: MotionType.SCROLL,
+        duration: 220,
+        oldGeometry: { x: -100, y: 50, width: 100, height: 100 },
+        newGeometry: { x: 24, y: 50, width: 100, height: 100 },
+        channels: [{
+            type: Effect.Translation,
+            from: { value1: 1260, value2: 0 },
+            to: { value1: 0, value2: 0 },
+        }],
+    }
+);
+assert.equal(transactionState.transactionId, 77);
+assert.equal(transactionState.transactionEpoch, 12);
+assert.equal(transactionState.role, "incoming");
+assert.deepEqual(transactionState.viewport, transaction.viewport);
+
+const nativeClipWrites = [];
+const nativeClipWindow = {
+    setData(role, value) {
+        nativeClipWrites.push({ role, value });
+    },
+};
+const nativeClipState = controller.startTransaction(
+    nativeClipWindow,
+    transaction,
+    "continuing",
+    {
+        type: MotionType.SCROLL,
+        duration: 220,
+        oldGeometry: geometry,
+        newGeometry: geometry,
+        channels: [{
+            type: Effect.Translation,
+            from: { value1: 1260, value2: 0 },
+            to: { value1: 0, value2: 0 },
+        }],
+    }
+);
+assert.equal(nativeClipWrites[0].role, 1001);
+assert.deepEqual(nativeClipWrites[0].value, {
+    enabled: true,
+    x: 24,
+    y: 50,
+    width: 2512,
+    height: 1320,
+    transactionId: 77,
+    transactionEpoch: 12,
+    motionEpoch: nativeClipState.epoch,
+    role: "continuing",
+});
+controller.animationEnded(nativeClipWindow, 0);
+assert.deepEqual(nativeClipWrites.at(-1), { role: 1001, value: null });
+
+const shaderWindow = {};
+controller.start(shaderWindow, {
+    type: MotionType.SCROLL,
+    duration: 220,
+    fragmentShader: 42,
+    oldGeometry: geometry,
+    newGeometry: geometry,
+    channels: [{
+        type: Effect.Translation,
+        from: { value1: 1260, value2: 0 },
+        to: { value1: 0, value2: 0 },
+    }],
+});
+assert.equal(animationRequest.fragmentShader, 42);
+assert.deepEqual(animationRequest.animations.at(-1), {
+    type: Effect.Shader,
+    from: 0,
+    to: 1,
+    fragmentShader: 42,
+});
 
 const effectSource = fs.readFileSync(
     path.join(__dirname, "../effect/contents/code/main.js"),

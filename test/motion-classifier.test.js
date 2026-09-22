@@ -10,6 +10,7 @@ const {
     presentationTransition,
     parked,
     incomingVisualStart,
+    viewportFromSlot,
 } = require("../src/effect/MotionClassifier.js");
 
 const screen = { x: 0, y: 0, width: 2560, height: 1440 };
@@ -37,6 +38,10 @@ assert.ok(Math.abs(incoming.width - 1176.88) < 0.001);
 assert.equal(incoming.y, 50);
 assert.equal(incoming.height, 1320);
 assert.equal(incoming.opacity, 0.2);
+assert.deepEqual(viewportFromSlot(left, "left", 8),
+    { x: 24, y: 50, width: 2512, height: 1320 });
+assert.deepEqual(viewportFromSlot(right, "right", 8),
+    { x: 24, y: 50, width: 2512, height: 1320 });
 
 const effectSource = fs.readFileSync(
     path.join(__dirname, "../effect/contents/code/main.js"),

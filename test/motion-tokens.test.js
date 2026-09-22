@@ -7,6 +7,8 @@ const {
     UNARMED_TRANSACTION_TTL_MS,
     PRESENTATION_MIN_WIDTH_RATIO,
     PRESENTATION_MAX_WIDTH_RATIO,
+    CC_NIRI_VIEWPORT_CLIP_ROLE,
+    CC_NIRI_VIEWPORT_CLIP_CAPABILITY_ROLE,
     MotionTokens,
     MotionCurves,
     MotionType,
@@ -16,6 +18,8 @@ assert.equal(SAFE_RIGHT_EDGE_SLIDE_X, 20);
 assert.equal(UNARMED_TRANSACTION_TTL_MS, 80);
 assert.equal(PRESENTATION_MIN_WIDTH_RATIO, 0.65);
 assert.equal(PRESENTATION_MAX_WIDTH_RATIO, 0.85);
+assert.equal(CC_NIRI_VIEWPORT_CLIP_ROLE, 1001);
+assert.equal(CC_NIRI_VIEWPORT_CLIP_CAPABILITY_ROLE, 1002);
 assert.deepEqual(MotionTokens, {
     microPressMs: 90,
     microHoverMs: 110,

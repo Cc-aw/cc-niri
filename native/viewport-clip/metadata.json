@@ -1,0 +1,13 @@
+{
+    "KPlugin": {
+        "Category": "Appearance",
+        "Description": "Device-space viewport clipping for CC Niri motion transactions",
+        "EnabledByDefault": false,
+        "License": "GPL-2.0-or-later",
+        "Name": "CC Niri Viewport Clip",
+        "Version": "0.2.0"
+    },
+    "org.kde.kwin.effect": {
+        "internal": false
+    }
+}

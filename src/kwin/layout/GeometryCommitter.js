@@ -37,11 +37,17 @@ class GeometryCommitter {
     commit(plan) {
         const transaction = plan.scrollTransaction;
         if (transaction) {
-            this.debug(`[cc-scroll] TRANSACTION old=${transaction.oldScrollOffsetX}` +
-                ` new=${transaction.newScrollOffsetX} delta=${transaction.deltaX}`);
+            this.debug(`[MOTION_TX] BEGIN id=${transaction.id}` +
+                ` epoch=${transaction.epoch} type=${transaction.type}` +
+                ` direction=${transaction.direction} delta=${transaction.deltaX}` +
+                ` viewport=${this.rectText(transaction.viewport)}`);
         }
         plan.commitOrder.forEach(item => {
             const column = item.column;
+            if (transaction && item.transitionRole !== "static") {
+                this.debug(`[MOTION_TX] ROLE id=${transaction.id}` +
+                    ` column=${column.id} role=${item.transitionRole}`);
+            }
             if (item.placement === "parked" &&
                     this.isRectInsideAnyOutput(item.rect)) {
                 this.warn(`[cc-scroll] invalid parking rect column=${column.id}` +
@@ -89,6 +95,9 @@ class GeometryCommitter {
                     ` parkingX=${item.rect.x} output=${outputName}`);
             }
         });
+        if (transaction) {
+            this.debug(`[MOTION_TX] COMPLETE id=${transaction.id}`);
+        }
     }
 }
 

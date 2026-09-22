@@ -80,6 +80,17 @@ function incomingVisualStart(rect, translationX, scaleX, anchor, opacity) {
     };
 }
 
+function viewportFromSlot(rect, slot, innerGap) {
+    const gap = Math.max(0, Number(innerGap) || 0);
+    const width = rect.width * 2 + gap;
+    return {
+        x: slot === "right" ? rect.x - rect.width - gap : rect.x,
+        y: rect.y,
+        width,
+        height: rect.height,
+    };
+}
+
 /* cjs:start */
 module.exports = {
     sameSize,
@@ -89,5 +100,6 @@ module.exports = {
     presentationTransition,
     parked,
     incomingVisualStart,
+    viewportFromSlot,
 };
 /* cjs:end */

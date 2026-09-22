@@ -23,6 +23,13 @@ function transitionRank(role) {
     return ({ continuing: 0, incoming: 1, outgoing: 2, static: 3 })[role];
 }
 
+function motionWindowId(item) {
+    const internalId = item.column.window.internalId;
+    return String(internalId === undefined || internalId === null
+        ? item.column.window.id || item.columnId
+        : internalId);
+}
+
 function computeLayoutPlan(options) {
     const {
         reason,
@@ -84,14 +91,28 @@ function computeLayoutPlan(options) {
         };
     });
 
+    const deltaX = newScrollOffsetX - oldScrollOffsetX;
+    const scrollTransaction = hasScrollTransaction ? {
+        id: epoch,
+        epoch,
+        type: "SCROLL",
+        direction: deltaX > 0 ? "left" : "right",
+        deltaX,
+        oldScrollOffsetX,
+        newScrollOffsetX,
+        viewport: copyRect(safeRect),
+        continuing: windows.filter(item => item.transitionRole === "continuing")
+            .map(motionWindowId),
+        incoming: windows.filter(item => item.transitionRole === "incoming")
+            .map(motionWindowId),
+        outgoing: windows.filter(item => item.transitionRole === "outgoing")
+            .map(motionWindowId),
+    } : null;
+
     return {
         reason,
         epoch,
-        scrollTransaction: hasScrollTransaction ? {
-            oldScrollOffsetX,
-            newScrollOffsetX,
-            deltaX: newScrollOffsetX - oldScrollOffsetX,
-        } : null,
+        scrollTransaction,
         windows,
         commitOrder: hasScrollTransaction
             ? windows.slice().sort((a, b) =>

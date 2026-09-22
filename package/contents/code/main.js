@@ -324,6 +324,13 @@ function transitionRank(role) {
     return ({ continuing: 0, incoming: 1, outgoing: 2, static: 3 })[role];
 }
 
+function motionWindowId(item) {
+    const internalId = item.column.window.internalId;
+    return String(internalId === undefined || internalId === null
+        ? item.column.window.id || item.columnId
+        : internalId);
+}
+
 function computeLayoutPlan(options) {
     const {
         reason,
@@ -385,14 +392,28 @@ function computeLayoutPlan(options) {
         };
     });
 
+    const deltaX = newScrollOffsetX - oldScrollOffsetX;
+    const scrollTransaction = hasScrollTransaction ? {
+        id: epoch,
+        epoch,
+        type: "SCROLL",
+        direction: deltaX > 0 ? "left" : "right",
+        deltaX,
+        oldScrollOffsetX,
+        newScrollOffsetX,
+        viewport: copyRect(safeRect),
+        continuing: windows.filter(item => item.transitionRole === "continuing")
+            .map(motionWindowId),
+        incoming: windows.filter(item => item.transitionRole === "incoming")
+            .map(motionWindowId),
+        outgoing: windows.filter(item => item.transitionRole === "outgoing")
+            .map(motionWindowId),
+    } : null;
+
     return {
         reason,
         epoch,
-        scrollTransaction: hasScrollTransaction ? {
-            oldScrollOffsetX,
-            newScrollOffsetX,
-            deltaX: newScrollOffsetX - oldScrollOffsetX,
-        } : null,
+        scrollTransaction,
         windows,
         commitOrder: hasScrollTransaction
             ? windows.slice().sort((a, b) =>
@@ -439,11 +460,17 @@ class GeometryCommitter {
     commit(plan) {
         const transaction = plan.scrollTransaction;
         if (transaction) {
-            this.debug(`[cc-scroll] TRANSACTION old=${transaction.oldScrollOffsetX}` +
-                ` new=${transaction.newScrollOffsetX} delta=${transaction.deltaX}`);
+            this.debug(`[MOTION_TX] BEGIN id=${transaction.id}` +
+                ` epoch=${transaction.epoch} type=${transaction.type}` +
+                ` direction=${transaction.direction} delta=${transaction.deltaX}` +
+                ` viewport=${this.rectText(transaction.viewport)}`);
         }
         plan.commitOrder.forEach(item => {
             const column = item.column;
+            if (transaction && item.transitionRole !== "static") {
+                this.debug(`[MOTION_TX] ROLE id=${transaction.id}` +
+                    ` column=${column.id} role=${item.transitionRole}`);
+            }
             if (item.placement === "parked" &&
                     this.isRectInsideAnyOutput(item.rect)) {
                 this.warn(`[cc-scroll] invalid parking rect column=${column.id}` +
@@ -491,6 +518,9 @@ class GeometryCommitter {
                     ` parkingX=${item.rect.x} output=${outputName}`);
             }
         });
+        if (transaction) {
+            this.debug(`[MOTION_TX] COMPLETE id=${transaction.id}`);
+        }
     }
 }
 

@@ -1,7 +1,11 @@
 "use strict";
 
 /* cjs:start */
-const { MotionCurves, MotionType } = require("./MotionTokens");
+const {
+    CC_NIRI_VIEWPORT_CLIP_ROLE,
+    MotionCurves,
+    MotionType,
+} = require("./MotionTokens");
 const {
     channelDistance,
     distanceAwareDuration,
@@ -31,9 +35,33 @@ class MotionController {
         return visualRectFor(geometry, sampleMotionState(state, Date.now()), anchor);
     }
 
+    setNativeViewportClip(window, state) {
+        if (!state.viewport || typeof window.setData !== "function") return;
+        window.setData(CC_NIRI_VIEWPORT_CLIP_ROLE, {
+            enabled: true,
+            x: Number(state.viewport.x),
+            y: Number(state.viewport.y),
+            width: Number(state.viewport.width),
+            height: Number(state.viewport.height),
+            transactionId: state.transactionId,
+            transactionEpoch: state.transactionEpoch,
+            motionEpoch: state.epoch,
+            role: state.role,
+        });
+    }
+
+    clearNativeViewportClip(window) {
+        if (typeof window.setData === "function") {
+            window.setData(CC_NIRI_VIEWPORT_CLIP_ROLE, null);
+        }
+    }
+
     cancel(window) {
         const state = this.states.get(window);
-        if (!state) return false;
+        if (!state) {
+            this.clearNativeViewportClip(window);
+            return false;
+        }
         this.states.delete(window);
         if (state.animationIds && state.animationIds.length) {
             cancel(state.animationIds);
@@ -41,6 +69,7 @@ class MotionController {
         if (window.ccNiriScrollAnimation === state.animationIds) {
             delete window.ccNiriScrollAnimation;
         }
+        this.clearNativeViewportClip(window);
         return true;
     }
 
@@ -77,6 +106,15 @@ class MotionController {
             return QEasingCurve.OutCubic;
         }
         return QEasingCurve.Linear;
+    }
+
+    startTransaction(window, transaction, role, options) {
+        return this.start(window, Object.assign({}, options, {
+            transactionId: transaction.id,
+            transactionEpoch: transaction.layoutEpoch,
+            role,
+            viewport: transaction.viewport,
+        }));
     }
 
     start(window, options) {
@@ -145,6 +183,7 @@ class MotionController {
         if (!Object.keys(channels).length) {
             if (window.ccNiriScrollAnimation) delete window.ccNiriScrollAnimation;
             if (window.ccNiriIncomingVisual) delete window.ccNiriIncomingVisual;
+            this.clearNativeViewportClip(window);
             this.owner.debug(`[MOTION] skip type=${options.type || MotionType.NONE}` +
                 " reason=no-op");
             return null;
@@ -173,22 +212,45 @@ class MotionController {
             }
             return spec;
         });
+        /* A custom shader attached to Translation/Scale/Opacity is retained by
+         * AnimationEffect, but KWin only binds it while processing an explicit
+         * Shader attribute. Keep the Shader animation in the same declarative
+         * group so its lifetime follows the motion channels exactly. */
+        if (options.fragmentShader) {
+            animationSpecs.push({
+                type: Effect.Shader,
+                from: 0.0,
+                to: 1.0,
+                fragmentShader: options.fragmentShader,
+            });
+        }
         const state = {
             epoch: this.nextEpoch++,
+            transactionId: options.transactionId === undefined
+                ? null : options.transactionId,
+            transactionEpoch: options.transactionEpoch === undefined
+                ? null : options.transactionEpoch,
             type: options.type || MotionType.NONE,
+            role: options.role || "static",
+            viewport: options.viewport ? Object.assign({}, options.viewport) : null,
             startTime: now,
             duration,
             curve: options.curve || MotionCurves.standardDecel,
             channels,
             animationIds: [],
         };
-        state.animationIds = animate({
+        const animationRequest = {
             window,
             duration,
             curve: this.curveType(state.curve),
             animations: animationSpecs,
-        });
+        };
+        if (options.fragmentShader) {
+            animationRequest.fragmentShader = options.fragmentShader;
+        }
         this.states.set(window, state);
+        this.setNativeViewportClip(window, state);
+        state.animationIds = animate(animationRequest);
         window.ccNiriScrollAnimation = state.animationIds;
 
         const startSample = sampleMotionState(state, now);
@@ -199,13 +261,15 @@ class MotionController {
         );
         this.owner.debug(`[MOTION] ${previous ? "retarget" : "start"}` +
             ` type=${state.type} epoch=${state.epoch}` +
+            ` transaction=${state.transactionId === null ? "none" : state.transactionId}` +
+            ` role=${state.role}` +
             ` duration=${duration} channels=${Object.keys(channels).join(",")}`);
         return state;
     }
 
     animationEnded(window, animationId) {
         const state = this.states.get(window);
-        if (!state) return;
+        if (!state) return false;
         /* KWin 6.7 reports animationId=0 for declarative animation groups.
          * The signal is still scoped to the correct EffectWindow, and all
          * channels in a group share one duration, so the first group-end
@@ -214,20 +278,23 @@ class MotionController {
             this.states.delete(window);
             if (window.ccNiriScrollAnimation) delete window.ccNiriScrollAnimation;
             if (window.ccNiriIncomingVisual) delete window.ccNiriIncomingVisual;
+            this.clearNativeViewportClip(window);
             this.owner.debug(`[MOTION] complete type=${state.type}` +
                 ` epoch=${state.epoch} group=true`);
-            return;
+            return true;
         }
-        if (state.animationIds.indexOf(animationId) < 0) return;
+        if (state.animationIds.indexOf(animationId) < 0) return false;
         state.animationIds = state.animationIds.filter(id => id !== animationId);
         if (state.animationIds.length) {
             window.ccNiriScrollAnimation = state.animationIds;
-            return;
+            return false;
         }
         this.states.delete(window);
         if (window.ccNiriScrollAnimation) delete window.ccNiriScrollAnimation;
         if (window.ccNiriIncomingVisual) delete window.ccNiriIncomingVisual;
+        this.clearNativeViewportClip(window);
         this.owner.debug(`[MOTION] complete type=${state.type} epoch=${state.epoch}`);
+        return true;
     }
 }
 

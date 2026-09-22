@@ -6,12 +6,17 @@ PACKAGE_DIR="${SCRIPT_DIR}/package"
 EFFECT_DIR="${SCRIPT_DIR}/effect"
 BRIDGE_DIR="${SCRIPT_DIR}/bridge"
 BRIDGE_BUILD_DIR="${SCRIPT_DIR}/build/bridge"
+NATIVE_CLIP_DIR="${SCRIPT_DIR}/native/viewport-clip"
+NATIVE_CLIP_BUILD_DIR="${SCRIPT_DIR}/build/native-viewport-clip"
 PLASMOID_DIR="${SCRIPT_DIR}/plasmoid/com.cc.scrolltasks"
 PLASMOID_BUILD_DIR="${SCRIPT_DIR}/build/plasmoid"
 PLUGIN_ID="cc-niri-maximize"
 EFFECT_ID="cc-niri-maximize-scroll-transition"
+NATIVE_CLIP_EFFECT_ID="cc-niri-viewport-clip"
 OBSOLETE_EFFECT_ID="cc-niri-v3-scroll-transition-poc"
 GEOMETRY_EFFECT_ID="kwin4_effect_geometry_change"
+SQUASH_EFFECT_ID="squash"
+MAGIC_LAMP_EFFECT_ID="magiclamp"
 FOCUS_RING_EFFECT_ID="kwin4_effect_cc_niri_focus_ring"
 DIM_INACTIVE_EFFECT_ID="diminactive"
 COMPAT_GROUP="CCNiriCompatibility"
@@ -32,6 +37,11 @@ command -v cmake >/dev/null || {
     echo "cmake is required." >&2
     exit 1
 }
+if ! find /usr/lib /usr/lib64 -path '*/cmake/KWin/KWinConfig.cmake' \
+        -print -quit 2>/dev/null | grep -q .; then
+    echo "KWin development files are required (Fedora: kwin-devel)." >&2
+    exit 1
+fi
 
 restore_parked_windows() {
     local restore_requested=false
@@ -78,6 +88,13 @@ restore_parked_windows() {
     fi
     sleep 0.3
 }
+
+cmake -S "${NATIVE_CLIP_DIR}" -B "${NATIVE_CLIP_BUILD_DIR}" -G Ninja \
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+    -DCMAKE_INSTALL_PREFIX="${HOME}/.local" \
+    -DKDE_INSTALL_PLUGINDIR=lib64/qt6/plugins
+cmake --build "${NATIVE_CLIP_BUILD_DIR}"
+cmake --install "${NATIVE_CLIP_BUILD_DIR}"
 
 cmake -S "${BRIDGE_DIR}" -B "${BRIDGE_BUILD_DIR}" -G Ninja \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
@@ -133,8 +150,30 @@ fi
 kwriteconfig6 --file kwinrc --group Plugins \
     --key "${GEOMETRY_EFFECT_ID}Enabled" --type bool false
 
+# KWin 6.7 exposes minimize/unminimize grab roles, and the CC effect uses
+# them for script-owned parking transitions. Its bundled Squash and Magic Lamp
+# effects do not consult those roles, however, so they still animate an internal
+# unminimize from the Task Manager icon. Preserve and disable either active
+# minimize effect as the documented compatibility fallback. User minimize
+# animation can be restored on uninstall or when KWin ships grab-aware effects.
+if [[ "$(kreadconfig6 --file kwinrc --group Plugins \
+        --key "${SQUASH_EFFECT_ID}Enabled" --default true)" == "true" ]]; then
+    kwriteconfig6 --file kwinrc --group "${COMPAT_GROUP}" \
+        --key SquashWasEnabled --type bool true
+fi
+if [[ "$(kreadconfig6 --file kwinrc --group Plugins \
+        --key "${MAGIC_LAMP_EFFECT_ID}Enabled" --default false)" == "true" ]]; then
+    kwriteconfig6 --file kwinrc --group "${COMPAT_GROUP}" \
+        --key MagicLampWasEnabled --type bool true
+fi
+kwriteconfig6 --file kwinrc --group Plugins \
+    --key "${SQUASH_EFFECT_ID}Enabled" --type bool false
+kwriteconfig6 --file kwinrc --group Plugins \
+    --key "${MAGIC_LAMP_EFFECT_ID}Enabled" --type bool false
+
 kwriteconfig6 --file kwinrc --group Plugins --key "${PLUGIN_ID}Enabled" --type bool true
 kwriteconfig6 --file kwinrc --group Plugins --key "${EFFECT_ID}Enabled" --type bool true
+kwriteconfig6 --file kwinrc --group Plugins --key "${NATIVE_CLIP_EFFECT_ID}Enabled" --type bool true
 # Focus feedback is deliberately limited to TaskManager's native per-window
 # IsActive role. Keep the abandoned custom ring and the global Dim Inactive
 # effect disabled; KWin 6.7.5 cannot exclude the secondary output from dimming.
@@ -163,10 +202,14 @@ if command -v qdbus6 >/dev/null; then
     qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.loadScript "${INSTALLED_MAIN}" "${PLUGIN_ID}" >/dev/null
     qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.start >/dev/null
     qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${EFFECT_ID}" >/dev/null || true
+    qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${NATIVE_CLIP_EFFECT_ID}" >/dev/null || true
     qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${OBSOLETE_EFFECT_ID}" >/dev/null || true
     qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${GEOMETRY_EFFECT_ID}" >/dev/null || true
+    qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${SQUASH_EFFECT_ID}" >/dev/null || true
+    qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${MAGIC_LAMP_EFFECT_ID}" >/dev/null || true
     qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${FOCUS_RING_EFFECT_ID}" >/dev/null || true
     qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${DIM_INACTIVE_EFFECT_ID}" >/dev/null || true
+    qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.loadEffect "${NATIVE_CLIP_EFFECT_ID}" >/dev/null || true
     qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.loadEffect "${EFFECT_ID}" >/dev/null || true
 elif command -v qdbus >/dev/null; then
     qdbus org.kde.KWin /KWin org.kde.KWin.reconfigure
@@ -174,10 +217,14 @@ elif command -v qdbus >/dev/null; then
     qdbus org.kde.KWin /Scripting org.kde.kwin.Scripting.loadScript "${INSTALLED_MAIN}" "${PLUGIN_ID}" >/dev/null
     qdbus org.kde.KWin /Scripting org.kde.kwin.Scripting.start >/dev/null
     qdbus org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${EFFECT_ID}" >/dev/null || true
+    qdbus org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${NATIVE_CLIP_EFFECT_ID}" >/dev/null || true
     qdbus org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${OBSOLETE_EFFECT_ID}" >/dev/null || true
     qdbus org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${GEOMETRY_EFFECT_ID}" >/dev/null || true
+    qdbus org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${SQUASH_EFFECT_ID}" >/dev/null || true
+    qdbus org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${MAGIC_LAMP_EFFECT_ID}" >/dev/null || true
     qdbus org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${FOCUS_RING_EFFECT_ID}" >/dev/null || true
     qdbus org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect "${DIM_INACTIVE_EFFECT_ID}" >/dev/null || true
+    qdbus org.kde.KWin /Effects org.kde.kwin.Effects.loadEffect "${NATIVE_CLIP_EFFECT_ID}" >/dev/null || true
     qdbus org.kde.KWin /Effects org.kde.kwin.Effects.loadEffect "${EFFECT_ID}" >/dev/null || true
 elif command -v gdbus >/dev/null; then
     gdbus call --session --dest org.kde.KWin --object-path /KWin --method org.kde.KWin.reconfigure >/dev/null
@@ -190,13 +237,21 @@ elif command -v gdbus >/dev/null; then
     gdbus call --session --dest org.kde.KWin --object-path /Effects \
         --method org.kde.kwin.Effects.unloadEffect "${EFFECT_ID}" >/dev/null || true
     gdbus call --session --dest org.kde.KWin --object-path /Effects \
+        --method org.kde.kwin.Effects.unloadEffect "${NATIVE_CLIP_EFFECT_ID}" >/dev/null || true
+    gdbus call --session --dest org.kde.KWin --object-path /Effects \
         --method org.kde.kwin.Effects.unloadEffect "${OBSOLETE_EFFECT_ID}" >/dev/null || true
     gdbus call --session --dest org.kde.KWin --object-path /Effects \
         --method org.kde.kwin.Effects.unloadEffect "${GEOMETRY_EFFECT_ID}" >/dev/null || true
     gdbus call --session --dest org.kde.KWin --object-path /Effects \
+        --method org.kde.kwin.Effects.unloadEffect "${SQUASH_EFFECT_ID}" >/dev/null || true
+    gdbus call --session --dest org.kde.KWin --object-path /Effects \
+        --method org.kde.kwin.Effects.unloadEffect "${MAGIC_LAMP_EFFECT_ID}" >/dev/null || true
+    gdbus call --session --dest org.kde.KWin --object-path /Effects \
         --method org.kde.kwin.Effects.unloadEffect "${FOCUS_RING_EFFECT_ID}" >/dev/null || true
     gdbus call --session --dest org.kde.KWin --object-path /Effects \
         --method org.kde.kwin.Effects.unloadEffect "${DIM_INACTIVE_EFFECT_ID}" >/dev/null || true
+    gdbus call --session --dest org.kde.KWin --object-path /Effects \
+        --method org.kde.kwin.Effects.loadEffect "${NATIVE_CLIP_EFFECT_ID}" >/dev/null || true
     gdbus call --session --dest org.kde.KWin --object-path /Effects \
         --method org.kde.kwin.Effects.loadEffect "${EFFECT_ID}" >/dev/null || true
 else
@@ -223,4 +278,4 @@ fi
 
 systemctl --user restart plasma-plasmashell.service
 
-echo "Installed and enabled ${PLUGIN_ID}, ${EFFECT_ID}, bridge, and CC Scroll Tasks."
+echo "Installed and enabled ${PLUGIN_ID}, ${EFFECT_ID}, ${NATIVE_CLIP_EFFECT_ID}, bridge, and CC Scroll Tasks."

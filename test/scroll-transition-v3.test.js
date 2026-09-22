@@ -13,10 +13,14 @@ function vectorsForTransaction(deltaX, continuing, incoming, outgoing) {
     };
 }
 
-function edgePolicy(deltaX) {
+function edgePolicy(deltaX, nativeClipAvailable) {
     return {
-        incoming: deltaX > 0 ? "safe-slide-from-right" : "translate-from-left",
-        outgoing: deltaX < 0 ? "safe-slide-to-right" : "translate-to-left",
+        incoming: deltaX > 0 && !nativeClipAvailable
+            ? "safe-slide-from-right"
+            : "full-delta",
+        outgoing: deltaX < 0 && !nativeClipAvailable
+            ? "safe-slide-to-right"
+            : "full-delta",
     };
 }
 
@@ -40,12 +44,20 @@ assert.deepEqual(moveLeft.continuing, { from: -1260, to: 0 });
 assert.deepEqual(moveLeft.incoming, { from: -1260, to: 0 });
 assert.deepEqual(moveLeft.outgoing, { from: 11672, to: 12932 });
 
-assert.deepEqual(edgePolicy(1260), {
-    incoming: "safe-slide-from-right",
-    outgoing: "translate-to-left",
+assert.deepEqual(edgePolicy(1260, true), {
+    incoming: "full-delta",
+    outgoing: "full-delta",
 });
-assert.deepEqual(edgePolicy(-1260), {
-    incoming: "translate-from-left",
+assert.deepEqual(edgePolicy(-1260, true), {
+    incoming: "full-delta",
+    outgoing: "full-delta",
+});
+assert.deepEqual(edgePolicy(1260, false), {
+    incoming: "safe-slide-from-right",
+    outgoing: "full-delta",
+});
+assert.deepEqual(edgePolicy(-1260, false), {
+    incoming: "full-delta",
     outgoing: "safe-slide-to-right",
 });
 assert.equal(unarmedIncomingPolicy("right"), "safe-slide-from-right");
@@ -75,5 +87,11 @@ assert.ok(incomingSource.includes("MotionTokens.subtleIncomingOpacity"),
     "parking-to-visible Fade uses the subtle incoming Opacity token");
 assert.ok(!incomingSource.includes("from: 0.2"),
     "ordinary Scroll no longer uses the strong 0.2 Fade");
+assert.ok(incomingSource.includes("INCOMING_FULL_DELTA"),
+    "native viewport clipping enables full-delta incoming motion");
+assert.ok(effectSource.includes("OUTGOING_FULL_DELTA"),
+    "native viewport clipping enables full-delta outgoing motion");
+assert.ok(effectSource.includes("window.data(CC_NIRI_VIEWPORT_CLIP_CAPABILITY_ROLE)"),
+    "full-delta motion is gated by the native effect capability marker");
 
-console.log("PASS V3 direction-correct transitions with right-output-safe edge policy");
+console.log("PASS V3 full-delta transitions with native-clip-gated safe fallback");

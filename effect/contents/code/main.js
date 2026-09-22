@@ -67,6 +67,10 @@ const SAFE_RIGHT_EDGE_SLIDE_X = 20;
 const UNARMED_TRANSACTION_TTL_MS = 80;
 const PRESENTATION_MIN_WIDTH_RATIO = 0.65;
 const PRESENTATION_MAX_WIDTH_RATIO = 0.85;
+/* KWin reserves EffectWindow data roles 0..999. This role is the in-process
+ * handoff from the scripted motion effect to the native viewport clip effect. */
+const CC_NIRI_VIEWPORT_CLIP_ROLE = 1001;
+const CC_NIRI_VIEWPORT_CLIP_CAPABILITY_ROLE = 1002;
 
 const MotionTokens = Object.freeze({
     microPressMs: 90,
@@ -227,9 +231,18 @@ class MotionTransaction {
             layoutEpoch: options.layoutEpoch === undefined ? id : options.layoutEpoch,
             type: options.type || MotionType.SCROLL,
             deltaX: Number(options.deltaX) || 0,
+            direction: options.direction ||
+                (Number(options.deltaX) > 0 ? "left" :
+                    (Number(options.deltaX) < 0 ? "right" : "none")),
+            oldScrollOffsetX: options.oldScrollOffsetX === undefined
+                ? null : Number(options.oldScrollOffsetX),
+            newScrollOffsetX: options.newScrollOffsetX === undefined
+                ? null : Number(options.newScrollOffsetX),
+            viewport: options.viewport ? Object.assign({}, options.viewport) : null,
             continuing: [],
             incoming: [],
             outgoing: [],
+            roleByWindow: new Map(),
             armedAt: now,
         };
         if (options.window && options.role) {
@@ -247,6 +260,10 @@ class MotionTransaction {
                 deltaX: normalizedDelta,
                 type: options.type || MotionType.SCROLL,
                 layoutEpoch: options.layoutEpoch,
+                direction: options.direction,
+                oldScrollOffsetX: options.oldScrollOffsetX,
+                newScrollOffsetX: options.newScrollOffsetX,
+                viewport: options.viewport,
                 now,
             })
             : current;
@@ -261,8 +278,19 @@ class MotionTransaction {
                 ["continuing", "incoming", "outgoing"].indexOf(role) < 0) {
             return false;
         }
+        const previousRole = transaction.roleByWindow.get(window);
+        if (previousRole && previousRole !== role) {
+            transaction[previousRole] = transaction[previousRole]
+                .filter(item => item !== window);
+        }
         if (transaction[role].indexOf(window) < 0) transaction[role].push(window);
+        transaction.roleByWindow.set(window, role);
         return true;
+    }
+
+    roleFor(window) {
+        const transaction = this.activeTransaction;
+        return transaction ? transaction.roleByWindow.get(window) || null : null;
     }
 
     current(now = Date.now()) {
@@ -281,6 +309,115 @@ class MotionTransaction {
         const transaction = this.activeTransaction;
         this.activeTransaction = null;
         return transaction;
+    }
+
+    complete(id) {
+        if (!this.activeTransaction || this.activeTransaction.id !== id) return null;
+        return this.clear();
+    }
+}
+
+// Generated from src/effect/ParkingAnimationGrabber.js
+class ParkingAnimationGrabber {
+    constructor(options) {
+        this.effect = options.effect;
+        this.minimizedRole = options.minimizedRole;
+        this.unminimizedRole = options.unminimizedRole;
+        this.debug = options.debug;
+        this.grabbedWindows = new Set();
+    }
+
+    has(window) {
+        return this.grabbedWindows.has(window);
+    }
+
+    grab(window, reason) {
+        if (!window) return false;
+        if (this.has(window)) return true;
+
+        const minimized = this.effect.grab(window, this.minimizedRole, true);
+        const unminimized = this.effect.grab(window, this.unminimizedRole, true);
+        if (!minimized || !unminimized) {
+            if (minimized) this.effect.ungrab(window, this.minimizedRole);
+            if (unminimized) this.effect.ungrab(window, this.unminimizedRole);
+            this.debug(`[PARK_GRAB] failed reason=${reason}` +
+                ` minimize=${minimized} unminimize=${unminimized}`);
+            return false;
+        }
+
+        this.grabbedWindows.add(window);
+        this.debug(`[PARK_GRAB] grab reason=${reason}` +
+            " minimize=true unminimize=true");
+        return true;
+    }
+
+    release(window, reason) {
+        if (!window || !this.has(window)) return false;
+        this.grabbedWindows.delete(window);
+        const minimized = this.effect.ungrab(window, this.minimizedRole);
+        const unminimized = this.effect.ungrab(window, this.unminimizedRole);
+        this.debug(`[PARK_GRAB] release reason=${reason}` +
+            ` minimize=${minimized} unminimize=${unminimized}`);
+        return minimized && unminimized;
+    }
+
+    releaseAll(reason) {
+        Array.from(this.grabbedWindows).forEach(window =>
+            this.release(window, reason));
+    }
+}
+
+// Generated from src/effect/ViewportClipController.js
+class ViewportClipController {
+    constructor(options) {
+        this.effect = options.effect;
+        this.mapTextureTrait = options.mapTextureTrait;
+        this.debug = options.debug;
+        this.enabled = false;
+        this.shaderId = 0;
+        this.failed = false;
+    }
+
+    setEnabled(enabled) {
+        this.enabled = Boolean(enabled);
+        if (this.enabled) this.ensureShader();
+    }
+
+    ensureShader() {
+        if (this.shaderId || this.failed) return this.shaderId;
+        try {
+            this.shaderId = Number(this.effect.addFragmentShader(
+                this.mapTextureTrait,
+                "viewport_clip.frag"
+            )) || 0;
+        } catch (error) {
+            this.failed = true;
+            this.debug(`[VIEWPORT_CLIP] shader-load-failed error=${String(error)}`);
+            return 0;
+        }
+        if (!this.shaderId) {
+            this.failed = true;
+            this.debug("[VIEWPORT_CLIP] shader-load-failed id=0");
+            return 0;
+        }
+        this.effect.setUniform(this.shaderId, "debugTint", 1.0);
+        this.debug(`[VIEWPORT_CLIP] shader-loaded id=${this.shaderId}`);
+        return this.shaderId;
+    }
+
+    shaderFor(viewport) {
+        if (!this.enabled || !viewport) return 0;
+        const shaderId = this.ensureShader();
+        if (!shaderId) return 0;
+        this.effect.setUniform(shaderId, "viewportRect", [
+            Number(viewport.x),
+            Number(viewport.y),
+            Number(viewport.width),
+            Number(viewport.height),
+        ]);
+        this.debug(`[VIEWPORT_CLIP] tint viewport=${viewport.x},${viewport.y}` +
+            ` ${viewport.width}x${viewport.height}`);
+        return shaderId;
     }
 }
 
@@ -304,9 +441,33 @@ class MotionController {
         return visualRectFor(geometry, sampleMotionState(state, Date.now()), anchor);
     }
 
+    setNativeViewportClip(window, state) {
+        if (!state.viewport || typeof window.setData !== "function") return;
+        window.setData(CC_NIRI_VIEWPORT_CLIP_ROLE, {
+            enabled: true,
+            x: Number(state.viewport.x),
+            y: Number(state.viewport.y),
+            width: Number(state.viewport.width),
+            height: Number(state.viewport.height),
+            transactionId: state.transactionId,
+            transactionEpoch: state.transactionEpoch,
+            motionEpoch: state.epoch,
+            role: state.role,
+        });
+    }
+
+    clearNativeViewportClip(window) {
+        if (typeof window.setData === "function") {
+            window.setData(CC_NIRI_VIEWPORT_CLIP_ROLE, null);
+        }
+    }
+
     cancel(window) {
         const state = this.states.get(window);
-        if (!state) return false;
+        if (!state) {
+            this.clearNativeViewportClip(window);
+            return false;
+        }
         this.states.delete(window);
         if (state.animationIds && state.animationIds.length) {
             cancel(state.animationIds);
@@ -314,6 +475,7 @@ class MotionController {
         if (window.ccNiriScrollAnimation === state.animationIds) {
             delete window.ccNiriScrollAnimation;
         }
+        this.clearNativeViewportClip(window);
         return true;
     }
 
@@ -350,6 +512,15 @@ class MotionController {
             return QEasingCurve.OutCubic;
         }
         return QEasingCurve.Linear;
+    }
+
+    startTransaction(window, transaction, role, options) {
+        return this.start(window, Object.assign({}, options, {
+            transactionId: transaction.id,
+            transactionEpoch: transaction.layoutEpoch,
+            role,
+            viewport: transaction.viewport,
+        }));
     }
 
     start(window, options) {
@@ -418,6 +589,7 @@ class MotionController {
         if (!Object.keys(channels).length) {
             if (window.ccNiriScrollAnimation) delete window.ccNiriScrollAnimation;
             if (window.ccNiriIncomingVisual) delete window.ccNiriIncomingVisual;
+            this.clearNativeViewportClip(window);
             this.owner.debug(`[MOTION] skip type=${options.type || MotionType.NONE}` +
                 " reason=no-op");
             return null;
@@ -446,22 +618,45 @@ class MotionController {
             }
             return spec;
         });
+        /* A custom shader attached to Translation/Scale/Opacity is retained by
+         * AnimationEffect, but KWin only binds it while processing an explicit
+         * Shader attribute. Keep the Shader animation in the same declarative
+         * group so its lifetime follows the motion channels exactly. */
+        if (options.fragmentShader) {
+            animationSpecs.push({
+                type: Effect.Shader,
+                from: 0.0,
+                to: 1.0,
+                fragmentShader: options.fragmentShader,
+            });
+        }
         const state = {
             epoch: this.nextEpoch++,
+            transactionId: options.transactionId === undefined
+                ? null : options.transactionId,
+            transactionEpoch: options.transactionEpoch === undefined
+                ? null : options.transactionEpoch,
             type: options.type || MotionType.NONE,
+            role: options.role || "static",
+            viewport: options.viewport ? Object.assign({}, options.viewport) : null,
             startTime: now,
             duration,
             curve: options.curve || MotionCurves.standardDecel,
             channels,
             animationIds: [],
         };
-        state.animationIds = animate({
+        const animationRequest = {
             window,
             duration,
             curve: this.curveType(state.curve),
             animations: animationSpecs,
-        });
+        };
+        if (options.fragmentShader) {
+            animationRequest.fragmentShader = options.fragmentShader;
+        }
         this.states.set(window, state);
+        this.setNativeViewportClip(window, state);
+        state.animationIds = animate(animationRequest);
         window.ccNiriScrollAnimation = state.animationIds;
 
         const startSample = sampleMotionState(state, now);
@@ -472,13 +667,15 @@ class MotionController {
         );
         this.owner.debug(`[MOTION] ${previous ? "retarget" : "start"}` +
             ` type=${state.type} epoch=${state.epoch}` +
+            ` transaction=${state.transactionId === null ? "none" : state.transactionId}` +
+            ` role=${state.role}` +
             ` duration=${duration} channels=${Object.keys(channels).join(",")}`);
         return state;
     }
 
     animationEnded(window, animationId) {
         const state = this.states.get(window);
-        if (!state) return;
+        if (!state) return false;
         /* KWin 6.7 reports animationId=0 for declarative animation groups.
          * The signal is still scoped to the correct EffectWindow, and all
          * channels in a group share one duration, so the first group-end
@@ -487,20 +684,23 @@ class MotionController {
             this.states.delete(window);
             if (window.ccNiriScrollAnimation) delete window.ccNiriScrollAnimation;
             if (window.ccNiriIncomingVisual) delete window.ccNiriIncomingVisual;
+            this.clearNativeViewportClip(window);
             this.owner.debug(`[MOTION] complete type=${state.type}` +
                 ` epoch=${state.epoch} group=true`);
-            return;
+            return true;
         }
-        if (state.animationIds.indexOf(animationId) < 0) return;
+        if (state.animationIds.indexOf(animationId) < 0) return false;
         state.animationIds = state.animationIds.filter(id => id !== animationId);
         if (state.animationIds.length) {
             window.ccNiriScrollAnimation = state.animationIds;
-            return;
+            return false;
         }
         this.states.delete(window);
         if (window.ccNiriScrollAnimation) delete window.ccNiriScrollAnimation;
         if (window.ccNiriIncomingVisual) delete window.ccNiriIncomingVisual;
+        this.clearNativeViewportClip(window);
         this.owner.debug(`[MOTION] complete type=${state.type} epoch=${state.epoch}`);
+        return true;
     }
 }
 
@@ -577,6 +777,17 @@ function incomingVisualStart(rect, translationX, scaleX, anchor, opacity) {
         opacity,
     };
 }
+
+function viewportFromSlot(rect, slot, innerGap) {
+    const gap = Math.max(0, Number(innerGap) || 0);
+    const width = rect.width * 2 + gap;
+    return {
+        x: slot === "right" ? rect.x - rect.width - gap : rect.x,
+        y: rect.y,
+        width,
+        height: rect.height,
+    };
+}
 /* END GENERATED EFFECT MODULES */
 
 class CCNiriScrollTransition {
@@ -588,14 +799,31 @@ class CCNiriScrollTransition {
             warnSink: message => console.warn(message),
         });
         this.motionTransaction = new MotionTransaction(UNARMED_TRANSACTION_TTL_MS);
+        this.parkingGrabber = new ParkingAnimationGrabber({
+            effect,
+            minimizedRole: Effect.WindowMinimizedGrabRole,
+            unminimizedRole: Effect.WindowUnminimizedGrabRole,
+            debug: message => this.debug(message),
+        });
+        this.viewportClip = new ViewportClipController({
+            effect,
+            mapTextureTrait: Effect.MapTexture,
+            debug: message => this.debug(message),
+        });
         this.motion = new MotionController(this);
         this.loadConfig();
         effect.configChanged.connect(this.loadConfig.bind(this));
         effect.animationEnded.connect((window, animationId) => {
             this.debug(`[MOTION] ended animationId=${String(animationId)}`);
-            this.motion.animationEnded(window, animationId);
+            if (this.motion.animationEnded(window, animationId)) {
+                this.parkingGrabber.release(window, "motion-complete");
+            }
         });
         effects.windowAdded.connect(this.manage.bind(this));
+        effects.windowClosed.connect(window => {
+            this.motion.cancel(window);
+            this.parkingGrabber.release(window, "window-closed");
+        });
         for (const window of effects.stackingOrder) this.manage(window);
     }
 
@@ -611,6 +839,9 @@ class CCNiriScrollTransition {
         ));
         this.debugLogging = Boolean(effect.readConfig("DebugLogging", false));
         this.logger.setEnabled(this.debugLogging);
+        this.viewportClip.setEnabled(Boolean(
+            effect.readConfig("DebugViewportClipTint", false)
+        ));
     }
 
     manage(window) {
@@ -619,6 +850,21 @@ class CCNiriScrollTransition {
 
     debug(message) {
         this.logger.debug(message, "motion");
+    }
+
+    nativeViewportClipAvailable(window) {
+        try {
+            if (typeof window.data !== "function") {
+                this.debug("[VIEWPORT_CLIP_CAPABILITY] unavailable data-method=false");
+                return false;
+            }
+            const capability = window.data(CC_NIRI_VIEWPORT_CLIP_CAPABILITY_ROLE);
+            this.debug(`[VIEWPORT_CLIP_CAPABILITY] type=${typeof capability}` +
+                ` value=${String(capability)}`);
+            return Boolean(capability);
+        } catch (_) {
+            return false;
+        }
     }
 
     clearPendingDelta() {
@@ -718,6 +964,8 @@ class CCNiriScrollTransition {
         let animations;
         let incomingVisual = null;
         let motionType = MotionType.SCROLL;
+        let activeTransaction = null;
+        let motionRole = "static";
         if (oldSlot && newSlot) {
             /*
              * Script commits the continuing column first. Both coordinates
@@ -728,8 +976,19 @@ class CCNiriScrollTransition {
                 oldGeometry.x - newGeometry.x,
                 window,
                 Date.now(),
-                { type: MotionType.SCROLL }
+                {
+                    type: MotionType.SCROLL,
+                    viewport: viewportFromSlot(newGeometry, newSlot, this.innerGap),
+                }
             );
+            activeTransaction = transaction;
+            motionRole = "continuing";
+            this.debug(`[MOTION_TX] BEGIN id=${transaction.id}` +
+                ` epoch=${transaction.layoutEpoch} type=${transaction.type}` +
+                ` direction=${transaction.direction} delta=${transaction.deltaX}` +
+                ` viewport=${transaction.viewport.x},${transaction.viewport.y}` +
+                ` ${transaction.viewport.width}x${transaction.viewport.height}`);
+            this.debug(`[MOTION_TX] ROLE id=${transaction.id} role=continuing`);
             animations = [{
                 type: Effect.Translation,
                 from: { value1: transaction.deltaX, value2: 0 },
@@ -738,6 +997,7 @@ class CCNiriScrollTransition {
             this.debug(`ARM transaction=${transaction.id} delta=${transaction.deltaX}` +
                 ` oldProjectedX=${oldGeometry.x} newProjectedX=${newGeometry.x}`);
         } else if (oldParked && newSlot) {
+            this.parkingGrabber.grab(window, "incoming");
             const transaction = this.motionTransaction.current(Date.now());
             const pendingDeltaX = transaction ? transaction.deltaX : null;
             if (!transaction) {
@@ -775,50 +1035,79 @@ class CCNiriScrollTransition {
                 const closeTransaction = this.motionTransaction.begin({
                     type: MotionType.CLOSE_REFILL,
                     deltaX: 0,
+                    viewport: viewportFromSlot(newGeometry, newSlot, this.innerGap),
                     role: "incoming",
                     window,
                 });
+                activeTransaction = closeTransaction;
+                motionRole = "incoming";
                 motionType = closeTransaction.type;
+                this.debug(`[MOTION_TX] BEGIN id=${closeTransaction.id}` +
+                    ` epoch=${closeTransaction.layoutEpoch}` +
+                    ` type=${closeTransaction.type} direction=none delta=0`);
+                this.debug(`[MOTION_TX] ROLE id=${closeTransaction.id} role=incoming`);
                 this.debug(`INCOMING_UNARMED transaction=${closeTransaction.id}` +
                     ` slot=${newSlot}` +
                     ` newProjectedX=${newGeometry.x}`);
             } else if (pendingDeltaX > 0) {
                 this.motionTransaction.record("incoming", window);
+                activeTransaction = transaction;
+                motionRole = "incoming";
                 motionType = transaction.type;
-                /*
-                 * Preserve L's right-to-left direction without ever entering
-                 * the adjacent output. The primary safe area leaves 24 px on
-                 * the right, so a 20 px in-slot reveal remains on DP-1.
-                 */
-                animations = [{
-                    type: Effect.Translation,
-                    from: { value1: SAFE_RIGHT_EDGE_SLIDE_X, value2: 0 },
-                    to: { value1: 0, value2: 0 }
-                }, {
-                    type: Effect.Scale,
-                    anchor: "right",
-                    sourceAnchor: Effect.Right,
-                    targetAnchor: Effect.Right,
-                    from: { value1: MotionTokens.subtleIncomingScale, value2: 1 },
-                    to: { value1: 1, value2: 1 }
-                }, {
-                    type: Effect.Opacity,
-                    from: MotionTokens.subtleIncomingOpacity,
-                    to: 1.0
-                }];
-                incomingVisual = incomingVisualStart(
-                    newGeometry,
-                    SAFE_RIGHT_EDGE_SLIDE_X,
-                    MotionTokens.subtleIncomingScale,
-                    "right",
-                    MotionTokens.subtleIncomingOpacity
-                );
-                this.debug(`INCOMING_RIGHT_SAFE transaction=${transaction.id}` +
-                    ` delta=${pendingDeltaX}` +
-                    ` newProjectedX=${newGeometry.x}`);
+                this.debug(`[MOTION_TX] ROLE id=${transaction.id} role=incoming`);
+                const nativeClip = this.nativeViewportClipAvailable(window);
+                if (nativeClip) {
+                    animations = [{
+                        type: Effect.Translation,
+                        from: { value1: pendingDeltaX, value2: 0 },
+                        to: { value1: 0, value2: 0 }
+                    }];
+                    incomingVisual = incomingVisualStart(
+                        newGeometry,
+                        pendingDeltaX,
+                        1,
+                        "center",
+                        1
+                    );
+                    this.debug(`INCOMING_FULL_DELTA transaction=${transaction.id}` +
+                        ` delta=${pendingDeltaX}` +
+                        ` newProjectedX=${newGeometry.x}`);
+                } else {
+                    /* Keep the historical in-slot reveal when the native
+                     * device-space clip effect is not actually available. */
+                    animations = [{
+                        type: Effect.Translation,
+                        from: { value1: SAFE_RIGHT_EDGE_SLIDE_X, value2: 0 },
+                        to: { value1: 0, value2: 0 }
+                    }, {
+                        type: Effect.Scale,
+                        anchor: "right",
+                        sourceAnchor: Effect.Right,
+                        targetAnchor: Effect.Right,
+                        from: { value1: MotionTokens.subtleIncomingScale, value2: 1 },
+                        to: { value1: 1, value2: 1 }
+                    }, {
+                        type: Effect.Opacity,
+                        from: MotionTokens.subtleIncomingOpacity,
+                        to: 1.0
+                    }];
+                    incomingVisual = incomingVisualStart(
+                        newGeometry,
+                        SAFE_RIGHT_EDGE_SLIDE_X,
+                        MotionTokens.subtleIncomingScale,
+                        "right",
+                        MotionTokens.subtleIncomingOpacity
+                    );
+                    this.debug(`INCOMING_RIGHT_SAFE transaction=${transaction.id}` +
+                        ` delta=${pendingDeltaX}` +
+                        ` newProjectedX=${newGeometry.x}`);
+                }
             } else {
                 this.motionTransaction.record("incoming", window);
+                activeTransaction = transaction;
+                motionRole = "incoming";
                 motionType = transaction.type;
+                this.debug(`[MOTION_TX] ROLE id=${transaction.id} role=incoming`);
                 animations = [{
                     type: Effect.Translation,
                     from: { value1: pendingDeltaX, value2: 0 },
@@ -838,27 +1127,44 @@ class CCNiriScrollTransition {
         } else if (oldSlot && newParked) {
             const transaction = this.motionTransaction.current(Date.now());
             if (!transaction) return;
+            this.parkingGrabber.grab(window, "outgoing");
             const pendingDeltaX = transaction.deltaX;
             this.motionTransaction.record("outgoing", window);
+            activeTransaction = transaction;
+            motionRole = "outgoing";
             motionType = transaction.type;
+            this.debug(`[MOTION_TX] ROLE id=${transaction.id} role=outgoing`);
             const oldProjectedX = oldGeometry.x;
             const newProjectedX = oldProjectedX - pendingDeltaX;
             if (pendingDeltaX < 0) {
-                /* Move only inside the 24 px primary right margin, then fade
-                 * to its already-committed parking geometry. */
-                const holdX = oldGeometry.x - newGeometry.x;
-                animations = [{
-                    type: Effect.Translation,
-                    from: { value1: holdX, value2: 0 },
-                    to: { value1: holdX + SAFE_RIGHT_EDGE_SLIDE_X, value2: 0 }
-                }, {
-                    type: Effect.Opacity,
-                    from: 1.0,
-                    to: 0.0
-                }];
-                this.debug(`OUTGOING_RIGHT_SAFE transaction=${transaction.id}` +
-                    ` delta=${pendingDeltaX}` +
-                    ` holdProjectedX=${oldProjectedX}`);
+                if (this.nativeViewportClipAvailable(window)) {
+                    animations = [{
+                        type: Effect.Translation,
+                        from: { value1: oldGeometry.x - newGeometry.x, value2: 0 },
+                        to: { value1: newProjectedX - newGeometry.x, value2: 0 }
+                    }];
+                    this.debug(`OUTGOING_FULL_DELTA` +
+                        ` transaction=${transaction.id}` +
+                        ` delta=${pendingDeltaX}` +
+                        ` oldProjectedX=${oldProjectedX}` +
+                        ` newProjectedX=${newProjectedX}`);
+                } else {
+                    /* Move only inside the 24 px primary right margin, then
+                     * fade to its already-committed parking geometry. */
+                    const holdX = oldGeometry.x - newGeometry.x;
+                    animations = [{
+                        type: Effect.Translation,
+                        from: { value1: holdX, value2: 0 },
+                        to: { value1: holdX + SAFE_RIGHT_EDGE_SLIDE_X, value2: 0 }
+                    }, {
+                        type: Effect.Opacity,
+                        from: 1.0,
+                        to: 0.0
+                    }];
+                    this.debug(`OUTGOING_RIGHT_SAFE transaction=${transaction.id}` +
+                        ` delta=${pendingDeltaX}` +
+                        ` holdProjectedX=${oldProjectedX}`);
+                }
             } else {
                 animations = [{
                     type: Effect.Translation,
@@ -869,20 +1175,37 @@ class CCNiriScrollTransition {
                     ` delta=${pendingDeltaX}` +
                     ` oldProjectedX=${oldProjectedX} newProjectedX=${newProjectedX}`);
             }
-            this.clearPendingDelta();
+            const completedTransaction = this.clearPendingDelta();
+            if (completedTransaction) {
+                this.debug(`[MOTION_TX] COMPLETE id=${completedTransaction.id}`);
+            }
         } else {
             return;
         }
 
         if (incomingVisual) window.ccNiriIncomingVisual = incomingVisual;
-        this.motion.start(window, {
+        const motionOptions = {
             type: motionType,
             duration: this.duration,
             curve: MotionCurves.standardDecel,
             oldGeometry,
             newGeometry,
             channels: animations,
-        });
+        };
+        if (activeTransaction) {
+            motionOptions.fragmentShader = this.viewportClip.shaderFor(
+                activeTransaction.viewport
+            );
+        }
+        const motionState = activeTransaction
+            ? this.motion.startTransaction(
+                window,
+                activeTransaction,
+                motionRole,
+                motionOptions
+            )
+            : this.motion.start(window, motionOptions);
+        if (!motionState) this.parkingGrabber.release(window, "motion-no-op");
     }
 }
 

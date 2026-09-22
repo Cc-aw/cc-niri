@@ -48,6 +48,8 @@ const targets = [
             "src/effect/MotionTokens.js",
             "src/effect/MotionSampler.js",
             "src/effect/MotionTransaction.js",
+            "src/effect/ParkingAnimationGrabber.js",
+            "src/effect/ViewportClipController.js",
             "src/effect/MotionController.js",
             "src/effect/MotionClassifier.js",
         ],
