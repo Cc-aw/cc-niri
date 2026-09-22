@@ -6,6 +6,10 @@ const mainSource = fs.readFileSync(
     path.join(__dirname, "../package/contents/code/main.js"),
     "utf8"
 );
+const installSource = fs.readFileSync(
+    path.join(__dirname, "../install.sh"),
+    "utf8"
+);
 
 const detachSource = mainSource.slice(
     mainSource.indexOf("function detachColumnToFloating"),
@@ -39,6 +43,8 @@ const interactiveSource = mainSource.slice(
 assert.ok(interactiveSource.includes(
     'detachColumnToFloating(window, "interactive-move-resize")'
 ), "interactive move/resize detaches a managed Column");
+assert.ok(interactiveSource.includes("rememberFloatingWindow(window, false)"),
+    "a mouse-drag detach remains available to the reattach shortcut");
 
 const toggleSource = mainSource.slice(
     mainSource.indexOf("function toggleFloating"),
@@ -46,8 +52,11 @@ const toggleSource = mainSource.slice(
 );
 assert.ok(toggleSource.includes("lastShortcutFloatingWindow"),
     "a symmetric shortcut toggle remembers the window it detached");
-assert.ok(toggleSource.includes("FLOATING_REATTACH_GRACE_MS"),
-    "a transient focus steal cannot redirect the second toggle");
+assert.ok(toggleSource.includes(
+    "if (rememberedFloating && target !== lastShortcutFloatingWindow)"
+), "reattachment always wins over an unrelated active window");
+assert.equal(toggleSource.includes("FLOATING_REATTACH_GRACE_MS"), false,
+    "mouse-detached windows do not expire before the user can return them");
 const activationSource = mainSource.slice(
     mainSource.indexOf("function onWindowActivatedForScrollLayout"),
     mainSource.indexOf("function focusRelativeColumn")
@@ -57,6 +66,13 @@ assert.ok(activationSource.includes("workspace.activeWindow = lastShortcutFloati
     "KWin focus churn is redirected to the just-detached floating window");
 
 assert.ok(mainSource.includes('"CCScrollToggleFloating"'));
+assert.ok(mainSource.includes('"Meta+Shift+Return"'),
+    "the main keyboard Return key is registered");
+assert.ok(mainSource.includes('"CCScrollToggleFloatingKeypad"'));
 assert.ok(mainSource.includes('"Meta+Shift+Enter"'));
+assert.ok(installSource.includes('"[318767108]" 4'),
+    "installation repairs the live main Return key code");
+assert.ok(installSource.includes('"[318767109]" 4'),
+    "installation preserves keypad Enter as a separate action");
 
 console.log("PASS Phase 10 managed/floating toggle and interactive detach");

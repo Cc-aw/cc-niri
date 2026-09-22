@@ -147,6 +147,14 @@ kwriteconfig6 --file kwinrc --group Plugins \
 # script, so reinstalling or logging in cannot resurrect its old binding.
 kwriteconfig6 --file kglobalshortcutsrc --group kwin \
     --key CCNiriMaximizeToggle --delete
+# Qt distinguishes the main keyboard Return key from keypad Enter. Migrate the
+# original Enter-only binding and keep a second action for keypad users.
+kwriteconfig6 --file kglobalshortcutsrc --group kwin \
+    --key CCScrollToggleFloating \
+    "Meta+Shift+Return,none,CC Scroll: Toggle Floating"
+kwriteconfig6 --file kglobalshortcutsrc --group kwin \
+    --key CCScrollToggleFloatingKeypad \
+    "Meta+Shift+Enter,none,CC Scroll: Toggle Floating Keypad Enter"
 INSTALLED_MAIN="${XDG_DATA_HOME:-${HOME}/.local/share}/kwin/scripts/${PLUGIN_ID}/contents/code/main.js"
 
 if command -v qdbus6 >/dev/null; then
@@ -193,6 +201,24 @@ elif command -v gdbus >/dev/null; then
         --method org.kde.kwin.Effects.loadEffect "${EFFECT_ID}" >/dev/null || true
 else
     echo "Installed and enabled. Log out and back in to load the script." >&2
+fi
+
+# registerShortcut() preserves an already loaded KGlobalAccel binding, so
+# editing kglobalshortcutsrc alone cannot repair the old Enter-only action in
+# the running session. Force the two distinct Qt key codes after both actions
+# have registered: 0x13000004 is Meta+Shift+Return and 0x13000005 is
+# Meta+Shift+keypad Enter.
+if command -v gdbus >/dev/null; then
+    gdbus call --session --dest org.kde.kglobalaccel \
+        --object-path /kglobalaccel \
+        --method org.kde.KGlobalAccel.setShortcut \
+        "['kwin','CCScrollToggleFloating','KWin','CC Scroll: Toggle Floating']" \
+        "[318767108]" 4 >/dev/null || true
+    gdbus call --session --dest org.kde.kglobalaccel \
+        --object-path /kglobalaccel \
+        --method org.kde.KGlobalAccel.setShortcut \
+        "['kwin','CCScrollToggleFloatingKeypad','KWin','CC Scroll: Toggle Floating Keypad Enter']" \
+        "[318767109]" 4 >/dev/null || true
 fi
 
 systemctl --user restart plasma-plasmashell.service

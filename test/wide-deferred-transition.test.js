@@ -78,8 +78,17 @@ assert.equal(expansionSource.includes("relayout(`${pending.reason}-enter-wide`")
     "the neighbor must not be parked before the Wayland client accepts 72%");
 assert.ok(mainSource.indexOf("function acknowledgePendingWideGeometry") <
     mainSource.indexOf("function completePendingWideTransition"));
+const acknowledgementSource = mainSource.slice(
+    mainSource.indexOf("function acknowledgePendingWideGeometry"),
+    mainSource.indexOf("function checkPendingWideGeometry"));
+assert.ok(acknowledgementSource.includes(
+    'relayout(`${pending.reason}-park-wide-neighbors`'
+), "neighbors are parked as soon as the client accepts 72%");
+assert.ok(acknowledgementSource.indexOf("park-wide-neighbors") <
+    acknowledgementSource.indexOf('"finalize-wide-transition"'),
+"neighbor parking must precede the remaining Wide paint-animation timer");
 assert.ok(mainSource.includes("WIDE_EXPANSION_PHASE_MS"),
-    "the neighbor remains present for the full Wide paint animation");
+    "the Wide target still receives its full paint animation");
 assert.ok(mainSource.includes("function checkPendingWideGeometry"));
 assert.ok(mainSource.includes("WIDE_GEOMETRY_TIMEOUT"));
 assert.ok(mainSource.includes("pending.deferredSequence++"),

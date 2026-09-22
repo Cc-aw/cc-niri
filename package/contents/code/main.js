@@ -15,7 +15,6 @@ const COLUMN_WIDTH_HALF = "half";
 const COLUMN_WIDTH_TWO_THIRDS = "twoThirds";
 const PARKING_MARGIN = 4096;
 const FLOATING_FOCUS_GUARD_MS = 1200;
-const FLOATING_REATTACH_GRACE_MS = 10000;
 const WIDE_SCROLL_PHASE_MS = 220;
 const WIDE_PAIR_HOLD_MS = 180;
 const WIDE_EXPANSION_PHASE_MS = 240;
@@ -1228,6 +1227,13 @@ function acknowledgePendingWideGeometry(column) {
         return false;
     }
     pending.phase = WIDE_REVEAL_PHASE_ANIMATING;
+    /* The 72% client geometry is authoritative now. Park every neighbor in
+     * the same acknowledgement turn instead of leaving a 50% window visible
+     * underneath the expanding target for the paint-animation duration. */
+    relayout(`${pending.reason}-park-wide-neighbors`, {
+        oldScrollOffsetX: mainScreenState.scrollOffsetX,
+        newScrollOffsetX: mainScreenState.scrollOffsetX,
+    });
     requestDeferredWideStage(
         "finalize-wide-transition",
         pending,
@@ -1287,8 +1293,8 @@ function beginPendingWideExpansion(pending, column, reason) {
     pending.geometryAttempts = 1;
     const target = presentationRect();
     /* Wayland clients may acknowledge frameGeometry asynchronously. Keep the
-     * normal-pair neighbor visible until the target really reaches 72%; the
-     * frameGeometryChanged acknowledgement finalizes parking. */
+     * normal-pair neighbor visible only until the target really reaches 72%;
+     * acknowledgePendingWideGeometry parks it before the paint animation. */
     setColumnVisualVisibility(column, true);
     applyColumnGeometry(column, target, `${pending.reason}-request-wide`);
     debug(`[cc-presentation] DEFERRED_WIDE_REQUEST token=${pending.token}` +
@@ -2086,24 +2092,33 @@ function attachFloatingToColumns(window, reason) {
     return true;
 }
 
+function rememberFloatingWindow(window, guardFocus) {
+    lastShortcutFloatingWindow = window;
+    lastShortcutDetachedAt = Date.now();
+    floatingFocusGuardUntil = guardFocus
+        ? lastShortcutDetachedAt + FLOATING_FOCUS_GUARD_MS
+        : 0;
+    debug(`[cc-scroll] REMEMBER_FLOAT caption=${window.caption}` +
+        ` guard=${guardFocus}`);
+}
+
 function toggleFloating(window) {
-    const now = Date.now();
     const rememberedFloating = lastShortcutFloatingWindow &&
         states.has(lastShortcutFloatingWindow) &&
         stateFor(lastShortcutFloatingWindow).floating &&
         columnIndexForWindow(lastShortcutFloatingWindow) < 0;
     let target = window;
-    if (rememberedFloating && target !== lastShortcutFloatingWindow &&
-            (now - lastShortcutDetachedAt <= FLOATING_REATTACH_GRACE_MS ||
-             !target || isPlasmaShellWindow(target))) {
+    if (rememberedFloating && target !== lastShortcutFloatingWindow) {
+        /* Reattachment is a pending operation, not a short focus grace.
+         * A dragged window can end underneath another Column and stay there
+         * indefinitely. Always finish returning the most recently detached
+         * window before interpreting this shortcut as a new detach. */
         target = lastShortcutFloatingWindow;
     }
     if (!target) return;
     if (columnIndexForWindow(target) >= 0) {
         if (detachColumnToFloating(target, "shortcut-toggle-floating")) {
-            lastShortcutFloatingWindow = target;
-            lastShortcutDetachedAt = now;
-            floatingFocusGuardUntil = now + FLOATING_FOCUS_GUARD_MS;
+            rememberFloatingWindow(target, true);
             workspace.activeWindow = target;
         }
         return;
@@ -2502,7 +2517,12 @@ function onInteractiveMoveResizeStarted(window) {
     const state = stateFor(window);
     if (columnIndexForWindow(window) >= 0) {
         state.interactiveMoveResize = true;
-        detachColumnToFloating(window, "interactive-move-resize");
+        if (detachColumnToFloating(window, "interactive-move-resize")) {
+            /* A drag may finish underneath another Column or leave focus on
+             * another output. Remember the detached window just like the
+             * keyboard path so Meta+Shift+Return can recover it later. */
+            rememberFloatingWindow(window, false);
+        }
         return;
     }
     if (state.internalChange || !isLayoutMode(state.layoutMode)) return;
@@ -2541,6 +2561,11 @@ function setupWindow(window) {
     });
     window.closed.connect(() => {
         removeColumn(window, "window-closed");
+        if (window === lastShortcutFloatingWindow) {
+            lastShortcutFloatingWindow = null;
+            lastShortcutDetachedAt = 0;
+            floatingFocusGuardUntil = 0;
+        }
         states.delete(window);
     });
 
@@ -2646,6 +2671,13 @@ registerShortcut(
 registerShortcut(
     "CCScrollToggleFloating",
     "CC Scroll: Toggle Floating",
+    "Meta+Shift+Return",
+    () => toggleFloating(workspace.activeWindow)
+);
+
+registerShortcut(
+    "CCScrollToggleFloatingKeypad",
+    "CC Scroll: Toggle Floating Keypad Enter",
     "Meta+Shift+Enter",
     () => toggleFloating(workspace.activeWindow)
 );

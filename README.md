@@ -1,6 +1,6 @@
 # CC Niri Maximize
 
-CC Niri Maximize V3 is being implemented in phases on top of the working V2 safe-area script. Version `3.0.0-alpha.32` adds shared Motion tokens and retargetable Column scrolling while retaining compact stepwise Dock navigation, Phase 9.5 Presentation modes, and Phase 8.5 bidirectional Dock order synchronization.
+CC Niri Maximize V3 is being implemented in phases on top of the working V2 safe-area script. Version `3.0.0-alpha.36` parks 50% neighbors as soon as a client accepts 72% Wide geometry, while retaining dual Return and keypad Enter Floating bindings, shared Motion tokens, and retargetable Column scrolling.
 
 ## Current V3 phase
 
@@ -29,8 +29,8 @@ Implemented in this alpha:
 - Column motion uses the shared `220 ms` spatial token and an `OutCubic` deceleration curve. Repeated or reversed `Meta+H/L` input samples the current visual translation, compensates for the newly committed real geometry, and retargets from that painted position instead of snapping and restarting. Each window has an independent Motion epoch, and completion clears all temporary Translation, Scale, and Opacity state.
 - The Dock task context menu adds a compact `CC Scroll` section with Normal, Focus Wide, and Maximize in Safe Area. Wide is exactly 72% of the safe area and centered; Wide and Maximize park all neighboring managed windows without changing logical or Dock order.
 - KDE's native maximize button and the Dock's Maximize in Safe Area action enter the same presentation state; restore returns to the exact two-column layout.
-- Focus Wide is a persistent per-Column property for the current KWin session. `Meta+H/L` treats a return to Wide as two discrete navigation steps rather than one timed transition: from `1|2`, the first `Meta+L` stops indefinitely at `2|3`; the second `Meta+L` expands focused column 3 to 72%. The reverse direction behaves symmetrically with `Meta+H`. During expansion, the neighbor remains visible until the target accepts its real geometry and finishes the paint animation. Dock activation retains its automatic guarded transition. Pressing `Meta+Z` on Wide restores 50% pairing. Presentation never permanently changes the normal scroll offset.
-- `Meta+Shift+Enter` toggles the active primary-screen window between the managed Column model and Floating. Starting an interactive move or resize on a managed Column also detaches it automatically without rewriting that window's geometry; toggling it back inserts it to the right of the currently focused Column.
+- Focus Wide is a persistent per-Column property for the current KWin session. `Meta+H/L` treats a return to Wide as two discrete navigation steps rather than one timed transition: from `1|2`, the first `Meta+L` stops indefinitely at `2|3`; the second `Meta+L` expands focused column 3 to 72%. The reverse direction behaves symmetrically with `Meta+H`. The neighbor remains visible only until the target accepts its real 72% geometry, then parks immediately while the Wide paint animation finishes, so the two windows never remain visibly overlapped. Dock activation retains its automatic guarded transition. Pressing `Meta+Z` on Wide restores 50% pairing. Presentation never permanently changes the normal scroll offset.
+- `Meta+Shift+Enter` toggles the active primary-screen window between the managed Column model and Floating. Both the main keyboard Return key and keypad Enter are registered because Qt treats them as different keys. Starting an interactive move or resize on a managed Column also detaches it automatically without rewriting that window's geometry. Mouse-detached windows remain the shortcut's pending reattachment target until they return or close, even if another primary Column or the secondary output owns focus; reattachment inserts the window to the right of the currently focused Column.
 - Custom Focus Ring rendering has been removed. The Dock now uses TaskManager's native per-window `IsActive`: inactive running-window icons are 90% opaque, while the active icon gets a subtle translucent green background and a centered 3 px green indicator. KWin's global Dim Inactive effect remains disabled because KWin 6.7.5 cannot exclude the secondary output.
 
 Later V3 work intentionally not included here includes tabbed/multi-window Columns, Overview integration, session persistence, and secondary-screen bidirectional ordering.
@@ -112,7 +112,7 @@ Current V3 alpha shortcuts:
 - `Meta+Z`: toggle Focus Wide for the active managed column.
 - `Meta+Shift+H`: move the current column one position left.
 - `Meta+Shift+L`: move the current column one position right.
-- `Meta+Shift+Enter`: toggle the active window between managed Column and Floating.
+- `Meta+Shift+Enter`: toggle the active window between managed Column and Floating; main Return and keypad Enter are both supported.
 
 The former custom maximize binding is removed during installation. Focus Wide
 has the single `Meta+Z` convenience toggle; Dock actions and the native window
