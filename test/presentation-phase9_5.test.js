@@ -65,7 +65,9 @@ assert.ok(mainSource.includes('"Meta+Z"'),
     "Focus Wide has the requested Meta+Z toggle");
 assert.ok(!mainSource.includes("CCNiriMaximizeToggle"),
     "the old presentation shortcut is removed");
-assert.ok(mainSource.includes('command.type !== "set-presentation-mode"'));
+assert.ok(mainSource.includes(
+    '"set-presentation-mode": handleDockPresentationCommand'
+));
 assert.ok(mainSource.includes('PRESENTATION_MAXIMIZED,\n            "native-maximize"'),
     "native maximize enters the shared presentation state");
 assert.ok(mainSource.includes('PRESENTATION_NORMAL,\n            "native-restore"'),
@@ -111,14 +113,14 @@ assert.ok(effectSource.includes("type: Effect.Scale") &&
     effectSource.includes("type: Effect.Translation"),
     "Focus Wide uses paint-only scale and center translation");
 const presentationEffectSource = effectSource.slice(
-    effectSource.indexOf("if (this.presentationTransition"),
-    effectSource.indexOf("if (!this.sameSize")
+    effectSource.indexOf("if (presentationTransition(oldGeometry, newGeometry"),
+    effectSource.indexOf("if (!sameSize(oldGeometry, newGeometry)) return;")
 );
 assert.ok(!presentationEffectSource.includes("type: Effect.Size"));
 assert.ok(!presentationEffectSource.includes("type: Effect.Position"),
     "presentation animation cannot intercept authoritative geometry resize");
-assert.ok(effectSource.indexOf("this.presentationTransition(oldGeometry, newGeometry") <
-    effectSource.indexOf("if (!this.sameSize(oldGeometry, newGeometry)) return;"),
+assert.ok(effectSource.indexOf("if (presentationTransition(oldGeometry, newGeometry") <
+    effectSource.indexOf("if (!sameSize(oldGeometry, newGeometry)) return;"),
     "size-changing presentation transitions are handled before scroll filtering");
 
 const qmlSource = fs.readFileSync(

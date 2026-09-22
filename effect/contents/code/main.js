@@ -4,6 +4,65 @@
 
 "use strict";
 
+/* BEGIN GENERATED EFFECT MODULES */
+// Generated from src/kwin/runtime/RuntimeLogger.js
+class RuntimeLogger {
+    constructor(options) {
+        this.tag = options.tag;
+        this.enabled = Boolean(options.enabled);
+        this.infoSink = options.infoSink;
+        this.warnSink = options.warnSink;
+    }
+
+    setEnabled(enabled) {
+        this.enabled = Boolean(enabled);
+    }
+
+    resolve(value) {
+        return typeof value === "function" ? value() : String(value);
+    }
+
+    classify(message, requestedCategory) {
+        if (requestedCategory) return requestedCategory;
+        if (/^\[cc-adoption\]/.test(message)) return "adoption";
+        if (/^\[cc-dock\]/.test(message)) return "dock";
+        if (/^\[cc-presentation\]/.test(message)) return "presentation";
+        if (/^\[cc-stability\].*EMERGENCY_RESTORE/.test(message)) return "recovery";
+        if (/^\[cc-stability\]/.test(message)) return "stability";
+        if (/^\[cc-scroll\].*(FLOAT|MANAGE|REMEMBER_FLOAT)/.test(message)) {
+            return "floating";
+        }
+        if (/^\[cc-scroll\]/.test(message)) return "layout";
+        if (/^(FULLSCREEN|NATIVE-TRANSFER)/.test(message)) return "lifecycle";
+        if (/^(INVARIANT|RECOVERY|TIMEOUT|SCHEMA REJECT|QUEUE FULL)/.test(message)) {
+            return "stability";
+        }
+        return "runtime";
+    }
+
+    stripLegacyPrefix(message) {
+        return message.replace(/^\[cc-[^\]]+\]\s*/u, "");
+    }
+
+    format(category, message) {
+        return `${this.tag} [${category}] ${this.stripLegacyPrefix(message)}`;
+    }
+
+    debug(value, category = "") {
+        if (!this.enabled) return false;
+        const message = this.resolve(value);
+        this.infoSink(this.format(this.classify(message, category), message));
+        return true;
+    }
+
+    warn(value, category = "") {
+        const message = this.resolve(value);
+        this.warnSink(this.format(this.classify(message, category), message));
+        return true;
+    }
+}
+
+// Generated from src/effect/MotionTokens.js
 const SAFE_RIGHT_EDGE_SLIDE_X = 20;
 const UNARMED_TRANSACTION_TTL_MS = 80;
 const PRESENTATION_MIN_WIDTH_RATIO = 0.65;
@@ -18,6 +77,10 @@ const MotionTokens = Object.freeze({
     resizeMs: 300,
     expressiveEnterMs: 320,
     expressiveExitMs: 240,
+    subtleIncomingScale: 0.985,
+    subtleIncomingOpacity: 0.85,
+    retargetMinMs: 110,
+    retargetMidMs: 160,
 });
 
 const MotionCurves = Object.freeze({
@@ -35,6 +98,7 @@ const MotionType = Object.freeze({
     WIDE_EXIT: "WIDE_EXIT",
 });
 
+// Generated from src/effect/MotionSampler.js
 function clampUnit(value) {
     return Math.max(0, Math.min(1, Number(value) || 0));
 }
@@ -46,6 +110,44 @@ function standardDecelProgress(progress) {
 
 function interpolateValue(from, to, progress) {
     return from + (to - from) * progress;
+}
+
+function channelDistance(channel) {
+    if (!channel) return 0;
+    if (typeof channel.from === "number" && typeof channel.to === "number") {
+        return Math.abs(channel.to - channel.from);
+    }
+    if (!channel.from || !channel.to) return 0;
+    const delta1 = channel.to.value1 - channel.from.value1;
+    const delta2 = channel.to.value2 - channel.from.value2;
+    return Math.sqrt(delta1 * delta1 + delta2 * delta2);
+}
+
+function distanceAwareDuration(baseDuration, remainingDistance, fullDistance) {
+    const base = Math.max(1, Number(baseDuration) || 1);
+    const full = Math.max(1, Number(fullDistance) || 1);
+    const ratio = clampUnit((Number(remainingDistance) || 0) / full);
+    const minimum = base * MotionTokens.retargetMinMs / MotionTokens.spatialMs;
+    const midpoint = base * MotionTokens.retargetMidMs / MotionTokens.spatialMs;
+    if (ratio <= 0.2) return Math.max(1, Math.round(minimum));
+    if (ratio <= 0.5) {
+        return Math.max(1, Math.round(
+            minimum + (midpoint - minimum) * ((ratio - 0.2) / 0.3)
+        ));
+    }
+    return Math.max(1, Math.round(
+        midpoint + (base - midpoint) * ((ratio - 0.5) / 0.5)
+    ));
+}
+
+function motionValuesEqual(a, b, tolerance = 0.0001) {
+    if (typeof a === "number" || typeof b === "number") {
+        return typeof a === "number" && typeof b === "number" &&
+            Math.abs(a - b) < tolerance;
+    }
+    return Boolean(a && b &&
+        Math.abs(a.value1 - b.value1) < tolerance &&
+        Math.abs(a.value2 - b.value2) < tolerance);
 }
 
 function retargetedTranslation(current, oldGeometry, newGeometry) {
@@ -109,6 +211,80 @@ function visualRectFor(rect, sample, anchor) {
     };
 }
 
+// Generated from src/effect/MotionTransaction.js
+class MotionTransaction {
+    constructor(ttlMs) {
+        this.ttlMs = Math.max(1, Number(ttlMs) || 1);
+        this.nextId = 1;
+        this.activeTransaction = null;
+    }
+
+    begin(options) {
+        const now = options.now === undefined ? Date.now() : options.now;
+        const id = this.nextId++;
+        this.activeTransaction = {
+            id,
+            layoutEpoch: options.layoutEpoch === undefined ? id : options.layoutEpoch,
+            type: options.type || MotionType.SCROLL,
+            deltaX: Number(options.deltaX) || 0,
+            continuing: [],
+            incoming: [],
+            outgoing: [],
+            armedAt: now,
+        };
+        if (options.window && options.role) {
+            this.record(options.role, options.window);
+        }
+        return this.activeTransaction;
+    }
+
+    arm(deltaX, window, now = Date.now(), options = {}) {
+        const current = this.current(now);
+        const normalizedDelta = Number(deltaX) || 0;
+        const transaction = !current || current.type !== (options.type || MotionType.SCROLL) ||
+                Math.abs(current.deltaX - normalizedDelta) >= 1
+            ? this.begin({
+                deltaX: normalizedDelta,
+                type: options.type || MotionType.SCROLL,
+                layoutEpoch: options.layoutEpoch,
+                now,
+            })
+            : current;
+        transaction.armedAt = now;
+        if (window) this.record("continuing", window);
+        return transaction;
+    }
+
+    record(role, window) {
+        const transaction = this.activeTransaction;
+        if (!transaction ||
+                ["continuing", "incoming", "outgoing"].indexOf(role) < 0) {
+            return false;
+        }
+        if (transaction[role].indexOf(window) < 0) transaction[role].push(window);
+        return true;
+    }
+
+    current(now = Date.now()) {
+        this.expire(now);
+        return this.activeTransaction;
+    }
+
+    expire(now = Date.now()) {
+        const transaction = this.activeTransaction;
+        if (!transaction || now - transaction.armedAt <= this.ttlMs) return null;
+        this.activeTransaction = null;
+        return transaction;
+    }
+
+    clear() {
+        const transaction = this.activeTransaction;
+        this.activeTransaction = null;
+        return transaction;
+    }
+}
+
+// Generated from src/effect/MotionController.js
 class MotionController {
     constructor(owner) {
         this.owner = owner;
@@ -235,7 +411,27 @@ class MotionController {
             };
         });
 
-        const duration = Math.max(1, Number(options.duration) || 1);
+        Object.keys(channels).forEach(name => {
+            const channel = channels[name];
+            if (motionValuesEqual(channel.from, channel.to)) delete channels[name];
+        });
+        if (!Object.keys(channels).length) {
+            if (window.ccNiriScrollAnimation) delete window.ccNiriScrollAnimation;
+            if (window.ccNiriIncomingVisual) delete window.ccNiriIncomingVisual;
+            this.owner.debug(`[MOTION] skip type=${options.type || MotionType.NONE}` +
+                " reason=no-op");
+            return null;
+        }
+
+        const requestedDuration = Math.max(1, Number(options.duration) || 1);
+        const requestedTranslation = desired.translation || null;
+        const duration = previous && channels.translation && requestedTranslation
+            ? distanceAwareDuration(
+                requestedDuration,
+                channelDistance(channels.translation),
+                channelDistance(requestedTranslation)
+            )
+            : requestedDuration;
         const animationSpecs = Object.keys(channels).map(name => {
             const channel = channels[name];
             const spec = {
@@ -308,10 +504,90 @@ class MotionController {
     }
 }
 
+// Generated from src/effect/MotionClassifier.js
+function sameSize(a, b) {
+    return Math.abs(a.width - b.width) < 1 && Math.abs(a.height - b.height) < 1;
+}
+
+function isColumnSize(rect, screenRect) {
+    return rect.width > screenRect.width * 0.35 &&
+        rect.width < screenRect.width * 0.65 &&
+        rect.height > screenRect.height * 0.75;
+}
+
+function visibleSlot(rect, screenRect) {
+    if (!isColumnSize(rect, screenRect) ||
+            rect.x < screenRect.x || rect.y < screenRect.y ||
+            rect.x + rect.width > screenRect.x + screenRect.width ||
+            rect.y + rect.height > screenRect.y + screenRect.height) {
+        return null;
+    }
+    const center = rect.x + rect.width / 2;
+    return center < screenRect.x + screenRect.width / 2 ? "left" : "right";
+}
+
+function isFocusWide(rect, screenRect) {
+    const widthRatio = rect.width / screenRect.width;
+    if (widthRatio < PRESENTATION_MIN_WIDTH_RATIO ||
+            widthRatio > PRESENTATION_MAX_WIDTH_RATIO ||
+            rect.height < screenRect.height * 0.75 ||
+            rect.x < screenRect.x || rect.y < screenRect.y ||
+            rect.x + rect.width > screenRect.x + screenRect.width ||
+            rect.y + rect.height > screenRect.y + screenRect.height) {
+        return false;
+    }
+    const rectCenter = rect.x + rect.width / 2;
+    const screenCenter = screenRect.x + screenRect.width / 2;
+    return Math.abs(rectCenter - screenCenter) < screenRect.width * 0.03;
+}
+
+function presentationTransition(oldGeometry, newGeometry, screenRect) {
+    /* A real Focus Wide transition only changes horizontal position and
+     * width. Newly mapped applications often start as a centered large
+     * window but also change height when adopted; never classify those
+     * first-layout changes as Presentation animation. */
+    if (Math.abs(oldGeometry.y - newGeometry.y) >= 1 ||
+            Math.abs(oldGeometry.height - newGeometry.height) >= 1) {
+        return false;
+    }
+    const oldSlot = visibleSlot(oldGeometry, screenRect);
+    const newSlot = visibleSlot(newGeometry, screenRect);
+    const oldWide = isFocusWide(oldGeometry, screenRect);
+    const newWide = isFocusWide(newGeometry, screenRect);
+    return (oldSlot && newWide) || (oldWide && newSlot);
+}
+
+function parked(rect, screenRect) {
+    return isColumnSize(rect, screenRect) &&
+        (rect.x + rect.width < screenRect.x ||
+         (rect.x < screenRect.x &&
+          rect.x + rect.width <= screenRect.x + screenRect.width * 0.25));
+}
+
+function incomingVisualStart(rect, translationX, scaleX, anchor, opacity) {
+    const width = rect.width * scaleX;
+    let x = rect.x + (rect.width - width) / 2;
+    if (anchor === "left") x = rect.x;
+    if (anchor === "right") x = rect.x + rect.width - width;
+    return {
+        x: x + translationX,
+        y: rect.y,
+        width,
+        height: rect.height,
+        opacity,
+    };
+}
+/* END GENERATED EFFECT MODULES */
+
 class CCNiriScrollTransition {
     constructor() {
-        this.pendingDeltaX = null;
-        this.pendingDeltaArmedAt = 0;
+        this.logger = new RuntimeLogger({
+            tag: "[cc-niri-scroll-transition]",
+            enabled: false,
+            infoSink: message => console.info(message),
+            warnSink: message => console.warn(message),
+        });
+        this.motionTransaction = new MotionTransaction(UNARMED_TRANSACTION_TTL_MS);
         this.motion = new MotionController(this);
         this.loadConfig();
         effect.configChanged.connect(this.loadConfig.bind(this));
@@ -334,102 +610,25 @@ class CCNiriScrollTransition {
             Math.max(1, Number(effect.readConfig("PresentationDuration", 220)) || 220)
         ));
         this.debugLogging = Boolean(effect.readConfig("DebugLogging", false));
+        this.logger.setEnabled(this.debugLogging);
     }
 
     manage(window) {
         window.windowFrameGeometryChanged.connect(this.geometryChanged.bind(this));
     }
 
-    sameSize(a, b) {
-        return Math.abs(a.width - b.width) < 1 && Math.abs(a.height - b.height) < 1;
-    }
-
-    isColumnSize(rect, screenRect) {
-        return rect.width > screenRect.width * 0.35 &&
-            rect.width < screenRect.width * 0.65 &&
-            rect.height > screenRect.height * 0.75;
-    }
-
-    visibleSlot(rect, screenRect) {
-        if (!this.isColumnSize(rect, screenRect) ||
-                rect.x < screenRect.x || rect.y < screenRect.y ||
-                rect.x + rect.width > screenRect.x + screenRect.width ||
-                rect.y + rect.height > screenRect.y + screenRect.height) {
-            return null;
-        }
-        const center = rect.x + rect.width / 2;
-        return center < screenRect.x + screenRect.width / 2 ? "left" : "right";
-    }
-
-    isFocusWide(rect, screenRect) {
-        const widthRatio = rect.width / screenRect.width;
-        if (widthRatio < PRESENTATION_MIN_WIDTH_RATIO ||
-                widthRatio > PRESENTATION_MAX_WIDTH_RATIO ||
-                rect.height < screenRect.height * 0.75 ||
-                rect.x < screenRect.x || rect.y < screenRect.y ||
-                rect.x + rect.width > screenRect.x + screenRect.width ||
-                rect.y + rect.height > screenRect.y + screenRect.height) {
-            return false;
-        }
-        const rectCenter = rect.x + rect.width / 2;
-        const screenCenter = screenRect.x + screenRect.width / 2;
-        return Math.abs(rectCenter - screenCenter) < screenRect.width * 0.03;
-    }
-
-    presentationTransition(oldGeometry, newGeometry, screenRect) {
-        /* A real Focus Wide transition only changes horizontal position and
-         * width. Newly mapped applications often start as a centered large
-         * window but also change height when adopted; never classify those
-         * first-layout changes as Presentation animation. */
-        if (Math.abs(oldGeometry.y - newGeometry.y) >= 1 ||
-                Math.abs(oldGeometry.height - newGeometry.height) >= 1) {
-            return false;
-        }
-        const oldSlot = this.visibleSlot(oldGeometry, screenRect);
-        const newSlot = this.visibleSlot(newGeometry, screenRect);
-        const oldWide = this.isFocusWide(oldGeometry, screenRect);
-        const newWide = this.isFocusWide(newGeometry, screenRect);
-        return (oldSlot && newWide) || (oldWide && newSlot);
-    }
-
-    parked(rect, screenRect) {
-        return this.isColumnSize(rect, screenRect) &&
-            (rect.x + rect.width < screenRect.x ||
-             (rect.x < screenRect.x &&
-              rect.x + rect.width <= screenRect.x + screenRect.width * 0.25));
-    }
-
-    incomingVisualStart(rect, translationX, scaleX, anchor, opacity) {
-        const width = rect.width * scaleX;
-        let x = rect.x + (rect.width - width) / 2;
-        if (anchor === "left") x = rect.x;
-        if (anchor === "right") x = rect.x + rect.width - width;
-        return {
-            x: x + translationX,
-            y: rect.y,
-            width,
-            height: rect.height,
-            opacity,
-        };
-    }
-
     debug(message) {
-        if (this.debugLogging) {
-            console.info(`[cc-niri-scroll-transition] ${message}`);
-        }
+        this.logger.debug(message, "motion");
     }
 
     clearPendingDelta() {
-        this.pendingDeltaX = null;
-        this.pendingDeltaArmedAt = 0;
+        return this.motionTransaction.clear();
     }
 
     expireStalePendingDelta() {
-        if (this.pendingDeltaX !== null &&
-                Date.now() - this.pendingDeltaArmedAt > UNARMED_TRANSACTION_TTL_MS) {
-            this.debug(`EXPIRE staleDelta=${this.pendingDeltaX}`);
-            this.clearPendingDelta();
-        }
+        const expired = this.motionTransaction.expire(Date.now());
+        if (expired) this.debug(`EXPIRE transaction=${expired.id}` +
+            ` staleDelta=${expired.deltaX}`);
     }
 
     geometryChanged(window, oldGeometry) {
@@ -439,7 +638,7 @@ class CCNiriScrollTransition {
         const screenRect = window.screen.geometry;
         const newGeometry = window.geometry;
 
-        if (this.presentationTransition(oldGeometry, newGeometry, screenRect)) {
+        if (presentationTransition(oldGeometry, newGeometry, screenRect)) {
             /* The script normally waits until the destination pair has
              * finished scrolling before it commits 50%->72%. Preserve the
              * incoming visual as a defensive fallback if custom timing or a
@@ -485,7 +684,7 @@ class CCNiriScrollTransition {
                 });
             }
             this.motion.start(window, {
-                type: this.isFocusWide(newGeometry, screenRect)
+                type: isFocusWide(newGeometry, screenRect)
                     ? MotionType.WIDE_ENTER
                     : MotionType.WIDE_EXIT,
                 duration: chainedIncoming
@@ -505,11 +704,11 @@ class CCNiriScrollTransition {
             return;
         }
 
-        if (!this.sameSize(oldGeometry, newGeometry)) return;
-        const oldSlot = this.visibleSlot(oldGeometry, screenRect);
-        const newSlot = this.visibleSlot(newGeometry, screenRect);
-        const oldParked = this.parked(oldGeometry, screenRect);
-        const newParked = this.parked(newGeometry, screenRect);
+        if (!sameSize(oldGeometry, newGeometry)) return;
+        const oldSlot = visibleSlot(oldGeometry, screenRect);
+        const newSlot = visibleSlot(newGeometry, screenRect);
+        const oldParked = parked(oldGeometry, screenRect);
+        const newParked = parked(newGeometry, screenRect);
         this.expireStalePendingDelta();
         if (!(oldSlot || oldParked) || !(newSlot || newParked) ||
                 Math.abs(oldGeometry.x - newGeometry.x) < 1) {
@@ -518,23 +717,30 @@ class CCNiriScrollTransition {
 
         let animations;
         let incomingVisual = null;
+        let motionType = MotionType.SCROLL;
         if (oldSlot && newSlot) {
             /*
              * Script commits the continuing column first. Both coordinates
              * are projections, never parking coordinates, so this is exactly
              * oldProjectedX - newProjectedX == scrollDeltaX.
              */
-            this.pendingDeltaX = oldGeometry.x - newGeometry.x;
-            this.pendingDeltaArmedAt = Date.now();
+            const transaction = this.motionTransaction.arm(
+                oldGeometry.x - newGeometry.x,
+                window,
+                Date.now(),
+                { type: MotionType.SCROLL }
+            );
             animations = [{
                 type: Effect.Translation,
-                from: { value1: this.pendingDeltaX, value2: 0 },
+                from: { value1: transaction.deltaX, value2: 0 },
                 to: { value1: 0, value2: 0 }
             }];
-            this.debug(`ARM delta=${this.pendingDeltaX}` +
+            this.debug(`ARM transaction=${transaction.id} delta=${transaction.deltaX}` +
                 ` oldProjectedX=${oldGeometry.x} newProjectedX=${newGeometry.x}`);
         } else if (oldParked && newSlot) {
-            if (this.pendingDeltaX === null) {
+            const transaction = this.motionTransaction.current(Date.now());
+            const pendingDeltaX = transaction ? transaction.deltaX : null;
+            if (!transaction) {
                 /* Closing the visible right-hand Column can reveal its parked
                  * successor without changing scrollOffsetX. There is no
                  * continuing moving window from which to infer a delta, so
@@ -552,23 +758,33 @@ class CCNiriScrollTransition {
                     anchor: newSlot === "right" ? "right" : "left",
                     sourceAnchor: anchor,
                     targetAnchor: anchor,
-                    from: { value1: 0.94, value2: 1 },
+                    from: { value1: MotionTokens.subtleIncomingScale, value2: 1 },
                     to: { value1: 1, value2: 1 }
                 }, {
                     type: Effect.Opacity,
-                    from: 0.2,
+                    from: MotionTokens.subtleIncomingOpacity,
                     to: 1.0
                 }];
-                incomingVisual = this.incomingVisualStart(
+                incomingVisual = incomingVisualStart(
                     newGeometry,
                     fromX,
-                    0.94,
+                    MotionTokens.subtleIncomingScale,
                     newSlot === "right" ? "right" : "left",
-                    0.2
+                    MotionTokens.subtleIncomingOpacity
                 );
-                this.debug(`INCOMING_UNARMED slot=${newSlot}` +
+                const closeTransaction = this.motionTransaction.begin({
+                    type: MotionType.CLOSE_REFILL,
+                    deltaX: 0,
+                    role: "incoming",
+                    window,
+                });
+                motionType = closeTransaction.type;
+                this.debug(`INCOMING_UNARMED transaction=${closeTransaction.id}` +
+                    ` slot=${newSlot}` +
                     ` newProjectedX=${newGeometry.x}`);
-            } else if (this.pendingDeltaX > 0) {
+            } else if (pendingDeltaX > 0) {
+                this.motionTransaction.record("incoming", window);
+                motionType = transaction.type;
                 /*
                  * Preserve L's right-to-left direction without ever entering
                  * the adjacent output. The primary safe area leaves 24 px on
@@ -583,43 +799,51 @@ class CCNiriScrollTransition {
                     anchor: "right",
                     sourceAnchor: Effect.Right,
                     targetAnchor: Effect.Right,
-                    from: { value1: 0.94, value2: 1 },
+                    from: { value1: MotionTokens.subtleIncomingScale, value2: 1 },
                     to: { value1: 1, value2: 1 }
                 }, {
                     type: Effect.Opacity,
-                    from: 0.2,
+                    from: MotionTokens.subtleIncomingOpacity,
                     to: 1.0
                 }];
-                incomingVisual = this.incomingVisualStart(
+                incomingVisual = incomingVisualStart(
                     newGeometry,
                     SAFE_RIGHT_EDGE_SLIDE_X,
-                    0.94,
+                    MotionTokens.subtleIncomingScale,
                     "right",
-                    0.2
+                    MotionTokens.subtleIncomingOpacity
                 );
-                this.debug(`INCOMING_RIGHT_SAFE delta=${this.pendingDeltaX}` +
+                this.debug(`INCOMING_RIGHT_SAFE transaction=${transaction.id}` +
+                    ` delta=${pendingDeltaX}` +
                     ` newProjectedX=${newGeometry.x}`);
             } else {
+                this.motionTransaction.record("incoming", window);
+                motionType = transaction.type;
                 animations = [{
                     type: Effect.Translation,
-                    from: { value1: this.pendingDeltaX, value2: 0 },
+                    from: { value1: pendingDeltaX, value2: 0 },
                     to: { value1: 0, value2: 0 }
                 }];
-                incomingVisual = this.incomingVisualStart(
+                incomingVisual = incomingVisualStart(
                     newGeometry,
-                    this.pendingDeltaX,
+                    pendingDeltaX,
                     1,
                     "center",
                     1
                 );
-                this.debug(`INCOMING delta=${this.pendingDeltaX}` +
+                this.debug(`INCOMING transaction=${transaction.id}` +
+                    ` delta=${pendingDeltaX}` +
                     ` newProjectedX=${newGeometry.x}`);
             }
         } else if (oldSlot && newParked) {
-            if (this.pendingDeltaX === null) return;
+            const transaction = this.motionTransaction.current(Date.now());
+            if (!transaction) return;
+            const pendingDeltaX = transaction.deltaX;
+            this.motionTransaction.record("outgoing", window);
+            motionType = transaction.type;
             const oldProjectedX = oldGeometry.x;
-            const newProjectedX = oldProjectedX - this.pendingDeltaX;
-            if (this.pendingDeltaX < 0) {
+            const newProjectedX = oldProjectedX - pendingDeltaX;
+            if (pendingDeltaX < 0) {
                 /* Move only inside the 24 px primary right margin, then fade
                  * to its already-committed parking geometry. */
                 const holdX = oldGeometry.x - newGeometry.x;
@@ -632,7 +856,8 @@ class CCNiriScrollTransition {
                     from: 1.0,
                     to: 0.0
                 }];
-                this.debug(`OUTGOING_RIGHT_SAFE delta=${this.pendingDeltaX}` +
+                this.debug(`OUTGOING_RIGHT_SAFE transaction=${transaction.id}` +
+                    ` delta=${pendingDeltaX}` +
                     ` holdProjectedX=${oldProjectedX}`);
             } else {
                 animations = [{
@@ -640,7 +865,8 @@ class CCNiriScrollTransition {
                     from: { value1: oldGeometry.x - newGeometry.x, value2: 0 },
                     to: { value1: newProjectedX - newGeometry.x, value2: 0 }
                 }];
-                this.debug(`OUTGOING delta=${this.pendingDeltaX}` +
+                this.debug(`OUTGOING transaction=${transaction.id}` +
+                    ` delta=${pendingDeltaX}` +
                     ` oldProjectedX=${oldProjectedX} newProjectedX=${newProjectedX}`);
             }
             this.clearPendingDelta();
@@ -650,7 +876,7 @@ class CCNiriScrollTransition {
 
         if (incomingVisual) window.ccNiriIncomingVisual = incomingVisual;
         this.motion.start(window, {
-            type: MotionType.SCROLL,
+            type: motionType,
             duration: this.duration,
             curve: MotionCurves.standardDecel,
             oldGeometry,
@@ -668,9 +894,21 @@ if (typeof module !== "undefined" && module.exports) {
         clampUnit,
         standardDecelProgress,
         interpolateValue,
+        channelDistance,
+        distanceAwareDuration,
+        motionValuesEqual,
         retargetedTranslation,
         sampleMotionState,
         visualRectFor,
+        MotionTransaction,
+        MotionController,
+        sameSize,
+        isColumnSize,
+        visibleSlot,
+        isFocusWide,
+        presentationTransition,
+        parked,
+        incomingVisualStart,
     };
 } else {
     new CCNiriScrollTransition();

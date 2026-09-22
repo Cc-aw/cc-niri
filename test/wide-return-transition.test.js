@@ -13,12 +13,12 @@ function incomingVisualStart(rect, translationX, scaleX, anchor, opacity) {
 
 const rightSlot = { x: 1284, y: 50, width: 1252, height: 1320 };
 const wide = { x: 375, y: 50, width: 1809, height: 1320 };
-const fromRight = incomingVisualStart(rightSlot, 20, 0.94, "right", 0.2);
-assert.ok(Math.abs(fromRight.x - 1379.12) < 0.001);
-assert.ok(Math.abs(fromRight.width - 1176.88) < 0.001);
+const fromRight = incomingVisualStart(rightSlot, 20, 0.985, "right", 0.85);
+assert.ok(Math.abs(fromRight.x - 1322.78) < 0.001);
+assert.ok(Math.abs(fromRight.width - 1233.22) < 0.001);
 assert.equal(fromRight.y, 50);
 assert.equal(fromRight.height, 1320);
-assert.equal(fromRight.opacity, 0.2);
+assert.equal(fromRight.opacity, 0.85);
 assert.ok(fromRight.x + fromRight.width / 2 >
     wide.x + wide.width / 2,
 "returning Wide starts on the right and visibly scrolls toward center");
@@ -35,8 +35,8 @@ const effectSource = fs.readFileSync(
     "utf8"
 );
 const presentationSource = effectSource.slice(
-    effectSource.indexOf("if (this.presentationTransition"),
-    effectSource.indexOf("if (!this.sameSize")
+    effectSource.indexOf("if (presentationTransition(oldGeometry, newGeometry"),
+    effectSource.indexOf("if (!sameSize(oldGeometry, newGeometry)) return;")
 );
 assert.ok(presentationSource.includes("window.ccNiriIncomingVisual || null"));
 assert.ok(presentationSource.indexOf("const chainedIncoming") <

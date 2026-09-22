@@ -1,0 +1,113 @@
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const { FullscreenController } =
+    require("../src/kwin/lifecycle/FullscreenController");
+
+function fixture(overrides = {}) {
+    const calls = [];
+    const state = {
+        internalChange: false,
+        layoutMode: "normal",
+        layoutModeBeforeFullscreen: "normal",
+        ...overrides.state,
+    };
+    const options = {
+        stateFor: () => state,
+        indexOfWindow: () => -1,
+        relayout: reason => calls.push(["relayout", reason]),
+        onManagedOutput: () => false,
+        isLayoutMode: mode => mode !== "normal" && mode !== "unsupported",
+        applyLayoutGeometry: (...args) => calls.push(["apply", ...args]),
+        advanceAdoption: (...args) => calls.push(["adopt", ...args]),
+        normalMode: "normal",
+        debug: message => calls.push(["debug", message]),
+        ...overrides.options,
+    };
+    return { controller: new FullscreenController(options), state, calls };
+}
+
+function makeWindow(fullScreen) {
+    return { caption: "Browser", fullScreen };
+}
+
+{
+    const window = makeWindow(true);
+    const { controller, state, calls } = fixture({
+        state: { layoutMode: "left" },
+    });
+    assert.equal(controller.onFullscreenChanged(window), true);
+    assert.equal(state.layoutModeBeforeFullscreen, "left");
+    assert.deepEqual(calls, [["debug", "FULLSCREEN enter Browser prior=left"]]);
+}
+
+{
+    const window = makeWindow(true);
+    const { controller, state, calls } = fixture({
+        state: { internalChange: true, layoutMode: "maximize" },
+    });
+    assert.equal(controller.onFullscreenChanged(window), false);
+    assert.equal(state.layoutModeBeforeFullscreen, "normal");
+    assert.deepEqual(calls, []);
+}
+
+{
+    const window = makeWindow(false);
+    const { controller, state, calls } = fixture({
+        state: { layoutModeBeforeFullscreen: "maximize" },
+        options: { indexOfWindow: () => 0 },
+    });
+    assert.equal(controller.onFullscreenChanged(window), true);
+    assert.equal(state.layoutModeBeforeFullscreen, "normal");
+    assert.deepEqual(calls, [["relayout", "fullscreen-exit"]]);
+}
+
+{
+    const window = makeWindow(false);
+    const { controller, state, calls } = fixture({
+        state: { layoutModeBeforeFullscreen: "right" },
+        options: { onManagedOutput: () => true },
+    });
+    controller.onFullscreenChanged(window);
+    assert.deepEqual(calls, [[
+        "apply", window, state, "right", "fullscreen-exit",
+    ]]);
+    assert.equal(state.layoutModeBeforeFullscreen, "normal");
+}
+
+for (const options of [
+    { onManagedOutput: () => false },
+    { onManagedOutput: () => true, isLayoutMode: () => false },
+]) {
+    const window = makeWindow(false);
+    const { controller, state, calls } = fixture({
+        state: { layoutModeBeforeFullscreen: "normal" },
+        options,
+    });
+    controller.onFullscreenChanged(window);
+    assert.deepEqual(calls, [["adopt", window, "fullscreen-exit"]]);
+    assert.equal(state.layoutModeBeforeFullscreen, "normal");
+}
+
+const mainSource = fs.readFileSync(
+    path.join(__dirname, "../package/contents/code/main.js"),
+    "utf8"
+);
+const handlerSource = mainSource.slice(
+    mainSource.indexOf("function onFullScreenChanged"),
+    mainSource.indexOf("function onInteractiveMoveResizeStarted")
+);
+assert.ok(handlerSource.includes(
+    "fullscreenController.onFullscreenChanged(window)"
+), "the KWin signal handler delegates to FullscreenController");
+
+const source = fs.readFileSync(
+    path.join(__dirname, "../src/kwin/lifecycle/FullscreenController.js"),
+    "utf8"
+);
+assert.equal(source.includes("commitDockState"), false);
+assert.equal(source.includes("setPresentationMode"), false);
+assert.equal(/adoptionPhase\s*=(?!=)/u.test(source), false,
+    "FullscreenController delegates Adoption state changes");
+
+console.log("PASS FullscreenController preserves fullscreen lifecycle semantics");

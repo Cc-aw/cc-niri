@@ -1,14 +1,17 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const { LayoutTransaction } =
+    require("../src/kwin/stability/LayoutTransaction");
+const { InvariantChecker } =
+    require("../src/kwin/stability/InvariantChecker");
 
 const mainSource = fs.readFileSync(
     path.join(__dirname, "../package/contents/code/main.js"),
     "utf8"
 );
 
-assert.ok(mainSource.includes("let layoutTransactionDepth = 0"));
-assert.ok(mainSource.includes("let layoutEpoch = 0"));
+assert.ok(mainSource.includes("const layoutTransaction = new LayoutTransaction"));
 assert.ok(mainSource.includes("function beginLayoutTransaction(reason)"));
 assert.ok(mainSource.includes("function endLayoutTransaction(reason, epoch)"));
 assert.ok(mainSource.includes("function validateLayoutInvariants(reason, epoch)"));
@@ -23,8 +26,8 @@ assert.ok(relayoutSource.includes("endLayoutTransaction(reason, epoch)"),
     "every relayout path closes its transaction even after an exception");
 
 const invariantSource = mainSource.slice(
-    mainSource.indexOf("function validateLayoutInvariants"),
-    mainSource.indexOf("function endLayoutTransaction")
+    mainSource.indexOf("class InvariantChecker"),
+    mainSource.indexOf("class ParkingManager")
 );
 for (const invariant of [
     "duplicate-window",
@@ -45,35 +48,24 @@ const activationSource = mainSource.slice(
     mainSource.indexOf("function onWindowActivatedForScrollLayout"),
     mainSource.indexOf("function focusRelativeColumn")
 );
-assert.ok(activationSource.includes("layoutTransactionDepth > 0"),
+assert.ok(activationSource.includes("layoutTransaction.isActive()"),
     "activation churn cannot re-enter an active geometry transaction");
-assert.ok(mainSource.includes("window.active && layoutTransactionDepth === 0"),
+assert.ok(mainSource.includes("window.active && !layoutTransaction.isActive()"),
     "activeChanged cannot adopt a window in the middle of relayout");
 
 function createTransactionHarness() {
-    let depth = 0;
-    let epoch = 0;
     let validations = 0;
-    const begin = () => {
-        if (depth === 0) epoch += 1;
-        depth += 1;
-        return epoch;
-    };
-    const end = () => {
-        depth = Math.max(0, depth - 1);
-        if (depth === 0) validations += 1;
-    };
-    const transact = callback => {
-        begin();
-        try {
-            callback();
-        } finally {
-            end();
-        }
-    };
+    const transaction = new LayoutTransaction({
+        audit: () => { validations += 1; },
+        debug: () => {},
+    });
     return {
-        transact,
-        snapshot: () => ({ depth, epoch, validations }),
+        transact: callback => transaction.run("test", callback),
+        snapshot: () => ({
+            depth: transaction.depth,
+            epoch: transaction.currentEpoch(),
+            validations,
+        }),
     };
 }
 
@@ -92,5 +84,37 @@ assert.deepEqual(exceptional.snapshot(), { depth: 0, epoch: 1, validations: 1 },
 exceptional.transact(() => {});
 assert.deepEqual(exceptional.snapshot(), { depth: 0, epoch: 2, validations: 2 },
     "a later relayout starts a fresh epoch after recovery");
+
+const output = { name: "DP-1" };
+const window = { internalId: "{A}", output };
+const column = { id: 1, window, logicalX: 0, pixelWidth: 100 };
+const appState = {
+    columns: [column],
+    focusedColumnIndex: 0,
+    innerGap: 8,
+    scrollOffsetX: 0,
+    safeRect: { width: 100 },
+    targetOutput: output,
+    presentation: { mode: "normal", windowUuid: null },
+};
+const states = new Map([[window, {
+    managedByScrollLayout: true,
+    columnId: 1,
+    floating: false,
+    adoptionPhase: "managed",
+}]]);
+const checker = new InvariantChecker({
+    appState,
+    windowStates: states,
+    normalizeUuid: value => String(value).replace(/[{}]/g, "").toLowerCase(),
+    stripWidth: () => 100,
+    managedPhases: ["managed", "settling"],
+    normalPresentationMode: "normal",
+    debug: () => {},
+    warn: () => {},
+});
+assert.deepEqual(checker.errors(), []);
+appState.focusedColumnIndex = 2;
+assert.ok(checker.errors().some(error => error.startsWith("focus-index:")));
 
 console.log("PASS stability layout transactions and invariant auditing");

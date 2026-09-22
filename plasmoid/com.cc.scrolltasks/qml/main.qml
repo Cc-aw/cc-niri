@@ -36,14 +36,7 @@ PlasmoidItem {
 
     property Task toolTipOpenedByClick
     property Task toolTipAreaItem
-    property bool applyingRemoteOrder: false
-    property bool dockUserReorderEnabled: true
-    property string dockStateJson: ""
-    property string dockSessionId: ""
-    property int dockGeneration: -1
-    property var dockManagedUuids: []
-    property string dockPresentationUuid: ""
-    property string dockPresentationMode: "normal"
+    property alias dockController: ccDockController
 
     readonly property Component contextMenuComponent: Qt.createComponent("ContextMenu.qml")
     readonly property Component pulseAudioComponent: Qt.createComponent("PulseAudio.qml")
@@ -100,260 +93,9 @@ PlasmoidItem {
 
     signal requestLayout
 
-    function normalizeDockUuid(value): string {
-        return String(value || "").toLowerCase().replace(/^\{/, "").replace(/\}$/, "");
-    }
-
-    function taskUuidAt(row): string {
-        if (row < 0 || row >= tasksModel.count) {
-            return "";
-        }
-        const index = tasksModel.index(row, 0);
-        if (!tasksModel.data(index, TaskManager.AbstractTasksModel.IsWindow)) {
-            return "";
-        }
-        const ids = tasksModel.data(index, TaskManager.AbstractTasksModel.WinIdList);
-        return ids && ids.length === 1 ? normalizeDockUuid(ids[0]) : "";
-    }
-
-    function rowForDockUuid(uuid): int {
-        for (let row = 0; row < tasksModel.count; ++row) {
-            if (taskUuidAt(row) === uuid) {
-                return row;
-            }
-        }
-        return -1;
-    }
-
-    function firstWindowRow(): int {
-        for (let row = 0; row < tasksModel.count; ++row) {
-            if (taskUuidAt(row) !== "") {
-                return row;
-            }
-        }
-        return tasksModel.count;
-    }
-
-    function applyDockState(json): void {
-        if (!json) {
-            return;
-        }
-        let state;
-        try {
-            state = JSON.parse(String(json));
-        } catch (error) {
-            console.warn("[cc-scroll-tasks] invalid state JSON", error);
-            return;
-        }
-        if (state.protocol !== 1 || !state.sessionId || !Array.isArray(state.columns)) {
-            console.warn("[cc-scroll-tasks] invalid state schema");
-            return;
-        }
-        if (state.sessionId === dockSessionId && Number(state.generation) < dockGeneration) {
-            return;
-        }
-
-        const desired = state.columns.map(column => normalizeDockUuid(column.uuid));
-        const unique = new Set(desired);
-        if (unique.size !== desired.length || desired.some(uuid => !uuid)) {
-            console.warn("[cc-scroll-tasks] rejected duplicate or empty UUID state");
-            return;
-        }
-        const missing = desired.filter(uuid => rowForDockUuid(uuid) < 0);
-        if (missing.length > 0) {
-            const present = [];
-            for (let row = 0; row < tasksModel.count; ++row) {
-                const uuid = taskUuidAt(row);
-                if (uuid) present.push(uuid);
-            }
-            dockStateJson = String(json);
-            console.warn("[cc-scroll-tasks] waiting for TaskModel UUID mapping" +
-                " missing=" + missing.join(",") +
-                " present=" + present.join(","));
-            return;
-        }
-
-        applyingRemoteOrder = true;
-        try {
-            const baseRow = firstWindowRow();
-            for (let target = 0; target < desired.length; ++target) {
-                const currentRow = rowForDockUuid(desired[target]);
-                const targetRow = baseRow + target;
-                if (currentRow !== targetRow && !tasksModel.move(currentRow, targetRow)) {
-                    console.warn("[cc-scroll-tasks] TasksModel.move failed", currentRow, targetRow);
-                    return;
-                }
-            }
-            dockStateJson = String(json);
-            dockSessionId = String(state.sessionId);
-            dockGeneration = Number(state.generation);
-            dockManagedUuids = desired;
-            const presentation = state.presentation || {};
-            dockPresentationUuid = normalizeDockUuid(presentation.windowUuid);
-            dockPresentationMode = ["normal", "wide", "maximized"].includes(
-                String(presentation.mode)) ? String(presentation.mode) : "normal";
-            console.info("[cc-scroll-tasks] applied generation=" + dockGeneration +
-                " columns=" + desired.length);
-        } finally {
-            applyingRemoteOrder = false;
-        }
-    }
-
-    function requestDockState(): void {
-        if (!dockBridgeWatcher.registered) {
-            return;
-        }
-        DBus.SessionBus.asyncCall({
-            service: "org.cc.ScrollDockBridge",
-            path: "/ScrollDock",
-            iface: "org.cc.ScrollDockBridge1",
-            member: "GetState",
-            arguments: [],
-            signature: "()"
-        }, reply => {
-            applyDockState(reply.value);
-            reply.destroy();
-        }, reply => {
-            console.warn("[cc-scroll-tasks] GetState failed", reply.error.message);
-            reply.destroy();
-        });
-    }
-
-    function currentManagedOrder(): var {
-        const managed = new Set(dockManagedUuids);
-        const order = [];
-        for (let row = 0; row < tasksModel.count; ++row) {
-            const uuid = taskUuidAt(row);
-            if (managed.has(uuid)) {
-                order.push(uuid);
-            }
-        }
-        return order;
-    }
-
-    function requestDockReorder(): void {
-        if (applyingRemoteOrder || !dockBridgeWatcher.registered ||
-                !dockSessionId || dockGeneration < 0) {
-            return;
-        }
-        const order = currentManagedOrder();
-        const unique = new Set(order);
-        if (order.length !== dockManagedUuids.length || unique.size !== order.length ||
-                dockManagedUuids.some(uuid => !unique.has(uuid))) {
-            console.warn("[cc-scroll-tasks] local reorder has invalid managed UUID set");
-            requestDockState();
-            return;
-        }
-        const command = {
-            protocol: 1,
-            commandId: dockSessionId + "-" + Date.now() + "-" +
-                Math.floor(Math.random() * 0x100000000).toString(16),
-            sessionId: dockSessionId,
-            baseGeneration: dockGeneration,
-            type: "set-column-order",
-            order: order
-        };
-        DBus.SessionBus.asyncCall({
-            service: "org.cc.ScrollDockBridge",
-            path: "/ScrollDock",
-            iface: "org.cc.ScrollDockBridge1",
-            member: "RequestReorder",
-            arguments: [JSON.stringify(command)],
-            signature: "(s)"
-        }, reply => {
-            if (!reply.value) {
-                console.warn("[cc-scroll-tasks] bridge rejected reorder command");
-                requestDockState();
-            }
-            reply.destroy();
-        }, reply => {
-            console.warn("[cc-scroll-tasks] RequestReorder failed", reply.error.message);
-            reply.destroy();
-            requestDockState();
-        });
-    }
-
-    function presentationModeFor(uuid): string {
-        const normalized = normalizeDockUuid(uuid);
-        return normalized && normalized === dockPresentationUuid
-            ? dockPresentationMode
-            : "normal";
-    }
-
-    function requestPresentationMode(uuid, mode): void {
-        const normalized = normalizeDockUuid(uuid);
-        if (!dockBridgeWatcher.registered || !dockSessionId || dockGeneration < 0 ||
-                !dockManagedUuids.includes(normalized) ||
-                !["normal", "wide", "maximized"].includes(String(mode))) {
-            requestDockState();
-            return;
-        }
-        const command = {
-            protocol: 1,
-            commandId: dockSessionId + "-presentation-" + Date.now() + "-" +
-                Math.floor(Math.random() * 0x100000000).toString(16),
-            sessionId: dockSessionId,
-            baseGeneration: dockGeneration,
-            type: "set-presentation-mode",
-            windowUuid: normalized,
-            mode: String(mode)
-        };
-        DBus.SessionBus.asyncCall({
-            service: "org.cc.ScrollDockBridge",
-            path: "/ScrollDock",
-            iface: "org.cc.ScrollDockBridge1",
-            member: "RequestCommand",
-            arguments: [JSON.stringify(command)],
-            signature: "(s)"
-        }, reply => {
-            if (!reply.value) {
-                console.warn("[cc-scroll-tasks] bridge rejected presentation command");
-                requestDockState();
-            }
-            reply.destroy();
-        }, reply => {
-            console.warn("[cc-scroll-tasks] RequestCommand failed", reply.error.message);
-            reply.destroy();
-            requestDockState();
-        });
-    }
-
-    function requestDockFocusRight(uuid, fallbackModelIndex): bool {
-        const normalized = normalizeDockUuid(uuid);
-        if (!dockBridgeWatcher.registered || !dockSessionId || dockGeneration < 0 ||
-                !dockManagedUuids.includes(normalized)) {
-            return false;
-        }
-        const command = {
-            protocol: 1,
-            commandId: dockSessionId + "-focus-right-" + Date.now() + "-" +
-                Math.floor(Math.random() * 0x100000000).toString(16),
-            sessionId: dockSessionId,
-            baseGeneration: dockGeneration,
-            type: "focus-column-right",
-            windowUuid: normalized
-        };
-        DBus.SessionBus.asyncCall({
-            service: "org.cc.ScrollDockBridge",
-            path: "/ScrollDock",
-            iface: "org.cc.ScrollDockBridge1",
-            member: "RequestCommand",
-            arguments: [JSON.stringify(command)],
-            signature: "(s)"
-        }, reply => {
-            if (!reply.value) {
-                console.warn("[cc-scroll-tasks] bridge rejected Dock focus command");
-                tasksModel.requestActivate(fallbackModelIndex);
-                requestDockState();
-            }
-            reply.destroy();
-        }, reply => {
-            console.warn("[cc-scroll-tasks] Dock focus command failed", reply.error.message);
-            reply.destroy();
-            tasksModel.requestActivate(fallbackModelIndex);
-            requestDockState();
-        });
-        return true;
+    TaskManagerApplet.DockController {
+        id: ccDockController
+        tasksModel: tasksModel
     }
 
     onDragSourceChanged: {
@@ -460,9 +202,7 @@ PlasmoidItem {
         }
 
         onCountChanged: {
-            if (tasks.dockStateJson) {
-                Qt.callLater(tasks.applyDockState, tasks.dockStateJson);
-            }
+            tasks.dockController.retryPendingState();
         }
 
         function sortModeEnumValue(index: int): /*TaskManager.TasksModel.SortMode*/ int {
@@ -516,29 +256,6 @@ PlasmoidItem {
         id: effectWatcher
         busType: DBus.BusType.Session
         watchedService: "org.kde.KWin.Effect.WindowView1"
-    }
-
-    DBus.DBusServiceWatcher {
-        id: dockBridgeWatcher
-        busType: DBus.BusType.Session
-        watchedService: "org.cc.ScrollDockBridge"
-        onRegisteredChanged: {
-            if (registered) {
-                tasks.requestDockState();
-            }
-        }
-    }
-
-    DBus.SignalWatcher {
-        busType: DBus.BusType.Session
-        service: "org.cc.ScrollDockBridge"
-        path: "/ScrollDock"
-        iface: "org.cc.ScrollDockBridge1"
-        enabled: dockBridgeWatcher.registered
-
-        function dbusStateChanged(json) {
-            tasks.applyDockState(json);
-        }
     }
 
     readonly property Component taskInitComponent: Component {
@@ -861,7 +578,7 @@ PlasmoidItem {
     Component.onCompleted: {
         TaskManagerApplet.TaskTools.taskManagerInstanceCount += 1;
         requestLayout.connect(iconGeometryTimer.restart);
-        requestDockState();
+        dockController.requestState();
     }
 
     Component.onDestruction: {

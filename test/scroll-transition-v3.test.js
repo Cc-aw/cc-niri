@@ -57,7 +57,7 @@ const effectSource = fs.readFileSync(
     path.join(__dirname, "../effect/contents/code/main.js"),
     "utf8"
 );
-assert.ok(effectSource.includes("INCOMING_UNARMED slot=${newSlot}"),
+assert.ok(effectSource.includes("INCOMING_UNARMED transaction=${closeTransaction.id}"),
     "a close replacement animates even without a scroll-offset transaction");
 assert.ok(effectSource.includes("expireStalePendingDelta()"),
     "an incomplete close transaction cannot leak direction into a later reveal");
@@ -67,5 +67,13 @@ const incomingSource = effectSource.slice(
 );
 assert.ok(!incomingSource.includes("if (this.pendingDeltaX === null) return;"),
     "unarmed parked-to-visible transitions no longer flash in instantly");
+assert.ok(incomingSource.includes("MotionTokens.subtleIncomingScale"),
+    "parking-to-visible uses the subtle incoming Scale token");
+assert.ok(!incomingSource.includes("value1: 0.94"),
+    "ordinary Scroll no longer uses the strong card-like Scale");
+assert.ok(incomingSource.includes("MotionTokens.subtleIncomingOpacity"),
+    "parking-to-visible Fade uses the subtle incoming Opacity token");
+assert.ok(!incomingSource.includes("from: 0.2"),
+    "ordinary Scroll no longer uses the strong 0.2 Fade");
 
 console.log("PASS V3 direction-correct transitions with right-output-safe edge policy");

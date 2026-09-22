@@ -5,6 +5,8 @@ const path = require("node:path");
 const root = path.join(__dirname, "..");
 const mainSource = fs.readFileSync(
     path.join(root, "package/contents/code/main.js"), "utf8");
+const wideSource = fs.readFileSync(
+    path.join(root, "src/kwin/presentation/WideTransition.js"), "utf8");
 const bridgeHeader = fs.readFileSync(
     path.join(root, "bridge/src/ScrollDockBridge.h"), "utf8");
 const bridgeSource = fs.readFileSync(
@@ -42,11 +44,11 @@ assert.ok(mainSource.includes("revealWindowUuids"),
 assert.ok(mainSource.includes("deferredWideMatches ||"),
     "activation must not restart a transition already waiting for its wide commit");
 
-const transitionSource = mainSource.slice(
-    mainSource.indexOf("function relayoutFocusedColumnTransition"),
-    mainSource.indexOf("function setPresentationMode"));
+const transitionSource = wideSource.slice(
+    wideSource.indexOf("    transitionFocused("),
+    wideSource.indexOf("\n}\n\n/* cjs:start */"));
 const revealIndex = transitionSource.indexOf("`${reason}-reveal-wide`");
-const scheduleIndex = transitionSource.indexOf("schedulePersistentWideTransition(");
+const scheduleIndex = transitionSource.indexOf("this.schedule(");
 assert.ok(revealIndex >= 0 && scheduleIndex > revealIndex,
     "the normal slot must be committed before scheduling the 72% geometry");
 assert.equal(transitionSource.includes("`${reason}-enter-wide`"), false,
@@ -61,26 +63,26 @@ assert.ok(bridgeSource.includes('QStringLiteral("check-wide-transition")'));
 assert.ok(bridgeSource.includes('QStringLiteral("finalize-wide-transition")'));
 assert.ok(bridgeSource.includes('QStringLiteral("complete-wide-transition")'));
 
-const settleFunction = mainSource.slice(
-    mainSource.indexOf("function settlePendingWideTransition"),
-    mainSource.indexOf("function schedulePersistentWideTransition"));
+const settleFunction = wideSource.slice(
+    wideSource.indexOf("    settle(command)"),
+    wideSource.indexOf("    schedule(column"));
 assert.ok(settleFunction.includes('relayout(`${pending.reason}-settle-pair`'));
-assert.ok(settleFunction.indexOf("WIDE_REVEAL_PHASE_SETTLED") <
+assert.ok(settleFunction.indexOf("this.phases.settled") <
     settleFunction.indexOf('"complete-wide-transition"'),
 "the destination pair is reasserted and marked settled before Wide is requested");
 
-const expansionSource = mainSource.slice(
-    mainSource.indexOf("function beginPendingWideExpansion"),
-    mainSource.indexOf("function requestDeferredWideStage"));
-assert.ok(expansionSource.includes("applyColumnGeometry(column, target"));
-assert.ok(expansionSource.includes("acknowledgePendingWideGeometry(column)"));
+const expansionSource = wideSource.slice(
+    wideSource.indexOf("    beginExpansion("),
+    wideSource.indexOf("    complete(command)"));
+assert.ok(expansionSource.includes("this.applyColumnGeometry(column, target"));
+assert.ok(expansionSource.includes("this.acknowledgeGeometry(column)"));
 assert.equal(expansionSource.includes("relayout(`${pending.reason}-enter-wide`"), false,
     "the neighbor must not be parked before the Wayland client accepts 72%");
-assert.ok(mainSource.indexOf("function acknowledgePendingWideGeometry") <
-    mainSource.indexOf("function completePendingWideTransition"));
-const acknowledgementSource = mainSource.slice(
-    mainSource.indexOf("function acknowledgePendingWideGeometry"),
-    mainSource.indexOf("function checkPendingWideGeometry"));
+assert.ok(wideSource.indexOf("    acknowledgeGeometry(") <
+    wideSource.indexOf("    complete(command)"));
+const acknowledgementSource = wideSource.slice(
+    wideSource.indexOf("    acknowledgeGeometry("),
+    wideSource.indexOf("    checkGeometry(command)"));
 assert.ok(acknowledgementSource.includes(
     'relayout(`${pending.reason}-park-wide-neighbors`'
 ), "neighbors are parked as soon as the client accepts 72%");
@@ -95,16 +97,16 @@ assert.ok(mainSource.includes("pending.deferredSequence++"),
     "each retry must have a unique Bridge command id");
 assert.ok(mainSource.includes("function sameRectNear"));
 assert.ok(mainSource.includes(
-    "sameRectNear(column.window.frameGeometry, presentationRect())"),
+    "this.sameRectNear(column.window.frameGeometry, this.presentationRect())"),
 "fractional Wayland geometry must count as a Wide acknowledgement");
 
 const focusFunction = mainSource.slice(
     mainSource.indexOf("function focusRelativeColumn"),
     mainSource.indexOf("function toggleFocusWide"));
-assert.ok(focusFunction.indexOf("WIDE_REVEAL_PHASE_AWAITING_STEP") <
+assert.ok(focusFunction.indexOf("wideTransition.beginStepIfPending(") <
     focusFunction.indexOf("const nextIndex"),
 "the second same-direction key press expands Wide before moving another column");
-assert.ok(focusFunction.includes("pendingWideTransition.entryDirection === delta"));
+assert.ok(wideSource.includes("pending.entryDirection !== direction"));
 assert.ok(focusFunction.includes("newScrollOffsetX,\n        delta"),
 "the first H/L press arms Wide but must stop at the normal destination pair");
 

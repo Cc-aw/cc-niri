@@ -8,6 +8,10 @@ const taskSource = fs.readFileSync(
 const mainSource = fs.readFileSync(
     path.join(__dirname, "../plasmoid/com.cc.scrolltasks/qml/main.qml"), "utf8"
 );
+const appearanceSource = fs.readFileSync(
+    path.join(__dirname, "../plasmoid/com.cc.scrolltasks/qml/cc/DockAppearance.qml"),
+    "utf8"
+);
 const taskToolsSource = fs.readFileSync(
     path.join(__dirname, "../plasmoid/com.cc.scrolltasks/qml/code/TaskTools.js"), "utf8"
 );
@@ -18,26 +22,28 @@ const kwinSource = fs.readFileSync(
     path.join(__dirname, "../package/contents/code/main.js"), "utf8"
 );
 
-assert.ok(taskSource.includes(
-    "readonly property bool activeWindowFeedback: !inPopup && model.IsWindow && model.IsActive"
-), "native per-window IsActive is the feedback authority");
+assert.ok(appearanceSource.includes(
+    "readonly property bool activeWindowFeedback: !inPopup && isWindow && isActive"
+) && taskSource.includes("isActive: task.model.IsActive"),
+"native per-window IsActive is the feedback authority");
 assert.ok(!taskSource.includes("focusedUuid"),
     "Task feedback does not use the Bridge focused UUID");
-assert.ok(taskSource.includes(
-    "opacity: task.model.IsWindow && !task.model.IsActive ? 0.9 : 1"
-), "inactive window icons are 90% and the active icon is 100%");
-assert.ok(taskSource.includes('color: "#66DCEBDD"'),
+assert.ok(appearanceSource.includes(
+    "readonly property real iconOpacity: isWindow && !isActive ? 0.9 : 1"
+) && taskSource.includes("opacity: ccAppearance.iconOpacity"),
+"inactive window icons are 90% and the active icon is 100%");
+assert.ok(appearanceSource.includes('activeBackgroundColor: "#66DCEBDD"'),
     "active background is translucent light green");
-assert.ok(taskSource.includes('color: "#4F7657"'));
-assert.ok(taskSource.includes("height: 3"));
-assert.ok(taskSource.includes("* 0.48"),
+assert.ok(appearanceSource.includes('activeIndicatorColor: "#4F7657"'));
+assert.ok(appearanceSource.includes("activeIndicatorHeight: 3"));
+assert.ok(appearanceSource.includes("activeIndicatorWidthRatio: 0.48"),
     "active bottom indicator occupies 48% of the item/icon dimension");
 assert.equal(
-    (taskSource.match(/visible: task\.activeWindowFeedback/g) || []).length,
+    (taskSource.match(/visible: ccAppearance\.activeWindowFeedback/g) || []).length,
     2,
     "the exclusive active background and indicator switch immediately"
 );
-assert.ok(!taskSource.includes("opacity: task.activeWindowFeedback"),
+assert.ok(!taskSource.includes("opacity: ccAppearance.activeWindowFeedback"),
     "active markers cannot overlap during an opacity cross-fade");
 assert.ok(!taskSource.includes('frame.basePrefix: "focus"'),
     "the theme focus block does not compete with the lightweight indicator");

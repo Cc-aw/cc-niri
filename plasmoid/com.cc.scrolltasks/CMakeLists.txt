@@ -46,6 +46,12 @@ plasma_add_applet(com.cc.scrolltasks
         qml/ToolTipDelegate.qml
         qml/ToolTipInstance.qml
         qml/ToolTipWindowMouseArea.qml
+        qml/cc/DockBridge.qml
+        qml/cc/DockAppearance.qml
+        qml/cc/DockController.qml
+        qml/cc/DockOrder.qml
+        qml/cc/DockPresentation.qml
+        qml/cc/DockState.qml
         qml/code/LayoutMetrics.js
         qml/code/TaskTools.js
     CPP_SOURCES

@@ -1,6 +1,8 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const { AdoptionController } =
+    require("../src/kwin/lifecycle/AdoptionController");
 
 const mainSource = fs.readFileSync(
     path.join(__dirname, "../package/contents/code/main.js"),
@@ -27,100 +29,151 @@ assert.ok(!mainSource.includes("pendingNewWindows"),
 assert.ok(!mainSource.includes("startupRestoreDeadline"));
 assert.ok(!mainSource.includes("STARTUP_RESTORE_GRACE_MS"));
 
-const waitSource = mainSource.slice(
-    mainSource.indexOf("function adoptionWaitPhase"),
-    mainSource.indexOf("function settleAdoptedWindow")
+assert.ok(mainSource.includes("class AdoptionController"));
+const controllerSource = mainSource.slice(
+    mainSource.indexOf("class AdoptionController"),
+    mainSource.indexOf(
+        "// Generated from src/kwin/lifecycle/FloatingController.js"
+    )
 );
-assert.ok(waitSource.indexOf("ADOPTION_WAITING_PRIMARY") <
-    waitSource.indexOf("ADOPTION_WAITING_ACTIVATION"),
-"output ownership is resolved before activation");
-assert.ok(waitSource.indexOf("ADOPTION_WAITING_NORMAL") <
-    waitSource.indexOf("ADOPTION_WAITING_ACTIVATION"),
-"fullscreen, maximize, and Quick Tile settle before activation can adopt");
-assert.ok(waitSource.includes("!window.active"));
-assert.ok(waitSource.includes("isPlasmaShellWindow(window)"));
-
-const advanceSource = mainSource.slice(
-    mainSource.indexOf("function advanceWindowAdoption"),
-    mainSource.indexOf("function beginWindowAdoption")
-);
-assert.ok(advanceSource.includes("ADOPTION_ADOPTING"));
-assert.ok(advanceSource.includes("ADOPTION_SETTLING"));
-assert.ok(advanceSource.includes("adoptionAttempts += 1"));
-assert.ok(advanceSource.includes("adoptNewWindowAsColumn(window, reason, true)"),
+assert.ok(controllerSource.includes("adoptionAttempts += 1"));
+assert.ok(controllerSource.includes("this.adoptWindow(window, reason, true)"),
     "a runtime window is inserted beside the focused column exactly once");
-assert.ok(mainSource.includes("windowState.adoptionPhase === ADOPTION_SETTLING"),
+assert.equal(controllerSource.includes("commitDockState"), false,
+    "AdoptionController does not publish Dock state directly");
+assert.equal(controllerSource.includes("setPresentationMode"), false,
+    "AdoptionController does not own Presentation state");
+assert.ok(mainSource.includes("managedPhases: [ADOPTION_MANAGED, ADOPTION_SETTLING]"),
     "invariant auditing accepts a Column while its committed geometry settles");
 
-const addedSource = mainSource.slice(
-    mainSource.indexOf("workspace.windowAdded.connect"),
-    mainSource.indexOf("workspace.windowActivated.connect")
+const runtimeWiringSource = mainSource.slice(
+    mainSource.indexOf("const app = new CCNiri"),
+    mainSource.indexOf("app.start()")
 );
-assert.ok(addedSource.includes('beginWindowAdoption(window, "window-added")'));
-assert.ok(mainSource.indexOf("workspace.windowList().forEach(setupWindow)") <
-    mainSource.lastIndexOf("initializeScrollLayout();"),
+assert.ok(runtimeWiringSource.includes("adoptionController.onWindowAdded(window)"));
+const lifecycleSource = mainSource.slice(
+    mainSource.indexOf("class RuntimeLifecycle"),
+    mainSource.indexOf("// Generated from src/kwin/runtime/ShortcutCatalog.js")
+);
+assert.ok(lifecycleSource.indexOf("this.workspace.windowList().forEach") <
+    lifecycleSource.indexOf("this.initializeScrollLayout();"),
 "the startup snapshot is adopted synchronously without runtime heuristics");
 
 const outputSource = mainSource.slice(
     mainSource.indexOf("function onOutputChanged"),
     mainSource.indexOf("function onFullScreenChanged")
 );
-assert.ok(outputSource.includes("ADOPTION_WAITING_PRIMARY"));
-assert.ok(outputSource.includes('advanceWindowAdoption(window, "output-entered-primary")'));
+assert.ok(outputSource.includes("outputController.onOutputChanged(window)"));
+const outputControllerSource = mainSource.slice(
+    mainSource.indexOf("class OutputController"),
+    mainSource.indexOf("/* END GENERATED KWIN MODULES */")
+);
+assert.ok(outputControllerSource.includes("this.phases.waitingPrimary"));
+assert.ok(outputControllerSource.includes(
+    'this.advanceAdoption(window, "output-entered-primary")'
+));
 
-function advanceModel(model, event) {
-    if (["managed", "floating", "ignored"].includes(model.phase)) return;
-    if (model.plasma) {
-        model.phase = "ignored";
-    } else if (model.floating) {
-        model.phase = "floating";
-    } else if (!model.primary) {
-        model.phase = "waiting-primary";
-    } else if (model.fullScreen || model.layoutOverride) {
-        model.phase = "waiting-normal";
-    } else if (!model.eligible) {
-        model.phase = "waiting-eligible";
-    } else if (!model.active) {
-        model.phase = "waiting-activation";
-    } else {
-        model.phase = "managed";
-        model.adoptions += 1;
-        model.adoptedBy = event;
-    }
+const phases = {
+    untracked: "untracked", waitingActivation: "waiting-activation",
+    waitingPrimary: "waiting-primary", waitingEligible: "waiting-eligible",
+    waitingNormal: "waiting-normal", adopting: "adopting",
+    settling: "settling", managed: "managed", floating: "floating",
+    ignored: "ignored",
+};
+const primary = { name: "DP-1" };
+const secondary = { name: "HDMI-A-1" };
+const appState = { enabled: true, targetOutput: primary };
+const stateMap = new Map();
+const columns = [];
+let adoptions = 0;
+function createState() {
+    return {
+        adoptionPhase: phases.untracked,
+        adoptionAttempts: 0,
+        adoptionOrigin: "",
+        adoptionLastEvent: "",
+        managedByScrollLayout: false,
+        floating: false,
+        layoutMode: "normal",
+    };
+}
+const controller = new AdoptionController({
+    phases,
+    stateFor: window => stateMap.get(window),
+    hasState: window => stateMap.has(window),
+    indexOfWindow: window => columns.indexOf(window),
+    getAppState: () => appState,
+    refreshAppState: () => {},
+    isPlasmaShellWindow: window => Boolean(window.plasma),
+    isLayoutMode: mode => mode !== "normal",
+    isTileMode: mode => mode === "tile",
+    detectQuickTileMode: window => window.tiled ? "tile" : "normal",
+    fullMaximizeMode: 3,
+    scrollEligible: window => window.eligible,
+    adoptWindow: window => {
+        adoptions += 1;
+        columns.push(window);
+        stateMap.get(window).managedByScrollLayout = true;
+        return true;
+    },
+    settleLayout: window => ({
+        settled: true,
+        column: { id: columns.indexOf(window) + 1 },
+        expected: window.frameGeometry,
+    }),
+    rectText: () => "rect",
+    debug: () => {},
+});
+function addWindow(overrides = {}) {
+    const window = {
+        caption: "test", output: primary, active: false, fullScreen: false,
+        maximizeMode: 0, eligible: true, tiled: false,
+        frameGeometry: { x: 0, y: 0, width: 100, height: 100 },
+        ...overrides,
+    };
+    stateMap.set(window, createState());
+    return window;
 }
 
-const normalLaunch = {
-    phase: "waiting-eligible", primary: true, eligible: true,
-    active: false, fullScreen: false, layoutOverride: false,
-    floating: false, plasma: false, adoptions: 0,
-};
-advanceModel(normalLaunch, "ready");
-advanceModel(normalLaunch, "shown");
-assert.equal(normalLaunch.phase, "waiting-activation");
+const normalLaunch = addWindow();
+controller.onWindowAdded(normalLaunch);
+controller.onReady(normalLaunch);
+controller.onReady(normalLaunch, "window-shown");
+assert.equal(stateMap.get(normalLaunch).adoptionPhase, phases.waitingActivation);
 normalLaunch.active = true;
-advanceModel(normalLaunch, "active");
-advanceModel(normalLaunch, "duplicate-active");
-assert.deepEqual(
-    { phase: normalLaunch.phase, adoptions: normalLaunch.adoptions,
-        adoptedBy: normalLaunch.adoptedBy },
-    { phase: "managed", adoptions: 1, adoptedBy: "active" },
-    "ready/shown cannot pre-adopt and duplicate activation cannot insert twice"
-);
+controller.onActivated(normalLaunch, "active");
+controller.onActivated(normalLaunch, "duplicate-active");
+assert.equal(stateMap.get(normalLaunch).adoptionPhase, phases.managed);
+assert.equal(adoptions, 1,
+    "ready/shown cannot pre-adopt and duplicate activation cannot insert twice");
 
-const secondaryLaunch = { ...normalLaunch, phase: "waiting-eligible",
-    primary: false, active: true, adoptions: 0 };
-advanceModel(secondaryLaunch, "active-secondary");
-assert.equal(secondaryLaunch.phase, "waiting-primary");
-secondaryLaunch.primary = true;
-advanceModel(secondaryLaunch, "output-entered-primary");
-assert.equal(secondaryLaunch.adoptions, 1);
+const secondaryLaunch = addWindow({ output: secondary, active: true });
+controller.onWindowAdded(secondaryLaunch);
+assert.equal(stateMap.get(secondaryLaunch).adoptionPhase, phases.waitingPrimary);
+secondaryLaunch.output = primary;
+controller.onOutputChanged(secondaryLaunch);
+assert.equal(stateMap.get(secondaryLaunch).adoptionPhase, phases.managed);
 
-const fullscreenLaunch = { ...normalLaunch, phase: "waiting-eligible",
-    active: true, fullScreen: true, adoptions: 0 };
-advanceModel(fullscreenLaunch, "active-fullscreen");
-assert.equal(fullscreenLaunch.phase, "waiting-normal");
+const fullscreenLaunch = addWindow({ active: true, fullScreen: true });
+controller.onWindowAdded(fullscreenLaunch);
+assert.equal(stateMap.get(fullscreenLaunch).adoptionPhase, phases.waitingNormal);
 fullscreenLaunch.fullScreen = false;
-advanceModel(fullscreenLaunch, "fullscreen-exit");
-assert.equal(fullscreenLaunch.adoptions, 1);
+controller.onFullscreenChanged(fullscreenLaunch);
+assert.equal(stateMap.get(fullscreenLaunch).adoptionPhase, phases.managed);
+
+const plasmaWindow = addWindow({ active: true, plasma: true });
+controller.onWindowAdded(plasmaWindow);
+assert.equal(stateMap.get(plasmaWindow).adoptionPhase, phases.ignored);
+
+const floatingWindow = addWindow({ active: true });
+stateMap.get(floatingWindow).floating = true;
+controller.onWindowAdded(floatingWindow);
+assert.equal(stateMap.get(floatingWindow).adoptionPhase, phases.floating);
+
+const applicationSource = mainSource.slice(
+    mainSource.indexOf("/* END GENERATED KWIN MODULES */")
+);
+assert.equal(/\.adoptionPhase\s*=(?!=)/.test(applicationSource), false,
+    "application code must transition adoption state through AdoptionController");
 
 console.log("PASS deterministic new-window adoption state machine");

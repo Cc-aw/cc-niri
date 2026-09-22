@@ -78,9 +78,14 @@ PlasmaCore.ToolTipArea {
     readonly property bool highlighted: (inPopup && activeFocus) || (!inPopup && containsMouse)
         || (task.contextMenu && task.contextMenu.status === PlasmaExtras.Menu.Open)
         || (!!tasksRoot.groupDialog && tasksRoot.groupDialog.visualParent === task)
-    // Plasma's per-window TaskManager role is the sole focus authority. The
-    // Bridge remains responsible only for logical Column order.
-    readonly property bool activeWindowFeedback: !inPopup && model.IsWindow && model.IsActive
+    readonly property alias activeWindowFeedback: ccAppearance.activeWindowFeedback
+
+    TaskManagerApplet.DockAppearance {
+        id: ccAppearance
+        inPopup: task.inPopup
+        isWindow: task.model.IsWindow
+        isActive: task.model.IsActive
+    }
 
     active: !inPopup && !tasksRoot.groupDialog && task.contextMenu?.status !== PlasmaExtras.Menu.Open
     interactive: model.IsWindow || mainItem.playerData
@@ -426,10 +431,10 @@ PlasmaCore.ToolTipArea {
             }
             const ids = model.WinIdList;
             const uuid = ids && ids.length === 1
-                ? tasksRoot.normalizeDockUuid(ids[0])
+                ? tasksRoot.dockController.normalizeUuid(ids[0])
                 : "";
             if (!(point.modifiers & Qt.ShiftModifier) &&
-                    tasksRoot.requestDockFocusRight(uuid, modelIndex())) {
+                    tasksRoot.dockController.requestFocusRight(uuid, modelIndex())) {
                 return;
             }
             TaskManagerApplet.TaskTools.activateTask(modelIndex(), model, point.modifiers, task, Plasmoid, tasksRoot, effectWatcher.registered);
@@ -535,10 +540,10 @@ PlasmaCore.ToolTipArea {
         id: activeBackground
 
         anchors.fill: parent
-        anchors.margins: 3
-        radius: 6
-        color: "#66DCEBDD"
-        visible: task.activeWindowFeedback
+        anchors.margins: ccAppearance.activeBackgroundMargin
+        radius: ccAppearance.activeBackgroundRadius
+        color: ccAppearance.activeBackgroundColor
+        visible: ccAppearance.activeWindowFeedback
     }
 
     Loader {
@@ -591,7 +596,7 @@ PlasmaCore.ToolTipArea {
 
             active: task.highlighted
             enabled: true
-            opacity: task.model.IsWindow && !task.model.IsActive ? 0.9 : 1
+            opacity: ccAppearance.iconOpacity
 
             source: task.model.decoration
 
@@ -674,11 +679,11 @@ PlasmaCore.ToolTipArea {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 2
-        width: Math.round(Math.min(task.width, task.height) * 0.48)
-        height: 3
+        width: ccAppearance.indicatorWidth(task.width, task.height)
+        height: ccAppearance.activeIndicatorHeight
         radius: height / 2
-        color: "#4F7657"
-        visible: task.activeWindowFeedback
+        color: ccAppearance.activeIndicatorColor
+        visible: ccAppearance.activeWindowFeedback
     }
 
     states: [

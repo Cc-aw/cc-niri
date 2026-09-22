@@ -75,7 +75,7 @@ DropArea {
         }
 
         if (tasksModel.sortMode === TaskManager.TasksModel.SortManual &&
-                tasks.dockUserReorderEnabled && tasks.dragSource) {
+                tasks.dockController.userReorderEnabled && tasks.dragSource) {
             // Reject drags between different TaskList instances.
             if (tasks.dragSource.parent !== above.parent) {
                 return;
@@ -109,8 +109,9 @@ DropArea {
         // Reject internal drops.
         if (event.formats.indexOf("application/x-orgkdeplasmataskmanager_taskbuttonitem") >= 0) {
             event.accepted = false;
-            if (tasks.dockUserReorderEnabled && !tasks.applyingRemoteOrder) {
-                Qt.callLater(tasks.requestDockReorder);
+            if (tasks.dockController.userReorderEnabled &&
+                    !tasks.dockController.applyingRemoteOrder) {
+                Qt.callLater(tasks.dockController.requestReorder);
             }
             return;
         }

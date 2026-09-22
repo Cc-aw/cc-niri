@@ -1,6 +1,6 @@
 # CC Niri Maximize
 
-CC Niri Maximize V3 is being implemented in phases on top of the working V2 safe-area script. Version `3.0.0-alpha.36` parks 50% neighbors as soon as a client accepts 72% Wide geometry, while retaining dual Return and keypad Enter Floating bindings, shared Motion tokens, and retargetable Column scrolling.
+CC Niri Maximize V3 is being implemented in phases on top of the working V2 safe-area script. Version `3.0.0-alpha.37` completes the Phase 13 architecture and regression gate while retaining dual Return and keypad Enter Floating bindings, shared Motion tokens, generation-checked Dock ordering, and retargetable Column scrolling.
 
 ## Current V3 phase
 
@@ -27,6 +27,7 @@ Implemented in this alpha:
 - Stale, mismatched-session, incomplete, or duplicate reorder requests are rejected and followed by an authoritative resync.
 - No polling. The event-driven companion bridge is only an IPC relay; KWin remains the geometry and logical-order authority. A small KWin effect animates scrolling-column position changes without changing geometry or output ownership.
 - Column motion uses the shared `220 ms` spatial token and an `OutCubic` deceleration curve. Repeated or reversed `Meta+H/L` input samples the current visual translation, compensates for the newly committed real geometry, and retargets from that painted position instead of snapping and restarting. Each window has an independent Motion epoch, and completion clears all temporary Translation, Scale, and Opacity state.
+- Ordinary scrolling is translation-led. Parked Columns that cannot expose their true off-screen origin use only subtle `0.985 → 1.0` Scale and `0.85 → 1.0` Opacity assists at the safe edge. No-op channels are discarded, repeated input shortens retarget duration according to remaining distance, and grouped continuing/incoming/outgoing windows share an explicit Motion Transaction.
 - The Dock task context menu adds a compact `CC Scroll` section with Normal, Focus Wide, and Maximize in Safe Area. Wide is exactly 72% of the safe area and centered; Wide and Maximize park all neighboring managed windows without changing logical or Dock order.
 - KDE's native maximize button and the Dock's Maximize in Safe Area action enter the same presentation state; restore returns to the exact two-column layout.
 - Focus Wide is a persistent per-Column property for the current KWin session. `Meta+H/L` treats a return to Wide as two discrete navigation steps rather than one timed transition: from `1|2`, the first `Meta+L` stops indefinitely at `2|3`; the second `Meta+L` expands focused column 3 to 72%. The reverse direction behaves symmetrically with `Meta+H`. The neighbor remains visible only until the target accepts its real 72% geometry, then parks immediately while the Wide paint animation finishes, so the two windows never remain visibly overlapped. Dock activation retains its automatic guarded transition. Pressing `Meta+Z` on Wide restores 50% pairing. Presentation never permanently changes the normal scroll offset.
@@ -129,6 +130,106 @@ Enable debug logging in the script configuration, then follow KWin logs:
 ```bash
 journalctl --user -b -f | grep cc-niri-maximize
 ```
+
+## Development
+
+State owners live under `src/kwin/model/`, and pure layout calculations live
+under `src/kwin/layout/`. KWin still loads the single generated script at
+`package/contents/code/main.js`.
+
+Runtime configuration, output topology, categorized logging, signal/shortcut
+lifecycle, controller ownership, and the top-level `CCNiri` façade live under
+`src/kwin/runtime/`. The generated entry now finishes with explicit
+`const app = new CCNiri(...)` and `app.start()` calls; `app.stop()` performs the
+recovery hook before disconnecting script-owned workspace signals.
+
+`LayoutEngine.computeLayoutPlan()` is side-effect free. Its `LayoutPlan` is
+applied by `GeometryCommitter`, which owns managed Column geometry and delegates
+opacity and parking minimization ownership to `ParkingManager`.
+
+Layout transactions, invariant auditing, parking ownership, and emergency
+recovery live under `src/kwin/stability/`. Signal handlers query the shared
+transaction instead of maintaining independent depth or epoch flags.
+
+Runtime window adoption is owned by `src/kwin/lifecycle/AdoptionController.js`.
+KWin lifecycle signals enter through its event methods; layout settlement is
+provided as a dependency, so adoption does not publish Dock or Presentation
+state directly.
+
+Managed-to-floating transitions, shortcut reattachment, drag detach, and the
+short focus-redirection guard are owned by
+`src/kwin/lifecycle/FloatingController.js`. The remembered drag target does not
+expire before the user explicitly reattaches or closes it.
+
+Cross-output ownership and fullscreen entry/exit recovery are owned by
+`OutputController` and `FullscreenController`. Presentation mode, the selected
+presentation Column, 72% geometry, and per-Column persistent Wide state are
+owned by `src/kwin/presentation/PresentationController.js`; the deferred Wide
+geometry acknowledgement sequence, pending tokens, discrete navigation step,
+and neighbor-parking timing are owned by
+`src/kwin/presentation/WideTransition.js`.
+
+Dock session identity, generation checks, state envelopes, command schema
+validation, dispatch, and all Bridge D-Bus traffic are owned by
+`src/kwin/integration/DockGateway.js`. Navigation and reorder handlers remain
+separate business dependencies of that gateway.
+
+Stepwise Dock navigation, its pending token, adjacent viewport offsets,
+deferred Bridge steps, and final geometry-before-activation ordering are owned
+by `src/kwin/navigation/DockScrollController.js`.
+
+Keyboard and Dock-driven Column reordering, complete UUID-set validation,
+focus preservation, minimal reveal, and the resulting Dock commit are owned by
+`src/kwin/navigation/ReorderController.js`.
+
+Effect animation constants, curves, and motion kinds are owned by
+`src/effect/MotionTokens.js`; pure interpolation, retargeting, and visual-state
+sampling are owned by `src/effect/MotionSampler.js`. Animation lifecycle and
+retargetable state are owned by `src/effect/MotionController.js`; geometry
+classification is owned by `src/effect/MotionClassifier.js`. KWin still loads
+the generated Effect script at `effect/contents/code/main.js`.
+
+Scroll batches are represented by `src/effect/MotionTransaction.js`, with a
+stable id/epoch, motion type, delta, and grouped continuing, incoming, and
+outgoing windows. A critically damped spring was evaluated after this state
+became explicit, but remains deferred: OutCubic has deterministic KWin group
+completion and already preserves position continuity with distance-aware
+retargeting.
+
+The Task Manager fork keeps CC-specific QML under
+`plasmoid/com.cc.scrolltasks/qml/cc/`: Dock state validation, Bridge IPC,
+logical order, Presentation commands, and active-task appearance are separate
+components behind `DockController`. KDE-derived QML files contain only thin
+controller calls and visual bindings.
+
+After changing a source module, regenerate and verify both runtime bundles with:
+
+```bash
+node tools/build.js
+node tools/build.js --check
+node --test test/*.test.js
+```
+
+The Phase 13 regression gate combines generated-bundle validation, all
+production-module tests, and whitespace checks:
+
+```bash
+node tools/check.js
+```
+
+On the configured Fedora development host, include the native Bridge and
+Plasmoid builds with:
+
+```bash
+node tools/check.js --native
+```
+
+The same portable gate runs in `.github/workflows/regression.yml` for pushes
+and pull requests. Native KDE builds remain part of the local gate because the
+hosted runner does not provide the project’s Plasma/KF development stack.
+
+The regression tests import the production modules directly. The
+generated-package test fails when either committed runtime script is stale.
 
 ## Uninstall
 

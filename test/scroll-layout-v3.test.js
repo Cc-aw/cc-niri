@@ -1,6 +1,18 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const {
+    boundScrollOffset,
+    computeColumnWidth,
+    computeStripWidth,
+    deriveColumnLayout,
+    scrollOffsetToRevealColumn,
+} = require("../src/kwin/layout/ColumnLayout");
+const { rectanglesIntersect } = require("../src/kwin/layout/Geometry");
+const { projectColumnRect, isRectFullyVisible } =
+    require("../src/kwin/layout/Projection");
+const { computeParkingBaseX, computeParkingRect } =
+    require("../src/kwin/layout/Parking");
 
 const safeRect = { x: 24, y: 50, width: 2512, height: 1320 };
 const innerGap = 8;
@@ -12,70 +24,48 @@ const outputs = [
 ];
 
 function widthForMode(mode) {
-    if (mode === "third") return Math.floor((safeRect.width - 2 * innerGap) / 3);
-    if (mode === "twoThirds") {
-        return safeRect.width - innerGap - widthForMode("third");
-    }
-    return Math.floor((safeRect.width - innerGap) / 2);
+    return computeColumnWidth(mode, safeRect.width, innerGap);
 }
 
 function recompute(columns) {
-    let x = 0;
-    columns.forEach(column => {
-        column.pixelWidth = widthForMode(column.widthMode);
-        column.logicalX = x;
-        x += column.pixelWidth + innerGap;
+    const layout = deriveColumnLayout(columns, safeRect.width, innerGap);
+    columns.forEach((column, index) => {
+        Object.assign(column, layout[index]);
     });
 }
 
 function stripWidth(columns) {
-    if (!columns.length) return 0;
-    const last = columns[columns.length - 1];
-    return last.logicalX + last.pixelWidth;
+    return computeStripWidth(columns);
 }
 
 function clamp(offset, columns) {
-    return Math.max(0, Math.min(offset, Math.max(0, stripWidth(columns) - safeRect.width)));
+    return boundScrollOffset(offset, stripWidth(columns), safeRect.width);
 }
 
 function ensureVisible(offset, column, columns) {
-    const viewportRight = offset + safeRect.width;
-    if (column.logicalX < offset) offset = column.logicalX;
-    else if (column.logicalX + column.pixelWidth > viewportRight) {
-        offset = column.logicalX + column.pixelWidth - safeRect.width;
-    }
-    return clamp(offset, columns);
+    return scrollOffsetToRevealColumn(
+        offset, column, stripWidth(columns), safeRect.width
+    );
 }
 
 function physicalRect(column, offset) {
-    return {
-        x: safeRect.x + column.logicalX - offset,
-        y: safeRect.y,
-        width: column.pixelWidth,
-        height: safeRect.height,
-    };
+    return projectColumnRect(column, safeRect, offset);
 }
 
 function fullyVisible(rect) {
-    return rect.x >= safeRect.x && rect.y >= safeRect.y &&
-        rect.x + rect.width <= safeRect.x + safeRect.width &&
-        rect.y + rect.height <= safeRect.y + safeRect.height;
+    return isRectFullyVisible(rect, safeRect);
 }
 
 function intersects(a, b) {
-    return a.x < b.x + b.width && a.x + a.width > b.x &&
-        a.y < b.y + b.height && a.y + a.height > b.y;
+    return rectanglesIntersect(a, b);
 }
 
 function parkingRect(column, parkingIndex, columns) {
-    const maxWidth = Math.max(...columns.map(item => item.pixelWidth));
-    return {
-        x: virtualScreen.x - parkingMargin - maxWidth -
-            parkingIndex * (column.pixelWidth + innerGap),
-        y: safeRect.y,
-        width: column.pixelWidth,
-        height: safeRect.height,
-    };
+    return computeParkingRect(column, parkingIndex, {
+        baseX: computeParkingBaseX(columns, virtualScreen.x, parkingMargin),
+        innerGap,
+        safeRect,
+    });
 }
 
 function placement(column, offset, parkingIndex, columns) {
@@ -83,17 +73,6 @@ function placement(column, offset, parkingIndex, columns) {
     return fullyVisible(projected)
         ? { kind: "visible", rect: projected }
         : { kind: "parked", rect: parkingRect(column, parkingIndex, columns) };
-}
-
-function transitionRank(item) {
-    if (item.oldPlacement === "visible" && item.newPlacement === "visible") return 0;
-    if (item.oldPlacement === "parked" && item.newPlacement === "visible") return 1;
-    if (item.oldPlacement === "visible" && item.newPlacement === "parked") return 2;
-    return 3;
-}
-
-function applyOrder(items) {
-    return items.slice().sort((a, b) => transitionRank(a) - transitionRank(b));
 }
 
 function moveFocused(columns, focusedIndex, delta) {
@@ -152,14 +131,6 @@ assert.deepEqual(physicalRect(columns[2], 1260),
     { x: 1284, y: 50, width: 1252, height: 1320 });
 assert.equal(clamp(99999, columns), 2520);
 assert.equal(clamp(-100, columns), 0);
-assert.deepEqual(applyOrder([
-    { id: "outgoing", oldPlacement: "visible", newPlacement: "parked" },
-    { id: "incoming", oldPlacement: "parked", newPlacement: "visible" },
-    { id: "continuing", oldPlacement: "visible", newPlacement: "visible" },
-    { id: "parked", oldPlacement: "parked", newPlacement: "parked" },
-]).map(item => item.id), ["continuing", "incoming", "outgoing", "parked"],
-"scroll transaction publishes its projected delta before parking changes");
-
 const firstAtOffset1260 = placement(columns[0], 1260, 0, columns);
 const secondAtOffset1260 = placement(columns[1], 1260, 1, columns);
 const thirdAtOffset1260 = placement(columns[2], 1260, 2, columns);
@@ -253,18 +224,36 @@ const scrollEligibilitySource = mainSource.slice(
 );
 assert.ok(scrollEligibilitySource.includes("!isPlasmaShellWindow(window)"),
     "Plasma edit-mode windows cannot enter the scrolling Column model");
+assert.ok(scrollEligibilitySource.includes("!window.skipTaskbar"),
+    "taskbar-hidden helper windows cannot enter the scrolling Column model");
+const layoutEligibilitySource = mainSource.slice(
+    mainSource.indexOf("function eligible(window)"),
+    mainSource.indexOf("function layoutForMode")
+);
+assert.ok(layoutEligibilitySource.includes("window.skipTaskbar"),
+    "taskbar-hidden helper windows cannot enter managed maximize/tile layouts");
+const setupWindowSource = mainSource.slice(
+    mainSource.indexOf("function setupWindow(window)"),
+    mainSource.indexOf("function reapplyManagedLayouts")
+);
+assert.ok(setupWindowSource.includes("window.skipTaskbarChanged.connect"),
+    "a managed column is removed when it becomes taskbar-hidden");
 const dockFocusSource = mainSource.slice(
-    mainSource.indexOf('if (command.type === "focus-column-right")'),
-    mainSource.indexOf('if (!Array.isArray(command.order))')
+    mainSource.indexOf("function handleDockFocusCommand"),
+    mainSource.indexOf("function handleDockReorderCommand")
 );
 assert.ok(dockFocusSource.includes('beginDockScroll(column, "dock-focus-right")'),
     "Dock clicks enter the guarded stepwise scroll planner");
-const finishDockSource = mainSource.slice(
-    mainSource.indexOf("function finishDockScroll"),
-    mainSource.indexOf("function advancePendingDockScroll")
+const dockScrollControllerSource = mainSource.slice(
+    mainSource.indexOf("class DockScrollController"),
+    mainSource.indexOf("/* END GENERATED KWIN MODULES */")
 );
-assert.ok(finishDockSource.indexOf("relayoutFocusedColumnTransition(") <
-    finishDockSource.indexOf("workspace.activeWindow = column.window"),
+const finishDockSource = dockScrollControllerSource.slice(
+    dockScrollControllerSource.indexOf("    finish(pending, column)"),
+    dockScrollControllerSource.indexOf("    advance(command)")
+);
+assert.ok(finishDockSource.indexOf("this.transitionFocused(") <
+    finishDockSource.indexOf("this.setActiveWindow(column.window)"),
     "Dock scrolling commits the final geometry before activating its target");
 const removalSource = mainSource.slice(
     mainSource.indexOf("function removeColumn"),
@@ -289,15 +278,11 @@ const setupSource = mainSource.slice(
     mainSource.indexOf("function reapplyManagedLayouts")
 );
 assert.ok(setupSource.includes(
-    'advanceWindowAdoption(window, "ready-for-painting")'),
+    "adoptionController.onReady(window)"),
 "new windows re-evaluate eligibility when ready for painting");
 assert.ok(setupSource.includes(
-    'advanceWindowAdoption(window, "window-shown")'),
+    'adoptionController.onReady(window, "window-shown")'),
 "new windows re-evaluate eligibility when shown");
-const retrySource = mainSource.slice(
-    mainSource.indexOf("function advanceWindowAdoption"),
-    mainSource.indexOf("function onWindowActivatedForScrollLayout")
-);
 assert.ok(mainSource.includes("ADOPTION_WAITING_ACTIVATION"),
     "runtime windows wait for activation instead of being parked as restores");
 assert.ok(!mainSource.includes("STARTUP_RESTORE_GRACE_MS"),
@@ -306,25 +291,26 @@ const outputSource = mainSource.slice(
     mainSource.indexOf("function onOutputChanged"),
     mainSource.indexOf("function onFullScreenChanged")
 );
-assert.ok(outputSource.includes('removeColumn(window, "output-left-primary", false)'),
-"a window leaving the primary output must leave the primary Column model");
-assert.ok(mainSource.includes("function setColumnVisualVisibility"),
-    "parked columns have an explicit visual visibility policy");
-assert.ok(mainSource.includes(
-    'if (placement.kind === "visible") setColumnVisualVisibility(column, true);'
-), "incoming columns become visible before their geometry animation");
-assert.ok(mainSource.includes(
-    'if (placement.kind === "parked") setColumnVisualVisibility(column, false);'
-), "KWin off-screen clamping cannot expose parked columns behind the left slot");
+assert.ok(outputSource.includes("outputController.onOutputChanged(window)"),
+"output changes are delegated to the lifecycle controller");
+const outputControllerSource = mainSource.slice(
+    mainSource.indexOf("class OutputController"),
+    mainSource.indexOf("/* END GENERATED KWIN MODULES */")
+);
+assert.ok(outputControllerSource.includes(
+    'this.removeColumn(window, "output-left-primary", false)'
+), "a window leaving the primary output must leave the primary Column model");
+assert.ok(mainSource.includes("class GeometryCommitter"),
+    "managed geometry and visibility have an explicit committer");
 const visibilitySource = mainSource.slice(
-    mainSource.indexOf("function setColumnVisualVisibility"),
-    mainSource.indexOf("/* The only geometry writer")
+    mainSource.indexOf("class ParkingManager"),
+    mainSource.indexOf("class Recovery")
 );
 assert.ok(visibilitySource.includes("window.minimized = true"),
     "parked windows have no invisible input surface behind the left slot");
-assert.ok(visibilitySource.includes("windowState.scrollParkingMinimized"),
+assert.ok(visibilitySource.includes("state.scrollParkingMinimized"),
     "only minimization owned by the layout is reversed");
 assert.ok(mainSource.includes(
-    'placement.kind === "visible" && windowState.scrollVisuallyHidden'
+    'this.isWindowHidden(column.window)'
 ), "a returning window is positioned before it is shown");
 console.log("PASS V3 deterministic runtime adoption and primary-output departures");

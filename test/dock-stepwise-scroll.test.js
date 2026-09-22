@@ -9,6 +9,8 @@ const bridgeHeader = fs.readFileSync(
     path.join(root, "bridge/src/ScrollDockBridge.h"), "utf8");
 const bridgeSource = fs.readFileSync(
     path.join(root, "bridge/src/ScrollDockBridge.cpp"), "utf8");
+const controllerSource = fs.readFileSync(
+    path.join(root, "src/kwin/navigation/DockScrollController.js"), "utf8");
 
 function stepOffsets(columnCount, currentOffset, targetIndex) {
     const viewportWidth = 100;
@@ -40,16 +42,16 @@ assert.ok(mainSource.includes('type: "advance-dock-scroll"'));
 assert.ok(mainSource.includes("function dockScrollOffsetsToTarget"));
 assert.ok(mainSource.includes("function advancePendingDockScroll"));
 assert.ok(mainSource.includes("function cancelPendingDockScroll"));
-assert.ok(mainSource.includes("if (!offsets.length) return finishDockScroll"),
+assert.ok(controllerSource.includes("if (!offsets.length) return this.finish"),
     "an already visible Dock target focuses without moving the viewport");
 
-const advanceSource = mainSource.slice(
-    mainSource.indexOf("function advancePendingDockScroll"),
-    mainSource.indexOf("function beginDockScroll")
+const advanceSource = controllerSource.slice(
+    controllerSource.indexOf("    advance(command)"),
+    controllerSource.indexOf("    begin(column")
 );
 assert.ok(advanceSource.includes("pending.offsets.shift()"));
-assert.ok(advanceSource.includes('relayout(`${pending.reason}-step`'));
-assert.equal(advanceSource.includes("workspace.activeWindow"), false,
+assert.ok(advanceSource.includes('this.relayout(`${pending.reason}-step`'));
+assert.equal(advanceSource.includes("setActiveWindow"), false,
     "intermediate steps must not activate the parked target");
 
 assert.ok(bridgeHeader.includes("QQueue<QString> m_pendingCommands"));

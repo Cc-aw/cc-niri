@@ -1,39 +1,7 @@
 const assert = require("node:assert/strict");
-
-function safeRectForGeometry(screen, gap) {
-    const xInset = Math.min(gap.left, Math.max(0, screen.width - 1));
-    const yInset = Math.min(gap.top, Math.max(0, screen.height - 1));
-    return {
-        x: screen.x + xInset,
-        y: screen.y + yInset,
-        width: Math.max(1, screen.width - gap.left - gap.right),
-        height: Math.max(1, screen.height - gap.top - gap.bottom),
-    };
-}
-
-function rectForLayout(mode, safeRect, innerGap) {
-    const gap = Math.min(
-        Math.max(0, innerGap),
-        Math.max(0, Math.min(safeRect.width, safeRect.height) - 2)
-    );
-    const leftWidth = Math.floor((safeRect.width - gap) / 2);
-    const rightWidth = safeRect.width - gap - leftWidth;
-    const topHeight = Math.floor((safeRect.height - gap) / 2);
-    const bottomHeight = safeRect.height - gap - topHeight;
-    const rightX = safeRect.x + leftWidth + gap;
-    const bottomY = safeRect.y + topHeight + gap;
-    const rects = {
-        left: { x: safeRect.x, y: safeRect.y, width: leftWidth, height: safeRect.height },
-        right: { x: rightX, y: safeRect.y, width: rightWidth, height: safeRect.height },
-        top: { x: safeRect.x, y: safeRect.y, width: safeRect.width, height: topHeight },
-        bottom: { x: safeRect.x, y: bottomY, width: safeRect.width, height: bottomHeight },
-        topLeft: { x: safeRect.x, y: safeRect.y, width: leftWidth, height: topHeight },
-        topRight: { x: rightX, y: safeRect.y, width: rightWidth, height: topHeight },
-        bottomLeft: { x: safeRect.x, y: bottomY, width: leftWidth, height: bottomHeight },
-        bottomRight: { x: rightX, y: bottomY, width: rightWidth, height: bottomHeight },
-    };
-    return rects[mode] || null;
-}
+const { quickTileRect: rectForLayout } = require("../src/kwin/layout/Geometry");
+const { computeSafeRect: safeRectForGeometry } =
+    require("../src/kwin/layout/SafeArea");
 
 const safe = safeRectForGeometry(
     { x: 0, y: 0, width: 2560, height: 1440 },

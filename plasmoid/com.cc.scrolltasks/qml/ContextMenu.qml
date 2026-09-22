@@ -70,12 +70,13 @@ PlasmaExtras.Menu {
 
     function taskUuid(): string {
         const ids = get(TaskManager.AbstractTasksModel.WinIdList);
-        return ids && ids.length === 1 ? tasksRoot.normalizeDockUuid(ids[0]) : "";
+        return ids && ids.length === 1
+            ? tasksRoot.dockController.normalizeUuid(ids[0]) : "";
     }
 
     function isManagedTask(): bool {
         const uuid = taskUuid();
-        return uuid !== "" && tasksRoot.dockManagedUuids.includes(uuid);
+        return uuid !== "" && tasksRoot.dockController.hasManagedUuid(uuid);
     }
 
     function show(): void {
@@ -291,25 +292,25 @@ PlasmaExtras.Menu {
     PlasmaExtras.MenuItem {
         visible: menu.isManagedTask()
         checkable: true
-        checked: visible && tasksRoot.presentationModeFor(menu.taskUuid()) === "normal"
+        checked: visible && tasksRoot.dockController.presentationModeFor(menu.taskUuid()) === "normal"
         text: i18nc("@option:check inmenu", "Normal")
-        onClicked: tasksRoot.requestPresentationMode(menu.taskUuid(), "normal")
+        onClicked: tasksRoot.dockController.requestPresentationMode(menu.taskUuid(), "normal")
     }
 
     PlasmaExtras.MenuItem {
         visible: menu.isManagedTask()
         checkable: true
-        checked: visible && tasksRoot.presentationModeFor(menu.taskUuid()) === "wide"
+        checked: visible && tasksRoot.dockController.presentationModeFor(menu.taskUuid()) === "wide"
         text: i18nc("@option:check inmenu", "Focus Wide")
-        onClicked: tasksRoot.requestPresentationMode(menu.taskUuid(), "wide")
+        onClicked: tasksRoot.dockController.requestPresentationMode(menu.taskUuid(), "wide")
     }
 
     PlasmaExtras.MenuItem {
         visible: menu.isManagedTask()
         checkable: true
-        checked: visible && tasksRoot.presentationModeFor(menu.taskUuid()) === "maximized"
+        checked: visible && tasksRoot.dockController.presentationModeFor(menu.taskUuid()) === "maximized"
         text: i18nc("@option:check inmenu", "Maximize in Safe Area")
-        onClicked: tasksRoot.requestPresentationMode(menu.taskUuid(), "maximized")
+        onClicked: tasksRoot.dockController.requestPresentationMode(menu.taskUuid(), "maximized")
     }
 
     PlasmaExtras.MenuItem {
