@@ -1,4 +1,6 @@
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 const { loadRuntimeConfig } = require("../src/kwin/runtime/RuntimeConfig");
 const { OutputTopology } = require("../src/kwin/runtime/OutputTopology");
 const { computeSafeRect } = require("../src/kwin/layout/SafeArea");
@@ -11,8 +13,18 @@ const values = new Map([
     ["SecondaryOutputName", " missing-secondary "],
     ["SecondaryGapLeft", 30],
 ]);
-const config = loadRuntimeConfig((key, fallback) =>
-    values.has(key) ? values.get(key) : fallback);
+const readKeys = [];
+const config = loadRuntimeConfig((key, fallback) => {
+    readKeys.push(key);
+    return values.has(key) ? values.get(key) : fallback;
+});
+assert.equal(readKeys.includes("IncludeDialogs"), false);
+assert.equal("includeDialogs" in config, false);
+for (const configFile of ["package/contents/config/main.xml",
+    "package/contents/ui/config.ui"]) {
+    assert.equal(fs.readFileSync(path.join(__dirname, "..", configFile),
+        "utf8").includes("IncludeDialogs"), false, configFile);
+}
 assert.equal(config.targetOutputName, "missing-primary");
 assert.equal(config.primary.inner, 12);
 assert.equal(config.secondary.left, 30);

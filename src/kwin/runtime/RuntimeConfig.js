@@ -25,7 +25,6 @@ function loadRuntimeConfig(readValue) {
             right: number("SecondaryGapRight", 24),
             inner: number("SecondaryInnerGap", 8),
         },
-        includeDialogs: Boolean(readValue("IncludeDialogs", false)),
         debugLogging: Boolean(readValue("DebugLogging", false)),
     };
 }

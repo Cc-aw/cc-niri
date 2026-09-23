@@ -68,4 +68,40 @@ assert.equal(lifecycle.start(), true, "a stopped lifecycle can reconnect");
 assert.equal(events.filter(event => event.startsWith("register:")).length, 1,
     "non-removable KWin shortcuts are only registered once");
 
+let pendingRead;
+let fallback;
+const delayedEvents = [];
+const delayed = new RuntimeLifecycle({
+    workspace,
+    setupWindow: () => {},
+    onWindowAdded: () => {},
+    onWindowActivated: () => {},
+    onScreensChanged: () => {},
+    onVirtualScreenGeometryChanged: () => {},
+    connectManagedGeometry: () => {},
+    readPreviousState: callback => { pendingRead = callback; },
+    setTimer: callback => { fallback = callback; return { active: true }; },
+    clearTimer: handle => { handle.active = false; },
+    initializeScrollLayout: state => delayedEvents.push(`initialize:${state}`),
+    markInitialized: value => delayedEvents.push(`initialized:${value}`),
+    registerShortcut: () => {},
+    shortcuts: [],
+    commitInitialState: () => delayedEvents.push("commit"),
+});
+assert.equal(delayed.start(), true);
+assert.deepEqual(delayedEvents, [], "startup must wait for the old snapshot");
+pendingRead("saved");
+assert.deepEqual(delayedEvents, ["initialize:saved", "initialized:true", "commit"]);
+fallback();
+assert.equal(delayedEvents.filter(event => event === "commit").length, 1,
+    "a late timeout cannot publish a second initial state");
+delayed.stop();
+delayed.start();
+fallback();
+assert.equal(delayedEvents.at(-2), "initialized:true",
+    "timeout starts normally when the Bridge does not answer");
+pendingRead("late");
+assert.equal(delayedEvents.filter(event => event === "commit").length, 2);
+delayed.stop();
+
 console.log("PASS runtime lifecycle owns idempotent start, stop, signals, and shortcuts");

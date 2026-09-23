@@ -222,22 +222,20 @@ const scrollEligibilitySource = mainSource.slice(
     mainSource.indexOf("function scrollEligible"),
     mainSource.indexOf("function refreshMainScreenState")
 );
-assert.ok(scrollEligibilitySource.includes("!isPlasmaShellWindow(window)"),
-    "Plasma edit-mode windows cannot enter the scrolling Column model");
-assert.ok(scrollEligibilitySource.includes("!window.skipTaskbar"),
-    "taskbar-hidden helper windows cannot enter the scrolling Column model");
+assert.ok(scrollEligibilitySource.includes("windowPolicy.canJoinColumn(window)"),
+    "Column eligibility has one policy owner");
 const layoutEligibilitySource = mainSource.slice(
     mainSource.indexOf("function eligible(window)"),
     mainSource.indexOf("function layoutForMode")
 );
-assert.ok(layoutEligibilitySource.includes("window.skipTaskbar"),
-    "taskbar-hidden helper windows cannot enter managed maximize/tile layouts");
+assert.ok(layoutEligibilitySource.includes("windowPolicy.managedLayoutEligible(window)"),
+    "safe maximize and tile use the same policy owner");
 const setupWindowSource = mainSource.slice(
     mainSource.indexOf("function setupWindow(window)"),
     mainSource.indexOf("function reapplyManagedLayouts")
 );
 assert.ok(setupWindowSource.includes("window.skipTaskbarChanged.connect"),
-    "a managed column is removed when it becomes taskbar-hidden");
+    "a taskbar change reevaluates window policy");
 const dockFocusSource = mainSource.slice(
     mainSource.indexOf("function handleDockFocusCommand"),
     mainSource.indexOf("function handleDockReorderCommand")

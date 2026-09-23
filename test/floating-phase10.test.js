@@ -69,7 +69,11 @@ const controller = new FloatingController({
     indexOfWindow: window => columns.indexOf(window),
     getAppState: () => ({ enabled: true, targetOutput: primary }),
     refreshAppState: () => {},
-    scrollEligible: () => true,
+    windowPolicy: {
+        canJoinColumn: () => true,
+        classify: () => ({ kind: "managed-eligible" }),
+    },
+    dispositions: { POLICY_FLOATING: "policy-floating" },
     prepareWindow: () => { prepareCalls += 1; return true; },
     adoptWindow: window => { adoptCalls += 1; columns.push(window); return true; },
     removeColumn: window => columns.splice(columns.indexOf(window), 1),

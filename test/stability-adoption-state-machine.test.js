@@ -3,6 +3,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { AdoptionController } =
     require("../src/kwin/lifecycle/AdoptionController");
+const { WindowPolicy, WindowDisposition } =
+    require("../src/kwin/policy/WindowPolicy");
 
 const mainSource = fs.readFileSync(
     path.join(__dirname, "../package/contents/code/main.js"),
@@ -19,6 +21,7 @@ for (const phase of [
     "ADOPTION_SETTLING",
     "ADOPTION_MANAGED",
     "ADOPTION_FLOATING",
+    "ADOPTION_POLICY_FLOATING",
     "ADOPTION_IGNORED",
 ]) {
     assert.ok(mainSource.includes(`const ${phase} =`), `missing ${phase}`);
@@ -56,8 +59,11 @@ const lifecycleSource = mainSource.slice(
     mainSource.indexOf("// Generated from src/kwin/runtime/ShortcutCatalog.js")
 );
 assert.ok(lifecycleSource.indexOf("this.workspace.windowList().forEach") <
-    lifecycleSource.indexOf("this.initializeScrollLayout();"),
-"the startup snapshot is adopted synchronously without runtime heuristics");
+    lifecycleSource.indexOf("this.readPreviousState(complete)"),
+"existing windows are connected before the previous layout is requested");
+assert.ok(lifecycleSource.indexOf("this.initializeScrollLayout(snapshot)") <
+    lifecycleSource.indexOf("this.commitInitialState()"),
+"the startup snapshot is restored before replacing the Bridge state");
 
 const outputSource = mainSource.slice(
     mainSource.indexOf("function onOutputChanged"),
@@ -78,6 +84,7 @@ const phases = {
     waitingPrimary: "waiting-primary", waitingEligible: "waiting-eligible",
     waitingNormal: "waiting-normal", adopting: "adopting",
     settling: "settling", managed: "managed", floating: "floating",
+    policyFloating: "policy-floating",
     ignored: "ignored",
 };
 const primary = { name: "DP-1" };
@@ -104,12 +111,13 @@ const controller = new AdoptionController({
     indexOfWindow: window => columns.indexOf(window),
     getAppState: () => appState,
     refreshAppState: () => {},
-    isPlasmaShellWindow: window => Boolean(window.plasma),
+    windowPolicy: new WindowPolicy(),
+    dispositions: WindowDisposition,
+    removeManagedWindow: window => columns.splice(columns.indexOf(window), 1),
     isLayoutMode: mode => mode !== "normal",
     isTileMode: mode => mode === "tile",
     detectQuickTileMode: window => window.tiled ? "tile" : "normal",
     fullMaximizeMode: 3,
-    scrollEligible: window => window.eligible,
     adoptWindow: window => {
         adoptions += 1;
         columns.push(window);
@@ -127,7 +135,8 @@ const controller = new AdoptionController({
 function addWindow(overrides = {}) {
     const window = {
         caption: "test", output: primary, active: false, fullScreen: false,
-        maximizeMode: 0, eligible: true, tiled: false,
+        maximizeMode: 0, managed: true, normalWindow: true,
+        moveable: true, resizeable: true, tiled: false,
         frameGeometry: { x: 0, y: 0, width: 100, height: 100 },
         ...overrides,
     };
@@ -161,7 +170,7 @@ fullscreenLaunch.fullScreen = false;
 controller.onFullscreenChanged(fullscreenLaunch);
 assert.equal(stateMap.get(fullscreenLaunch).adoptionPhase, phases.managed);
 
-const plasmaWindow = addWindow({ active: true, plasma: true });
+const plasmaWindow = addWindow({ active: true, resourceClass: "plasmashell" });
 controller.onWindowAdded(plasmaWindow);
 assert.equal(stateMap.get(plasmaWindow).adoptionPhase, phases.ignored);
 

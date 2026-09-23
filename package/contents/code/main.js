@@ -772,7 +772,6 @@ function loadRuntimeConfig(readValue) {
             right: number("SecondaryGapRight", 24),
             inner: number("SecondaryInnerGap", 8),
         },
-        includeDialogs: Boolean(readValue("IncludeDialogs", false)),
         debugLogging: Boolean(readValue("DebugLogging", false)),
     };
 }
@@ -927,6 +926,84 @@ class OutputTopology {
     }
 }
 
+// Generated from src/kwin/runtime/StartupLayout.js
+class StartupLayout {
+    constructor(options) {
+        this.normalizeUuid = options.normalizeUuid;
+        this.targetOutput = options.targetOutput;
+        this.savedOrder = [];
+        this.anchor = null;
+    }
+
+    load(json) {
+        this.savedOrder = [];
+        this.anchor = null;
+        let snapshot;
+        try {
+            snapshot = JSON.parse(String(json || ""));
+        } catch (_error) {
+            return false;
+        }
+        if (!snapshot || snapshot.protocol !== 1 ||
+                snapshot.targetOutput !== this.targetOutput() ||
+                !Array.isArray(snapshot.columns)) return false;
+
+        const order = snapshot.columns.map(column =>
+            this.normalizeUuid(column && column.uuid));
+        if (order.some(uuid => !uuid) || new Set(order).size !== order.length) {
+            return false;
+        }
+        this.savedOrder = order;
+        const anchor = snapshot.viewportAnchor;
+        if (anchor && typeof anchor === "object") {
+            const uuid = this.normalizeUuid(anchor.uuid);
+            const delta = Number(anchor.delta);
+            if (order.includes(uuid) && Number.isFinite(delta) && delta >= 0) {
+                this.anchor = { uuid, delta };
+            }
+        }
+        return true;
+    }
+
+    orderWindows(windows) {
+        const ranks = new Map(this.savedOrder.map((uuid, index) => [uuid, index]));
+        return windows.map((window, index) => ({ window, index }))
+            .sort((a, b) => {
+                const aRank = ranks.get(this.normalizeUuid(a.window.internalId));
+                const bRank = ranks.get(this.normalizeUuid(b.window.internalId));
+                if (aRank === undefined && bRank === undefined) return a.index - b.index;
+                if (aRank === undefined) return 1;
+                if (bRank === undefined) return -1;
+                return aRank - bRank;
+            })
+            .map(entry => entry.window);
+    }
+
+    insertionIndex(window, columns) {
+        const rank = this.savedOrder.indexOf(this.normalizeUuid(window.internalId));
+        if (rank < 0) return -1;
+        for (let index = 0; index < columns.length; index += 1) {
+            const nextRank = this.savedOrder.indexOf(
+                this.normalizeUuid(columns[index].window.internalId));
+            if (nextRank >= 0 && nextRank > rank) return index;
+        }
+        let lastSaved = -1;
+        columns.forEach((column, index) => {
+            if (this.savedOrder.includes(
+                this.normalizeUuid(column.window.internalId))) lastSaved = index;
+        });
+        return lastSaved + 1;
+    }
+
+    restoreOffset(columns, fallbackOffset, bound) {
+        if (!this.anchor) return fallbackOffset;
+        const column = columns.find(item =>
+            this.normalizeUuid(item.window.internalId) === this.anchor.uuid);
+        if (!column) return fallbackOffset;
+        return bound(column.logicalX + this.anchor.delta);
+    }
+}
+
 // Generated from src/kwin/runtime/RuntimeLifecycle.js
 class RuntimeLifecycle {
     constructor(options) {
@@ -939,6 +1016,11 @@ class RuntimeLifecycle {
             options.onVirtualScreenGeometryChanged;
         this.connectManagedGeometry = options.connectManagedGeometry;
         this.initializeScrollLayout = options.initializeScrollLayout;
+        this.readPreviousState = options.readPreviousState ||
+            (callback => callback(""));
+        this.setTimer = options.setTimer || null;
+        this.clearTimer = options.clearTimer || null;
+        this.startupTimeoutMs = options.startupTimeoutMs || 500;
         this.markInitialized = options.markInitialized;
         this.registerShortcut = options.registerShortcut;
         this.shortcuts = options.shortcuts;
@@ -946,6 +1028,9 @@ class RuntimeLifecycle {
         this.connections = [];
         this.started = false;
         this.shortcutsRegistered = false;
+        this.startupTimer = null;
+        this.startupPending = false;
+        this.startupGeneration = 0;
     }
 
     connect(signal, handler) {
@@ -956,6 +1041,8 @@ class RuntimeLifecycle {
 
     start() {
         if (this.started) return false;
+        this.started = true;
+        const generation = ++this.startupGeneration;
         this.workspace.windowList().forEach(this.setupWindow);
         this.connect(this.workspace.windowAdded, this.onWindowAdded);
         this.connect(this.workspace.windowActivated, this.onWindowActivated);
@@ -966,8 +1053,6 @@ class RuntimeLifecycle {
         );
         this.connect(this.workspace.screenOrderChanged, this.onScreensChanged);
         this.connectManagedGeometry();
-        this.initializeScrollLayout();
-        this.markInitialized(true);
         if (!this.shortcutsRegistered) {
             this.shortcuts.forEach(shortcut => this.registerShortcut(
                 shortcut.name,
@@ -977,8 +1062,28 @@ class RuntimeLifecycle {
             ));
             this.shortcutsRegistered = true;
         }
-        this.commitInitialState();
-        this.started = true;
+        this.startupPending = true;
+        const complete = snapshot => {
+            if (!this.started || !this.startupPending ||
+                    generation !== this.startupGeneration) return;
+            this.startupPending = false;
+            if (this.startupTimer && this.clearTimer) {
+                this.clearTimer(this.startupTimer);
+                this.startupTimer = null;
+            }
+            this.initializeScrollLayout(snapshot);
+            this.markInitialized(true);
+            this.commitInitialState();
+        };
+        if (this.setTimer) {
+            this.startupTimer = this.setTimer(
+                () => complete(""), this.startupTimeoutMs);
+        }
+        try {
+            this.readPreviousState(complete);
+        } catch (_error) {
+            complete("");
+        }
         return true;
     }
 
@@ -994,6 +1099,12 @@ class RuntimeLifecycle {
             }
         });
         this.connections = [];
+        this.startupGeneration += 1;
+        this.startupPending = false;
+        if (this.startupTimer && this.clearTimer) {
+            this.clearTimer(this.startupTimer);
+            this.startupTimer = null;
+        }
         this.markInitialized(false);
         this.started = false;
         return true;
@@ -1106,6 +1217,69 @@ class CCNiri {
         if (!this.lifecycle.started) return false;
         this.onStopping();
         return this.lifecycle.stop();
+    }
+}
+
+// Generated from src/kwin/policy/WindowPolicy.js
+const WindowDisposition = Object.freeze({
+    MANAGED_ELIGIBLE: "managed-eligible",
+    POLICY_FLOATING: "policy-floating",
+    NATIVE_ONLY: "native-only",
+});
+
+function isPlasmaShellWindow(window) {
+    if (!window) return false;
+    const shellIdentities = new Set([
+        "plasmashell",
+        "org.kde.plasmashell",
+        "org.kde.plasma.desktop",
+    ]);
+    return [window.resourceClass, window.resourceName, window.desktopFileName]
+        .map(value => String(value || "").trim().toLowerCase())
+        .some(value => shellIdentities.has(value));
+}
+
+class WindowPolicy {
+    classify(window) {
+        const nativeOnly = reason => ({
+            kind: WindowDisposition.NATIVE_ONLY, reason, parent: null,
+        });
+        const policyFloating = reason => ({
+            kind: WindowDisposition.POLICY_FLOATING,
+            reason,
+            parent: window.transientFor || null,
+        });
+        if (!window || !window.managed) return nativeOnly("unmanaged");
+        if (isPlasmaShellWindow(window)) return nativeOnly("plasma-shell");
+        if (window.desktopWindow) return nativeOnly("desktop");
+        if (window.dock) return nativeOnly("dock");
+        if (window.popupWindow || window.dropdownMenu || window.menu) {
+            return nativeOnly("popup");
+        }
+        if (window.splash) return nativeOnly("splash");
+        if (window.dialog) return policyFloating("dialog");
+        if (window.modal) return policyFloating("modal");
+        if (window.transient) return policyFloating("transient");
+        if (window.utility) return policyFloating("utility");
+        if (window.toolbar) return policyFloating("toolbar");
+        if (window.specialWindow) return nativeOnly("special-window");
+        if (window.skipTaskbar) return nativeOnly("skip-taskbar");
+        if (!window.normalWindow) return nativeOnly("not-normal");
+        if (!window.moveable) return nativeOnly("not-moveable");
+        if (!window.resizeable) return nativeOnly("not-resizeable");
+        return {
+            kind: WindowDisposition.MANAGED_ELIGIBLE,
+            reason: "normal",
+            parent: null,
+        };
+    }
+
+    canJoinColumn(window) {
+        return this.classify(window).kind === WindowDisposition.MANAGED_ELIGIBLE;
+    }
+
+    managedLayoutEligible(window) {
+        return this.canJoinColumn(window) && Boolean(window.maximizable);
     }
 }
 
@@ -1413,12 +1587,13 @@ class AdoptionController {
         this.indexOfWindow = options.indexOfWindow;
         this.getAppState = options.getAppState;
         this.refreshAppState = options.refreshAppState;
-        this.isPlasmaShellWindow = options.isPlasmaShellWindow;
+        this.windowPolicy = options.windowPolicy;
+        this.dispositions = options.dispositions;
+        this.removeManagedWindow = options.removeManagedWindow;
         this.isLayoutMode = options.isLayoutMode;
         this.isTileMode = options.isTileMode;
         this.detectQuickTileMode = options.detectQuickTileMode;
         this.fullMaximizeMode = options.fullMaximizeMode;
-        this.scrollEligible = options.scrollEligible;
         this.adoptWindow = options.adoptWindow;
         this.settleLayout = options.settleLayout;
         this.rectText = options.rectText;
@@ -1432,12 +1607,24 @@ class AdoptionController {
         if (previous !== phase) {
             this.debug(`[cc-adoption] PHASE ${previous}->${phase}` +
                 ` caption=${window.caption} reason=${reason}`);
+            if (phase === this.phases.policyFloating ||
+                    phase === this.phases.ignored) {
+                const decision = this.windowPolicy.classify(window);
+                this.debug(`[cc-policy] ${decision.kind} reason=${decision.reason}` +
+                    ` caption=${window.caption}`);
+            }
         }
     }
 
     waitPhase(window, windowState) {
         const state = this.getAppState();
-        if (this.isPlasmaShellWindow(window)) return this.phases.ignored;
+        const decision = this.windowPolicy.classify(window);
+        if (decision.kind === this.dispositions.NATIVE_ONLY) {
+            return this.phases.ignored;
+        }
+        if (decision.kind === this.dispositions.POLICY_FLOATING) {
+            return this.phases.policyFloating;
+        }
         if (windowState.floating) return this.phases.floating;
         if (!state.enabled || !state.targetOutput ||
                 window.output !== state.targetOutput) {
@@ -1448,7 +1635,6 @@ class AdoptionController {
                 this.isTileMode(this.detectQuickTileMode(window))) {
             return this.phases.waitingNormal;
         }
-        if (!this.scrollEligible(window)) return this.phases.waitingEligible;
         if (!window.active) return this.phases.waitingActivation;
         return null;
     }
@@ -1486,6 +1672,7 @@ class AdoptionController {
             return this.indexOfWindow(window) >= 0;
         }
         if (windowState.adoptionPhase === this.phases.floating ||
+                windowState.adoptionPhase === this.phases.policyFloating ||
                 windowState.adoptionPhase === this.phases.ignored) return false;
         if (windowState.adoptionPhase === this.phases.settling &&
                 this.indexOfWindow(window) >= 0) {
@@ -1514,6 +1701,14 @@ class AdoptionController {
     begin(window, origin) {
         if (!window) return false;
         const windowState = this.stateFor(window);
+        const decision = this.windowPolicy.classify(window);
+        if (decision.kind !== this.dispositions.MANAGED_ELIGIBLE) {
+            this.transition(window, windowState,
+                decision.kind === this.dispositions.POLICY_FLOATING
+                    ? this.phases.policyFloating : this.phases.ignored,
+                origin);
+            return false;
+        }
         if (windowState.managedByScrollLayout || this.indexOfWindow(window) >= 0) {
             this.transition(window, windowState, this.phases.managed, origin);
             return true;
@@ -1550,6 +1745,34 @@ class AdoptionController {
     onFullscreenChanged(window, reason = "fullscreen-exit") {
         return this.advance(window, reason);
     }
+
+    onPolicyChanged(window, reason) {
+        if (!window || !this.hasState(window)) return false;
+        const decision = this.windowPolicy.classify(window);
+        const windowState = this.stateFor(window);
+        if (decision.kind !== this.dispositions.MANAGED_ELIGIBLE &&
+                this.indexOfWindow(window) >= 0) {
+            this.removeManagedWindow(window, `policy-${decision.reason}`, false);
+        }
+        if (decision.kind === this.dispositions.POLICY_FLOATING) {
+            this.transition(window, windowState, this.phases.policyFloating, reason);
+            return false;
+        }
+        if (decision.kind === this.dispositions.NATIVE_ONLY) {
+            this.transition(window, windowState, this.phases.ignored, reason);
+            return false;
+        }
+        if (windowState.floating) {
+            this.transition(window, windowState, this.phases.floating, reason);
+            return false;
+        }
+        if (this.indexOfWindow(window) >= 0) {
+            this.transition(window, windowState, this.phases.managed, reason);
+            return true;
+        }
+        this.transition(window, windowState, this.phases.waitingEligible, reason);
+        return this.advance(window, reason);
+    }
 }
 
 // Generated from src/kwin/lifecycle/FloatingController.js
@@ -1560,7 +1783,8 @@ class FloatingController {
         this.indexOfWindow = options.indexOfWindow;
         this.getAppState = options.getAppState;
         this.refreshAppState = options.refreshAppState;
-        this.scrollEligible = options.scrollEligible;
+        this.windowPolicy = options.windowPolicy;
+        this.dispositions = options.dispositions;
         this.prepareWindow = options.prepareWindow;
         this.adoptWindow = options.adoptWindow;
         this.removeColumn = options.removeColumn;
@@ -1595,12 +1819,13 @@ class FloatingController {
     }
 
     attach(window, reason) {
-        if (!window || window.fullScreen) return false;
+        if (!window || !this.windowPolicy.canJoinColumn(window) ||
+                window.fullScreen) return false;
         this.refreshAppState();
         const appState = this.getAppState();
         if (!appState.enabled || !appState.targetOutput ||
                 window.output !== appState.targetOutput ||
-                !this.scrollEligible(window) || this.indexOfWindow(window) >= 0) {
+                this.indexOfWindow(window) >= 0) {
             return false;
         }
         const windowState = this.stateFor(window);
@@ -1638,6 +1863,11 @@ class FloatingController {
     }
 
     hasRememberedFloating() {
+        if (this.rememberedWindow &&
+                !this.windowPolicy.canJoinColumn(this.rememberedWindow)) {
+            this.clearRemembered();
+            return false;
+        }
         return Boolean(this.rememberedWindow &&
             this.hasState(this.rememberedWindow) &&
             this.stateFor(this.rememberedWindow).floating &&
@@ -1645,6 +1875,12 @@ class FloatingController {
     }
 
     toggle(window) {
+        if (window && this.windowPolicy.classify(window).kind ===
+                this.dispositions.POLICY_FLOATING) {
+            this.debug(`[cc-scroll] FLOAT_TOGGLE_BLOCKED reason=policy-floating` +
+                ` caption=${window.caption}`);
+            return false;
+        }
         const rememberedFloating = this.hasRememberedFloating();
         let target = window;
         if (rememberedFloating && target !== this.rememberedWindow) {
@@ -1886,6 +2122,11 @@ class DockGateway {
 
     generation() {
         return this.generationValue;
+    }
+
+    readPreviousState(callback) {
+        this.invoke(this.service, this.path, this.interfaceName,
+            "GetState", callback);
     }
 
     envelopeSnapshot(snapshot) {
@@ -2894,6 +3135,7 @@ const ADOPTION_ADOPTING = "adopting";
 const ADOPTION_SETTLING = "settling";
 const ADOPTION_MANAGED = "managed";
 const ADOPTION_FLOATING = "floating";
+const ADOPTION_POLICY_FLOATING = "policy-floating";
 const ADOPTION_IGNORED = "ignored";
 const DOCK_BRIDGE_SERVICE = "org.cc.ScrollDockBridge";
 const DOCK_BRIDGE_PATH = "/ScrollDock";
@@ -2917,6 +3159,7 @@ const contextualViewport = new ContextualViewport(mainScreenState);
 const columnStore = new ColumnStore(mainScreenState);
 const states = new WindowStateStore(createWindowState);
 const runtimeConfig = loadRuntimeConfig(readConfig);
+const windowPolicy = new WindowPolicy();
 const runtimeLogger = new RuntimeLogger({
     tag: TAG,
     enabled: runtimeConfig.debugLogging,
@@ -2930,7 +3173,6 @@ const outputTopology = new OutputTopology({
     warn,
 });
 const innerGap = runtimeConfig.primary.inner;
-const includeDialogs = runtimeConfig.includeDialogs;
 let contextualWideCoordinator;
 const dockGateway = new DockGateway({
     invoke: callDBus,
@@ -2957,6 +3199,11 @@ const dockGateway = new DockGateway({
     warn,
     now: () => Date.now(),
     random: () => Math.random(),
+});
+const startupLayout = new StartupLayout({
+    normalizeUuid: normalizeWindowUuid,
+    targetOutput: () => mainScreenState.targetOutput
+        ? mainScreenState.targetOutput.name : "",
 });
 contextualWideCoordinator = new ContextualWideCoordinator({
     appState: mainScreenState,
@@ -3063,6 +3310,7 @@ const adoptionController = new AdoptionController({
         settling: ADOPTION_SETTLING,
         managed: ADOPTION_MANAGED,
         floating: ADOPTION_FLOATING,
+        policyFloating: ADOPTION_POLICY_FLOATING,
         ignored: ADOPTION_IGNORED,
     },
     stateFor,
@@ -3070,12 +3318,13 @@ const adoptionController = new AdoptionController({
     indexOfWindow: window => columnStore.indexOfWindow(window),
     getAppState: () => mainScreenState,
     refreshAppState: refreshMainScreenState,
-    isPlasmaShellWindow,
+    windowPolicy,
+    dispositions: WindowDisposition,
+    removeManagedWindow: removeColumn,
     isLayoutMode,
     isTileMode,
     detectQuickTileMode,
     fullMaximizeMode: FULL_MAXIMIZE_MODE,
-    scrollEligible,
     adoptWindow: adoptNewWindowAsColumn,
     settleLayout: settleAdoptionGeometry,
     rectText,
@@ -3087,7 +3336,8 @@ const floatingController = new FloatingController({
     indexOfWindow: window => columnStore.indexOfWindow(window),
     getAppState: () => mainScreenState,
     refreshAppState: refreshMainScreenState,
-    scrollEligible,
+    windowPolicy,
+    dispositions: WindowDisposition,
     prepareWindow: prepareInitialColumn,
     adoptWindow: adoptNewWindowAsColumn,
     removeColumn,
@@ -3123,6 +3373,7 @@ const outputController = new OutputController({
         untracked: ADOPTION_UNTRACKED,
         waitingPrimary: ADOPTION_WAITING_PRIMARY,
         floating: ADOPTION_FLOATING,
+        policyFloating: ADOPTION_POLICY_FLOATING,
         ignored: ADOPTION_IGNORED,
     },
     profileForOutput,
@@ -3257,6 +3508,8 @@ function normalizeWindowUuid(value) {
 function createDockSnapshot() {
     const focusedColumn = mainScreenState.columns[mainScreenState.focusedColumnIndex] || null;
     const wideColumn = contextualViewport.column();
+    const anchorColumn = mainScreenState.columns.reduce((anchor, column) =>
+        column.logicalX <= mainScreenState.scrollOffsetX ? column : anchor, null);
     return {
         targetOutput: mainScreenState.targetOutput ? mainScreenState.targetOutput.name : "",
         focusedUuid: focusedColumn
@@ -3273,6 +3526,10 @@ function createDockSnapshot() {
             uuid: normalizeWindowUuid(column.window.internalId),
             widthMode: column.widthMode,
         })),
+        viewportAnchor: anchorColumn ? {
+            uuid: normalizeWindowUuid(anchorColumn.window.internalId),
+            delta: mainScreenState.scrollOffsetX - anchorColumn.logicalX,
+        } : null,
     };
 }
 
@@ -3365,23 +3622,8 @@ function safeRectFor(output) {
     return outputTopology.safeRect(output);
 }
 
-function isPlasmaShellWindow(window) {
-    if (!window) return false;
-    const shellIdentities = new Set([
-        "plasmashell",
-        "org.kde.plasmashell",
-        "org.kde.plasma.desktop",
-    ]);
-    return [window.resourceClass, window.resourceName, window.desktopFileName]
-        .map(value => String(value || "").trim().toLowerCase())
-        .some(value => shellIdentities.has(value));
-}
-
 function scrollEligible(window) {
-    return Boolean(window && window.managed && window.normalWindow &&
-        window.moveable && window.resizeable &&
-        !window.specialWindow && !window.skipTaskbar && !window.fullScreen &&
-        !isPlasmaShellWindow(window));
+    return windowPolicy.canJoinColumn(window);
 }
 
 function refreshMainScreenState() {
@@ -3835,22 +4077,34 @@ function removeColumn(window, reason, activateSuccessor = true) {
     commitDockState(reason);
 }
 
-function initializeScrollLayout() {
+function initializeScrollLayout(previousState) {
     /* This immutable startup snapshot is the only path allowed to adopt an
      * inactive window. Anything arriving later through windowAdded follows
      * the runtime state machine and waits for its first activation. */
     refreshMainScreenState();
     if (!mainScreenState.enabled || !mainScreenState.targetOutput) return;
-    workspace.windowList().filter(window =>
-        scrollEligible(window) &&
+    const restored = startupLayout.load(previousState);
+    startupLayout.orderWindows(workspace.windowList().filter(window =>
+        scrollEligible(window) && !window.fullScreen &&
         window.output === mainScreenState.targetOutput
-    ).filter(prepareInitialColumn).forEach(addInitialColumn);
+    ).filter(prepareInitialColumn)).forEach(addInitialColumn);
 
     if (!mainScreenState.columns.length) return;
     const activeIndex = columnIndexForWindow(workspace.activeWindow);
     columnStore.focusIndex(activeIndex >= 0 ? activeIndex : 0);
     recomputeLogicalLayout();
+    if (restored) {
+        mainScreenState.scrollOffsetX = startupLayout.restoreOffset(
+            mainScreenState.columns,
+            mainScreenState.scrollOffsetX,
+            offset => boundScrollOffset(offset, stripWidth(),
+                mainScreenState.safeRect.width)
+        );
+    }
     ensureColumnVisible(columnStore.focusedColumn());
+    debug(`[cc-scroll] STARTUP_RESTORE restored=${restored}` +
+        ` columns=${mainScreenState.columns.length}` +
+        ` offset=${mainScreenState.scrollOffsetX}`);
     relayout("startup");
 }
 
@@ -3859,7 +4113,8 @@ function adoptNewWindowAsColumn(window, reason, focusNew = true) {
     refreshMainScreenState();
     if (!mainScreenState.enabled || !mainScreenState.targetOutput ||
             window.output !== mainScreenState.targetOutput ||
-            !scrollEligible(window) || columnIndexForWindow(window) >= 0) {
+            !scrollEligible(window) || window.fullScreen ||
+            columnIndexForWindow(window) >= 0) {
         return false;
     }
 
@@ -3886,9 +4141,10 @@ function adoptNewWindowAsColumn(window, reason, focusNew = true) {
     const focusedColumn = focusedIndex >= 0
         ? mainScreenState.columns[focusedIndex]
         : null;
-    const insertionIndex = focusNew
-        ? focusedIndex + 1
-        : mainScreenState.columns.length;
+    const savedIndex = startupLayout.insertionIndex(
+        window, mainScreenState.columns);
+    const insertionIndex = savedIndex >= 0 ? savedIndex : focusNew
+        ? focusedIndex + 1 : mainScreenState.columns.length;
     const column = addColumnAt(window, insertionIndex, reason);
     if (!column) return false;
 
@@ -3947,6 +4203,11 @@ function onWindowActivatedForScrollLayout(window) {
     if (layoutTransaction.isActive()) {
         debug(`[cc-stability] SUPPRESS activation epoch=${layoutTransaction.currentEpoch()}` +
             ` caption=${window.caption}`);
+        return;
+    }
+    if (windowPolicy.classify(window).kind ===
+            WindowDisposition.POLICY_FLOATING) {
+        adoptionController.onActivated(window);
         return;
     }
     if (window !== (columnStore.focusedColumn() || {}).window) {
@@ -4106,9 +4367,8 @@ function isLayoutMode(mode) {
 }
 
 function eligible(window) {
-    if (!window || window.fullScreen || !window.resizeable || !window.maximizable ||
-            window.skipTaskbar || isPlasmaShellWindow(window)) return false;
-    return window.normalWindow || (includeDialogs && window.dialog);
+    return Boolean(window && !window.fullScreen &&
+        windowPolicy.managedLayoutEligible(window));
 }
 
 function onManagedOutput(window) {
@@ -4187,7 +4447,7 @@ function translateRestoreGeometry(state, newOutput) {
 
 function applyLayoutGeometry(window, state, mode, reason) {
     const profile = profileForOutput(window.output);
-    if (!profile || window.fullScreen) return false;
+    if (!profile || !eligible(window)) return false;
     const target = rectForLayout(mode, safeRectFor(window.output), profile.inner);
     if (!target) return false;
     state.internalChange = true;
@@ -4222,9 +4482,11 @@ function onFrameGeometryChanged(window, oldGeometry) {
     const state = stateFor(window);
     if (state.internalChange || state.interactiveMoveResize || window.fullScreen) return;
     if (contextualWideCoordinator.onTargetGeometryChanged(window)) return;
+    if (!windowPolicy.canJoinColumn(window)) return;
     if (window.active && state.adoptionPhase !== ADOPTION_UNTRACKED &&
             state.adoptionPhase !== ADOPTION_MANAGED &&
             state.adoptionPhase !== ADOPTION_FLOATING &&
+            state.adoptionPhase !== ADOPTION_POLICY_FLOATING &&
             state.adoptionPhase !== ADOPTION_IGNORED) {
         adoptionController.onGeometryChanged(window);
         return;
@@ -4258,7 +4520,8 @@ function onFrameGeometryChanged(window, oldGeometry) {
 
 function applyDetectedTile(window, signalName) {
     const state = stateFor(window);
-    if (state.internalChange || state.interactiveMoveResize || window.fullScreen) return;
+    if (state.internalChange || state.interactiveMoveResize ||
+            !eligible(window)) return;
     const mode = detectQuickTileMode(window);
     const profile = profileForOutput(window.output);
     if (!profile) {
@@ -4292,7 +4555,8 @@ function applyDetectedTile(window, signalName) {
 
 function onMaximizedAboutToChange(window, mode) {
     const state = stateFor(window);
-    if (state.internalChange || state.interactiveMoveResize || window.fullScreen) return;
+    if (state.internalChange || state.interactiveMoveResize ||
+            !eligible(window)) return;
     const onTarget = onManagedOutput(window);
     const managedColumn = columnIndexForWindow(window) >= 0 &&
         window.output === mainScreenState.targetOutput;
@@ -4313,6 +4577,10 @@ function onMaximizedAboutToChange(window, mode) {
 function onMaximizedChanged(window) {
     const state = stateFor(window);
     if (state.internalChange || !state.pendingAction) return;
+    if (!eligible(window)) {
+        state.pendingAction = null;
+        return;
+    }
     const action = state.pendingAction;
     state.pendingAction = null;
     const managedColumn = columnIndexForWindow(window) >= 0 &&
@@ -4346,11 +4614,16 @@ function onMaximizedChanged(window) {
 }
 
 function onOutputChanged(window) {
+    if (!windowPolicy.canJoinColumn(window)) {
+        adoptionController.onPolicyChanged(window, "output-policy-changed");
+        return false;
+    }
     contextualWideCoordinator.cancelForWindow(window);
     return outputController.onOutputChanged(window);
 }
 
 function onFullScreenChanged(window) {
+    if (!windowPolicy.canJoinColumn(window)) return false;
     return fullscreenController.onFullscreenChanged(window);
 }
 
@@ -4361,6 +4634,15 @@ function onInteractiveMoveResizeStarted(window) {
     state.interactiveMoveResize = true;
     clearLayoutState(state);
     debug(`CLEAR ${window.caption} reason=interactive-move-resize`);
+}
+
+function onWindowPolicyChanged(window, reason) {
+    const state = stateFor(window);
+    if (!windowPolicy.managedLayoutEligible(window) &&
+            isLayoutMode(state.layoutMode)) {
+        clearLayoutState(state);
+    }
+    return adoptionController.onPolicyChanged(window, reason);
 }
 
 function setupWindow(window) {
@@ -4374,13 +4656,12 @@ function setupWindow(window) {
     window.maximizedChanged.connect(() => onMaximizedChanged(window));
     window.outputChanged.connect(() => onOutputChanged(window));
     window.fullScreenChanged.connect(() => onFullScreenChanged(window));
-    if (window.skipTaskbarChanged) {
-        window.skipTaskbarChanged.connect(() => {
-            if (window.skipTaskbar && columnIndexForWindow(window) >= 0) {
-                removeColumn(window, "skip-taskbar", false);
-            }
-        });
-    }
+    if (window.skipTaskbarChanged) window.skipTaskbarChanged.connect(() =>
+        onWindowPolicyChanged(window, "skip-taskbar-changed"));
+    if (window.transientChanged) window.transientChanged.connect(() =>
+        onWindowPolicyChanged(window, "transient-changed"));
+    if (window.modalChanged) window.modalChanged.connect(() =>
+        onWindowPolicyChanged(window, "modal-changed"));
     window.activeChanged.connect(() => {
         if (window.active && !layoutTransaction.isActive()) {
             adoptionController.onActivated(window, "active-changed");
@@ -4404,7 +4685,7 @@ function setupWindow(window) {
         states.delete(window);
     });
 
-    if (window.fullScreen) return;
+    if (!eligible(window)) return;
     if (Number(window.maximizeMode) === FULL_MAXIMIZE_MODE) {
         setLayoutMode(state, MAXIMIZE_MODE);
         if (onManagedOutput(window)) {
@@ -4423,7 +4704,7 @@ function setupWindow(window) {
 
 function reapplyManagedLayouts(reason) {
     states.forEach((state, window) => {
-        if (!state.internalChange && !state.interactiveMoveResize && !window.fullScreen &&
+        if (!state.internalChange && !state.interactiveMoveResize && eligible(window) &&
                 !state.managedByScrollLayout && onManagedOutput(window) &&
                 isLayoutMode(state.layoutMode)) {
             applyLayoutGeometry(window, state, state.layoutMode, reason);
@@ -4480,6 +4761,9 @@ const app = new CCNiri({
         },
         connectManagedGeometry,
         initializeScrollLayout,
+        readPreviousState: callback => dockGateway.readPreviousState(callback),
+        setTimer: setRuntimeTimer,
+        clearTimer: clearRuntimeTimer,
         markInitialized: value => { scrollLayoutInitialized = value; },
         registerShortcut,
         shortcuts,

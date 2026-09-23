@@ -44,9 +44,6 @@
     <entry name="SecondaryInnerGap" type="Int">
       <default>8</default>
     </entry>
-    <entry name="IncludeDialogs" type="Bool">
-      <default>false</default>
-    </entry>
     <entry name="DebugLogging" type="Bool">
       <default>false</default>
     </entry>

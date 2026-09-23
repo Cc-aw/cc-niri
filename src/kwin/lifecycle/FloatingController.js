@@ -7,7 +7,8 @@ class FloatingController {
         this.indexOfWindow = options.indexOfWindow;
         this.getAppState = options.getAppState;
         this.refreshAppState = options.refreshAppState;
-        this.scrollEligible = options.scrollEligible;
+        this.windowPolicy = options.windowPolicy;
+        this.dispositions = options.dispositions;
         this.prepareWindow = options.prepareWindow;
         this.adoptWindow = options.adoptWindow;
         this.removeColumn = options.removeColumn;
@@ -42,12 +43,13 @@ class FloatingController {
     }
 
     attach(window, reason) {
-        if (!window || window.fullScreen) return false;
+        if (!window || !this.windowPolicy.canJoinColumn(window) ||
+                window.fullScreen) return false;
         this.refreshAppState();
         const appState = this.getAppState();
         if (!appState.enabled || !appState.targetOutput ||
                 window.output !== appState.targetOutput ||
-                !this.scrollEligible(window) || this.indexOfWindow(window) >= 0) {
+                this.indexOfWindow(window) >= 0) {
             return false;
         }
         const windowState = this.stateFor(window);
@@ -85,6 +87,11 @@ class FloatingController {
     }
 
     hasRememberedFloating() {
+        if (this.rememberedWindow &&
+                !this.windowPolicy.canJoinColumn(this.rememberedWindow)) {
+            this.clearRemembered();
+            return false;
+        }
         return Boolean(this.rememberedWindow &&
             this.hasState(this.rememberedWindow) &&
             this.stateFor(this.rememberedWindow).floating &&
@@ -92,6 +99,12 @@ class FloatingController {
     }
 
     toggle(window) {
+        if (window && this.windowPolicy.classify(window).kind ===
+                this.dispositions.POLICY_FLOATING) {
+            this.debug(`[cc-scroll] FLOAT_TOGGLE_BLOCKED reason=policy-floating` +
+                ` caption=${window.caption}`);
+            return false;
+        }
         const rememberedFloating = this.hasRememberedFloating();
         let target = window;
         if (rememberedFloating && target !== this.rememberedWindow) {

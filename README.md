@@ -1,6 +1,6 @@
 # CC Niri Maximize
 
-CC Niri Maximize V3 is being implemented in phases on top of the working V2 safe-area script. Version `3.0.0-alpha.39` hardens Contextual Wide runtime transitions and continuous Wide/Pair motion. Alpha.38 introduced native-clipped full-delta ordinary scrolling.
+CC Niri Maximize V3 is being implemented in phases on top of the working V2 safe-area script. Version `3.0.0-alpha.41` adds semantic WindowPolicy and keeps dialogs and other auxiliary windows outside Columns. Alpha.40 restores Column order and the visible viewport after a KWin script reload.
 
 ## Current V3 phase
 
@@ -15,7 +15,8 @@ Implemented in this alpha:
 - Output-stable viewport projection: only columns fully contained by the primary safe area are displayed.
 - Partial and off-screen columns are parked left of the complete virtual desktop, so internal scrolling cannot transfer ownership to the right-hand secondary output.
 - Existing primary-output Quick Tile windows are detached from their native tile association during startup adoption and enter the same Column model, preventing fixed windows underneath the scrolling viewport.
-- Windows already present when the script loads are adopted from one synchronous startup snapshot. Later windows use an explicit adoption state machine: inactive windows wait for their first activation, secondary-output windows wait until they enter the primary output, and Fullscreen/Quick Tile/maximized windows wait until they return to Normal. An eligible active window is inserted to the right of the focused column exactly once. Dialogs and secondary-output windows remain native/floating while ineligible.
+- Windows already present when the script loads are adopted after the previous Bridge state is read. Later windows use an explicit adoption state machine: inactive windows wait for their first activation, secondary-output windows wait until they enter the primary output, and Fullscreen/Quick Tile/maximized windows wait until they return to Normal. An eligible active window is inserted to the right of the focused column exactly once.
+- `WindowPolicy` is the sole semantic owner of Column eligibility. Dialogs, modal windows, transients, utility windows, and toolbars remain policy-floating with their native KWin/application placement. Popups, menus, splash screens, desktop and dock surfaces remain native-only. Neither class enters a Column or CC safe-area maximize/tile ownership. Dynamic transient, modal, and skip-taskbar changes re-evaluate membership without positioning auxiliary windows.
 - Inactive session-restored windows already present in the startup snapshot are adopted without stealing focus. A late restored window remains native until its first activation. A Column window moved away from the primary output is removed immediately from the primary model while remaining native on its destination output, and waits for an active return before rejoining.
 - New-window adoption remains pending until KWin confirms the requested visible Column geometry, with activation, ready-for-painting, and geometry-change retries for slow-mapping applications such as Electron windows.
 - Closing a managed window removes its Column, preserves an unrelated focused window, or focuses the right neighbor of a closed focused Column (falling back to the left neighbor), and minimally reveals the successor.
@@ -25,6 +26,7 @@ Implemented in this alpha:
 - Dragging a managed task in `CC Scroll Tasks` sends a generation-checked reorder request back to KWin. KWin validates the complete UUID set, reorders the existing Column objects, preserves focus, performs minimal reveal, and republishes the committed state.
 - Pinned launchers are kept in a separate launcher section, while managed windows use `SortManual` and `GroupDisabled`.
 - Stale, mismatched-session, incomplete, or duplicate reorder requests are rejected and followed by an authoritative resync.
+- A script reload reads the Bridge's last Dock snapshot before publishing startup state. Existing window UUIDs return to their previous Column order and viewport anchor; newly opened windows follow the usual insertion rules. This recovery applies while the Bridge and the windows remain in the same login session.
 - No polling. The event-driven companion bridge is only an IPC relay; KWin remains the geometry and logical-order authority. A small KWin effect animates scrolling-column position changes without changing geometry or output ownership.
 - Column motion uses the shared `220 ms` spatial token and an `OutCubic` deceleration curve. Repeated or reversed `Meta+H/L` input samples the current visual translation, compensates for the newly committed real geometry, and retargets from that painted position instead of snapping and restarting. Each window has an independent Motion epoch, and completion clears all temporary Translation, Scale, and Opacity state.
 - Ordinary scrolling uses the complete logical offset for continuing, incoming, and outgoing Columns, with Translation only (`Scale=1`, `Opacity=1`). No-op channels are discarded, repeated input shortens retarget duration according to remaining distance, and grouped continuing/incoming/outgoing windows share an explicit Motion Transaction. Close-refill motion keeps the subtle `0.985 → 1.0` Scale and `0.85 → 1.0` Opacity assist.
@@ -32,10 +34,10 @@ Implemented in this alpha:
 - The Dock task context menu adds a compact `CC Scroll` section with Normal, Focus Wide, and Maximize in Safe Area. Wide is exactly 72% of the safe area and centered; Wide and Maximize park all neighboring managed windows without changing logical or Dock order.
 - KDE's native maximize button and the Dock's Maximize in Safe Area action enter the same presentation state; restore returns to the exact two-column layout.
 - Focus Wide is a persistent per-Column preference for the current KWin session, not permanent geometry. Pair always displays `1 (50%) | 2 (50%)`, even if column 1 prefers Wide. From `1|2` with focus on 2, `Meta+H` expands preferred column 1 to a centered 72% view with empty sides. An off-screen preferred column takes two key presses: from `2|3`, the first `Meta+H` reveals and focuses column 1 at 50%, stopping at `1|2`; the second `Meta+H` expands column 1 to 72%. `Meta+L` behaves symmetrically. The same rule applies between two preferred Wide columns: `3 (72%) → 3|4 → 4 (72%)` takes two `Meta+L` presses, even if the underlying scroll offset does not change. Opposite navigation or another focus/command cancels the pending expansion. Pointer, Dock, and Alt+Tab activation focus the column and keep Pair mode. Once column 2 is pointer-focused in Pair, the first directional key such as `Meta+L` centers preferred column 2 at 72%; the next `Meta+L` moves to column 3. The neighbor moves with the Wide animation and parks after completion. `Meta+Z` explicitly enters Wide from Pair or clears the preference and returns an active Wide column to Pair.
-- `Meta+Shift+Enter` toggles the active primary-screen window between the managed Column model and Floating. Both the main keyboard Return key and keypad Enter are registered because Qt treats them as different keys. Starting an interactive move or resize on a managed Column also detaches it automatically without rewriting that window's geometry. Mouse-detached windows remain the shortcut's pending reattachment target until they return or close, even if another primary Column or the secondary output owns focus; reattachment inserts the window to the right of the currently focused Column.
+- `Meta+Shift+Enter` toggles an eligible primary-screen window between the managed Column model and user Floating. On a policy-floating dialog it does nothing, including when another user-floating window is remembered. Both the main keyboard Return key and keypad Enter are registered because Qt treats them as different keys. Starting an interactive move or resize on a managed Column also detaches it automatically without rewriting that window's geometry. Mouse-detached windows remain the shortcut's pending reattachment target until they return or close, even if another primary Column or the secondary output owns focus; reattachment inserts the window to the right of the currently focused Column.
 - Custom Focus Ring rendering has been removed. The Dock now uses TaskManager's native per-window `IsActive`: inactive running-window icons are 90% opaque, while the active icon gets a subtle translucent green background and a centered 3 px green indicator. KWin's global Dim Inactive effect remains disabled because KWin 6.7.5 cannot exclude the secondary output.
 
-Later V3 work intentionally not included here includes tabbed/multi-window Columns, Overview integration, session persistence, and secondary-screen bidirectional ordering.
+Later V3 work intentionally not included here includes tabbed/multi-window Columns, Overview integration, persistence across desktop sessions, and secondary-screen bidirectional ordering.
 
 ## Tested environment
 
@@ -77,7 +79,7 @@ Secondary output:
 - Enabled on `HDMI-A-1`
 - Top / Bottom / Left / Right: 24 px
 - Inner tile gap: 8 px
-- Dialogs: excluded
+- Dialogs and transients: policy-floating
 - Debug logging: disabled
 
 On the tested `2560x1440` target this produces:
@@ -122,7 +124,7 @@ enabled state is recorded and restored by `uninstall.sh`. Consequently, native
 user-triggered minimize animation is unavailable while this fallback is active;
 the window operation itself remains unchanged.
 
-Open System Settings → Window Management → KWin Scripts to configure both output names, each monitor's outer and inner gaps, dialog handling, and debug logging.
+Open System Settings → Window Management → KWin Scripts to configure both output names, each monitor's outer and inner gaps, and debug logging.
 
 ## Shortcut
 
@@ -216,6 +218,10 @@ Managed-to-floating transitions, shortcut reattachment, drag detach, and the
 short focus-redirection guard are owned by
 `src/kwin/lifecycle/FloatingController.js`. The remembered drag target does not
 expire before the user explicitly reattaches or closes it.
+
+`src/kwin/policy/WindowPolicy.js` classifies window types for Column membership
+and safe-area layout eligibility. `AdoptionController` handles policy changes;
+policy-floating windows keep native placement and never set the user Floating flag.
 
 Cross-output ownership and fullscreen entry/exit recovery are owned by
 `OutputController` and `FullscreenController`. `ContextualViewport` alone writes

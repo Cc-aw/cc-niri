@@ -8,12 +8,13 @@ class AdoptionController {
         this.indexOfWindow = options.indexOfWindow;
         this.getAppState = options.getAppState;
         this.refreshAppState = options.refreshAppState;
-        this.isPlasmaShellWindow = options.isPlasmaShellWindow;
+        this.windowPolicy = options.windowPolicy;
+        this.dispositions = options.dispositions;
+        this.removeManagedWindow = options.removeManagedWindow;
         this.isLayoutMode = options.isLayoutMode;
         this.isTileMode = options.isTileMode;
         this.detectQuickTileMode = options.detectQuickTileMode;
         this.fullMaximizeMode = options.fullMaximizeMode;
-        this.scrollEligible = options.scrollEligible;
         this.adoptWindow = options.adoptWindow;
         this.settleLayout = options.settleLayout;
         this.rectText = options.rectText;
@@ -27,12 +28,24 @@ class AdoptionController {
         if (previous !== phase) {
             this.debug(`[cc-adoption] PHASE ${previous}->${phase}` +
                 ` caption=${window.caption} reason=${reason}`);
+            if (phase === this.phases.policyFloating ||
+                    phase === this.phases.ignored) {
+                const decision = this.windowPolicy.classify(window);
+                this.debug(`[cc-policy] ${decision.kind} reason=${decision.reason}` +
+                    ` caption=${window.caption}`);
+            }
         }
     }
 
     waitPhase(window, windowState) {
         const state = this.getAppState();
-        if (this.isPlasmaShellWindow(window)) return this.phases.ignored;
+        const decision = this.windowPolicy.classify(window);
+        if (decision.kind === this.dispositions.NATIVE_ONLY) {
+            return this.phases.ignored;
+        }
+        if (decision.kind === this.dispositions.POLICY_FLOATING) {
+            return this.phases.policyFloating;
+        }
         if (windowState.floating) return this.phases.floating;
         if (!state.enabled || !state.targetOutput ||
                 window.output !== state.targetOutput) {
@@ -43,7 +56,6 @@ class AdoptionController {
                 this.isTileMode(this.detectQuickTileMode(window))) {
             return this.phases.waitingNormal;
         }
-        if (!this.scrollEligible(window)) return this.phases.waitingEligible;
         if (!window.active) return this.phases.waitingActivation;
         return null;
     }
@@ -81,6 +93,7 @@ class AdoptionController {
             return this.indexOfWindow(window) >= 0;
         }
         if (windowState.adoptionPhase === this.phases.floating ||
+                windowState.adoptionPhase === this.phases.policyFloating ||
                 windowState.adoptionPhase === this.phases.ignored) return false;
         if (windowState.adoptionPhase === this.phases.settling &&
                 this.indexOfWindow(window) >= 0) {
@@ -109,6 +122,14 @@ class AdoptionController {
     begin(window, origin) {
         if (!window) return false;
         const windowState = this.stateFor(window);
+        const decision = this.windowPolicy.classify(window);
+        if (decision.kind !== this.dispositions.MANAGED_ELIGIBLE) {
+            this.transition(window, windowState,
+                decision.kind === this.dispositions.POLICY_FLOATING
+                    ? this.phases.policyFloating : this.phases.ignored,
+                origin);
+            return false;
+        }
         if (windowState.managedByScrollLayout || this.indexOfWindow(window) >= 0) {
             this.transition(window, windowState, this.phases.managed, origin);
             return true;
@@ -143,6 +164,34 @@ class AdoptionController {
     }
 
     onFullscreenChanged(window, reason = "fullscreen-exit") {
+        return this.advance(window, reason);
+    }
+
+    onPolicyChanged(window, reason) {
+        if (!window || !this.hasState(window)) return false;
+        const decision = this.windowPolicy.classify(window);
+        const windowState = this.stateFor(window);
+        if (decision.kind !== this.dispositions.MANAGED_ELIGIBLE &&
+                this.indexOfWindow(window) >= 0) {
+            this.removeManagedWindow(window, `policy-${decision.reason}`, false);
+        }
+        if (decision.kind === this.dispositions.POLICY_FLOATING) {
+            this.transition(window, windowState, this.phases.policyFloating, reason);
+            return false;
+        }
+        if (decision.kind === this.dispositions.NATIVE_ONLY) {
+            this.transition(window, windowState, this.phases.ignored, reason);
+            return false;
+        }
+        if (windowState.floating) {
+            this.transition(window, windowState, this.phases.floating, reason);
+            return false;
+        }
+        if (this.indexOfWindow(window) >= 0) {
+            this.transition(window, windowState, this.phases.managed, reason);
+            return true;
+        }
+        this.transition(window, windowState, this.phases.waitingEligible, reason);
         return this.advance(window, reason);
     }
 }

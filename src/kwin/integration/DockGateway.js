@@ -28,6 +28,11 @@ class DockGateway {
         return this.generationValue;
     }
 
+    readPreviousState(callback) {
+        this.invoke(this.service, this.path, this.interfaceName,
+            "GetState", callback);
+    }
+
     envelopeSnapshot(snapshot) {
         return Object.assign({}, snapshot, {
             protocol: this.protocol,
