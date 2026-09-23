@@ -3,6 +3,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { FullscreenController } =
     require("../src/kwin/lifecycle/FullscreenController");
+const { ContextualViewport } =
+    require("../src/kwin/presentation/ContextualViewport");
 
 function fixture(overrides = {}) {
     const calls = [];
@@ -13,9 +15,11 @@ function fixture(overrides = {}) {
         layoutModeBeforeFullscreen: "normal",
         ...overrides.state,
     };
+    const viewport = new ContextualViewport(appState || { columns: [] });
     const options = {
         stateFor: () => state,
         getAppState: () => appState,
+        viewport,
         indexOfWindow: () => -1,
         relayout: reason => calls.push(["relayout", reason]),
         onManagedOutput: () => false,
@@ -26,7 +30,7 @@ function fixture(overrides = {}) {
         debug: message => calls.push(["debug", message]),
         ...overrides.options,
     };
-    return { controller: new FullscreenController(options), state, calls,
+    return { controller: new FullscreenController(options), viewport, state, calls,
         appState };
 }
 
@@ -36,19 +40,34 @@ function fixture(overrides = {}) {
         columns: [wideColumn],
         viewport: { mode: "wide-focus", wideColumnId: 7 },
     };
-    const { controller, state, calls } = fixture({
+    const { controller, viewport, state, calls } = fixture({
         appState,
         options: { indexOfWindow: () => 0 },
     });
     controller.onFullscreenChanged(makeWindow(true));
     assert.deepEqual(state.viewportBeforeFullscreen,
         { mode: "wide-focus", wideColumnId: 7 });
-    appState.viewport = { mode: "pair", wideColumnId: null };
+    viewport.pair();
     controller.onFullscreenChanged(makeWindow(false));
     assert.deepEqual(appState.viewport,
         { mode: "wide-focus", wideColumnId: 7 });
     assert.equal(wideColumn.persistentWide, true);
     assert.deepEqual(calls.at(-1), ["relayout", "fullscreen-exit"]);
+}
+
+{
+    const wideColumn = { id: 7, persistentWide: true };
+    const appState = { columns: [wideColumn], scrollOffsetX: 0,
+        viewport: { mode: "pair", wideColumnId: null } };
+    const { controller, viewport } = fixture({ appState,
+        options: { indexOfWindow: () => 0 } });
+    viewport.select(wideColumn, { source: "directional", changedFocus: true,
+        viewportMoved: true, direction: -1 });
+    assert.ok(viewport.pendingReveal);
+    controller.onFullscreenChanged(makeWindow(true));
+    controller.onFullscreenChanged(makeWindow(false));
+    assert.equal(viewport.pendingReveal, null);
+    assert.equal(appState.viewport.mode, "pair");
 }
 
 {

@@ -3,6 +3,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { PresentationController } =
     require("../src/kwin/presentation/PresentationController");
+const { ContextualViewport } =
+    require("../src/kwin/presentation/ContextualViewport");
 
 const modes = { normal: "normal", wide: "wide", maximized: "maximized" };
 const primary = { name: "DP-1" };
@@ -44,8 +46,10 @@ function fixture(overrides = {}) {
         ...overrides.windowState,
     }]]);
     let activeWindow = overrides.activeWindow || null;
+    const viewport = new ContextualViewport(appState);
     const options = {
         getAppState: () => appState,
+        viewport,
         normalizeUuid: value => String(value || "").toLowerCase()
             .replace(/^\{/, "").replace(/\}$/, ""),
         stateFor: target => states.get(target),
@@ -77,6 +81,7 @@ function fixture(overrides = {}) {
     };
     return {
         controller: new PresentationController(options),
+        viewport,
         appState,
         states,
         window,
@@ -194,6 +199,28 @@ for (const [uuid, mode, output] of [
     const { controller, calls } = fixture({ window });
     assert.equal(controller.setMode(uuid, mode, "rejected"), false);
     assert.deepEqual(calls, []);
+}
+
+for (const startingWide of [true, false]) {
+    const h = fixture();
+    h.column.persistentWide = true;
+    if (startingWide) h.viewport.wide(h.column);
+    h.controller.setMode("abc", "maximized", "maximize");
+    h.controller.restoreFromMaximize("abc", "restore");
+    assert.equal(h.appState.viewport.mode,
+        startingWide ? "wide-focus" : "pair");
+    assert.equal(h.column.persistentWide, true);
+}
+
+{
+    const h = fixture();
+    h.column.persistentWide = true;
+    h.viewport.select(h.column, { source: "directional",
+        changedFocus: true, viewportMoved: true, direction: -1 });
+    assert.ok(h.viewport.pendingReveal);
+    h.controller.setMode("abc", "maximized", "maximize");
+    h.controller.restoreFromMaximize("abc", "restore");
+    assert.equal(h.viewport.pendingReveal, null);
 }
 
 const mainSource = fs.readFileSync(

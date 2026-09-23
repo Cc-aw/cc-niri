@@ -37,6 +37,7 @@ const targets = [
             "src/kwin/integration/DockGateway.js",
             "src/kwin/presentation/PresentationController.js",
             "src/kwin/presentation/ContextualViewport.js",
+            "src/kwin/presentation/ContextualWideCoordinator.js",
             "src/kwin/navigation/DockScrollController.js",
             "src/kwin/navigation/ReorderController.js",
         ],

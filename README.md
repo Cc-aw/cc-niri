@@ -1,6 +1,6 @@
 # CC Niri Maximize
 
-CC Niri Maximize V3 is being implemented in phases on top of the working V2 safe-area script. Version `3.0.0-alpha.38` enables native-clipped full-delta Column scrolling while retaining dual Return and keypad Enter Floating bindings, shared Motion tokens, generation-checked Dock ordering, and retargetable motion.
+CC Niri Maximize V3 is being implemented in phases on top of the working V2 safe-area script. Version `3.0.0-alpha.39` hardens Contextual Wide runtime transitions and continuous Wide/Pair motion. Alpha.38 introduced native-clipped full-delta ordinary scrolling.
 
 ## Current V3 phase
 
@@ -31,7 +31,7 @@ Implemented in this alpha:
 - Phase 4B adds the native `cc-niri-viewport-clip` KWin effect. The scripted motion effect publishes each active transaction's logical safe viewport through `EffectWindow` data role `1001`; the native effect converts it with KWin's `RenderViewport::mapToDeviceCoordinates()` and intersects the device paint region. Phase 5 advertises native availability through role `1002` and enables full-delta right-edge motion only after observing that marker on the affected window. If the native effect is absent or unloaded, right-edge motion automatically falls back to the existing 20 px in-slot reveal. The transaction marker is removed on completion or cancellation, and direct scanout is blocked only while marked motion windows exist.
 - The Dock task context menu adds a compact `CC Scroll` section with Normal, Focus Wide, and Maximize in Safe Area. Wide is exactly 72% of the safe area and centered; Wide and Maximize park all neighboring managed windows without changing logical or Dock order.
 - KDE's native maximize button and the Dock's Maximize in Safe Area action enter the same presentation state; restore returns to the exact two-column layout.
-- Focus Wide is a persistent per-Column preference for the current KWin session. Directional navigation into a preferred column already visible in the current pair expands it to 72%. An off-screen preferred column takes two key presses: from `2|3`, the first `Meta+H` reveals and focuses column 1 at 50%, stopping at `1|2`; the second `Meta+H` expands column 1 to 72%. `Meta+L` behaves symmetrically. The same rule applies between two preferred Wide columns: `3 (72%) → 3|4 → 4 (72%)` takes two `Meta+L` presses, even if the underlying scroll offset does not change. Opposite navigation or another focus/command cancels the pending expansion. Pointer, Dock, and Alt+Tab activation keep Pair mode. The neighbor moves with the Wide animation and parks after completion. `Meta+Z` explicitly enters Wide from Pair or clears the preference and returns an active Wide column to Pair.
+- Focus Wide is a persistent per-Column preference for the current KWin session, not permanent geometry. Pair always displays `1 (50%) | 2 (50%)`, even if column 1 prefers Wide. From `1|2` with focus on 2, `Meta+H` expands preferred column 1 to a centered 72% view with empty sides. An off-screen preferred column takes two key presses: from `2|3`, the first `Meta+H` reveals and focuses column 1 at 50%, stopping at `1|2`; the second `Meta+H` expands column 1 to 72%. `Meta+L` behaves symmetrically. The same rule applies between two preferred Wide columns: `3 (72%) → 3|4 → 4 (72%)` takes two `Meta+L` presses, even if the underlying scroll offset does not change. Opposite navigation or another focus/command cancels the pending expansion. Pointer, Dock, and Alt+Tab activation focus the column and keep Pair mode. Once column 2 is pointer-focused in Pair, the first directional key such as `Meta+L` centers preferred column 2 at 72%; the next `Meta+L` moves to column 3. The neighbor moves with the Wide animation and parks after completion. `Meta+Z` explicitly enters Wide from Pair or clears the preference and returns an active Wide column to Pair.
 - `Meta+Shift+Enter` toggles the active primary-screen window between the managed Column model and Floating. Both the main keyboard Return key and keypad Enter are registered because Qt treats them as different keys. Starting an interactive move or resize on a managed Column also detaches it automatically without rewriting that window's geometry. Mouse-detached windows remain the shortcut's pending reattachment target until they return or close, even if another primary Column or the secondary output owns focus; reattachment inserts the window to the right of the currently focused Column.
 - Custom Focus Ring rendering has been removed. The Dock now uses TaskManager's native per-window `IsActive`: inactive running-window icons are 90% opaque, while the active icon gets a subtle translucent green background and a centered 3 px green indicator. KWin's global Dim Inactive effect remains disabled because KWin 6.7.5 cannot exclude the secondary output.
 
@@ -218,12 +218,20 @@ short focus-redirection guard are owned by
 expire before the user explicitly reattaches or closes it.
 
 Cross-output ownership and fullscreen entry/exit recovery are owned by
-`OutputController` and `FullscreenController`. Presentation mode, the selected
-presentation Column, 72% geometry, and per-Column persistent Wide state are
-owned by `src/kwin/presentation/PresentationController.js`; the deferred Wide
-geometry acknowledgement sequence, pending tokens, discrete navigation step,
-and neighbor-parking timing are owned by
-`src/kwin/presentation/WideTransition.js`.
+`OutputController` and `FullscreenController`. `ContextualViewport` alone writes
+Pair/Wide Focus viewport state and owns directional focus intent and pending
+reveal confirmation. `PresentationController` owns Normal/Safe Maximize and
+explicit Wide preference commands; it changes viewport through that owner.
+`ContextualWideCoordinator` owns runtime Wide/Pair transition state, geometry
+acknowledgements, motion completion, parking, and deferred activation.
+
+The motion pipeline is `ContextualViewport → LayoutEngine → LayoutSnapshot →
+Viewport Motion Plan → MotionPlanCommitGate → Bridge.PublishMotionPlan → Native
+Viewport Effect → EffectWindow role 1003 → geometry commit → Scripted Effect →
+role 1004 completion → Native Effect → Bridge → ContextualWideCoordinator →
+final park`. `MotionPlanCommitGate` commits safe geometry after a 150 ms local
+handoff timeout if the Bridge callback never arrives. A late ACK cannot commit
+the same plan twice.
 
 Dock session identity, generation checks, state envelopes, command schema
 validation, dispatch, and all Bridge D-Bus traffic are owned by
@@ -253,13 +261,12 @@ fragment coordinates are not global logical coordinates, so production discard
 remains blocked. The shader is diagnostic only and does not authorize full-delta
 motion.
 
-The production Phase 4B implementation lives in `native/viewport-clip/`.
-`MotionController` publishes and clears data role `1001`; the native effect
-clips only marked windows in device space and logs each distinct logical-to-
-device mapping. It also publishes capability role `1002` on every EffectWindow;
-the scripted effect requires that exact marker before using full-delta right-edge
-motion. It is intentionally limited to clipping—layout, motion timing, parking,
-and Dock integration remain in their existing owners.
+The native effect lives in `native/viewport-clip/`. It clips role `1001` marked
+windows in RenderViewport device space, advertises capability role `1002`,
+receives motion metadata through role `1003`, relays completion from role `1004`,
+clears parked markers, and requests repaints. The scripted effect requires the
+capability marker before full-delta right-edge motion. Layout, focus, Column
+order, viewport decisions, and Dock state remain in their respective owners.
 
 Scroll batches are represented by `src/effect/MotionTransaction.js`, with a
 stable id/epoch, motion type, delta, and grouped continuing, incoming, and

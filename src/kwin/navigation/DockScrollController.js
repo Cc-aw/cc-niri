@@ -113,7 +113,9 @@ class DockScrollController {
             column,
             `${pending.reason}-arrive`,
             offset,
-            offset
+            offset,
+            0,
+            true
         );
         if (!this.isActivationDeferred() && column.window.minimized) {
             column.window.minimized = false;

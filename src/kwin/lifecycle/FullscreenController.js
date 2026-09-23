@@ -4,6 +4,7 @@ class FullscreenController {
     constructor(options) {
         this.stateFor = options.stateFor;
         this.getAppState = options.getAppState;
+        this.viewport = options.viewport;
         this.indexOfWindow = options.indexOfWindow;
         this.relayout = options.relayout;
         this.onManagedOutput = options.onManagedOutput;
@@ -19,6 +20,7 @@ class FullscreenController {
         if (state.internalChange) return false;
 
         if (window.fullScreen) {
+            this.viewport.cancelReveal();
             state.layoutModeBeforeFullscreen = state.layoutMode;
             const appState = this.getAppState ? this.getAppState() : null;
             state.viewportBeforeFullscreen = appState && appState.viewport
@@ -30,17 +32,8 @@ class FullscreenController {
         const prior = state.layoutModeBeforeFullscreen;
         state.layoutModeBeforeFullscreen = this.normalMode;
         if (this.indexOfWindow(window) >= 0) {
-            const appState = this.getAppState ? this.getAppState() : null;
             const previous = state.viewportBeforeFullscreen;
-            if (appState && appState.viewport && previous) {
-                const wideColumn = previous.mode === "wide-focus"
-                    ? appState.columns.find(column =>
-                        column.id === previous.wideColumnId &&
-                        column.persistentWide) : null;
-                appState.viewport = wideColumn
-                    ? Object.assign({}, previous)
-                    : { mode: "pair", wideColumnId: null };
-            }
+            if (previous) this.viewport.restore(previous);
             state.viewportBeforeFullscreen = null;
             this.relayout("fullscreen-exit");
         } else if (this.onManagedOutput(window) && this.isLayoutMode(prior)) {

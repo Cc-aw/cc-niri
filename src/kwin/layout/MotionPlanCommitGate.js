@@ -6,14 +6,29 @@ class MotionPlanCommitGate {
         this.currentEpoch = options.currentEpoch;
         this.commit = options.commit;
         this.warn = options.warn;
+        this.timeoutMs = options.timeoutMs === undefined ? 150 : options.timeoutMs;
+        this.setTimer = options.setTimer;
+        this.clearTimer = options.clearTimer;
         this.pending = null;
     }
 
     schedule(plan, envelope, context) {
-        const pending = { plan, context, activationWindow: null };
+        this.cancel();
+        const pending = { plan, context, activationWindow: null, timer: null };
         this.pending = pending;
+        pending.timer = this.setTimer(() => {
+            if (this.pending !== pending) return;
+            this.clearTimer(pending.timer);
+            this.pending = null;
+            if (this.currentEpoch() !== plan.epoch) return;
+            this.warn(`[MOTION_TX] handoff timeout epoch=${plan.epoch}`);
+            this.commit(plan, Object.assign({}, context, {
+                motionFallback: true,
+            }), pending.activationWindow);
+        }, this.timeoutMs);
         this.publish(envelope, accepted => {
             if (this.pending !== pending) return;
+            this.clearTimer(pending.timer);
             this.pending = null;
             if (this.currentEpoch() !== plan.epoch) return;
             if (!accepted) {
@@ -33,6 +48,7 @@ class MotionPlanCommitGate {
     cancel() {
         const pending = this.pending;
         this.pending = null;
+        if (pending) this.clearTimer(pending.timer);
         return pending;
     }
 }

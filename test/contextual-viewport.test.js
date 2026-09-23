@@ -34,6 +34,13 @@ viewport.wide(wide);
 wide.persistentWide = false;
 assert.equal(viewport.column(), null);
 assert.equal(appState.viewport.mode, ViewportMode.PAIR);
+wide.persistentWide = true;
+viewport.restore({ mode: ViewportMode.WIDE_FOCUS, wideColumnId: wide.id });
+assert.equal(appState.viewport.mode, ViewportMode.WIDE_FOCUS);
+viewport.restore({ mode: ViewportMode.PAIR, wideColumnId: wide.id });
+assert.equal(appState.viewport.mode, ViewportMode.PAIR);
+viewport.restore({ mode: ViewportMode.WIDE_FOCUS, wideColumnId: 999 });
+assert.equal(appState.viewport.mode, ViewportMode.PAIR);
 const mainSource = fs.readFileSync(
     path.join(__dirname, "../package/contents/code/main.js"), "utf8"
 );

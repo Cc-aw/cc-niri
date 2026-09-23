@@ -29,8 +29,9 @@ run("patch whitespace", "git", ["diff", "--check"]);
 
 if (native) {
     run("Bridge native build", "cmake", ["--build", "build/bridge"]);
+    run("Viewport clip native build", "cmake", ["--build", "build/native-viewport-clip"]);
     run("Plasmoid native build", "cmake", ["--build", "build/plasmoid"]);
 }
 
-process.stdout.write(`\nPASS Phase 13 regression gate (${tests.length} tests)` +
+process.stdout.write(`\nPASS CC Niri regression gate (${tests.length} tests)` +
     `${native ? " with native builds" : ""}\n`);

@@ -42,7 +42,7 @@ function setup(wideIndex, offset, focusedIndex) {
     recompute();
     const context = vm.createContext({
         mainScreenState: state, contextualViewport: viewport, columnStore: store,
-        contextualWideExit: null,
+        contextualWideCoordinator: { isActivationDeferred: () => false },
         PRESENTATION_NORMAL: "normal", FocusSource,
         workspace: { activeWindow: state.columns[focusedIndex].window },
         dockScrollController: { cancel: () => false },
@@ -109,6 +109,30 @@ const alreadyVisible = setup(0, 0, 1);
 alreadyVisible.press(-1);
 assert.equal(alreadyVisible.state.viewport.mode, ViewportMode.WIDE_FOCUS,
     "entering a preferred column already in the pair still expands immediately");
+
+const pointerFocused = setup(1, 0, 1);
+pointerFocused.viewport.select(pointerFocused.state.columns[1], {
+    source: FocusSource.POINTER, changedFocus: true,
+});
+assert.equal(pointerFocused.state.viewport.mode, ViewportMode.PAIR);
+pointerFocused.press(1);
+assert.equal(pointerFocused.state.viewport.mode, ViewportMode.WIDE_FOCUS,
+    "first L after pointer focus expands the focused preferred column");
+assert.equal(pointerFocused.state.viewport.wideColumnId, 2);
+assert.equal(pointerFocused.state.focusedColumnIndex, 1);
+assert.equal(pointerFocused.frames[0].plan.windows[1].rect.width, 1809);
+pointerFocused.press(1);
+assert.equal(pointerFocused.state.viewport.mode, ViewportMode.PAIR);
+assert.equal(pointerFocused.state.focusedColumnIndex, 2,
+    "second L navigates to the next column");
+
+const oppositeAfterReveal = setup(0, 1260, 1);
+oppositeAfterReveal.press(-1);
+assert.ok(oppositeAfterReveal.viewport.pendingReveal);
+oppositeAfterReveal.press(1);
+assert.equal(oppositeAfterReveal.state.viewport.mode, ViewportMode.PAIR);
+assert.equal(oppositeAfterReveal.state.focusedColumnIndex, 1,
+    "opposite direction cancels a pending off-screen reveal");
 
 // A neighbor of an exclusive Wide view is not currently visible, even when
 // both columns project into the same underlying pair and the offset is fixed.

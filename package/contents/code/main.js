@@ -359,14 +359,29 @@ class MotionPlanCommitGate {
         this.currentEpoch = options.currentEpoch;
         this.commit = options.commit;
         this.warn = options.warn;
+        this.timeoutMs = options.timeoutMs === undefined ? 150 : options.timeoutMs;
+        this.setTimer = options.setTimer;
+        this.clearTimer = options.clearTimer;
         this.pending = null;
     }
 
     schedule(plan, envelope, context) {
-        const pending = { plan, context, activationWindow: null };
+        this.cancel();
+        const pending = { plan, context, activationWindow: null, timer: null };
         this.pending = pending;
+        pending.timer = this.setTimer(() => {
+            if (this.pending !== pending) return;
+            this.clearTimer(pending.timer);
+            this.pending = null;
+            if (this.currentEpoch() !== plan.epoch) return;
+            this.warn(`[MOTION_TX] handoff timeout epoch=${plan.epoch}`);
+            this.commit(plan, Object.assign({}, context, {
+                motionFallback: true,
+            }), pending.activationWindow);
+        }, this.timeoutMs);
         this.publish(envelope, accepted => {
             if (this.pending !== pending) return;
+            this.clearTimer(pending.timer);
             this.pending = null;
             if (this.currentEpoch() !== plan.epoch) return;
             if (!accepted) {
@@ -386,6 +401,7 @@ class MotionPlanCommitGate {
     cancel() {
         const pending = this.pending;
         this.pending = null;
+        if (pending) this.clearTimer(pending.timer);
         return pending;
     }
 }
@@ -1800,6 +1816,7 @@ class FullscreenController {
     constructor(options) {
         this.stateFor = options.stateFor;
         this.getAppState = options.getAppState;
+        this.viewport = options.viewport;
         this.indexOfWindow = options.indexOfWindow;
         this.relayout = options.relayout;
         this.onManagedOutput = options.onManagedOutput;
@@ -1815,6 +1832,7 @@ class FullscreenController {
         if (state.internalChange) return false;
 
         if (window.fullScreen) {
+            this.viewport.cancelReveal();
             state.layoutModeBeforeFullscreen = state.layoutMode;
             const appState = this.getAppState ? this.getAppState() : null;
             state.viewportBeforeFullscreen = appState && appState.viewport
@@ -1826,17 +1844,8 @@ class FullscreenController {
         const prior = state.layoutModeBeforeFullscreen;
         state.layoutModeBeforeFullscreen = this.normalMode;
         if (this.indexOfWindow(window) >= 0) {
-            const appState = this.getAppState ? this.getAppState() : null;
             const previous = state.viewportBeforeFullscreen;
-            if (appState && appState.viewport && previous) {
-                const wideColumn = previous.mode === "wide-focus"
-                    ? appState.columns.find(column =>
-                        column.id === previous.wideColumnId &&
-                        column.persistentWide) : null;
-                appState.viewport = wideColumn
-                    ? Object.assign({}, previous)
-                    : { mode: "pair", wideColumnId: null };
-            }
+            if (previous) this.viewport.restore(previous);
             state.viewportBeforeFullscreen = null;
             this.relayout("fullscreen-exit");
         } else if (this.onManagedOutput(window) && this.isLayoutMode(prior)) {
@@ -2009,6 +2018,7 @@ class DockGateway {
 class PresentationController {
     constructor(options) {
         this.getAppState = options.getAppState;
+        this.viewport = options.viewport;
         this.normalizeUuid = options.normalizeUuid;
         this.stateFor = options.stateFor;
         this.setLayoutMode = options.setLayoutMode;
@@ -2085,10 +2095,7 @@ class PresentationController {
         this.resetPresentedWindowLayoutState();
         appState.presentation.windowUuid = null;
         appState.presentation.mode = this.modes.normal;
-        if (appState.viewport) {
-            appState.viewport.mode = "pair";
-            appState.viewport.wideColumnId = null;
-        }
+        this.viewport.pair();
     }
 
     selectPersistent(column) {
@@ -2102,7 +2109,7 @@ class PresentationController {
             oldMode !== appState.presentation.mode;
     }
 
-    setMode(windowUuid, mode, reason) {
+    setMode(windowUuid, mode, reason, restoreViewport = null) {
         if (!this.isMode(mode)) return false;
         const appState = this.getAppState();
         const normalizedUuid = this.normalizeUuid(windowUuid);
@@ -2133,25 +2140,19 @@ class PresentationController {
         }
 
         if (mode === this.modes.normal) {
-            column.persistentWide = false;
+            if (!restoreViewport) column.persistentWide = false;
             appState.presentation.windowUuid = null;
             appState.presentation.mode = this.modes.normal;
-            if (appState.viewport) {
-                appState.viewport.mode = "pair";
-                appState.viewport.wideColumnId = null;
-            }
+            if (restoreViewport) this.viewport.restore(restoreViewport);
+            else this.viewport.pair();
         } else {
             if (mode === this.modes.wide) column.persistentWide = true;
             appState.presentation.windowUuid = mode === this.modes.maximized
                 ? normalizedUuid : null;
             appState.presentation.mode = mode === this.modes.maximized
                 ? mode : this.modes.normal;
-            if (appState.viewport) {
-                appState.viewport.mode = mode === this.modes.wide
-                    ? "wide-focus" : "pair";
-                appState.viewport.wideColumnId = mode === this.modes.wide
-                    ? column.id : null;
-            }
+            if (mode === this.modes.wide) this.viewport.wide(column);
+            else this.viewport.pair();
             if (mode === this.modes.maximized) {
                 targetState.internalChange = true;
                 try {
@@ -2182,14 +2183,9 @@ class PresentationController {
         const column = appState.columns.find(item =>
             this.normalizeUuid(item.window.internalId) === normalizedUuid);
         if (!column) return false;
-        const preference = Boolean(column.persistentWide);
         const previous = appState.prePresentationViewport;
-        const restoreWide = preference && previous &&
-            previous.mode === "wide-focus" &&
-            previous.wideColumnId === column.id;
-        const restored = this.setMode(windowUuid,
-            restoreWide ? this.modes.wide : this.modes.normal, reason);
-        if (restored) column.persistentWide = preference;
+        const restored = this.setMode(windowUuid, this.modes.normal, reason,
+            previous || { mode: "pair" });
         appState.prePresentationViewport = null;
         return restored;
     }
@@ -2218,11 +2214,13 @@ class ContextualViewport {
     constructor(appState) {
         this.appState = appState;
         this.pendingReveal = null;
+        this.pendingFocusedWide = null;
         if (!appState.viewport) this.pair();
     }
 
     cancelReveal() {
         this.pendingReveal = null;
+        this.pendingFocusedWide = null;
     }
 
     pair() {
@@ -2244,6 +2242,17 @@ class ContextualViewport {
             old.wideColumnId !== column.id;
     }
 
+    restore(snapshot) {
+        this.cancelReveal();
+        if (!snapshot || snapshot.mode !== ViewportMode.WIDE_FOCUS) {
+            return this.pair();
+        }
+        const column = this.appState.columns.find(item =>
+            item.id === snapshot.wideColumnId);
+        return column && column.persistentWide
+            ? this.wide(column) : this.pair();
+    }
+
     column() {
         const state = this.appState.viewport;
         if (!state || state.mode !== ViewportMode.WIDE_FOCUS) return null;
@@ -2257,7 +2266,15 @@ class ContextualViewport {
     }
 
     select(column, intent) {
-        if (!shouldEnterWide(column, intent)) return this.pair();
+        if (!shouldEnterWide(column, intent)) {
+            const changed = this.pair();
+            if (column && column.persistentWide && intent &&
+                    intent.source !== FocusSource.DIRECTIONAL &&
+                    intent.changedFocus) {
+                this.pendingFocusedWide = column;
+            }
+            return changed;
+        }
         const viewport = this.appState.viewport;
         const leavingOtherWide = viewport.mode === ViewportMode.WIDE_FOCUS &&
             viewport.wideColumnId !== column.id;
@@ -2285,6 +2302,281 @@ class ContextualViewport {
                 this.appState.viewport.mode !== ViewportMode.PAIR ||
                 this.appState.scrollOffsetX !== pending.scrollOffsetX) return false;
         return this.wide(column);
+    }
+
+    enterFocusedWide(column, direction) {
+        if (this.pendingReveal) return this.confirmReveal(column, direction);
+        const armed = this.pendingFocusedWide === column;
+        this.pendingFocusedWide = null;
+        if (!armed || !column || !column.persistentWide ||
+                this.appState.columns.indexOf(column) < 0 ||
+                this.appState.viewport.mode !== ViewportMode.PAIR) return false;
+        return this.wide(column);
+    }
+}
+
+// Generated from src/kwin/presentation/ContextualWideCoordinator.js
+class ContextualWideCoordinator {
+    constructor(options) {
+        this.appState = options.appState;
+        this.gateway = options.gateway;
+        this.projectedRectForColumn = options.projectedRectForColumn;
+        this.isFullyVisible = options.isFullyVisible;
+        this.sameRectNear = options.sameRectNear;
+        this.presentationRect = options.presentationRect;
+        this.normalizeUuid = options.normalizeUuid;
+        this.relayout = options.relayout;
+        this.setActiveWindow = options.setActiveWindow;
+        this.setTimer = options.setTimer;
+        this.clearTimer = options.clearTimer;
+        this.debug = options.debug;
+        this.warn = options.warn;
+        this.parkGraceMs = options.parkGraceMs;
+        this.retryMs = options.retryMs;
+        this.maxAttempts = options.maxAttempts;
+        this.lastCommittedViewport = { mode: "pair", wideColumnId: null };
+        this.pendingPark = null;
+        this.pendingExit = null;
+        this.nextParkToken = 1;
+        this.nextExitToken = 1;
+    }
+
+    cancel() {
+        this.releasePark();
+        this.clearPendingTimer(this.pendingExit);
+        this.pendingExit = null;
+    }
+
+    cancelExit() {
+        this.clearPendingTimer(this.pendingExit);
+        this.pendingExit = null;
+    }
+
+    clearPendingTimer(pending) {
+        if (pending && pending.timer) {
+            this.clearTimer(pending.timer);
+            pending.timer = null;
+        }
+    }
+
+    releasePark() {
+        const pending = this.pendingPark;
+        if (!pending) return;
+        this.clearPendingTimer(pending);
+        this.pendingPark = null;
+        this.gateway.reportMotionParked({
+            type: "PAIR_TO_WIDE",
+            transitionToken: pending.token,
+            targetWindowUuid: this.normalizeUuid(pending.target.window.internalId),
+        }, () => {});
+    }
+
+    cancelForWindow(window) {
+        if (this.pendingPark &&
+                (this.pendingPark.target.window === window ||
+                 this.pendingPark.neighbor.window === window)) {
+            this.releasePark();
+        }
+        if (this.pendingExit && this.pendingExit.target.window === window) {
+            this.clearPendingTimer(this.pendingExit);
+            this.pendingExit = null;
+        }
+    }
+
+    isActivationDeferred() {
+        return Boolean(this.pendingExit);
+    }
+
+    deferActivation(window) {
+        if (!this.pendingExit) return false;
+        this.pendingExit.activationWindow = window;
+        return true;
+    }
+
+    retainedNeighbor() {
+        return this.pendingPark ? this.pendingPark.neighbor : null;
+    }
+
+    parkToken() {
+        return this.pendingPark ? this.pendingPark.token : null;
+    }
+
+    wideExitColumn() {
+        const state = this.appState;
+        return this.lastCommittedViewport.mode === "wide-focus" &&
+            state.presentation.mode === "normal" &&
+            state.viewport.mode === "pair"
+            ? state.columns.find(column =>
+                column.id === this.lastCommittedViewport.wideColumnId) || null
+            : null;
+    }
+
+    prepareLayoutTransition(target) {
+        const state = this.appState;
+        if (this.pendingExit && (state.viewport.mode !== "pair" ||
+                state.columns.indexOf(this.pendingExit.target) < 0)) {
+            this.cancelExit();
+        }
+        if (!target || state.viewport.mode !== "wide-focus") {
+            this.releasePark();
+            return;
+        }
+        if (this.pendingPark && this.pendingPark.target === target) return;
+        if (this.lastCommittedViewport.mode !== "pair") return;
+        const targetRect = this.projectedRectForColumn(target);
+        const neighbor = state.columns.find(column => {
+            if (column === target) return false;
+            const rect = this.projectedRectForColumn(column);
+            return this.isFullyVisible(rect) &&
+                Math.abs(rect.y - targetRect.y) < 2 &&
+                (Math.abs(rect.x - targetRect.x - targetRect.width -
+                    state.innerGap) < 3 ||
+                 Math.abs(rect.x + rect.width + state.innerGap -
+                    targetRect.x) < 3);
+        }) || null;
+        if (!neighbor) return;
+        this.pendingPark = {
+            token: String(this.nextParkToken++), target, neighbor,
+            attempts: 0, scheduled: false,
+        };
+        this.debug(`[cc-presentation] RETAIN_PAIR_NEIGHBOR token=${this.pendingPark.token}` +
+            ` target=${target.id} neighbor=${neighbor.id}`);
+    }
+
+    onPlanCommitted(plan, wideExitColumn, commitResult, activationWindow) {
+        const state = this.appState;
+        if (wideExitColumn && commitResult.heldIncoming.length) {
+            this.clearPendingTimer(this.pendingExit);
+            this.pendingExit = {
+                token: String(this.nextExitToken++), target: wideExitColumn,
+                expected: plan.windows.find(item =>
+                    item.column === wideExitColumn).rect,
+                attempts: 0, activationWindow,
+            };
+        }
+        this.lastCommittedViewport = Object.assign({}, state.viewport);
+        if (this.pendingExit && this.pendingExit.attempts === 0) {
+            this.requestExit(this.pendingExit);
+        }
+        if (this.pendingPark && !this.pendingPark.scheduled) {
+            this.pendingPark.scheduled = true;
+            this.requestPark(this.pendingPark, this.retryMs);
+        }
+        if (activationWindow && !this.pendingExit) {
+            this.setActiveWindow(activationWindow);
+        }
+    }
+
+    requestPark(pending, delayMs) {
+        this.clearPendingTimer(pending);
+        const command = {
+            commandId: `${this.gateway.sessionId()}-contextual-wide-${pending.token}-` +
+                `${pending.attempts++}`,
+            type: "finalize-contextual-wide",
+            transitionToken: pending.token,
+            windowUuid: this.normalizeUuid(pending.target.window.internalId),
+        };
+        pending.commandId = command.commandId;
+        pending.timer = this.setTimer(() => {
+            if (this.pendingPark === pending &&
+                    pending.commandId === command.commandId) {
+                this.finalizePark(command);
+            }
+        }, delayMs + 150);
+        this.gateway.requestDeferred(command, delayMs, accepted => {
+            if (!accepted) this.finalizePark(command);
+        });
+    }
+
+    finalizePark(command) {
+        const pending = this.pendingPark;
+        const state = this.appState;
+        if (!pending || pending.token !== String(command.transitionToken) ||
+                (!command.motionCompleted &&
+                 pending.commandId !== command.commandId) ||
+                state.viewport.mode !== "wide-focus" ||
+                state.viewport.wideColumnId !== pending.target.id ||
+                state.columns.indexOf(pending.target) < 0) return false;
+        this.clearPendingTimer(pending);
+        if (command.motionCompleted) pending.motionCompleted = true;
+        if (!this.sameRectNear(pending.target.window.frameGeometry,
+                this.presentationRect()) && pending.attempts <= this.maxAttempts) {
+            this.requestPark(pending, this.retryMs);
+            return true;
+        }
+        if (!pending.geometryAcknowledged) {
+            pending.geometryAcknowledged = true;
+            if (!pending.motionCompleted) {
+                this.requestPark(pending, this.parkGraceMs);
+                return true;
+            }
+        }
+        this.pendingPark = null;
+        const offset = state.scrollOffsetX;
+        this.relayout("contextual-wide-park", {
+            oldScrollOffsetX: offset, newScrollOffsetX: offset,
+        });
+        this.gateway.reportMotionParked({
+            type: "PAIR_TO_WIDE",
+            transitionToken: pending.token,
+            targetWindowUuid: this.normalizeUuid(pending.target.window.internalId),
+        }, accepted => {
+            if (!accepted) this.warn("[cc-presentation] motion-park repaint rejected");
+        });
+        return true;
+    }
+
+    requestExit(pending, delayMs = this.retryMs) {
+        this.clearPendingTimer(pending);
+        const command = {
+            commandId: `${this.gateway.sessionId()}-contextual-wide-exit-` +
+                `${pending.token}-${pending.attempts++}`,
+            type: "finalize-contextual-wide-exit",
+            transitionToken: pending.token,
+            windowUuid: this.normalizeUuid(pending.target.window.internalId),
+        };
+        pending.commandId = command.commandId;
+        pending.timer = this.setTimer(() => {
+            if (this.pendingExit === pending &&
+                    pending.commandId === command.commandId) {
+                this.finalizeExit(command);
+            }
+        }, delayMs + 150);
+        this.gateway.requestDeferred(command, delayMs, accepted => {
+            if (!accepted) this.finalizeExit(command);
+        });
+    }
+
+    finalizeExit(command) {
+        const pending = this.pendingExit;
+        if (!pending || pending.token !== String(command.transitionToken) ||
+                pending.commandId !== command.commandId) return false;
+        this.clearPendingTimer(pending);
+        if (!this.sameRectNear(pending.target.window.frameGeometry,
+                pending.expected) && pending.attempts <= this.maxAttempts) {
+            this.requestExit(pending);
+            return true;
+        }
+        this.pendingExit = null;
+        const state = this.appState;
+        const offset = state.scrollOffsetX;
+        this.relayout("contextual-wide-exit-ack", {
+            oldScrollOffsetX: offset, newScrollOffsetX: offset,
+        });
+        const focused = state.columns[state.focusedColumnIndex];
+        if (pending.activationWindow && focused &&
+                focused.window === pending.activationWindow) {
+            this.setActiveWindow(pending.activationWindow);
+        }
+        return true;
+    }
+
+    onTargetGeometryChanged(window) {
+        const pending = this.pendingExit;
+        if (!pending || pending.target.window !== window ||
+                !this.sameRectNear(window.frameGeometry, pending.expected)) return false;
+        this.requestExit(pending, 1);
+        return true;
     }
 }
 
@@ -2402,7 +2694,9 @@ class DockScrollController {
             column,
             `${pending.reason}-arrive`,
             offset,
-            offset
+            offset,
+            0,
+            true
         );
         if (!this.isActivationDeferred() && column.window.minimized) {
             column.window.minimized = false;
@@ -2618,15 +2912,8 @@ const mainScreenState = {
         windowUuid: null,
         mode: PRESENTATION_NORMAL,
     },
-    viewport: { mode: ViewportMode.PAIR, wideColumnId: null },
 };
 const contextualViewport = new ContextualViewport(mainScreenState);
-let lastCommittedViewportMode = ViewportMode.PAIR;
-let lastCommittedWideColumnId = null;
-let contextualWidePark = null;
-let nextContextualWideParkToken = 1;
-let contextualWideExit = null;
-let nextContextualWideExitToken = 1;
 const columnStore = new ColumnStore(mainScreenState);
 const states = new WindowStateStore(createWindowState);
 const runtimeConfig = loadRuntimeConfig(readConfig);
@@ -2644,6 +2931,7 @@ const outputTopology = new OutputTopology({
 });
 const innerGap = runtimeConfig.primary.inner;
 const includeDialogs = runtimeConfig.includeDialogs;
+let contextualWideCoordinator;
 const dockGateway = new DockGateway({
     invoke: callDBus,
     service: DOCK_BRIDGE_SERVICE,
@@ -2652,8 +2940,10 @@ const dockGateway = new DockGateway({
     snapshotProvider: createDockSnapshot,
     handlers: {
         "emergency-restore": () => emergencyRestoreAllWindows("bridge-unload"),
-        "finalize-contextual-wide": finalizeContextualWide,
-        "finalize-contextual-wide-exit": finalizeContextualWideExit,
+        "finalize-contextual-wide": command =>
+            contextualWideCoordinator.finalizePark(command),
+        "finalize-contextual-wide-exit": command =>
+            contextualWideCoordinator.finalizeExit(command),
         "advance-dock-scroll": advancePendingDockScroll,
         "set-presentation-mode": handleDockPresentationCommand,
         "focus-column-right": handleDockFocusCommand,
@@ -2667,6 +2957,24 @@ const dockGateway = new DockGateway({
     warn,
     now: () => Date.now(),
     random: () => Math.random(),
+});
+contextualWideCoordinator = new ContextualWideCoordinator({
+    appState: mainScreenState,
+    gateway: dockGateway,
+    projectedRectForColumn,
+    isFullyVisible: isFullyVisibleInSafeRect,
+    sameRectNear,
+    presentationRect,
+    normalizeUuid: normalizeWindowUuid,
+    relayout,
+    setActiveWindow: window => { workspace.activeWindow = window; },
+    setTimer: setRuntimeTimer,
+    clearTimer: clearRuntimeTimer,
+    debug,
+    warn,
+    parkGraceMs: CONTEXTUAL_WIDE_PARK_GRACE_MS,
+    retryMs: WIDE_GEOMETRY_RETRY_MS,
+    maxAttempts: WIDE_GEOMETRY_MAX_ATTEMPTS,
 });
 let connectedManagedOutputs = new Set();
 let scrollLayoutInitialized = false;
@@ -2714,7 +3022,23 @@ const motionPlanCommitGate = new MotionPlanCommitGate({
     commit: (plan, context, activationWindow) =>
         commitLayoutPlan(plan, context.wideExitColumn, activationWindow),
     warn,
+    timeoutMs: 150,
+    setTimer: setRuntimeTimer,
+    clearTimer: clearRuntimeTimer,
 });
+
+function setRuntimeTimer(callback, delayMs) {
+    const timer = new QTimer();
+    timer.singleShot = true;
+    timer.timeout.connect(callback);
+    timer.start(delayMs);
+    return { timer, callback };
+}
+
+function clearRuntimeTimer(handle) {
+    handle.timer.stop();
+    handle.timer.timeout.disconnect(handle.callback);
+}
 const recovery = new Recovery({
     appState: mainScreenState,
     windowStates: states,
@@ -2723,6 +3047,7 @@ const recovery = new Recovery({
     beforeRestore: reason => {
         mainScreenState.enabled = false;
         motionPlanCommitGate.cancel();
+        contextualWideCoordinator.cancel();
         cancelPendingDockScroll(reason);
     },
     debug,
@@ -2815,6 +3140,7 @@ const outputController = new OutputController({
     debug,
 });
 const fullscreenController = new FullscreenController({
+    viewport: contextualViewport,
     stateFor,
     getAppState: () => mainScreenState,
     indexOfWindow: window => columnStore.indexOfWindow(window),
@@ -2829,6 +3155,7 @@ const fullscreenController = new FullscreenController({
 });
 const presentationController = new PresentationController({
     getAppState: () => mainScreenState,
+    viewport: contextualViewport,
     normalizeUuid: normalizeWindowUuid,
     stateFor,
     setLayoutMode,
@@ -2869,7 +3196,7 @@ const dockScrollController = new DockScrollController({
     publishDockState,
     focusIndex: index => columnStore.focusIndex(index),
     transitionFocused: relayoutFocusedColumnTransition,
-    isActivationDeferred: () => Boolean(contextualWideExit),
+    isActivationDeferred: () => contextualWideCoordinator.isActivationDeferred(),
     setActiveWindow: window => {
         activateColumnWhenReady(window);
     },
@@ -3208,24 +3535,18 @@ function endLayoutTransaction(reason, epoch) {
 }
 
 function relayoutImpl(reason, scrollOffsets) {
-    if (!mainScreenState.enabled || !mainScreenState.columns.length) return;
+    if (!mainScreenState.enabled) {
+        warn(`[cc-scroll] relayout skipped: disabled reason=${reason}`);
+        return;
+    }
+    if (!mainScreenState.columns.length) return;
     refreshMainScreenState();
     if (!mainScreenState.safeRect) return;
     recomputeLogicalLayout();
     clampScrollOffset();
-    if (contextualWideExit && (mainScreenState.viewport.mode !== ViewportMode.PAIR ||
-            mainScreenState.columns.indexOf(contextualWideExit.target) < 0)) {
-        contextualWideExit = null;
-    }
-
     const presentedColumn = presentationColumn();
-    prepareContextualWidePark(presentedColumn);
-    const wideExitColumn = lastCommittedViewportMode === ViewportMode.WIDE_FOCUS &&
-        mainScreenState.presentation.mode === PRESENTATION_NORMAL &&
-        mainScreenState.viewport.mode === ViewportMode.PAIR
-        ? mainScreenState.columns.find(column =>
-            column.id === lastCommittedWideColumnId) || null
-        : null;
+    contextualWideCoordinator.prepareLayoutTransition(presentedColumn);
+    const wideExitColumn = contextualWideCoordinator.wideExitColumn();
     const plan = computeLayoutPlan({
         reason,
         epoch: layoutTransaction.currentEpoch(),
@@ -3237,8 +3558,7 @@ function relayoutImpl(reason, scrollOffsets) {
         scrollOffsets,
         presentedColumn,
         presentedRect: presentedColumn ? presentationRect() : null,
-        retainedColumn: contextualWidePark
-            ? contextualWidePark.neighbor : null,
+        retainedColumn: contextualWideCoordinator.retainedNeighbor(),
         wideExitColumn,
         wideRect: presentationController.wideRect(),
     });
@@ -3252,8 +3572,8 @@ function relayoutImpl(reason, scrollOffsets) {
             oldViewportMode: motion.oldViewportMode,
             newViewportMode: motion.newViewportMode,
             parkAfterComplete: motion.parkAfterComplete,
-            transitionToken: motion.type === "PAIR_TO_WIDE" &&
-                contextualWidePark ? contextualWidePark.token : null,
+            transitionToken: motion.type === "PAIR_TO_WIDE"
+                ? contextualWideCoordinator.parkToken() : null,
             targetWindowUuid: normalizeWindowUuid(
                 plan.windows.find(item => item.columnId ===
                     motion.targetColumnId).column.window.internalId),
@@ -3272,157 +3592,15 @@ function relayoutImpl(reason, scrollOffsets) {
 
 function commitLayoutPlan(plan, wideExitColumn, activationWindow) {
     const commitResult = geometryCommitter.commit(plan);
-    if (wideExitColumn && commitResult.heldIncoming.length) {
-        contextualWideExit = {
-            token: String(nextContextualWideExitToken++),
-            target: wideExitColumn,
-            expected: plan.windows.find(item =>
-                item.column === wideExitColumn).rect,
-            attempts: 0,
-            activationWindow,
-        };
-    }
-    lastCommittedViewportMode = mainScreenState.viewport.mode;
-    lastCommittedWideColumnId = mainScreenState.viewport.wideColumnId;
-    if (contextualWideExit && contextualWideExit.attempts === 0) {
-        requestContextualWideExit(contextualWideExit);
-    }
-    scheduleContextualWidePark();
-    if (activationWindow && !contextualWideExit) {
-        workspace.activeWindow = activationWindow;
-    }
+    contextualWideCoordinator.onPlanCommitted(plan, wideExitColumn,
+        commitResult, activationWindow);
 }
 
 function activateColumnWhenReady(window) {
     if (motionPlanCommitGate.deferActivation(window)) return;
-    if (contextualWideExit) {
-        contextualWideExit.activationWindow = window;
-    } else {
+    if (!contextualWideCoordinator.deferActivation(window)) {
         workspace.activeWindow = window;
     }
-}
-
-function prepareContextualWidePark(target) {
-    if (!target || mainScreenState.viewport.mode !== ViewportMode.WIDE_FOCUS) {
-        contextualWidePark = null;
-        return;
-    }
-    if (contextualWidePark && contextualWidePark.target === target) return;
-    if (lastCommittedViewportMode !== ViewportMode.PAIR) return;
-    const targetPairRect = projectedRectForColumn(target);
-    const neighbor = mainScreenState.columns.find(column => {
-        if (column === target) return false;
-        const rect = projectedRectForColumn(column);
-        return isFullyVisibleInSafeRect(rect) &&
-            Math.abs(rect.y - targetPairRect.y) < 2 &&
-            (Math.abs(rect.x - targetPairRect.x - targetPairRect.width -
-                mainScreenState.innerGap) < 3 ||
-             Math.abs(rect.x + rect.width + mainScreenState.innerGap -
-                targetPairRect.x) < 3);
-    }) || null;
-    if (!neighbor) return;
-    contextualWidePark = {
-        token: String(nextContextualWideParkToken++),
-        target,
-        neighbor,
-        attempts: 0,
-        scheduled: false,
-    };
-    debug(`[cc-presentation] RETAIN_PAIR_NEIGHBOR token=${contextualWidePark.token}` +
-        ` target=${target.id} neighbor=${neighbor.id}`);
-}
-
-function scheduleContextualWidePark() {
-    const pending = contextualWidePark;
-    if (!pending || pending.scheduled) return;
-    pending.scheduled = true;
-    requestContextualWidePark(pending, WIDE_GEOMETRY_RETRY_MS);
-}
-
-function requestContextualWidePark(pending, delayMs) {
-    const command = {
-        commandId: `${dockGateway.sessionId()}-contextual-wide-${pending.token}-` +
-            `${pending.attempts++}`,
-        type: "finalize-contextual-wide",
-        transitionToken: pending.token,
-        windowUuid: normalizeWindowUuid(pending.target.window.internalId),
-    };
-    dockGateway.requestDeferred(command, delayMs, accepted => {
-        if (!accepted) finalizeContextualWide(command);
-    });
-}
-
-function finalizeContextualWide(command) {
-    const pending = contextualWidePark;
-    if (!pending || pending.token !== String(command.transitionToken) ||
-            mainScreenState.viewport.mode !== ViewportMode.WIDE_FOCUS ||
-            mainScreenState.viewport.wideColumnId !== pending.target.id) {
-        return false;
-    }
-    if (command.motionCompleted) pending.motionCompleted = true;
-    if (!sameRectNear(pending.target.window.frameGeometry, presentationRect()) &&
-            pending.attempts <= WIDE_GEOMETRY_MAX_ATTEMPTS) {
-        requestContextualWidePark(pending, WIDE_GEOMETRY_RETRY_MS);
-        return true;
-    }
-    if (!pending.geometryAcknowledged) {
-        pending.geometryAcknowledged = true;
-        if (!pending.motionCompleted) {
-            requestContextualWidePark(pending,
-                CONTEXTUAL_WIDE_PARK_GRACE_MS);
-            return true;
-        }
-    }
-    contextualWidePark = null;
-    const offset = mainScreenState.scrollOffsetX;
-    relayout("contextual-wide-park", {
-        oldScrollOffsetX: offset,
-        newScrollOffsetX: offset,
-    });
-    dockGateway.reportMotionParked({
-        type: "PAIR_TO_WIDE",
-        transitionToken: pending.token,
-        targetWindowUuid: normalizeWindowUuid(
-            pending.target.window.internalId),
-    }, accepted => {
-        if (!accepted) warn("[cc-presentation] motion-park repaint rejected");
-    });
-    return true;
-}
-
-function requestContextualWideExit(pending, delayMs = WIDE_GEOMETRY_RETRY_MS) {
-    const command = {
-        commandId: `${dockGateway.sessionId()}-contextual-wide-exit-` +
-            `${pending.token}-${pending.attempts++}`,
-        type: "finalize-contextual-wide-exit",
-        transitionToken: pending.token,
-        windowUuid: normalizeWindowUuid(pending.target.window.internalId),
-    };
-    dockGateway.requestDeferred(command, delayMs, accepted => {
-        if (!accepted) finalizeContextualWideExit(command);
-    });
-}
-
-function finalizeContextualWideExit(command) {
-    const pending = contextualWideExit;
-    if (!pending || pending.token !== String(command.transitionToken)) return false;
-    if (!sameRectNear(pending.target.window.frameGeometry, pending.expected) &&
-            pending.attempts <= WIDE_GEOMETRY_MAX_ATTEMPTS) {
-        requestContextualWideExit(pending);
-        return true;
-    }
-    contextualWideExit = null;
-    const offset = mainScreenState.scrollOffsetX;
-    relayout("contextual-wide-exit-ack", {
-        oldScrollOffsetX: offset,
-        newScrollOffsetX: offset,
-    });
-    const focused = mainScreenState.columns[mainScreenState.focusedColumnIndex];
-    if (pending.activationWindow && focused &&
-            focused.window === pending.activationWindow) {
-        workspace.activeWindow = pending.activationWindow;
-    }
-    return true;
 }
 
 function relayout(reason, scrollOffsets) {
@@ -3482,7 +3660,7 @@ function selectPersistentPresentation(column) {
 }
 
 function relayoutFocusedColumnTransition(column, reason, oldScrollOffsetX,
-        newScrollOffsetX, wideStepDirection = 0) {
+        newScrollOffsetX, wideStepDirection = 0, focusChanged = false) {
     const previousMode = mainScreenState.viewport.mode;
     const previousId = mainScreenState.viewport.wideColumnId;
     if (mainScreenState.presentation.mode !== PRESENTATION_NORMAL) {
@@ -3491,7 +3669,7 @@ function relayoutFocusedColumnTransition(column, reason, oldScrollOffsetX,
     contextualViewport.select(column, {
         source: wideStepDirection ? FocusSource.DIRECTIONAL :
             FocusSource.PROGRAMMATIC,
-        changedFocus: Boolean(wideStepDirection),
+        changedFocus: Boolean(wideStepDirection) || focusChanged,
         direction: wideStepDirection,
         viewportMoved: oldScrollOffsetX !== newScrollOffsetX,
     });
@@ -3501,7 +3679,7 @@ function relayoutFocusedColumnTransition(column, reason, oldScrollOffsetX,
 }
 
 function setPresentationMode(windowUuid, mode, reason) {
-    contextualWideExit = null;
+    contextualWideCoordinator.cancelExit();
     return presentationController.setMode(windowUuid, mode, reason);
 }
 
@@ -3582,6 +3760,7 @@ function prepareInitialColumn(window) {
 }
 
 function removeColumn(window, reason, activateSuccessor = true) {
+    contextualWideCoordinator.cancelForWindow(window);
     const index = columnIndexForWindow(window);
     if (index < 0) return;
     cancelPendingDockScroll(reason);
@@ -3799,7 +3978,9 @@ function onWindowActivatedForScrollLayout(window) {
         column,
         "window-activated",
         oldScrollOffsetX,
-        newScrollOffsetX
+        newScrollOffsetX,
+        0,
+        true
     );
     debug(`[cc-scroll] FOCUS_ACTIVE index=${index} caption=${window.caption}`);
     if (presentationChanged) commitDockState("focus-selected-presentation");
@@ -3811,21 +3992,21 @@ function focusRelativeColumn(delta) {
     if (!mainScreenState.enabled || !columns.length) return;
     cancelPendingDockScroll(delta < 0 ? "focus-previous" : "focus-next", true);
     const activeIndex = columnIndexForWindow(workspace.activeWindow);
-    if (activeIndex >= 0 && !contextualWideExit) {
+    if (activeIndex >= 0 && !contextualWideCoordinator.isActivationDeferred()) {
         columnStore.focusIndex(activeIndex);
     }
     const oldIndex = columnStore.focusedIndex();
     const focused = columns[oldIndex];
     if (focused && !focused.window.fullScreen &&
             mainScreenState.presentation.mode === PRESENTATION_NORMAL &&
-            contextualViewport.confirmReveal(focused, delta)) {
+            contextualViewport.enterFocusedWide(focused, delta)) {
         const offset = mainScreenState.scrollOffsetX;
-        relayout("directional-reveal-to-wide", {
+        relayout("directional-focused-to-wide", {
             oldScrollOffsetX: offset,
             newScrollOffsetX: offset,
         });
         activateColumnWhenReady(focused.window);
-        commitDockState("directional-reveal-to-wide");
+        commitDockState("directional-focused-to-wide");
         return;
     }
     contextualViewport.cancelReveal();
@@ -4040,11 +4221,7 @@ function leavePseudoMaximize(window, state, reason) {
 function onFrameGeometryChanged(window, oldGeometry) {
     const state = stateFor(window);
     if (state.internalChange || state.interactiveMoveResize || window.fullScreen) return;
-    if (contextualWideExit && contextualWideExit.target.window === window &&
-            sameRectNear(window.frameGeometry, contextualWideExit.expected)) {
-        requestContextualWideExit(contextualWideExit, 1);
-        return;
-    }
+    if (contextualWideCoordinator.onTargetGeometryChanged(window)) return;
     if (window.active && state.adoptionPhase !== ADOPTION_UNTRACKED &&
             state.adoptionPhase !== ADOPTION_MANAGED &&
             state.adoptionPhase !== ADOPTION_FLOATING &&
@@ -4169,6 +4346,7 @@ function onMaximizedChanged(window) {
 }
 
 function onOutputChanged(window) {
+    contextualWideCoordinator.cancelForWindow(window);
     return outputController.onOutputChanged(window);
 }
 

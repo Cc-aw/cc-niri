@@ -22,11 +22,13 @@ class ContextualViewport {
     constructor(appState) {
         this.appState = appState;
         this.pendingReveal = null;
+        this.pendingFocusedWide = null;
         if (!appState.viewport) this.pair();
     }
 
     cancelReveal() {
         this.pendingReveal = null;
+        this.pendingFocusedWide = null;
     }
 
     pair() {
@@ -48,6 +50,17 @@ class ContextualViewport {
             old.wideColumnId !== column.id;
     }
 
+    restore(snapshot) {
+        this.cancelReveal();
+        if (!snapshot || snapshot.mode !== ViewportMode.WIDE_FOCUS) {
+            return this.pair();
+        }
+        const column = this.appState.columns.find(item =>
+            item.id === snapshot.wideColumnId);
+        return column && column.persistentWide
+            ? this.wide(column) : this.pair();
+    }
+
     column() {
         const state = this.appState.viewport;
         if (!state || state.mode !== ViewportMode.WIDE_FOCUS) return null;
@@ -61,7 +74,15 @@ class ContextualViewport {
     }
 
     select(column, intent) {
-        if (!shouldEnterWide(column, intent)) return this.pair();
+        if (!shouldEnterWide(column, intent)) {
+            const changed = this.pair();
+            if (column && column.persistentWide && intent &&
+                    intent.source !== FocusSource.DIRECTIONAL &&
+                    intent.changedFocus) {
+                this.pendingFocusedWide = column;
+            }
+            return changed;
+        }
         const viewport = this.appState.viewport;
         const leavingOtherWide = viewport.mode === ViewportMode.WIDE_FOCUS &&
             viewport.wideColumnId !== column.id;
@@ -88,6 +109,16 @@ class ContextualViewport {
                 this.appState.columns.indexOf(column) < 0 ||
                 this.appState.viewport.mode !== ViewportMode.PAIR ||
                 this.appState.scrollOffsetX !== pending.scrollOffsetX) return false;
+        return this.wide(column);
+    }
+
+    enterFocusedWide(column, direction) {
+        if (this.pendingReveal) return this.confirmReveal(column, direction);
+        const armed = this.pendingFocusedWide === column;
+        this.pendingFocusedWide = null;
+        if (!armed || !column || !column.persistentWide ||
+                this.appState.columns.indexOf(column) < 0 ||
+                this.appState.viewport.mode !== ViewportMode.PAIR) return false;
         return this.wide(column);
     }
 }
