@@ -306,6 +306,90 @@ function computeParkingRect(column, parkingIndex, options) {
     };
 }
 
+// Generated from src/kwin/layout/LayoutSnapshot.js
+function snapshotEntry(columnId, windowId, role, visualRect, realRect, placement) {
+    return {
+        columnId,
+        windowId,
+        role,
+        visualRect: copyRect(visualRect),
+        realRect: copyRect(realRect),
+        placement,
+    };
+}
+
+function buildWidePairSnapshots(motion, target, neighbor, options) {
+    if (!motion || !target || !neighbor) return null;
+    const entering = motion.type === "PAIR_TO_WIDE";
+    const targetId = options.windowId(target);
+    const neighborId = options.windowId(neighbor);
+    const oldNeighborReal = entering
+        ? motion.neighbor.oldVisualRect
+        : (neighbor.column.window.frameGeometry || options.neighborParkingRect);
+    const newNeighborReal = entering
+        ? options.neighborParkingRect
+        : motion.neighbor.newVisualRect;
+    const from = {
+        viewportMode: entering ? "pair" : "wide-focus",
+        entries: [
+            snapshotEntry(target.columnId, targetId, "target",
+                motion.target.oldVisualRect, motion.target.oldVisualRect, "visible"),
+            snapshotEntry(neighbor.columnId, neighborId, "neighbor",
+                motion.neighbor.oldVisualRect, oldNeighborReal,
+                entering ? "visible" : "isolated-hidden"),
+        ],
+    };
+    const to = {
+        viewportMode: entering ? "wide-focus" : "pair",
+        entries: [
+            snapshotEntry(target.columnId, targetId, "target",
+                motion.target.newVisualRect, motion.target.newVisualRect, "visible"),
+            snapshotEntry(neighbor.columnId, neighborId, "neighbor",
+                motion.neighbor.newVisualRect, newNeighborReal,
+                entering ? "isolated-hidden" : "visible"),
+        ],
+    };
+    return { from, to };
+}
+
+// Generated from src/kwin/layout/MotionPlanCommitGate.js
+class MotionPlanCommitGate {
+    constructor(options) {
+        this.publish = options.publish;
+        this.currentEpoch = options.currentEpoch;
+        this.commit = options.commit;
+        this.warn = options.warn;
+        this.pending = null;
+    }
+
+    schedule(plan, envelope, context) {
+        const pending = { plan, context, activationWindow: null };
+        this.pending = pending;
+        this.publish(envelope, accepted => {
+            if (this.pending !== pending) return;
+            this.pending = null;
+            if (this.currentEpoch() !== plan.epoch) return;
+            if (!accepted) {
+                this.warn(`[MOTION_TX] plan handoff unavailable epoch=${plan.epoch}`);
+            }
+            this.commit(plan, context, pending.activationWindow);
+        });
+        return pending;
+    }
+
+    deferActivation(window) {
+        if (!this.pending) return false;
+        this.pending.activationWindow = window;
+        return true;
+    }
+
+    cancel() {
+        const pending = this.pending;
+        this.pending = null;
+        return pending;
+    }
+}
+
 // Generated from src/kwin/layout/LayoutEngine.js
 function transitionRole(oldPlacement, newPlacement) {
     if (oldPlacement === "visible" && newPlacement === "visible") {
@@ -331,6 +415,45 @@ function motionWindowId(item) {
         : internalId);
 }
 
+function adjacentPairWindow(windows, target, gap) {
+    return windows.find(item => item !== target &&
+        item.placement === "visible" &&
+        (Math.abs(item.rect.x - target.newProjectedRect.x -
+            target.newProjectedRect.width - gap) < 3 ||
+         Math.abs(item.rect.x + item.rect.width + gap -
+            target.newProjectedRect.x) < 3)) || null;
+}
+
+function viewportMotionSnapshot(type, target, neighbor, wideRect, gap) {
+    if (!target || !neighbor || !wideRect) return null;
+    const pairTarget = target.newProjectedRect;
+    const pairNeighbor = neighbor.newProjectedRect;
+    const neighborSide = pairNeighbor.x < pairTarget.x ? "left" : "right";
+    const side = neighborSide === "left" ? "right" : "left";
+    const virtualNeighbor = copyRect(pairNeighbor);
+    virtualNeighbor.x = neighborSide === "left"
+        ? wideRect.x - gap - pairNeighbor.width
+        : wideRect.x + wideRect.width + gap;
+    return {
+        type,
+        targetColumnId: target.columnId,
+        neighborColumnId: neighbor.columnId,
+        side,
+        target: {
+            oldVisualRect: copyRect(type === "PAIR_TO_WIDE"
+                ? pairTarget : wideRect),
+            newVisualRect: copyRect(type === "PAIR_TO_WIDE"
+                ? wideRect : pairTarget),
+        },
+        neighbor: {
+            oldVisualRect: copyRect(type === "PAIR_TO_WIDE"
+                ? pairNeighbor : virtualNeighbor),
+            newVisualRect: copyRect(type === "PAIR_TO_WIDE"
+                ? virtualNeighbor : pairNeighbor),
+        },
+    };
+}
+
 function computeLayoutPlan(options) {
     const {
         reason,
@@ -343,6 +466,9 @@ function computeLayoutPlan(options) {
         scrollOffsets,
         presentedColumn,
         presentedRect,
+        retainedColumn,
+        wideExitColumn,
+        wideRect,
     } = options;
     const hasScrollTransaction = Boolean(!presentedColumn && scrollOffsets &&
         scrollOffsets.oldScrollOffsetX !== scrollOffsets.newScrollOffsetX);
@@ -365,7 +491,8 @@ function computeLayoutPlan(options) {
             : "parked";
         const isPresented = presentedColumn === column;
         const newPlacement = presentedColumn
-            ? (isPresented ? "visible" : "parked")
+            ? (isPresented || (retainedColumn === column &&
+                projectedPlacement === "visible") ? "visible" : "parked")
             : projectedPlacement;
         const visibleRect = isPresented ? copyRect(presentedRect) : newProjectedRect;
         const rect = newPlacement === "visible"
@@ -410,12 +537,65 @@ function computeLayoutPlan(options) {
             .map(motionWindowId),
     } : null;
 
+    const motionTargetColumn = wideExitColumn ||
+        (retainedColumn ? presentedColumn : null);
+    const motionTarget = windows.find(item =>
+        item.column === motionTargetColumn) || null;
+    const motionNeighbor = motionTarget
+        ? adjacentPairWindow(windows, motionTarget, innerGap) : null;
+    const viewportMotion = motionTarget && motionNeighbor
+        ? viewportMotionSnapshot(wideExitColumn ? "WIDE_TO_PAIR" :
+            "PAIR_TO_WIDE", motionTarget, motionNeighbor,
+            wideExitColumn
+                ? (wideExitColumn.window.frameGeometry || wideRect)
+                : presentedRect, innerGap)
+        : null;
+    const neighborIndex = motionNeighbor ? windows.indexOf(motionNeighbor) : -1;
+    const targetIndex = motionTarget ? windows.indexOf(motionTarget) : -1;
+    const neighborParkingIndex = neighborIndex -
+        Number(targetIndex >= 0 && targetIndex < neighborIndex);
+    const layoutSnapshots = viewportMotion ? buildWidePairSnapshots(
+        viewportMotion, motionTarget, motionNeighbor, {
+            windowId: motionWindowId,
+            neighborParkingRect: computeParkingRect(motionNeighbor.column,
+                neighborParkingIndex, {
+                    baseX: parkingBaseX,
+                    innerGap,
+                    safeRect,
+                }),
+        }) : null;
+    if (viewportMotion) {
+        viewportMotion.id = epoch;
+        viewportMotion.epoch = epoch;
+        viewportMotion.oldViewportMode = layoutSnapshots.from.viewportMode;
+        viewportMotion.newViewportMode = layoutSnapshots.to.viewportMode;
+        viewportMotion.entries = layoutSnapshots.from.entries.map((entry, index) => ({
+            windowId: entry.windowId,
+            columnId: entry.columnId,
+            role: entry.role,
+            oldVisualRect: copyRect(entry.visualRect),
+            newVisualRect: copyRect(layoutSnapshots.to.entries[index].visualRect),
+            oldOpacity: entry.placement === "isolated-hidden" ? 0 : 1,
+            newOpacity: layoutSnapshots.to.entries[index].placement ===
+                "isolated-hidden" ? 0 : 1,
+        }));
+        viewportMotion.parkAfterComplete = viewportMotion.type === "PAIR_TO_WIDE"
+            ? [motionWindowId(motionNeighbor)] : [];
+    }
+
     return {
         reason,
         epoch,
         scrollTransaction,
+        viewportMotion,
+        layoutSnapshots,
+        wideExitColumn: wideExitColumn || null,
         windows,
-        commitOrder: hasScrollTransaction
+        commitOrder: wideExitColumn
+            ? windows.slice().sort((a, b) =>
+                Number(b.column === wideExitColumn) -
+                Number(a.column === wideExitColumn))
+            : hasScrollTransaction
             ? windows.slice().sort((a, b) =>
                 transitionRank(a.transitionRole) - transitionRank(b.transitionRole))
             : windows,
@@ -427,6 +607,7 @@ class GeometryCommitter {
     constructor(dependencies) {
         this.stateFor = dependencies.stateFor;
         this.sameRect = dependencies.sameRect;
+        this.sameRectNear = dependencies.sameRectNear || dependencies.sameRect;
         this.rectCopy = dependencies.rectCopy;
         this.rectText = dependencies.rectText;
         this.isTileMode = dependencies.isTileMode;
@@ -459,6 +640,18 @@ class GeometryCommitter {
 
     commit(plan) {
         const transaction = plan.scrollTransaction;
+        const wideExitTarget = plan.wideExitColumn
+            ? plan.windows.find(item => item.column === plan.wideExitColumn)
+            : null;
+        const heldIncoming = [];
+        if (plan.viewportMotion) {
+            const motion = plan.viewportMotion;
+            this.debug(`[MOTION_TX] BEGIN epoch=${plan.epoch}` +
+                ` type=${motion.type} target=${motion.targetColumnId}` +
+                ` neighbor=${motion.neighborColumnId} side=${motion.side}` +
+                ` neighborVisualStart=${this.rectText(motion.neighbor.oldVisualRect)}` +
+                ` neighborVisualEnd=${this.rectText(motion.neighbor.newVisualRect)}`);
+        }
         if (transaction) {
             this.debug(`[MOTION_TX] BEGIN id=${transaction.id}` +
                 ` epoch=${transaction.epoch} type=${transaction.type}` +
@@ -467,6 +660,16 @@ class GeometryCommitter {
         }
         plan.commitOrder.forEach(item => {
             const column = item.column;
+            if (wideExitTarget && item.placement === "visible" &&
+                    column !== plan.wideExitColumn &&
+                    !this.sameRectNear(
+                        plan.wideExitColumn.window.frameGeometry,
+                        wideExitTarget.rect)) {
+                heldIncoming.push(column);
+                this.debug(`[MOTION_TX] HOLD_WIDE_EXIT_NEIGHBOR` +
+                    ` column=${column.id} target=${plan.wideExitColumn.id}`);
+                return;
+            }
             if (transaction && item.transitionRole !== "static") {
                 this.debug(`[MOTION_TX] ROLE id=${transaction.id}` +
                     ` column=${column.id} role=${item.transitionRole}`);
@@ -497,7 +700,9 @@ class GeometryCommitter {
             if (item.placement === "parked") {
                 this.setWindowVisibility(column.window, false);
             }
-            else this.rememberVisibleGeometry(column.window, this.rectCopy(item.rect));
+            else {
+                this.rememberVisibleGeometry(column.window, this.rectCopy(item.rect));
+            }
 
             const outputName = column.window.output
                 ? column.window.output.name
@@ -521,6 +726,7 @@ class GeometryCommitter {
         if (transaction) {
             this.debug(`[MOTION_TX] COMPLETE id=${transaction.id}`);
         }
+        return { heldIncoming };
     }
 }
 
@@ -996,6 +1202,24 @@ class InvariantChecker {
         }
 
         const presentation = this.appState.presentation;
+        const viewport = this.appState.viewport;
+        if (viewport) {
+            if (viewport.mode === "pair") {
+                if (viewport.wideColumnId !== null) {
+                    errors.push("pair-with-wide-target");
+                }
+            } else if (viewport.mode === "wide-focus") {
+                const wideIndex = columns.findIndex(column =>
+                    column.id === viewport.wideColumnId && column.persistentWide);
+                if (wideIndex < 0) errors.push("missing-wide-viewport-target");
+                else if (wideIndex !== this.appState.focusedColumnIndex) {
+                    errors.push(`wide-viewport-focus:${wideIndex}:` +
+                        `${this.appState.focusedColumnIndex}`);
+                }
+            } else {
+                errors.push(`invalid-viewport-mode:${viewport.mode}`);
+            }
+        }
         if (presentation.mode === this.normalPresentationMode) {
             if (presentation.windowUuid) errors.push("normal-with-target");
         } else {
@@ -1575,6 +1799,7 @@ class OutputController {
 class FullscreenController {
     constructor(options) {
         this.stateFor = options.stateFor;
+        this.getAppState = options.getAppState;
         this.indexOfWindow = options.indexOfWindow;
         this.relayout = options.relayout;
         this.onManagedOutput = options.onManagedOutput;
@@ -1591,6 +1816,9 @@ class FullscreenController {
 
         if (window.fullScreen) {
             state.layoutModeBeforeFullscreen = state.layoutMode;
+            const appState = this.getAppState ? this.getAppState() : null;
+            state.viewportBeforeFullscreen = appState && appState.viewport
+                ? Object.assign({}, appState.viewport) : null;
             this.debug(`FULLSCREEN enter ${window.caption} prior=${state.layoutMode}`);
             return true;
         }
@@ -1598,10 +1826,24 @@ class FullscreenController {
         const prior = state.layoutModeBeforeFullscreen;
         state.layoutModeBeforeFullscreen = this.normalMode;
         if (this.indexOfWindow(window) >= 0) {
+            const appState = this.getAppState ? this.getAppState() : null;
+            const previous = state.viewportBeforeFullscreen;
+            if (appState && appState.viewport && previous) {
+                const wideColumn = previous.mode === "wide-focus"
+                    ? appState.columns.find(column =>
+                        column.id === previous.wideColumnId &&
+                        column.persistentWide) : null;
+                appState.viewport = wideColumn
+                    ? Object.assign({}, previous)
+                    : { mode: "pair", wideColumnId: null };
+            }
+            state.viewportBeforeFullscreen = null;
             this.relayout("fullscreen-exit");
         } else if (this.onManagedOutput(window) && this.isLayoutMode(prior)) {
+            state.viewportBeforeFullscreen = null;
             this.applyLayoutGeometry(window, state, prior, "fullscreen-exit");
         } else {
+            state.viewportBeforeFullscreen = null;
             this.advanceAdoption(window, "fullscreen-exit");
         }
         return true;
@@ -1617,6 +1859,9 @@ class DockGateway {
         this.interfaceName = options.interfaceName;
         this.snapshotProvider = options.snapshotProvider;
         this.handlers = options.handlers;
+        this.generationAgnosticTypes = new Set(
+            options.generationAgnosticTypes || []
+        );
         this.debug = options.debug;
         this.warn = options.warn;
         this.protocol = options.protocol || 1;
@@ -1660,6 +1905,26 @@ class DockGateway {
     commit(snapshot, reason) {
         this.generationValue += 1;
         return this.publish(snapshot, reason);
+    }
+
+    publishMotionPlan(plan, callback) {
+        const envelope = Object.assign({}, plan, {
+            protocol: this.protocol,
+            sessionId: this.sessionIdValue,
+        });
+        this.invoke(this.service, this.path, this.interfaceName,
+            "PublishMotionPlan", JSON.stringify(envelope), callback);
+        return envelope;
+    }
+
+    reportMotionParked(completion, callback) {
+        const envelope = Object.assign({}, completion, {
+            protocol: this.protocol,
+            sessionId: this.sessionIdValue,
+        });
+        this.invoke(this.service, this.path, this.interfaceName,
+            "ReportMotionParked", JSON.stringify(envelope), callback);
+        return envelope;
     }
 
     reject(command, reason) {
@@ -1709,7 +1974,8 @@ class DockGateway {
             this.reject(command, "session-mismatch");
             return false;
         }
-        if (Number(command.baseGeneration) !== this.generationValue) {
+        if (Number(command.baseGeneration) !== this.generationValue &&
+                !this.generationAgnosticTypes.has(command.type)) {
             this.reject(command, "stale-generation");
             return false;
         }
@@ -1752,7 +2018,6 @@ class PresentationController {
         this.wideRatio = options.wideRatio;
         this.rectCopy = options.rectCopy;
         this.cancelPendingDockScroll = options.cancelPendingDockScroll;
-        this.cancelPendingWideTransition = options.cancelPendingWideTransition;
         this.focusColumn = options.focusColumn;
         this.recomputeLogicalLayout = options.recomputeLogicalLayout;
         this.ensureColumnVisible = options.ensureColumnVisible;
@@ -1770,6 +2035,12 @@ class PresentationController {
 
     column() {
         const appState = this.getAppState();
+        if (appState.presentation.mode !== this.modes.maximized &&
+                appState.viewport && appState.viewport.mode === "wide-focus") {
+            return appState.columns.find(column =>
+                column.id === appState.viewport.wideColumnId &&
+                column.persistentWide) || null;
+        }
         if (appState.presentation.mode === this.modes.normal ||
                 !appState.presentation.windowUuid) return null;
         return appState.columns.find(column =>
@@ -1793,7 +2064,8 @@ class PresentationController {
 
     rect() {
         const appState = this.getAppState();
-        return appState.presentation.mode === this.modes.wide
+        return appState.presentation.mode !== this.modes.maximized &&
+                appState.viewport && appState.viewport.mode === "wide-focus"
             ? this.wideRect()
             : this.rectCopy(appState.safeRect);
     }
@@ -1813,6 +2085,10 @@ class PresentationController {
         this.resetPresentedWindowLayoutState();
         appState.presentation.windowUuid = null;
         appState.presentation.mode = this.modes.normal;
+        if (appState.viewport) {
+            appState.viewport.mode = "pair";
+            appState.viewport.wideColumnId = null;
+        }
     }
 
     selectPersistent(column) {
@@ -1820,11 +2096,8 @@ class PresentationController {
         const oldWindowUuid = appState.presentation.windowUuid;
         const oldMode = appState.presentation.mode;
         this.clear();
-        if (column && column.persistentWide) {
-            appState.presentation.windowUuid =
-                this.normalizeUuid(column.window.internalId);
-            appState.presentation.mode = this.modes.wide;
-        }
+        // Preference alone never selects a Wide viewport. Only a directional
+        // focus intent or an explicit Wide command may do that.
         return oldWindowUuid !== appState.presentation.windowUuid ||
             oldMode !== appState.presentation.mode;
     }
@@ -1837,8 +2110,13 @@ class PresentationController {
             this.normalizeUuid(item.window.internalId) === normalizedUuid);
         if (!column || column.window.output !== appState.targetOutput) return false;
 
+        if (mode === this.modes.maximized) {
+            appState.prePresentationViewport = appState.viewport
+                ? Object.assign({}, appState.viewport)
+                : null;
+        }
+
         this.cancelPendingDockScroll(reason);
-        this.cancelPendingWideTransition(reason);
         this.resetPresentedWindowLayoutState();
 
         const oldScrollOffsetX = appState.scrollOffsetX;
@@ -1858,10 +2136,22 @@ class PresentationController {
             column.persistentWide = false;
             appState.presentation.windowUuid = null;
             appState.presentation.mode = this.modes.normal;
+            if (appState.viewport) {
+                appState.viewport.mode = "pair";
+                appState.viewport.wideColumnId = null;
+            }
         } else {
             if (mode === this.modes.wide) column.persistentWide = true;
-            appState.presentation.windowUuid = normalizedUuid;
-            appState.presentation.mode = mode;
+            appState.presentation.windowUuid = mode === this.modes.maximized
+                ? normalizedUuid : null;
+            appState.presentation.mode = mode === this.modes.maximized
+                ? mode : this.modes.normal;
+            if (appState.viewport) {
+                appState.viewport.mode = mode === this.modes.wide
+                    ? "wide-focus" : "pair";
+                appState.viewport.wideColumnId = mode === this.modes.wide
+                    ? column.id : null;
+            }
             if (mode === this.modes.maximized) {
                 targetState.internalChange = true;
                 try {
@@ -1885,400 +2175,116 @@ class PresentationController {
         this.commitDockState(reason);
         return true;
     }
+
+    restoreFromMaximize(windowUuid, reason) {
+        const appState = this.getAppState();
+        const normalizedUuid = this.normalizeUuid(windowUuid);
+        const column = appState.columns.find(item =>
+            this.normalizeUuid(item.window.internalId) === normalizedUuid);
+        if (!column) return false;
+        const preference = Boolean(column.persistentWide);
+        const previous = appState.prePresentationViewport;
+        const restoreWide = preference && previous &&
+            previous.mode === "wide-focus" &&
+            previous.wideColumnId === column.id;
+        const restored = this.setMode(windowUuid,
+            restoreWide ? this.modes.wide : this.modes.normal, reason);
+        if (restored) column.persistentWide = preference;
+        appState.prePresentationViewport = null;
+        return restored;
+    }
 }
 
-// Generated from src/kwin/presentation/WideTransition.js
-class WideTransition {
-    constructor(options) {
-        this.getAppState = options.getAppState;
-        this.normalizeUuid = options.normalizeUuid;
-        this.phases = options.phases;
-        this.normalPresentationMode = options.normalPresentationMode;
-        this.widePresentationMode = options.widePresentationMode;
-        this.timings = options.timings;
-        this.maxGeometryAttempts = options.maxGeometryAttempts;
-        this.getDockGeneration = options.getDockGeneration;
-        this.getDockSessionId = options.getDockSessionId;
-        this.requestDeferred = options.requestDeferred;
-        this.relayout = options.relayout;
-        this.commitDockState = options.commitDockState;
-        this.presentationRect = options.presentationRect;
-        this.sameRectNear = options.sameRectNear;
-        this.clearPresentation = options.clearPresentation;
-        this.selectPersistentPresentation = options.selectPersistentPresentation;
-        this.setColumnVisibility = options.setColumnVisibility;
-        this.applyColumnGeometry = options.applyColumnGeometry;
-        this.isFullyVisible = options.isFullyVisible;
-        this.projectedRectForColumn = options.projectedRectForColumn;
-        this.rectText = options.rectText;
-        this.debug = options.debug;
-        this.warn = options.warn;
-        this.pendingTransition = null;
-        this.nextToken = 1;
+// Generated from src/kwin/presentation/ContextualViewport.js
+const ViewportMode = Object.freeze({
+    PAIR: "pair",
+    WIDE_FOCUS: "wide-focus",
+});
+
+const FocusSource = Object.freeze({
+    DIRECTIONAL: "directional",
+    POINTER: "pointer",
+    DOCK: "dock",
+    ALT_TAB: "alt-tab",
+    PROGRAMMATIC: "programmatic",
+});
+
+function shouldEnterWide(column, intent) {
+    return Boolean(column && column.persistentWide && intent &&
+        intent.source === FocusSource.DIRECTIONAL && intent.changedFocus);
+}
+
+class ContextualViewport {
+    constructor(appState) {
+        this.appState = appState;
+        this.pendingReveal = null;
+        if (!appState.viewport) this.pair();
     }
 
-    pending() {
-        return this.pendingTransition;
+    cancelReveal() {
+        this.pendingReveal = null;
     }
 
-    cancel() {
-        const hadPending = Boolean(this.pendingTransition);
-        this.pendingTransition = null;
-        return hadPending;
+    pair() {
+        this.cancelReveal();
+        const old = this.appState.viewport;
+        this.appState.viewport = { mode: ViewportMode.PAIR, wideColumnId: null };
+        return Boolean(old && old.mode !== ViewportMode.PAIR);
     }
 
-    matchesWindow(windowUuid) {
-        return Boolean(this.pendingTransition &&
-            this.pendingTransition.windowUuid === this.normalizeUuid(windowUuid));
+    wide(column) {
+        this.cancelReveal();
+        if (!column || !column.persistentWide) return false;
+        const old = this.appState.viewport;
+        this.appState.viewport = {
+            mode: ViewportMode.WIDE_FOCUS,
+            wideColumnId: column.id,
+        };
+        return !old || old.mode !== ViewportMode.WIDE_FOCUS ||
+            old.wideColumnId !== column.id;
     }
 
-    pendingColumn(pending = this.pendingTransition) {
-        if (!pending) return null;
-        const appState = this.getAppState();
-        const column = appState.columns.find(item =>
-            this.normalizeUuid(item.window.internalId) === pending.windowUuid);
-        if (!column || !column.persistentWide ||
-                appState.columns.indexOf(column) !== appState.focusedColumnIndex ||
-                column.window.output !== appState.targetOutput) {
+    column() {
+        const state = this.appState.viewport;
+        if (!state || state.mode !== ViewportMode.WIDE_FOCUS) return null;
+        const column = this.appState.columns.find(item =>
+            item.id === state.wideColumnId) || null;
+        if (!column || !column.persistentWide) {
+            this.pair();
             return null;
         }
         return column;
     }
 
-    finalize(column) {
-        const pending = this.pendingTransition;
-        if (!pending || pending.phase !== this.phases.animating ||
-                !column || this.pendingColumn(pending) !== column) {
-            return false;
+    select(column, intent) {
+        if (!shouldEnterWide(column, intent)) return this.pair();
+        const viewport = this.appState.viewport;
+        const leavingOtherWide = viewport.mode === ViewportMode.WIDE_FOCUS &&
+            viewport.wideColumnId !== column.id;
+        if (intent.viewportMoved || leavingOtherWide) {
+            // A hidden preference is first revealed at normal pair width.
+            // Wide isolation hides neighbors even without a scroll-offset change.
+            // Only another press in the same direction may expand it.
+            const changed = this.pair();
+            this.pendingReveal = {
+                column,
+                direction: intent.direction,
+                scrollOffsetX: this.appState.scrollOffsetX,
+            };
+            return changed;
         }
-        this.pendingTransition = null;
-        const offset = this.getAppState().scrollOffsetX;
-        this.relayout(`${pending.reason}-finalize-wide`, {
-            oldScrollOffsetX: offset,
-            newScrollOffsetX: offset,
-        });
-        this.commitDockState(`${pending.reason}-finalize-wide`);
-        this.debug(`[cc-presentation] DEFERRED_WIDE_COMPLETE token=${pending.token}` +
-            ` uuid=${pending.windowUuid}`);
-        return true;
+        return this.wide(column);
     }
 
-    finalizeCommand(command) {
-        const token = String(command.transitionToken || "");
-        const pending = this.pendingTransition;
-        if (!pending || token !== pending.token ||
-                pending.phase !== this.phases.animating) {
-            return false;
-        }
-        const column = this.pendingColumn(pending);
-        if (!column ||
-                !this.sameRectNear(column.window.frameGeometry, this.presentationRect())) {
-            this.pendingTransition = null;
-            this.debug(`[cc-presentation] DEFERRED_WIDE_FINALIZE_CANCEL token=${token}`);
-            return false;
-        }
-        return this.finalize(column);
-    }
-
-    acknowledgeGeometry(column) {
-        const pending = this.pendingTransition;
-        if (!pending || pending.phase !== this.phases.expanding ||
-                this.pendingColumn(pending) !== column ||
-                !this.sameRectNear(column.window.frameGeometry, this.presentationRect())) {
-            return false;
-        }
-        pending.phase = this.phases.animating;
-        /* The 72% client geometry is authoritative now. Park every neighbor in
-         * the same acknowledgement turn instead of leaving a 50% window visible
-         * underneath the expanding target for the paint-animation duration. */
-        const offset = this.getAppState().scrollOffsetX;
-        this.relayout(`${pending.reason}-park-wide-neighbors`, {
-            oldScrollOffsetX: offset,
-            newScrollOffsetX: offset,
-        });
-        this.requestStage(
-            "finalize-wide-transition",
-            pending,
-            this.getDockGeneration(),
-            this.timings.expansion
-        );
-        this.debug(`[cc-presentation] DEFERRED_WIDE_ACK token=${pending.token}` +
-            ` actual=${this.rectText(column.window.frameGeometry)}` +
-            ` animation=${this.timings.expansion}`);
-        return true;
-    }
-
-    checkGeometry(command) {
-        const token = String(command.transitionToken || "");
-        const pending = this.pendingTransition;
-        if (!pending || token !== pending.token ||
-                pending.phase !== this.phases.expanding) {
-            return false;
-        }
-        const column = this.pendingColumn(pending);
-        if (!column) {
-            this.pendingTransition = null;
-            return false;
-        }
-        const target = this.presentationRect();
-        if (this.sameRectNear(column.window.frameGeometry, target)) {
-            return this.acknowledgeGeometry(column);
-        }
-        if (pending.geometryAttempts >= this.maxGeometryAttempts) {
-            this.warn(`[cc-presentation] WIDE_GEOMETRY_TIMEOUT token=${token}` +
-                ` actual=${this.rectText(column.window.frameGeometry)}`);
-            this.pendingTransition = null;
-            this.clearPresentation();
-            const offset = this.getAppState().scrollOffsetX;
-            this.relayout(`${pending.reason}-wide-timeout`, {
-                oldScrollOffsetX: offset,
-                newScrollOffsetX: offset,
-            });
-            return false;
-        }
-        pending.geometryAttempts += 1;
-        this.applyColumnGeometry(column, target, `${pending.reason}-retry-wide`);
-        this.requestStage(
-            "check-wide-transition",
-            pending,
-            this.getDockGeneration(),
-            this.timings.geometryRetry
-        );
-        return true;
-    }
-
-    beginExpansion(pending, column, reason) {
-        if (!pending || !column || this.pendingTransition !== pending ||
-                this.pendingColumn(pending) !== column) return false;
-        pending.reason = reason || pending.reason;
-        this.selectPersistentPresentation(column);
-        pending.phase = this.phases.expanding;
-        pending.geometryAttempts = 1;
-        const target = this.presentationRect();
-        /* Wayland clients may acknowledge frameGeometry asynchronously. Keep the
-         * normal-pair neighbor visible only until the target really reaches 72%;
-         * acknowledgeGeometry parks it before the paint animation. */
-        this.setColumnVisibility(column, true);
-        this.applyColumnGeometry(column, target, `${pending.reason}-request-wide`);
-        this.debug(`[cc-presentation] DEFERRED_WIDE_REQUEST token=${pending.token}` +
-            ` requested=${this.rectText(target)}` +
-            ` actual=${this.rectText(column.window.frameGeometry)}`);
-        if (this.sameRectNear(column.window.frameGeometry, target)) {
-            this.acknowledgeGeometry(column);
-        } else {
-            this.requestStage(
-                "check-wide-transition",
-                pending,
-                this.getDockGeneration(),
-                this.timings.geometryRetry
-            );
-        }
-        return true;
-    }
-
-    complete(command) {
-        const token = String(command.transitionToken || "");
-        const pending = this.pendingTransition;
-        if (!pending || token !== pending.token ||
-                pending.phase !== this.phases.settled) {
-            return false;
-        }
-        const column = this.pendingColumn(pending);
-        if (!column) {
-            this.pendingTransition = null;
-            this.debug(`[cc-presentation] DEFERRED_WIDE_CANCEL token=${token}`);
-            return false;
-        }
-        return this.beginExpansion(pending, column, pending.reason);
-    }
-
-    requestStage(type, pending, baseGeneration, delayMs) {
-        const sessionId = this.getDockSessionId();
-        const command = {
-            protocol: 1,
-            commandId: `${sessionId}-wide-${pending.token}-${type}-` +
-                `${pending.deferredSequence++}`,
-            sessionId,
-            baseGeneration,
-            type,
-            transitionToken: pending.token,
-            windowUuid: pending.windowUuid,
-        };
-        this.requestDeferred(command, delayMs, accepted => {
-            if (accepted) return;
-            this.debug(`[cc-presentation] DEFERRED_WIDE_FALLBACK` +
-                ` token=${pending.token} type=${type}`);
-            if (type === "settle-wide-transition") {
-                this.settle(command);
-            } else if (type === "check-wide-transition") {
-                this.checkGeometry(command);
-            } else if (type === "finalize-wide-transition") {
-                this.finalizeCommand(command);
-            } else {
-                this.complete(command);
-            }
-        });
-    }
-
-    settle(command) {
-        const token = String(command.transitionToken || "");
-        const pending = this.pendingTransition;
-        if (!pending || token !== pending.token ||
-                pending.phase !== this.phases.scrolling) {
-            return false;
-        }
-        const appState = this.getAppState();
-        const column = appState.columns.find(item =>
-            this.normalizeUuid(item.window.internalId) === pending.windowUuid);
-        if (!column || !column.persistentWide ||
-                appState.columns.indexOf(column) !== appState.focusedColumnIndex ||
-                column.window.output !== appState.targetOutput ||
-                appState.presentation.mode !== this.normalPresentationMode) {
-            this.pendingTransition = null;
-            this.debug(`[cc-presentation] DEFERRED_PAIR_CANCEL token=${token}`);
-            return false;
-        }
-
-        /* Reassert the normal layout after the movement phase. This restores both
-         * members of the destination pair even if an activation/minimize signal
-         * raced with the initial reveal. No presentation window is selected yet. */
-        this.relayout(`${pending.reason}-settle-pair`, {
-            oldScrollOffsetX: appState.scrollOffsetX,
-            newScrollOffsetX: appState.scrollOffsetX,
-        });
-        pending.phase = this.phases.settled;
-        pending.revealWindowUuids = appState.columns
-            .filter(item => this.isFullyVisible(this.projectedRectForColumn(item)))
-            .map(item => this.normalizeUuid(item.window.internalId));
-        this.requestStage(
-            "complete-wide-transition",
-            pending,
-            Number(command.baseGeneration),
-            this.timings.pairHold
-        );
-        this.debug(`[cc-presentation] DEFERRED_PAIR_SETTLED token=${token}` +
-            ` visible=${pending.revealWindowUuids.join(",")}` +
-            ` hold=${this.timings.pairHold}`);
-        return true;
-    }
-
-    schedule(column, reason, baseGeneration) {
-        const token = String(this.nextToken++);
-        const appState = this.getAppState();
-        const windowUuid = this.normalizeUuid(column.window.internalId);
-        const revealWindowUuids = appState.columns
-            .filter(item => this.isFullyVisible(this.projectedRectForColumn(item)))
-            .map(item => this.normalizeUuid(item.window.internalId));
-        this.pendingTransition = {
-            token,
-            windowUuid,
-            reason,
-            phase: this.phases.scrolling,
-            revealWindowUuids,
-            deferredSequence: 1,
-        };
-        this.requestStage(
-            "settle-wide-transition",
-            this.pendingTransition,
-            baseGeneration,
-            this.timings.scroll
-        );
-        this.debug(`[cc-presentation] DEFERRED_WIDE_SCHEDULE token=${token}` +
-            ` uuid=${windowUuid} phase=${this.phases.scrolling}` +
-            ` visible=${revealWindowUuids.join(",")}` +
-            ` delay=${this.timings.scroll}`);
-    }
-
-    armStep(column, reason, direction) {
-        const token = String(this.nextToken++);
-        const windowUuid = this.normalizeUuid(column.window.internalId);
-        this.pendingTransition = {
-            token,
-            windowUuid,
-            reason,
-            phase: this.phases.awaitingStep,
-            entryDirection: direction,
-            deferredSequence: 1,
-        };
-        this.debug(`[cc-presentation] WIDE_STEP_ARM token=${token}` +
-            ` uuid=${windowUuid} direction=${direction}`);
-    }
-
-    beginStepIfPending(column, direction, reason) {
-        const pending = this.pendingTransition;
-        if (!column || !column.persistentWide || !pending ||
-                pending.phase !== this.phases.awaitingStep ||
-                pending.windowUuid !==
-                    this.normalizeUuid(column.window.internalId) ||
-                pending.entryDirection !== direction) {
-            return false;
-        }
-        return this.beginExpansion(pending, column, reason);
-    }
-
-    onGeometryChanged(window) {
-        const pending = this.pendingTransition;
-        if (!pending || pending.phase !== this.phases.expanding ||
-                pending.windowUuid !== this.normalizeUuid(window.internalId) ||
-                !this.sameRectNear(window.frameGeometry, this.presentationRect())) {
-            return false;
-        }
-        this.acknowledgeGeometry(this.pendingColumn(pending));
-        return true;
-    }
-
-    transitionFocused(column, reason, oldScrollOffsetX,
-            newScrollOffsetX, wideStepDirection = 0) {
-        const appState = this.getAppState();
-        const oldWindowUuid = appState.presentation.windowUuid;
-        const oldMode = appState.presentation.mode;
-        const columnUuid = column
-            ? this.normalizeUuid(column.window.internalId)
-            : null;
-        const alreadySelectedWide = Boolean(column && column.persistentWide &&
-            oldMode === this.widePresentationMode && oldWindowUuid === columnUuid);
-        if (this.pendingTransition &&
-                this.pendingTransition.windowUuid !== columnUuid) {
-            this.debug(`[cc-presentation] DEFERRED_WIDE_SUPERSEDE` +
-                ` token=${this.pendingTransition.token} reason=${reason}`);
-            this.pendingTransition = null;
-        }
-        if (this.pendingTransition &&
-                this.pendingTransition.windowUuid === columnUuid &&
-                column && column.persistentWide && !alreadySelectedWide) {
-            this.debug(`[cc-presentation] DEFERRED_WIDE_REUSE` +
-                ` token=${this.pendingTransition.token} reason=${reason}`);
-            return oldWindowUuid !== appState.presentation.windowUuid ||
-                oldMode !== appState.presentation.mode;
-        }
-
-        if (column && column.persistentWide && !alreadySelectedWide) {
-            /* KWin cannot paint between two synchronous geometry commits. Reveal
-             * the real 50% slot now, then request the 72% commit after scrolling. */
-            this.clearPresentation();
-            this.relayout(`${reason}-reveal-wide`, {
-                oldScrollOffsetX,
-                newScrollOffsetX,
-            });
-            if (wideStepDirection !== 0) {
-                this.armStep(column, reason, wideStepDirection);
-            } else {
-                const presentationChangedNow = oldWindowUuid !==
-                        appState.presentation.windowUuid ||
-                    oldMode !== appState.presentation.mode;
-                this.schedule(
-                    column,
-                    reason,
-                    this.getDockGeneration() + (presentationChangedNow ? 1 : 0)
-                );
-            }
-        } else {
-            this.selectPersistentPresentation(column);
-            this.relayout(reason, { oldScrollOffsetX, newScrollOffsetX });
-        }
-
-        return oldWindowUuid !== appState.presentation.windowUuid ||
-            oldMode !== appState.presentation.mode;
+    confirmReveal(column, direction) {
+        const pending = this.pendingReveal;
+        this.cancelReveal();
+        if (!pending || pending.column !== column ||
+                pending.direction !== direction || !column.persistentWide ||
+                this.appState.columns.indexOf(column) < 0 ||
+                this.appState.viewport.mode !== ViewportMode.PAIR ||
+                this.appState.scrollOffsetX !== pending.scrollOffsetX) return false;
+        return this.wide(column);
     }
 }
 
@@ -2295,7 +2301,6 @@ class DockScrollController {
         this.requestDeferred = options.requestDeferred;
         this.getSessionId = options.getSessionId;
         this.stepMs = options.stepMs;
-        this.cancelWideTransition = options.cancelWideTransition;
         this.clearPresentation = options.clearPresentation;
         this.normalPresentationMode = options.normalPresentationMode;
         this.commitDockState = options.commitDockState;
@@ -2303,6 +2308,7 @@ class DockScrollController {
         this.focusIndex = options.focusIndex;
         this.transitionFocused = options.transitionFocused;
         this.setActiveWindow = options.setActiveWindow;
+        this.isActivationDeferred = options.isActivationDeferred || (() => false);
         this.relayout = options.relayout;
         this.debug = options.debug;
         this.pendingScroll = null;
@@ -2398,7 +2404,9 @@ class DockScrollController {
             offset,
             offset
         );
-        if (column.window.minimized) column.window.minimized = false;
+        if (!this.isActivationDeferred() && column.window.minimized) {
+            column.window.minimized = false;
+        }
         this.setActiveWindow(column.window);
         this.debug(`[cc-dock] SCROLL_COMPLETE token=${pending.token}` +
             ` index=${index} offset=${offset} caption=${column.window.caption}`);
@@ -2446,11 +2454,10 @@ class DockScrollController {
         const appState = this.getAppState();
         if (!column || !appState.safeRect) return false;
         this.cancel("superseded-by-dock-click");
-        this.cancelWideTransition("superseded-by-dock-click");
         const offsets = this.offsetsToTarget(column);
 
-        if (offsets.length &&
-                appState.presentation.mode !== this.normalPresentationMode) {
+        if (appState.presentation.mode !== this.normalPresentationMode ||
+                (appState.viewport && appState.viewport.mode !== "pair")) {
             this.clearPresentation();
             this.commitDockState(`${reason}-clear-presentation`);
         }
@@ -2578,17 +2585,12 @@ const COLUMN_WIDTH_HALF = "half";
 const COLUMN_WIDTH_TWO_THIRDS = "twoThirds";
 const PARKING_MARGIN = 4096;
 const FLOATING_FOCUS_GUARD_MS = 1200;
-const WIDE_SCROLL_PHASE_MS = 220;
-const WIDE_PAIR_HOLD_MS = 180;
-const WIDE_EXPANSION_PHASE_MS = 240;
+/* Park only after target geometry ACK and a conservative paint-motion grace.
+ * The Effect owns the visual fade; this timer only releases real geometry. */
+const CONTEXTUAL_WIDE_PARK_GRACE_MS = 500;
 const WIDE_GEOMETRY_RETRY_MS = 50;
 const WIDE_GEOMETRY_MAX_ATTEMPTS = 20;
 const DOCK_SCROLL_STEP_MS = 140;
-const WIDE_REVEAL_PHASE_SCROLLING = "scrolling-to-normal-pair";
-const WIDE_REVEAL_PHASE_AWAITING_STEP = "awaiting-wide-step";
-const WIDE_REVEAL_PHASE_SETTLED = "settled-normal-pair";
-const WIDE_REVEAL_PHASE_EXPANDING = "expanding-wide";
-const WIDE_REVEAL_PHASE_ANIMATING = "animating-wide";
 const ADOPTION_UNTRACKED = "untracked";
 const ADOPTION_WAITING_ACTIVATION = "waiting-activation";
 const ADOPTION_WAITING_PRIMARY = "waiting-primary";
@@ -2616,7 +2618,15 @@ const mainScreenState = {
         windowUuid: null,
         mode: PRESENTATION_NORMAL,
     },
+    viewport: { mode: ViewportMode.PAIR, wideColumnId: null },
 };
+const contextualViewport = new ContextualViewport(mainScreenState);
+let lastCommittedViewportMode = ViewportMode.PAIR;
+let lastCommittedWideColumnId = null;
+let contextualWidePark = null;
+let nextContextualWideParkToken = 1;
+let contextualWideExit = null;
+let nextContextualWideExitToken = 1;
 const columnStore = new ColumnStore(mainScreenState);
 const states = new WindowStateStore(createWindowState);
 const runtimeConfig = loadRuntimeConfig(readConfig);
@@ -2642,15 +2652,17 @@ const dockGateway = new DockGateway({
     snapshotProvider: createDockSnapshot,
     handlers: {
         "emergency-restore": () => emergencyRestoreAllWindows("bridge-unload"),
-        "settle-wide-transition": settlePendingWideTransition,
-        "complete-wide-transition": completePendingWideTransition,
-        "finalize-wide-transition": finalizePendingWideTransitionCommand,
-        "check-wide-transition": checkPendingWideGeometry,
+        "finalize-contextual-wide": finalizeContextualWide,
+        "finalize-contextual-wide-exit": finalizeContextualWideExit,
         "advance-dock-scroll": advancePendingDockScroll,
         "set-presentation-mode": handleDockPresentationCommand,
         "focus-column-right": handleDockFocusCommand,
         "set-column-order": handleDockReorderCommand,
     },
+    generationAgnosticTypes: [
+        "finalize-contextual-wide",
+        "finalize-contextual-wide-exit",
+    ],
     debug,
     warn,
     now: () => Date.now(),
@@ -2658,7 +2670,6 @@ const dockGateway = new DockGateway({
 });
 let connectedManagedOutputs = new Set();
 let scrollLayoutInitialized = false;
-let cancelWideTransitionState = () => false;
 const parkingManager = new ParkingManager({
     stateFor,
     getState: window => states.get(window),
@@ -2669,6 +2680,7 @@ const parkingManager = new ParkingManager({
 const geometryCommitter = new GeometryCommitter({
     stateFor,
     sameRect,
+    sameRectNear,
     rectCopy,
     rectText,
     isTileMode,
@@ -2695,6 +2707,14 @@ const layoutTransaction = new LayoutTransaction({
     audit: (reason, epoch) => invariantChecker.check(reason, epoch),
     debug,
 });
+const motionPlanCommitGate = new MotionPlanCommitGate({
+    publish: (envelope, callback) =>
+        dockGateway.publishMotionPlan(envelope, callback),
+    currentEpoch: () => layoutTransaction.currentEpoch(),
+    commit: (plan, context, activationWindow) =>
+        commitLayoutPlan(plan, context.wideExitColumn, activationWindow),
+    warn,
+});
 const recovery = new Recovery({
     appState: mainScreenState,
     windowStates: states,
@@ -2702,7 +2722,7 @@ const recovery = new Recovery({
     indexOfWindow: window => columnStore.indexOfWindow(window),
     beforeRestore: reason => {
         mainScreenState.enabled = false;
-        cancelWideTransitionState(reason);
+        motionPlanCommitGate.cancel();
         cancelPendingDockScroll(reason);
     },
     debug,
@@ -2752,7 +2772,9 @@ const floatingController = new FloatingController({
     settlingPhase: ADOPTION_SETTLING,
     managedPhase: ADOPTION_MANAGED,
     getActiveWindow: () => workspace.activeWindow,
-    setActiveWindow: window => { workspace.activeWindow = window; },
+    setActiveWindow: window => {
+        activateColumnWhenReady(window);
+    },
     rectText,
     debug,
     warn,
@@ -2794,6 +2816,7 @@ const outputController = new OutputController({
 });
 const fullscreenController = new FullscreenController({
     stateFor,
+    getAppState: () => mainScreenState,
     indexOfWindow: window => columnStore.indexOfWindow(window),
     relayout,
     onManagedOutput,
@@ -2819,54 +2842,15 @@ const presentationController = new PresentationController({
     wideRatio: WIDE_RATIO,
     rectCopy,
     cancelPendingDockScroll,
-    cancelPendingWideTransition: reason => cancelWideTransitionState(reason),
     focusColumn: column => columnStore.focusColumn(column),
     recomputeLogicalLayout,
     ensureColumnVisible,
     relayout,
     getActiveWindow: () => workspace.activeWindow,
-    setActiveWindow: window => { workspace.activeWindow = window; },
+    setActiveWindow: activateColumnWhenReady,
     commitDockState,
     debug,
 });
-const wideTransition = new WideTransition({
-    getAppState: () => mainScreenState,
-    normalizeUuid: normalizeWindowUuid,
-    phases: {
-        scrolling: WIDE_REVEAL_PHASE_SCROLLING,
-        awaitingStep: WIDE_REVEAL_PHASE_AWAITING_STEP,
-        settled: WIDE_REVEAL_PHASE_SETTLED,
-        expanding: WIDE_REVEAL_PHASE_EXPANDING,
-        animating: WIDE_REVEAL_PHASE_ANIMATING,
-    },
-    normalPresentationMode: PRESENTATION_NORMAL,
-    widePresentationMode: PRESENTATION_WIDE,
-    timings: {
-        scroll: WIDE_SCROLL_PHASE_MS,
-        pairHold: WIDE_PAIR_HOLD_MS,
-        expansion: WIDE_EXPANSION_PHASE_MS,
-        geometryRetry: WIDE_GEOMETRY_RETRY_MS,
-    },
-    maxGeometryAttempts: WIDE_GEOMETRY_MAX_ATTEMPTS,
-    getDockGeneration: () => dockGateway.generation(),
-    getDockSessionId: () => dockGateway.sessionId(),
-    requestDeferred: (command, delayMs, callback) =>
-        dockGateway.requestDeferred(command, delayMs, callback),
-    relayout,
-    commitDockState,
-    presentationRect,
-    sameRectNear,
-    clearPresentation: clearPresentationState,
-    selectPersistentPresentation,
-    setColumnVisibility: setColumnVisualVisibility,
-    applyColumnGeometry,
-    isFullyVisible: isFullyVisibleInSafeRect,
-    projectedRectForColumn,
-    rectText,
-    debug,
-    warn,
-});
-cancelWideTransitionState = reason => wideTransition.cancel(reason);
 const dockScrollController = new DockScrollController({
     getAppState: () => mainScreenState,
     normalizeUuid: normalizeWindowUuid,
@@ -2879,14 +2863,16 @@ const dockScrollController = new DockScrollController({
         dockGateway.requestDeferred(command, delayMs, callback),
     getSessionId: () => dockGateway.sessionId(),
     stepMs: DOCK_SCROLL_STEP_MS,
-    cancelWideTransition: reason => wideTransition.cancel(reason),
     clearPresentation: clearPresentationState,
     normalPresentationMode: PRESENTATION_NORMAL,
     commitDockState,
     publishDockState,
     focusIndex: index => columnStore.focusIndex(index),
     transitionFocused: relayoutFocusedColumnTransition,
-    setActiveWindow: window => { workspace.activeWindow = window; },
+    isActivationDeferred: () => Boolean(contextualWideExit),
+    setActiveWindow: window => {
+        activateColumnWhenReady(window);
+    },
     relayout,
     debug,
 });
@@ -2920,14 +2906,13 @@ const controllerComposition = new ControllerComposition({
     output: outputController,
     fullscreen: fullscreenController,
     presentation: presentationController,
-    wide: wideTransition,
     dockGateway,
     dockScroll: dockScrollController,
     reorder: reorderController,
 }, [
     "parking", "geometry", "invariants", "transactions", "recovery",
     "adoption", "floating", "output", "fullscreen", "presentation",
-    "wide", "dockGateway", "dockScroll", "reorder",
+    "dockGateway", "dockScroll", "reorder",
 ]);
 
 function debug(message) {
@@ -2944,14 +2929,18 @@ function normalizeWindowUuid(value) {
 
 function createDockSnapshot() {
     const focusedColumn = mainScreenState.columns[mainScreenState.focusedColumnIndex] || null;
+    const wideColumn = contextualViewport.column();
     return {
         targetOutput: mainScreenState.targetOutput ? mainScreenState.targetOutput.name : "",
         focusedUuid: focusedColumn
             ? normalizeWindowUuid(focusedColumn.window.internalId)
             : "",
         presentation: {
-            windowUuid: mainScreenState.presentation.windowUuid || null,
-            mode: mainScreenState.presentation.mode,
+            windowUuid: wideColumn
+                ? normalizeWindowUuid(wideColumn.window.internalId)
+                : mainScreenState.presentation.windowUuid || null,
+            mode: wideColumn
+                ? PRESENTATION_WIDE : mainScreenState.presentation.mode,
         },
         columns: mainScreenState.columns.map(column => ({
             uuid: normalizeWindowUuid(column.window.internalId),
@@ -3224,8 +3213,19 @@ function relayoutImpl(reason, scrollOffsets) {
     if (!mainScreenState.safeRect) return;
     recomputeLogicalLayout();
     clampScrollOffset();
+    if (contextualWideExit && (mainScreenState.viewport.mode !== ViewportMode.PAIR ||
+            mainScreenState.columns.indexOf(contextualWideExit.target) < 0)) {
+        contextualWideExit = null;
+    }
 
     const presentedColumn = presentationColumn();
+    prepareContextualWidePark(presentedColumn);
+    const wideExitColumn = lastCommittedViewportMode === ViewportMode.WIDE_FOCUS &&
+        mainScreenState.presentation.mode === PRESENTATION_NORMAL &&
+        mainScreenState.viewport.mode === ViewportMode.PAIR
+        ? mainScreenState.columns.find(column =>
+            column.id === lastCommittedWideColumnId) || null
+        : null;
     const plan = computeLayoutPlan({
         reason,
         epoch: layoutTransaction.currentEpoch(),
@@ -3237,8 +3237,192 @@ function relayoutImpl(reason, scrollOffsets) {
         scrollOffsets,
         presentedColumn,
         presentedRect: presentedColumn ? presentationRect() : null,
+        retainedColumn: contextualWidePark
+            ? contextualWidePark.neighbor : null,
+        wideExitColumn,
+        wideRect: presentationController.wideRect(),
     });
-    geometryCommitter.commit(plan);
+    if (plan.viewportMotion) {
+        const motion = plan.viewportMotion;
+        const envelope = {
+            epoch: plan.epoch,
+            issuedAt: Date.now(),
+            type: motion.type,
+            side: motion.side,
+            oldViewportMode: motion.oldViewportMode,
+            newViewportMode: motion.newViewportMode,
+            parkAfterComplete: motion.parkAfterComplete,
+            transitionToken: motion.type === "PAIR_TO_WIDE" &&
+                contextualWidePark ? contextualWidePark.token : null,
+            targetWindowUuid: normalizeWindowUuid(
+                plan.windows.find(item => item.columnId ===
+                    motion.targetColumnId).column.window.internalId),
+            entries: motion.entries.map((entry, index) => Object.assign({}, entry, {
+                windowId: normalizeWindowUuid(entry.windowId),
+                oldRealRect: plan.layoutSnapshots.from.entries[index].realRect,
+                newRealRect: plan.layoutSnapshots.to.entries[index].realRect,
+            })),
+        };
+        motionPlanCommitGate.schedule(plan, envelope, { wideExitColumn });
+        return;
+    }
+    motionPlanCommitGate.cancel();
+    commitLayoutPlan(plan, wideExitColumn, null);
+}
+
+function commitLayoutPlan(plan, wideExitColumn, activationWindow) {
+    const commitResult = geometryCommitter.commit(plan);
+    if (wideExitColumn && commitResult.heldIncoming.length) {
+        contextualWideExit = {
+            token: String(nextContextualWideExitToken++),
+            target: wideExitColumn,
+            expected: plan.windows.find(item =>
+                item.column === wideExitColumn).rect,
+            attempts: 0,
+            activationWindow,
+        };
+    }
+    lastCommittedViewportMode = mainScreenState.viewport.mode;
+    lastCommittedWideColumnId = mainScreenState.viewport.wideColumnId;
+    if (contextualWideExit && contextualWideExit.attempts === 0) {
+        requestContextualWideExit(contextualWideExit);
+    }
+    scheduleContextualWidePark();
+    if (activationWindow && !contextualWideExit) {
+        workspace.activeWindow = activationWindow;
+    }
+}
+
+function activateColumnWhenReady(window) {
+    if (motionPlanCommitGate.deferActivation(window)) return;
+    if (contextualWideExit) {
+        contextualWideExit.activationWindow = window;
+    } else {
+        workspace.activeWindow = window;
+    }
+}
+
+function prepareContextualWidePark(target) {
+    if (!target || mainScreenState.viewport.mode !== ViewportMode.WIDE_FOCUS) {
+        contextualWidePark = null;
+        return;
+    }
+    if (contextualWidePark && contextualWidePark.target === target) return;
+    if (lastCommittedViewportMode !== ViewportMode.PAIR) return;
+    const targetPairRect = projectedRectForColumn(target);
+    const neighbor = mainScreenState.columns.find(column => {
+        if (column === target) return false;
+        const rect = projectedRectForColumn(column);
+        return isFullyVisibleInSafeRect(rect) &&
+            Math.abs(rect.y - targetPairRect.y) < 2 &&
+            (Math.abs(rect.x - targetPairRect.x - targetPairRect.width -
+                mainScreenState.innerGap) < 3 ||
+             Math.abs(rect.x + rect.width + mainScreenState.innerGap -
+                targetPairRect.x) < 3);
+    }) || null;
+    if (!neighbor) return;
+    contextualWidePark = {
+        token: String(nextContextualWideParkToken++),
+        target,
+        neighbor,
+        attempts: 0,
+        scheduled: false,
+    };
+    debug(`[cc-presentation] RETAIN_PAIR_NEIGHBOR token=${contextualWidePark.token}` +
+        ` target=${target.id} neighbor=${neighbor.id}`);
+}
+
+function scheduleContextualWidePark() {
+    const pending = contextualWidePark;
+    if (!pending || pending.scheduled) return;
+    pending.scheduled = true;
+    requestContextualWidePark(pending, WIDE_GEOMETRY_RETRY_MS);
+}
+
+function requestContextualWidePark(pending, delayMs) {
+    const command = {
+        commandId: `${dockGateway.sessionId()}-contextual-wide-${pending.token}-` +
+            `${pending.attempts++}`,
+        type: "finalize-contextual-wide",
+        transitionToken: pending.token,
+        windowUuid: normalizeWindowUuid(pending.target.window.internalId),
+    };
+    dockGateway.requestDeferred(command, delayMs, accepted => {
+        if (!accepted) finalizeContextualWide(command);
+    });
+}
+
+function finalizeContextualWide(command) {
+    const pending = contextualWidePark;
+    if (!pending || pending.token !== String(command.transitionToken) ||
+            mainScreenState.viewport.mode !== ViewportMode.WIDE_FOCUS ||
+            mainScreenState.viewport.wideColumnId !== pending.target.id) {
+        return false;
+    }
+    if (command.motionCompleted) pending.motionCompleted = true;
+    if (!sameRectNear(pending.target.window.frameGeometry, presentationRect()) &&
+            pending.attempts <= WIDE_GEOMETRY_MAX_ATTEMPTS) {
+        requestContextualWidePark(pending, WIDE_GEOMETRY_RETRY_MS);
+        return true;
+    }
+    if (!pending.geometryAcknowledged) {
+        pending.geometryAcknowledged = true;
+        if (!pending.motionCompleted) {
+            requestContextualWidePark(pending,
+                CONTEXTUAL_WIDE_PARK_GRACE_MS);
+            return true;
+        }
+    }
+    contextualWidePark = null;
+    const offset = mainScreenState.scrollOffsetX;
+    relayout("contextual-wide-park", {
+        oldScrollOffsetX: offset,
+        newScrollOffsetX: offset,
+    });
+    dockGateway.reportMotionParked({
+        type: "PAIR_TO_WIDE",
+        transitionToken: pending.token,
+        targetWindowUuid: normalizeWindowUuid(
+            pending.target.window.internalId),
+    }, accepted => {
+        if (!accepted) warn("[cc-presentation] motion-park repaint rejected");
+    });
+    return true;
+}
+
+function requestContextualWideExit(pending, delayMs = WIDE_GEOMETRY_RETRY_MS) {
+    const command = {
+        commandId: `${dockGateway.sessionId()}-contextual-wide-exit-` +
+            `${pending.token}-${pending.attempts++}`,
+        type: "finalize-contextual-wide-exit",
+        transitionToken: pending.token,
+        windowUuid: normalizeWindowUuid(pending.target.window.internalId),
+    };
+    dockGateway.requestDeferred(command, delayMs, accepted => {
+        if (!accepted) finalizeContextualWideExit(command);
+    });
+}
+
+function finalizeContextualWideExit(command) {
+    const pending = contextualWideExit;
+    if (!pending || pending.token !== String(command.transitionToken)) return false;
+    if (!sameRectNear(pending.target.window.frameGeometry, pending.expected) &&
+            pending.attempts <= WIDE_GEOMETRY_MAX_ATTEMPTS) {
+        requestContextualWideExit(pending);
+        return true;
+    }
+    contextualWideExit = null;
+    const offset = mainScreenState.scrollOffsetX;
+    relayout("contextual-wide-exit-ack", {
+        oldScrollOffsetX: offset,
+        newScrollOffsetX: offset,
+    });
+    const focused = mainScreenState.columns[mainScreenState.focusedColumnIndex];
+    if (pending.activationWindow && focused &&
+            focused.window === pending.activationWindow) {
+        workspace.activeWindow = pending.activationWindow;
+    }
+    return true;
 }
 
 function relayout(reason, scrollOffsets) {
@@ -3259,10 +3443,12 @@ function resetPresentedWindowLayoutState() {
 }
 
 function clearPresentationState() {
+    contextualViewport.cancelReveal();
     return presentationController.clear();
 }
 
-function cancelPendingDockScroll(reason) {
+function cancelPendingDockScroll(reason, preserveWideReveal = false) {
+    if (!preserveWideReveal) contextualViewport.cancelReveal();
     return dockScrollController.cancel(reason);
 }
 
@@ -3287,6 +3473,7 @@ function advancePendingDockScroll(command) {
 }
 
 function beginDockScroll(column, reason) {
+    contextualViewport.cancelReveal();
     return dockScrollController.begin(column, reason);
 }
 
@@ -3294,62 +3481,27 @@ function selectPersistentPresentation(column) {
     return presentationController.selectPersistent(column);
 }
 
-function pendingWideColumn(pending) {
-    return wideTransition.pendingColumn(pending);
-}
-
-function finalizePendingWideTransition(column) {
-    return wideTransition.finalize(column);
-}
-
-function finalizePendingWideTransitionCommand(command) {
-    return wideTransition.finalizeCommand(command);
-}
-
-function acknowledgePendingWideGeometry(column) {
-    return wideTransition.acknowledgeGeometry(column);
-}
-
-function checkPendingWideGeometry(command) {
-    return wideTransition.checkGeometry(command);
-}
-
-function beginPendingWideExpansion(pending, column, reason) {
-    return wideTransition.beginExpansion(pending, column, reason);
-}
-
-function completePendingWideTransition(command) {
-    return wideTransition.complete(command);
-}
-
-function requestDeferredWideStage(type, pending, baseGeneration, delayMs) {
-    return wideTransition.requestStage(type, pending, baseGeneration, delayMs);
-}
-
-function settlePendingWideTransition(command) {
-    return wideTransition.settle(command);
-}
-
-function schedulePersistentWideTransition(column, reason, baseGeneration) {
-    return wideTransition.schedule(column, reason, baseGeneration);
-}
-
-function armPersistentWideStep(column, reason, direction) {
-    return wideTransition.armStep(column, reason, direction);
-}
-
 function relayoutFocusedColumnTransition(column, reason, oldScrollOffsetX,
         newScrollOffsetX, wideStepDirection = 0) {
-    return wideTransition.transitionFocused(
-        column,
-        reason,
-        oldScrollOffsetX,
-        newScrollOffsetX,
-        wideStepDirection
-    );
+    const previousMode = mainScreenState.viewport.mode;
+    const previousId = mainScreenState.viewport.wideColumnId;
+    if (mainScreenState.presentation.mode !== PRESENTATION_NORMAL) {
+        presentationController.clear();
+    }
+    contextualViewport.select(column, {
+        source: wideStepDirection ? FocusSource.DIRECTIONAL :
+            FocusSource.PROGRAMMATIC,
+        changedFocus: Boolean(wideStepDirection),
+        direction: wideStepDirection,
+        viewportMoved: oldScrollOffsetX !== newScrollOffsetX,
+    });
+    relayout(reason, { oldScrollOffsetX, newScrollOffsetX });
+    return previousMode !== mainScreenState.viewport.mode ||
+        previousId !== mainScreenState.viewport.wideColumnId;
 }
 
 function setPresentationMode(windowUuid, mode, reason) {
+    contextualWideExit = null;
     return presentationController.setMode(windowUuid, mode, reason);
 }
 
@@ -3452,7 +3604,8 @@ function removeColumn(window, reason, activateSuccessor = true) {
         removedGeometry.x + removedGeometry.width / 2 <
             mainScreenState.safeRect.x + mainScreenState.safeRect.width / 2;
     if (mainScreenState.presentation.windowUuid ===
-            normalizeWindowUuid(removedColumn.window.internalId)) {
+            normalizeWindowUuid(removedColumn.window.internalId) ||
+            mainScreenState.viewport.wideColumnId === removedColumn.id) {
         clearPresentationState();
     }
     const removedFocusedColumn = focusedColumn === removedColumn;
@@ -3539,7 +3692,8 @@ function adoptNewWindowAsColumn(window, reason, focusNew = true) {
         return false;
     }
 
-    if (focusNew && mainScreenState.presentation.mode !== PRESENTATION_NORMAL) {
+    if (focusNew && (mainScreenState.presentation.mode !== PRESENTATION_NORMAL ||
+            mainScreenState.viewport.mode !== ViewportMode.PAIR)) {
         clearPresentationState();
     }
 
@@ -3616,6 +3770,9 @@ function onWindowActivatedForScrollLayout(window) {
             ` caption=${window.caption}`);
         return;
     }
+    if (window !== (columnStore.focusedColumn() || {}).window) {
+        contextualViewport.cancelReveal();
+    }
     if (floatingController.redirectActivation(window)) return;
     adoptionController.onActivated(window);
 
@@ -3626,11 +3783,12 @@ function onWindowActivatedForScrollLayout(window) {
     }
     const column = mainScreenState.columns[index];
     const windowUuid = normalizeWindowUuid(window.internalId);
-    const deferredWideMatches = wideTransition.matchesWindow(windowUuid);
-    const presentationMatches = deferredWideMatches || (column.persistentWide
-        ? mainScreenState.presentation.mode === PRESENTATION_WIDE &&
-            mainScreenState.presentation.windowUuid === windowUuid
-        : mainScreenState.presentation.mode === PRESENTATION_NORMAL);
+    const presentationMatches = (mainScreenState.presentation.mode ===
+            PRESENTATION_MAXIMIZED &&
+            mainScreenState.presentation.windowUuid === windowUuid) ||
+        (mainScreenState.presentation.mode ===
+        PRESENTATION_NORMAL && (mainScreenState.viewport.mode === ViewportMode.PAIR ||
+        mainScreenState.viewport.wideColumnId === column.id));
     if (index === mainScreenState.focusedColumnIndex && presentationMatches) return;
     const oldScrollOffsetX = mainScreenState.scrollOffsetX;
     columnStore.focusIndex(index);
@@ -3651,19 +3809,26 @@ function onWindowActivatedForScrollLayout(window) {
 function focusRelativeColumn(delta) {
     const columns = mainScreenState.columns;
     if (!mainScreenState.enabled || !columns.length) return;
-    cancelPendingDockScroll(delta < 0 ? "focus-previous" : "focus-next");
+    cancelPendingDockScroll(delta < 0 ? "focus-previous" : "focus-next", true);
     const activeIndex = columnIndexForWindow(workspace.activeWindow);
-    if (activeIndex >= 0) columnStore.focusIndex(activeIndex);
+    if (activeIndex >= 0 && !contextualWideExit) {
+        columnStore.focusIndex(activeIndex);
+    }
     const oldIndex = columnStore.focusedIndex();
-    const currentColumn = oldIndex >= 0 ? columns[oldIndex] : null;
-    if (wideTransition.beginStepIfPending(
-        currentColumn,
-        delta,
-        delta < 0 ? "focus-previous-wide-step" : "focus-next-wide-step"
-    )) {
-        debug(`[cc-scroll] WIDE_STEP index=${oldIndex} direction=${delta}`);
+    const focused = columns[oldIndex];
+    if (focused && !focused.window.fullScreen &&
+            mainScreenState.presentation.mode === PRESENTATION_NORMAL &&
+            contextualViewport.confirmReveal(focused, delta)) {
+        const offset = mainScreenState.scrollOffsetX;
+        relayout("directional-reveal-to-wide", {
+            oldScrollOffsetX: offset,
+            newScrollOffsetX: offset,
+        });
+        activateColumnWhenReady(focused.window);
+        commitDockState("directional-reveal-to-wide");
         return;
     }
+    contextualViewport.cancelReveal();
     const nextIndex = Math.max(0, Math.min(columns.length - 1, oldIndex + delta));
     if (nextIndex === oldIndex) return;
 
@@ -3686,7 +3851,7 @@ function focusRelativeColumn(delta) {
      * the following geometry transaction, which can surface on an adjacent
      * output. Commit the target's primary-screen slot first, then focus it.
      */
-    workspace.activeWindow = column.window;
+    activateColumnWhenReady(column.window);
     debug(`[cc-scroll] FOCUS from=${oldIndex} to=${nextIndex}`);
     if (presentationChanged) {
         commitDockState(delta < 0 ? "focus-previous-presentation" :
@@ -3701,7 +3866,8 @@ function toggleFocusWide(window) {
     if (!window || index < 0 || window.output !== mainScreenState.targetOutput ||
             window.fullScreen) return;
     const windowUuid = normalizeWindowUuid(window.internalId);
-    const alreadyWide = mainScreenState.columns[index].persistentWide;
+    const alreadyWide = mainScreenState.viewport.mode === ViewportMode.WIDE_FOCUS &&
+        mainScreenState.viewport.wideColumnId === mainScreenState.columns[index].id;
     setPresentationMode(
         windowUuid,
         alreadyWide ? PRESENTATION_NORMAL : PRESENTATION_WIDE,
@@ -3874,7 +4040,11 @@ function leavePseudoMaximize(window, state, reason) {
 function onFrameGeometryChanged(window, oldGeometry) {
     const state = stateFor(window);
     if (state.internalChange || state.interactiveMoveResize || window.fullScreen) return;
-    if (wideTransition.onGeometryChanged(window)) return;
+    if (contextualWideExit && contextualWideExit.target.window === window &&
+            sameRectNear(window.frameGeometry, contextualWideExit.expected)) {
+        requestContextualWideExit(contextualWideExit, 1);
+        return;
+    }
     if (window.active && state.adoptionPhase !== ADOPTION_UNTRACKED &&
             state.adoptionPhase !== ADOPTION_MANAGED &&
             state.adoptionPhase !== ADOPTION_FLOATING &&
@@ -3979,12 +4149,8 @@ function onMaximizedChanged(window) {
         return;
     }
     if (managedColumn && action === "leaveMaximize") {
-        const column = mainScreenState.columns[columnIndexForWindow(window)];
-        setPresentationMode(
+        presentationController.restoreFromMaximize(
             normalizeWindowUuid(window.internalId),
-            column && column.persistentWide
-                ? PRESENTATION_WIDE
-                : PRESENTATION_NORMAL,
             "native-restore"
         );
         return;

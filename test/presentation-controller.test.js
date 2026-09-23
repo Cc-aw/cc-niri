@@ -23,6 +23,7 @@ function fixture(overrides = {}) {
     const calls = [];
     const suppliedWindow = overrides.window || makeWindow("{ABC}");
     const column = overrides.column || {
+        id: 1,
         window: suppliedWindow,
         persistentWide: false,
     };
@@ -33,6 +34,7 @@ function fixture(overrides = {}) {
         safeRect: { x: 24, y: 50, width: 2512, height: 1320 },
         scrollOffsetX: 10,
         presentation: { windowUuid: null, mode: modes.normal },
+        viewport: { mode: "pair", wideColumnId: null },
         ...overrides.appState,
     };
     const states = new Map([[window, {
@@ -57,7 +59,6 @@ function fixture(overrides = {}) {
         wideRatio: 0.72,
         rectCopy: rect => ({ ...rect }),
         cancelPendingDockScroll: reason => calls.push(["cancel-dock", reason]),
-        cancelPendingWideTransition: reason => calls.push(["cancel-wide", reason]),
         focusColumn: target => calls.push(["focus", target]),
         recomputeLogicalLayout: () => calls.push(["recompute"]),
         ensureColumnVisible: target => {
@@ -86,13 +87,15 @@ function fixture(overrides = {}) {
 }
 
 {
-    const { controller, appState } = fixture();
+    const { controller, appState, column } = fixture();
     assert.equal(controller.isMode("normal"), true);
     assert.equal(controller.isMode("wide"), true);
     assert.equal(controller.isMode("maximized"), true);
     assert.equal(controller.isMode("other"), false);
     assert.equal(controller.column(), null);
     appState.presentation = { windowUuid: "abc", mode: "wide" };
+    column.persistentWide = true;
+    appState.viewport = { mode: "wide-focus", wideColumnId: column.id };
     assert.equal(controller.column(), appState.columns[0]);
     assert.deepEqual(controller.wideRect(), {
         x: 375, y: 50, width: 1809, height: 1320,
@@ -121,12 +124,13 @@ function fixture(overrides = {}) {
 {
     const { controller, appState, column } = fixture();
     column.persistentWide = true;
-    assert.equal(controller.selectPersistent(column), true);
-    assert.deepEqual(appState.presentation, { windowUuid: "abc", mode: "wide" });
+    assert.equal(controller.selectPersistent(column), false);
+    assert.deepEqual(appState.presentation, { windowUuid: null, mode: "normal" });
+    assert.deepEqual(appState.viewport, { mode: "pair", wideColumnId: null });
     assert.equal(controller.selectPersistent(column), false,
-        "reselecting the same persistent Wide column is state-neutral");
+        "preference alone does not enter Wide");
     column.persistentWide = false;
-    assert.equal(controller.selectPersistent(column), true);
+    assert.equal(controller.selectPersistent(column), false);
     assert.deepEqual(appState.presentation, { windowUuid: null, mode: "normal" });
 }
 
@@ -135,7 +139,9 @@ function fixture(overrides = {}) {
         fixture();
     assert.equal(controller.setMode("{ABC}", "wide", "dock-wide"), true);
     assert.equal(column.persistentWide, true);
-    assert.deepEqual(appState.presentation, { windowUuid: "abc", mode: "wide" });
+    assert.deepEqual(appState.presentation, { windowUuid: null, mode: "normal" });
+    assert.deepEqual(appState.viewport,
+        { mode: "wide-focus", wideColumnId: column.id });
     assert.deepEqual(window.maximizeArgs, [false, false]);
     assert.equal(states.get(window).internalChange, false);
     assert.equal(activeWindow(), window);
@@ -144,7 +150,6 @@ function fixture(overrides = {}) {
     ]);
     assert.deepEqual(calls.filter(call => call[0].startsWith("cancel")), [
         ["cancel-dock", "dock-wide"],
-        ["cancel-wide", "dock-wide"],
     ]);
     assert.deepEqual(calls.find(call => call[0] === "commit"),
         ["commit", "dock-wide"]);

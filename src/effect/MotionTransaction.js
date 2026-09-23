@@ -88,7 +88,10 @@ class MotionTransaction {
 
     expire(now = Date.now()) {
         const transaction = this.activeTransaction;
-        if (!transaction || now - transaction.armedAt <= this.ttlMs) return null;
+        const ttl = transaction && (transaction.type === MotionType.WIDE_TO_PAIR ||
+            transaction.type === MotionType.PAIR_TO_WIDE)
+            ? Math.max(this.ttlMs, 500) : this.ttlMs;
+        if (!transaction || now - transaction.armedAt <= ttl) return null;
         this.activeTransaction = null;
         return transaction;
     }

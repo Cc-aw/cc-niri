@@ -6,6 +6,7 @@ const { FullscreenController } =
 
 function fixture(overrides = {}) {
     const calls = [];
+    const appState = overrides.appState || null;
     const state = {
         internalChange: false,
         layoutMode: "normal",
@@ -14,6 +15,7 @@ function fixture(overrides = {}) {
     };
     const options = {
         stateFor: () => state,
+        getAppState: () => appState,
         indexOfWindow: () => -1,
         relayout: reason => calls.push(["relayout", reason]),
         onManagedOutput: () => false,
@@ -24,7 +26,47 @@ function fixture(overrides = {}) {
         debug: message => calls.push(["debug", message]),
         ...overrides.options,
     };
-    return { controller: new FullscreenController(options), state, calls };
+    return { controller: new FullscreenController(options), state, calls,
+        appState };
+}
+
+{
+    const wideColumn = { id: 7, persistentWide: true };
+    const appState = {
+        columns: [wideColumn],
+        viewport: { mode: "wide-focus", wideColumnId: 7 },
+    };
+    const { controller, state, calls } = fixture({
+        appState,
+        options: { indexOfWindow: () => 0 },
+    });
+    controller.onFullscreenChanged(makeWindow(true));
+    assert.deepEqual(state.viewportBeforeFullscreen,
+        { mode: "wide-focus", wideColumnId: 7 });
+    appState.viewport = { mode: "pair", wideColumnId: null };
+    controller.onFullscreenChanged(makeWindow(false));
+    assert.deepEqual(appState.viewport,
+        { mode: "wide-focus", wideColumnId: 7 });
+    assert.equal(wideColumn.persistentWide, true);
+    assert.deepEqual(calls.at(-1), ["relayout", "fullscreen-exit"]);
+}
+
+{
+    const wideColumn = { id: 7, persistentWide: true };
+    const appState = {
+        columns: [wideColumn],
+        viewport: { mode: "wide-focus", wideColumnId: 7 },
+    };
+    const { controller } = fixture({
+        appState,
+        options: { indexOfWindow: () => 0 },
+    });
+    controller.onFullscreenChanged(makeWindow(true));
+    wideColumn.persistentWide = false;
+    controller.onFullscreenChanged(makeWindow(false));
+    assert.deepEqual(appState.viewport,
+        { mode: "pair", wideColumnId: null },
+    "an obsolete Wide preference cannot restore an invalid viewport");
 }
 
 function makeWindow(fullScreen) {

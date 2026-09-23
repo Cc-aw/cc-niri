@@ -268,9 +268,11 @@ const focusFunction = mainSource.slice(
     mainSource.indexOf("function focusRelativeColumn"),
     mainSource.indexOf("function moveFocusedColumn")
 );
-assert.ok(focusFunction.indexOf("relayout(") <
-    focusFunction.indexOf("workspace.activeWindow = column.window"),
-"H/L must commit visible geometry before activating a parked target window");
+assert.ok(focusFunction.indexOf("relayoutFocusedColumnTransition(") <
+    focusFunction.indexOf("activateColumnWhenReady(column.window)"),
+"H/L must request geometry before activating a parked target window");
+assert.ok(mainSource.includes("motionPlanCommitGate.deferActivation(window)"),
+"Wide activation waits for the motion-plan handoff and geometry commit");
 console.log("PASS V3 H/L activates only after the target geometry is visible");
 
 const setupSource = mainSource.slice(

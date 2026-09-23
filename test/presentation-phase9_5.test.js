@@ -70,8 +70,8 @@ assert.ok(mainSource.includes(
 ));
 assert.ok(mainSource.includes('PRESENTATION_MAXIMIZED,\n            "native-maximize"'),
     "native maximize enters the shared presentation state");
-assert.ok(mainSource.includes('PRESENTATION_NORMAL,\n            "native-restore"'),
-    "native restore exits through the shared presentation state");
+assert.ok(mainSource.includes('presentationController.restoreFromMaximize('),
+    "native restore preserves the pre-maximize viewport and Wide preference");
 const wideShortcutSource = mainSource.slice(
     mainSource.indexOf("function toggleFocusWide"),
     mainSource.indexOf("function moveFocusedColumn")
@@ -87,13 +87,12 @@ assert.ok(focusSource.includes("relayoutFocusedColumnTransition("),
     "H/L uses the shared persistent Wide transition path");
 assert.ok(mainSource.includes("persistentWide: false"),
     "Wide is stored as a per-Column property");
-assert.ok(mainSource.includes("if (column && column.persistentWide && !alreadySelectedWide)"),
-    "returning to a fixed Wide Column automatically isolates it again");
-assert.ok(mainSource.includes('`${reason}-reveal-wide`') &&
-    mainSource.includes('`${pending.reason}-finalize-wide`'),
-    "entering Wide reveals the 50% slot before expanding to 72%");
-assert.ok(wideShortcutSource.includes(".persistentWide"),
-    "Meta+Z toggles the Column property rather than transient focus state");
+assert.ok(mainSource.includes("contextualViewport.select(column"),
+    "directional entry uses focus intent to select Wide in one step");
+assert.ok(wideShortcutSource.includes("mainScreenState.viewport.mode === ViewportMode.WIDE_FOCUS"),
+    "Meta+Z uses the current viewport, including a preferred column in Pair");
+assert.ok(mainSource.includes("column.persistentWide = true"),
+    "explicit Wide still persists the Column preference");
 
 const reorderSource = mainSource.slice(
     mainSource.indexOf("function moveFocusedColumn"),

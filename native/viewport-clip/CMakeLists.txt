@@ -27,6 +27,7 @@ kcoreaddons_add_plugin(cc-niri-viewport-clip
 
 target_link_libraries(cc-niri-viewport-clip PRIVATE
     Qt6::Core
+    Qt6::DBus
     KF6::CoreAddons
     KWin::kwin
 )

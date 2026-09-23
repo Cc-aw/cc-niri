@@ -11,6 +11,8 @@ const uninstall = fs.readFileSync(path.join(__dirname, "../uninstall.sh"), "utf8
 
 assert.match(header, /ViewportClipDataRole = 1001/);
 assert.match(header, /CapabilityDataRole = 1002/);
+assert.match(header, /MotionPlanDataRole = 1003/);
+assert.match(header, /MotionCompleteDataRole = 1004/);
 assert.match(source, /advertiseCapability\(window, true\)/);
 assert.match(source, /advertiseCapability\(window, false\)/);
 assert.match(source, /setData\(CapabilityDataRole/);
@@ -19,6 +21,12 @@ assert.match(source, /viewport\.mapToDeviceCoordinates\(logicalClip\)\.rounded\(
 assert.match(source, /clipped &= deviceClip/);
 assert.match(source, /blocksDirectScanout\(\) const/);
 assert.match(source, /\[VIEWPORT_CLIP_NATIVE\] MAP/);
+assert.match(source, /MotionPlanChanged/);
+assert.match(source, /setData\(MotionPlanDataRole, marker\)/);
+assert.match(source, /ReportMotionComplete/);
+assert.match(source,
+    /QStringLiteral\("outgoing"\)[\s\S]*?QStringLiteral\("PAIR_TO_WIDE"\)[\s\S]*?effects->addRepaintFull\(\)/,
+    "outgoing Pair-to-Wide motion repaints its compositor-only translation");
 assert.match(cmake, /KWin::kwin/);
 assert.match(cmake, /INSTALL_NAMESPACE "kwin\/effects\/plugins"/);
 assert.match(install, /cmake --install "\$\{NATIVE_CLIP_BUILD_DIR\}"/);

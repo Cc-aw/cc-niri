@@ -11,6 +11,14 @@ function sameSize(a, b) {
     return Math.abs(a.width - b.width) < 1 && Math.abs(a.height - b.height) < 1;
 }
 
+function rectNear(a, b, tolerance = 3) {
+    return Boolean(a && b &&
+        Math.abs(a.x - b.x) < tolerance &&
+        Math.abs(a.y - b.y) < tolerance &&
+        Math.abs(a.width - b.width) < tolerance &&
+        Math.abs(a.height - b.height) < tolerance);
+}
+
 function isColumnSize(rect, screenRect) {
     return rect.width > screenRect.width * 0.35 &&
         rect.width < screenRect.width * 0.65 &&
@@ -59,6 +67,18 @@ function presentationTransition(oldGeometry, newGeometry, screenRect) {
     return (oldSlot && newWide) || (oldWide && newSlot);
 }
 
+function wideExitNeighborMatches(wide, neighborRect, innerGap) {
+    if (!wide || !wide.pairRect || !neighborRect) return false;
+    const neighborSide = wide.side === "left" ? "right" : "left";
+    const expectedX = neighborSide === "right"
+        ? wide.pairRect.x + wide.pairRect.width + innerGap
+        : wide.pairRect.x - neighborRect.width - innerGap;
+    return Math.abs(neighborRect.x - expectedX) < 3 &&
+        Math.abs(neighborRect.y - wide.pairRect.y) < 2 &&
+        Math.abs(neighborRect.width - wide.pairRect.width) < 3 &&
+        Math.abs(neighborRect.height - wide.pairRect.height) < 2;
+}
+
 function parked(rect, screenRect) {
     return isColumnSize(rect, screenRect) &&
         (rect.x + rect.width < screenRect.x ||
@@ -94,10 +114,12 @@ function viewportFromSlot(rect, slot, innerGap) {
 /* cjs:start */
 module.exports = {
     sameSize,
+    rectNear,
     isColumnSize,
     visibleSlot,
     isFocusWide,
     presentationTransition,
+    wideExitNeighborMatches,
     parked,
     incomingVisualStart,
     viewportFromSlot,

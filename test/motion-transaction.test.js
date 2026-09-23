@@ -34,6 +34,15 @@ assert.equal(transactions.roleFor(incoming), "continuing");
 assert.equal(transactions.current(1080), first);
 assert.equal(transactions.current(1081), null, "stale transactions expire");
 
+const wideTransactions = new MotionTransaction(80);
+const wideMotion = wideTransactions.begin({
+    type: MotionType.WIDE_TO_PAIR,
+    now: 1500,
+});
+assert.equal(wideTransactions.current(1999), wideMotion,
+    "Wide neighbor ACK may arrive after the short scroll arming window");
+assert.equal(wideTransactions.current(2001), null);
+
 const replacement = transactions.begin({
     type: MotionType.CLOSE_REFILL,
     deltaX: 0,

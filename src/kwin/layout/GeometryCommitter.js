@@ -4,6 +4,7 @@ class GeometryCommitter {
     constructor(dependencies) {
         this.stateFor = dependencies.stateFor;
         this.sameRect = dependencies.sameRect;
+        this.sameRectNear = dependencies.sameRectNear || dependencies.sameRect;
         this.rectCopy = dependencies.rectCopy;
         this.rectText = dependencies.rectText;
         this.isTileMode = dependencies.isTileMode;
@@ -36,6 +37,18 @@ class GeometryCommitter {
 
     commit(plan) {
         const transaction = plan.scrollTransaction;
+        const wideExitTarget = plan.wideExitColumn
+            ? plan.windows.find(item => item.column === plan.wideExitColumn)
+            : null;
+        const heldIncoming = [];
+        if (plan.viewportMotion) {
+            const motion = plan.viewportMotion;
+            this.debug(`[MOTION_TX] BEGIN epoch=${plan.epoch}` +
+                ` type=${motion.type} target=${motion.targetColumnId}` +
+                ` neighbor=${motion.neighborColumnId} side=${motion.side}` +
+                ` neighborVisualStart=${this.rectText(motion.neighbor.oldVisualRect)}` +
+                ` neighborVisualEnd=${this.rectText(motion.neighbor.newVisualRect)}`);
+        }
         if (transaction) {
             this.debug(`[MOTION_TX] BEGIN id=${transaction.id}` +
                 ` epoch=${transaction.epoch} type=${transaction.type}` +
@@ -44,6 +57,16 @@ class GeometryCommitter {
         }
         plan.commitOrder.forEach(item => {
             const column = item.column;
+            if (wideExitTarget && item.placement === "visible" &&
+                    column !== plan.wideExitColumn &&
+                    !this.sameRectNear(
+                        plan.wideExitColumn.window.frameGeometry,
+                        wideExitTarget.rect)) {
+                heldIncoming.push(column);
+                this.debug(`[MOTION_TX] HOLD_WIDE_EXIT_NEIGHBOR` +
+                    ` column=${column.id} target=${plan.wideExitColumn.id}`);
+                return;
+            }
             if (transaction && item.transitionRole !== "static") {
                 this.debug(`[MOTION_TX] ROLE id=${transaction.id}` +
                     ` column=${column.id} role=${item.transitionRole}`);
@@ -74,7 +97,9 @@ class GeometryCommitter {
             if (item.placement === "parked") {
                 this.setWindowVisibility(column.window, false);
             }
-            else this.rememberVisibleGeometry(column.window, this.rectCopy(item.rect));
+            else {
+                this.rememberVisibleGeometry(column.window, this.rectCopy(item.rect));
+            }
 
             const outputName = column.window.output
                 ? column.window.output.name
@@ -98,6 +123,7 @@ class GeometryCommitter {
         if (transaction) {
             this.debug(`[MOTION_TX] COMPLETE id=${transaction.id}`);
         }
+        return { heldIncoming };
     }
 }
 

@@ -8,6 +8,9 @@ class DockGateway {
         this.interfaceName = options.interfaceName;
         this.snapshotProvider = options.snapshotProvider;
         this.handlers = options.handlers;
+        this.generationAgnosticTypes = new Set(
+            options.generationAgnosticTypes || []
+        );
         this.debug = options.debug;
         this.warn = options.warn;
         this.protocol = options.protocol || 1;
@@ -51,6 +54,26 @@ class DockGateway {
     commit(snapshot, reason) {
         this.generationValue += 1;
         return this.publish(snapshot, reason);
+    }
+
+    publishMotionPlan(plan, callback) {
+        const envelope = Object.assign({}, plan, {
+            protocol: this.protocol,
+            sessionId: this.sessionIdValue,
+        });
+        this.invoke(this.service, this.path, this.interfaceName,
+            "PublishMotionPlan", JSON.stringify(envelope), callback);
+        return envelope;
+    }
+
+    reportMotionParked(completion, callback) {
+        const envelope = Object.assign({}, completion, {
+            protocol: this.protocol,
+            sessionId: this.sessionIdValue,
+        });
+        this.invoke(this.service, this.path, this.interfaceName,
+            "ReportMotionParked", JSON.stringify(envelope), callback);
+        return envelope;
     }
 
     reject(command, reason) {
@@ -100,7 +123,8 @@ class DockGateway {
             this.reject(command, "session-mismatch");
             return false;
         }
-        if (Number(command.baseGeneration) !== this.generationValue) {
+        if (Number(command.baseGeneration) !== this.generationValue &&
+                !this.generationAgnosticTypes.has(command.type)) {
             this.reject(command, "stale-generation");
             return false;
         }

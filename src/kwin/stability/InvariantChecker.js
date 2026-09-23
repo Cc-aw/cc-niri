@@ -62,6 +62,24 @@ class InvariantChecker {
         }
 
         const presentation = this.appState.presentation;
+        const viewport = this.appState.viewport;
+        if (viewport) {
+            if (viewport.mode === "pair") {
+                if (viewport.wideColumnId !== null) {
+                    errors.push("pair-with-wide-target");
+                }
+            } else if (viewport.mode === "wide-focus") {
+                const wideIndex = columns.findIndex(column =>
+                    column.id === viewport.wideColumnId && column.persistentWide);
+                if (wideIndex < 0) errors.push("missing-wide-viewport-target");
+                else if (wideIndex !== this.appState.focusedColumnIndex) {
+                    errors.push(`wide-viewport-focus:${wideIndex}:` +
+                        `${this.appState.focusedColumnIndex}`);
+                }
+            } else {
+                errors.push(`invalid-viewport-mode:${viewport.mode}`);
+            }
+        }
         if (presentation.mode === this.normalPresentationMode) {
             if (presentation.windowUuid) errors.push("normal-with-target");
         } else {

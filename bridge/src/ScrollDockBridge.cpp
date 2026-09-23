@@ -63,11 +63,105 @@ bool ScrollDockBridge::PublishState(const QString &json)
         m_pendingCommands.clear();
         m_recentCommandIds.clear();
         m_recentCommandOrder.clear();
+        m_lastMotionToken.clear();
+        m_lastMotionTarget.clear();
     }
     m_sessionId = sessionId;
     m_generation = generation;
     m_lastState = QString::fromUtf8(document.toJson(QJsonDocument::Compact));
     Q_EMIT StateChanged(m_lastState);
+    return true;
+}
+
+bool ScrollDockBridge::PublishMotionPlan(const QString &json)
+{
+    QJsonParseError error;
+    const QJsonDocument document = QJsonDocument::fromJson(json.toUtf8(), &error);
+    if (error.error != QJsonParseError::NoError || !document.isObject()) {
+        qCWarning(logBridge) << "rejecting invalid motion plan JSON";
+        return false;
+    }
+    const QJsonObject plan = document.object();
+    const QString type = plan.value(QStringLiteral("type")).toString();
+    const QJsonArray entries = plan.value(QStringLiteral("entries")).toArray();
+    if (plan.value(QStringLiteral("protocol")).toInt() != 1 ||
+            plan.value(QStringLiteral("sessionId")).toString() != m_sessionId ||
+            m_sessionId.isEmpty() ||
+            plan.value(QStringLiteral("epoch")).toInteger(-1) < 0 ||
+            plan.value(QStringLiteral("issuedAt")).toInteger(-1) < 0 ||
+            (type != QStringLiteral("WIDE_TO_PAIR") &&
+             type != QStringLiteral("PAIR_TO_WIDE")) ||
+            entries.size() != 2) {
+        qCWarning(logBridge) << "rejecting motion plan schema";
+        return false;
+    }
+    for (const QJsonValue &value : entries) {
+        const QJsonObject entry = value.toObject();
+        if (entry.value(QStringLiteral("windowId")).toString().isEmpty() ||
+                !entry.value(QStringLiteral("oldVisualRect")).isObject() ||
+                !entry.value(QStringLiteral("newVisualRect")).isObject()) {
+            qCWarning(logBridge) << "rejecting motion plan entry";
+            return false;
+        }
+    }
+    m_lastMotionToken = type == QStringLiteral("PAIR_TO_WIDE")
+        ? plan.value(QStringLiteral("transitionToken")).toString() : QString();
+    m_lastMotionTarget = type == QStringLiteral("PAIR_TO_WIDE")
+        ? plan.value(QStringLiteral("targetWindowUuid")).toString() : QString();
+    Q_EMIT MotionPlanChanged(QString::fromUtf8(
+        document.toJson(QJsonDocument::Compact)));
+    return true;
+}
+
+bool ScrollDockBridge::ReportMotionComplete(const QString &json)
+{
+    const QJsonDocument document = QJsonDocument::fromJson(json.toUtf8());
+    if (!document.isObject()) return false;
+    const QJsonObject completion = document.object();
+    const QString token = completion.value(QStringLiteral("transitionToken"))
+        .toString();
+    const QString target = completion.value(QStringLiteral("targetWindowUuid"))
+        .toString();
+    if (completion.value(QStringLiteral("sessionId")).toString() != m_sessionId ||
+            m_sessionId.isEmpty() || token.isEmpty() || target.isEmpty() ||
+            completion.value(QStringLiteral("type")).toString() !=
+                QStringLiteral("PAIR_TO_WIDE")) {
+        return false;
+    }
+    const QJsonObject command{
+        {QStringLiteral("protocol"), 1},
+        {QStringLiteral("commandId"), m_sessionId +
+            QStringLiteral("-wide-motion-complete-") + token},
+        {QStringLiteral("sessionId"), m_sessionId},
+        {QStringLiteral("baseGeneration"), m_generation},
+        {QStringLiteral("type"), QStringLiteral("finalize-contextual-wide")},
+        {QStringLiteral("transitionToken"), token},
+        {QStringLiteral("windowUuid"), target},
+        {QStringLiteral("motionCompleted"), true},
+    };
+    return RequestCommand(QString::fromUtf8(
+        QJsonDocument(command).toJson(QJsonDocument::Compact)));
+}
+
+bool ScrollDockBridge::ReportMotionParked(const QString &json)
+{
+    const QJsonDocument document = QJsonDocument::fromJson(json.toUtf8());
+    if (!document.isObject()) return false;
+    const QJsonObject parked = document.object();
+    if (parked.value(QStringLiteral("sessionId")).toString() != m_sessionId ||
+            m_sessionId.isEmpty() || m_lastMotionToken.isEmpty() ||
+            parked.value(QStringLiteral("transitionToken")).toString() !=
+                m_lastMotionToken ||
+            parked.value(QStringLiteral("targetWindowUuid")).toString() !=
+                m_lastMotionTarget ||
+            parked.value(QStringLiteral("type")).toString() !=
+                QStringLiteral("PAIR_TO_WIDE")) {
+        return false;
+    }
+    m_lastMotionToken.clear();
+    m_lastMotionTarget.clear();
+    Q_EMIT MotionParked(QString::fromUtf8(
+        document.toJson(QJsonDocument::Compact)));
     return true;
 }
 
@@ -104,14 +198,12 @@ bool ScrollDockBridge::RequestCommand(const QString &json)
     const bool dockFocusRight = type == QStringLiteral("focus-column-right") &&
         !command.value(QStringLiteral("windowUuid")).toString().isEmpty();
     const bool emergencyRestore = type == QStringLiteral("emergency-restore");
-    const bool deferredWide =
-        (type == QStringLiteral("settle-wide-transition") ||
-         type == QStringLiteral("check-wide-transition") ||
-         type == QStringLiteral("finalize-wide-transition") ||
-         type == QStringLiteral("complete-wide-transition")) &&
+    const bool deferredDockScroll = type == QStringLiteral("advance-dock-scroll") &&
         !command.value(QStringLiteral("windowUuid")).toString().isEmpty() &&
         !command.value(QStringLiteral("transitionToken")).toString().isEmpty();
-    const bool deferredDockScroll = type == QStringLiteral("advance-dock-scroll") &&
+    const bool deferredContextualWide =
+        (type == QStringLiteral("finalize-contextual-wide") ||
+         type == QStringLiteral("finalize-contextual-wide-exit")) &&
         !command.value(QStringLiteral("windowUuid")).toString().isEmpty() &&
         !command.value(QStringLiteral("transitionToken")).toString().isEmpty();
     if (command.value(QStringLiteral("protocol")).toInt() != 1 ||
@@ -119,7 +211,7 @@ bool ScrollDockBridge::RequestCommand(const QString &json)
         command.value(QStringLiteral("sessionId")).toString().isEmpty() ||
         command.value(QStringLiteral("baseGeneration")).toInteger(-1) < 0 ||
         (!reorder && !presentation && !dockFocusRight && !emergencyRestore &&
-         !deferredWide && !deferredDockScroll)) {
+         !deferredDockScroll && !deferredContextualWide)) {
         qCWarning(logBridge) << "rejecting command with invalid schema";
         return false;
     }
@@ -161,13 +253,12 @@ bool ScrollDockBridge::RequestDeferredCommand(const QString &json, int delayMs)
     const qint64 generation =
         command.value(QStringLiteral("baseGeneration")).toInteger(-1);
     const QString type = command.value(QStringLiteral("type")).toString();
-    const bool deferredWide = type == QStringLiteral("settle-wide-transition") ||
-        type == QStringLiteral("check-wide-transition") ||
-        type == QStringLiteral("finalize-wide-transition") ||
-        type == QStringLiteral("complete-wide-transition");
     const bool deferredDockScroll = type == QStringLiteral("advance-dock-scroll");
+    const bool deferredContextualWide =
+        type == QStringLiteral("finalize-contextual-wide") ||
+        type == QStringLiteral("finalize-contextual-wide-exit");
     if (command.value(QStringLiteral("protocol")).toInt() != 1 ||
-        (!deferredWide && !deferredDockScroll) ||
+        (!deferredDockScroll && !deferredContextualWide) ||
         command.value(QStringLiteral("commandId")).toString().isEmpty() ||
         sessionId.isEmpty() || sessionId != m_sessionId || generation < 0 ||
         command.value(QStringLiteral("windowUuid")).toString().isEmpty() ||
@@ -178,10 +269,11 @@ bool ScrollDockBridge::RequestDeferredCommand(const QString &json, int delayMs)
 
     const int boundedDelayMs = qBound(16, delayMs, 1000);
     QTimer::singleShot(boundedDelayMs, this,
-        [this, json, sessionId, generation]() {
+        [this, json, sessionId, generation, deferredContextualWide]() {
             /* A newer state means that focus or presentation changed while the
              * reveal was rendering. Do not let the stale timer change it. */
-            if (m_sessionId != sessionId || m_generation != generation) return;
+            if (m_sessionId != sessionId ||
+                    (!deferredContextualWide && m_generation != generation)) return;
             RequestCommand(json);
         });
     return true;

@@ -27,12 +27,12 @@ class MotionController {
         return sampleMotionState(this.states.get(window) || null, now || Date.now());
     }
 
-    visualSnapshot(window, geometry) {
+    visualSnapshot(window, geometry, now = Date.now()) {
         const state = this.states.get(window) || null;
         const anchor = state && state.channels.scale
             ? state.channels.scale.anchor
             : "center";
-        return visualRectFor(geometry, sampleMotionState(state, Date.now()), anchor);
+        return visualRectFor(geometry, sampleMotionState(state, now), anchor);
     }
 
     setNativeViewportClip(window, state) {
@@ -118,7 +118,8 @@ class MotionController {
     }
 
     start(window, options) {
-        const now = Date.now();
+        const now = options.startTime === undefined
+            ? Date.now() : options.startTime;
         const previous = this.states.get(window) || null;
         const previousSample = sampleMotionState(previous, now);
         const desired = {};
@@ -191,7 +192,8 @@ class MotionController {
 
         const requestedDuration = Math.max(1, Number(options.duration) || 1);
         const requestedTranslation = desired.translation || null;
-        const duration = previous && channels.translation && requestedTranslation
+        const duration = previous && channels.translation && requestedTranslation &&
+                !options.synchronizeDuration
             ? distanceAwareDuration(
                 requestedDuration,
                 channelDistance(channels.translation),

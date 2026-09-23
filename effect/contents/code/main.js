@@ -71,6 +71,8 @@ const PRESENTATION_MAX_WIDTH_RATIO = 0.85;
  * handoff from the scripted motion effect to the native viewport clip effect. */
 const CC_NIRI_VIEWPORT_CLIP_ROLE = 1001;
 const CC_NIRI_VIEWPORT_CLIP_CAPABILITY_ROLE = 1002;
+const CC_NIRI_MOTION_PLAN_ROLE = 1003;
+const CC_NIRI_MOTION_COMPLETE_ROLE = 1004;
 
 const MotionTokens = Object.freeze({
     microPressMs: 90,
@@ -100,6 +102,8 @@ const MotionType = Object.freeze({
     REORDER: "REORDER",
     WIDE_ENTER: "WIDE_ENTER",
     WIDE_EXIT: "WIDE_EXIT",
+    WIDE_TO_PAIR: "WIDE_TO_PAIR",
+    PAIR_TO_WIDE: "PAIR_TO_WIDE",
 });
 
 // Generated from src/effect/MotionSampler.js
@@ -300,7 +304,10 @@ class MotionTransaction {
 
     expire(now = Date.now()) {
         const transaction = this.activeTransaction;
-        if (!transaction || now - transaction.armedAt <= this.ttlMs) return null;
+        const ttl = transaction && (transaction.type === MotionType.WIDE_TO_PAIR ||
+            transaction.type === MotionType.PAIR_TO_WIDE)
+            ? Math.max(this.ttlMs, 500) : this.ttlMs;
+        if (!transaction || now - transaction.armedAt <= ttl) return null;
         this.activeTransaction = null;
         return transaction;
     }
@@ -433,12 +440,12 @@ class MotionController {
         return sampleMotionState(this.states.get(window) || null, now || Date.now());
     }
 
-    visualSnapshot(window, geometry) {
+    visualSnapshot(window, geometry, now = Date.now()) {
         const state = this.states.get(window) || null;
         const anchor = state && state.channels.scale
             ? state.channels.scale.anchor
             : "center";
-        return visualRectFor(geometry, sampleMotionState(state, Date.now()), anchor);
+        return visualRectFor(geometry, sampleMotionState(state, now), anchor);
     }
 
     setNativeViewportClip(window, state) {
@@ -524,7 +531,8 @@ class MotionController {
     }
 
     start(window, options) {
-        const now = Date.now();
+        const now = options.startTime === undefined
+            ? Date.now() : options.startTime;
         const previous = this.states.get(window) || null;
         const previousSample = sampleMotionState(previous, now);
         const desired = {};
@@ -597,7 +605,8 @@ class MotionController {
 
         const requestedDuration = Math.max(1, Number(options.duration) || 1);
         const requestedTranslation = desired.translation || null;
-        const duration = previous && channels.translation && requestedTranslation
+        const duration = previous && channels.translation && requestedTranslation &&
+                !options.synchronizeDuration
             ? distanceAwareDuration(
                 requestedDuration,
                 channelDistance(channels.translation),
@@ -709,6 +718,14 @@ function sameSize(a, b) {
     return Math.abs(a.width - b.width) < 1 && Math.abs(a.height - b.height) < 1;
 }
 
+function rectNear(a, b, tolerance = 3) {
+    return Boolean(a && b &&
+        Math.abs(a.x - b.x) < tolerance &&
+        Math.abs(a.y - b.y) < tolerance &&
+        Math.abs(a.width - b.width) < tolerance &&
+        Math.abs(a.height - b.height) < tolerance);
+}
+
 function isColumnSize(rect, screenRect) {
     return rect.width > screenRect.width * 0.35 &&
         rect.width < screenRect.width * 0.65 &&
@@ -757,6 +774,18 @@ function presentationTransition(oldGeometry, newGeometry, screenRect) {
     return (oldSlot && newWide) || (oldWide && newSlot);
 }
 
+function wideExitNeighborMatches(wide, neighborRect, innerGap) {
+    if (!wide || !wide.pairRect || !neighborRect) return false;
+    const neighborSide = wide.side === "left" ? "right" : "left";
+    const expectedX = neighborSide === "right"
+        ? wide.pairRect.x + wide.pairRect.width + innerGap
+        : wide.pairRect.x - neighborRect.width - innerGap;
+    return Math.abs(neighborRect.x - expectedX) < 3 &&
+        Math.abs(neighborRect.y - wide.pairRect.y) < 2 &&
+        Math.abs(neighborRect.width - wide.pairRect.width) < 3 &&
+        Math.abs(neighborRect.height - wide.pairRect.height) < 2;
+}
+
 function parked(rect, screenRect) {
     return isColumnSize(rect, screenRect) &&
         (rect.x + rect.width < screenRect.x ||
@@ -788,6 +817,73 @@ function viewportFromSlot(rect, slot, innerGap) {
         height: rect.height,
     };
 }
+
+// Generated from src/effect/WideMotionGeometry.js
+function wideNeighborStart(wideRect, neighborWidth, side, gap) {
+    return side === "left"
+        ? wideRect.x - gap - neighborWidth
+        : wideRect.x + wideRect.width + gap;
+}
+
+function anchoredScaleTranslation(source, target, anchor) {
+    const scaleX = source.width / target.width;
+    const paintedX = anchor === "right"
+        ? target.x + target.width - source.width
+        : target.x;
+    return {
+        scaleX,
+        translationX: source.x - paintedX,
+    };
+}
+
+function widePairEdgeError(wide, neighbor, side, gap) {
+    return side === "left"
+        ? wide.x - (neighbor.x + neighbor.width) - gap
+        : neighbor.x - (wide.x + wide.width) - gap;
+}
+
+function wideTimelineSample(armedAt, now, duration) {
+    const total = Math.max(1, Number(duration) || 1);
+    const elapsed = Math.max(0, Math.min(total, Number(now) - Number(armedAt)));
+    const progress = standardDecelProgress(elapsed / total);
+    return {
+        progress,
+        remainingDuration: Math.max(1, total - elapsed),
+    };
+}
+
+function widePairMotionSnapshot(type, wideRect, pairRect, side, gap) {
+    const neighborSide = side === "left" ? "right" : "left";
+    const pairNeighbor = {
+        x: neighborSide === "right"
+            ? pairRect.x + pairRect.width + gap
+            : pairRect.x - pairRect.width - gap,
+        y: pairRect.y,
+        width: pairRect.width,
+        height: pairRect.height,
+    };
+    const virtualNeighbor = Object.assign({}, pairNeighbor, {
+        x: wideNeighborStart(wideRect, pairNeighbor.width,
+            neighborSide, gap),
+    });
+    const entering = type === "PAIR_TO_WIDE";
+    return {
+        type,
+        side,
+        target: {
+            oldVisualRect: Object.assign({}, entering ? pairRect : wideRect),
+            newVisualRect: Object.assign({}, entering ? wideRect : pairRect),
+        },
+        neighbor: {
+            oldVisualRect: Object.assign({}, entering
+                ? pairNeighbor : virtualNeighbor),
+            newVisualRect: Object.assign({}, entering
+                ? virtualNeighbor : pairNeighbor),
+            oldOpacity: entering ? 1 : 0,
+            newOpacity: entering ? 0 : 1,
+        },
+    };
+}
 /* END GENERATED EFFECT MODULES */
 
 class CCNiriScrollTransition {
@@ -811,17 +907,26 @@ class CCNiriScrollTransition {
             debug: message => this.debug(message),
         });
         this.motion = new MotionController(this);
+        this.wideIsolationHolds = new Map();
+        this.pendingWideExit = null;
         this.loadConfig();
         effect.configChanged.connect(this.loadConfig.bind(this));
         effect.animationEnded.connect((window, animationId) => {
             this.debug(`[MOTION] ended animationId=${String(animationId)}`);
+            const completed = this.motion.states.get(window) || null;
             if (this.motion.animationEnded(window, animationId)) {
+                if (completed && completed.type === MotionType.PAIR_TO_WIDE &&
+                        completed.role === "outgoing") {
+                    this.holdWideIsolation(window);
+                    this.reportWideMotionComplete(window, completed);
+                }
                 this.parkingGrabber.release(window, "motion-complete");
             }
         });
         effects.windowAdded.connect(this.manage.bind(this));
         effects.windowClosed.connect(window => {
             this.motion.cancel(window);
+            this.releaseWideIsolation(window, "window-closed");
             this.parkingGrabber.release(window, "window-closed");
         });
         for (const window of effects.stackingOrder) this.manage(window);
@@ -852,6 +957,65 @@ class CCNiriScrollTransition {
         this.logger.debug(message, "motion");
     }
 
+    holdWideIsolation(window) {
+        if (!window || this.wideIsolationHolds.has(window) ||
+                typeof set !== "function") return false;
+        const screenRect = window.screen && window.screen.geometry;
+        if (!screenRect || !visibleSlot(window.geometry, screenRect)) return false;
+        const ids = set({
+            window,
+            duration: 1,
+            animations: [{ type: Effect.Opacity, from: 0, to: 0 }],
+        });
+        this.wideIsolationHolds.set(window, ids);
+        // A one-frame opacity hold may not schedule its own final repaint.
+        // Without this, the last pre-isolation frame can remain visible until
+        // an unrelated desktop click or screenshot invalidates the scene.
+        effects.addRepaintFull();
+        this.debug("[WIDE_ISOLATION] hold until real parking");
+        return true;
+    }
+
+    releaseWideIsolation(window, reason) {
+        if (!this.wideIsolationHolds.has(window)) return false;
+        const ids = this.wideIsolationHolds.get(window);
+        this.wideIsolationHolds.delete(window);
+        if (ids) cancel(ids);
+        effects.addRepaintFull();
+        this.debug(`[WIDE_ISOLATION] release reason=${reason}`);
+        return true;
+    }
+
+    releaseAllWideIsolation(reason) {
+        for (const window of this.wideIsolationHolds.keys()) {
+            this.releaseWideIsolation(window, reason);
+        }
+    }
+
+    reportWideMotionComplete(window, motionState) {
+        if (!window || typeof window.data !== "function" ||
+                typeof window.setData !== "function") return false;
+        let marker;
+        try {
+            marker = window.data(CC_NIRI_MOTION_PLAN_ROLE);
+        } catch (_) {
+            return false;
+        }
+        if (!marker || marker.type !== MotionType.PAIR_TO_WIDE ||
+                marker.role !== "neighbor" ||
+                Number(marker.epoch) !== motionState.transactionEpoch ||
+                !marker.transitionToken || !marker.sessionId ||
+                !marker.targetWindowUuid) return false;
+        window.setData(CC_NIRI_MOTION_COMPLETE_ROLE, {
+            type: marker.type,
+            sessionId: marker.sessionId,
+            transitionToken: marker.transitionToken,
+            targetWindowUuid: marker.targetWindowUuid,
+        });
+        this.debug(`[MOTION_TX] completion sent epoch=${marker.epoch}`);
+        return true;
+    }
+
     nativeViewportClipAvailable(window) {
         try {
             if (typeof window.data !== "function") {
@@ -867,6 +1031,43 @@ class CCNiriScrollTransition {
         }
     }
 
+    readMotionPlan(window, oldGeometry, newGeometry, screenRect) {
+        if (!window || typeof window.data !== "function") return null;
+        let marker;
+        try {
+            marker = window.data(CC_NIRI_MOTION_PLAN_ROLE);
+        } catch (_) {
+            return null;
+        }
+        // KWin exposes the native QVariantList as an array-like QJSValue,
+        // not necessarily as a JavaScript Array.
+        if (!marker || !marker.entries || marker.entries.length !== 2 ||
+                !Number.isFinite(Number(marker.issuedAt)) ||
+                Math.abs(Date.now() - Number(marker.issuedAt)) > 5000 ||
+                (marker.type !== MotionType.WIDE_TO_PAIR &&
+                 marker.type !== MotionType.PAIR_TO_WIDE)) return null;
+        const geometryMatches = marker.role === "target"
+            ? (rectNear(oldGeometry, marker.oldVisualRect) ||
+                (marker.type === MotionType.PAIR_TO_WIDE &&
+                    parked(oldGeometry, screenRect))) &&
+                rectNear(newGeometry, marker.newVisualRect)
+            : marker.role === "neighbor" &&
+                (marker.type === MotionType.WIDE_TO_PAIR &&
+                    parked(oldGeometry, screenRect) &&
+                    rectNear(newGeometry, marker.newVisualRect));
+        if (!geometryMatches) return null;
+        const entries = [marker.entries[0], marker.entries[1]];
+        const target = entries.find(entry => entry && entry.role === "target");
+        const neighbor = entries.find(entry => entry && entry.role === "neighbor");
+        if (!target || !neighbor) return null;
+        this.debug(`[MOTION_PLAN] consume epoch=${marker.epoch}` +
+            ` type=${marker.type} role=${marker.role}`);
+        return Object.assign({}, marker, {
+            snapshot: { type: marker.type, side: marker.side,
+                target, neighbor },
+        });
+    }
+
     clearPendingDelta() {
         return this.motionTransaction.clear();
     }
@@ -877,76 +1078,207 @@ class CCNiriScrollTransition {
             ` staleDelta=${expired.deltaX}`);
     }
 
+    pairNeighbor(window, targetRect, side) {
+        const opposite = side === "left" ? "right" : "left";
+        const viewport = viewportFromSlot(targetRect, side, this.innerGap);
+        for (const candidate of effects.stackingOrder) {
+            if (candidate === window || !candidate.screen ||
+                    candidate.screen.name !== this.targetOutputName) continue;
+            const rect = candidate.geometry;
+            if (visibleSlot(rect, viewport) === opposite &&
+                Math.abs(rect.y - targetRect.y) < 2 &&
+                Math.abs(rect.height - targetRect.height) < 2 &&
+                (opposite === "right"
+                    ? Math.abs(rect.x - targetRect.x - targetRect.width -
+                        this.innerGap) < 3
+                    : Math.abs(rect.x + rect.width + this.innerGap -
+                        targetRect.x) < 3)) return candidate;
+        }
+        return null;
+    }
+
+    plannedNeighbor(plan) {
+        if (!plan) return null;
+        for (const candidate of effects.stackingOrder) {
+            if (!candidate || typeof candidate.data !== "function") continue;
+            const marker = candidate.data(CC_NIRI_MOTION_PLAN_ROLE);
+            if (marker && marker.role === "neighbor" &&
+                    marker.type === plan.type &&
+                    Number(marker.epoch) === Number(plan.epoch)) return candidate;
+        }
+        return null;
+    }
+
+    virtualPairEntry(window, wideRect, screenRect, motionTime) {
+        for (const candidate of effects.stackingOrder) {
+            if (candidate === window || !candidate.screen ||
+                    candidate.screen.name !== this.targetOutputName) continue;
+            const neighborRect = candidate.geometry;
+            const neighborSlot = visibleSlot(neighborRect, screenRect);
+            if (!neighborSlot ||
+                    Math.abs(neighborRect.y - wideRect.y) >= 2 ||
+                    Math.abs(neighborRect.height - wideRect.height) >= 2) continue;
+            const targetX = neighborSlot === "left"
+                ? neighborRect.x + neighborRect.width + this.innerGap
+                : neighborRect.x - neighborRect.width - this.innerGap;
+            const pairRect = {
+                x: targetX,
+                y: neighborRect.y,
+                width: neighborRect.width,
+                height: neighborRect.height,
+            };
+            if (visibleSlot(pairRect, screenRect)) {
+                const neighborVisual = this.motion.states.has(candidate)
+                    ? this.motion.visualSnapshot(candidate, neighborRect, motionTime)
+                    : neighborRect;
+                const visualPairRect = Object.assign({}, pairRect, {
+                    x: neighborSlot === "left"
+                        ? neighborVisual.x + neighborVisual.width + this.innerGap
+                        : neighborVisual.x - pairRect.width - this.innerGap,
+                });
+                return { pairRect, visualPairRect, neighbor: candidate };
+            }
+        }
+        return null;
+    }
+
     geometryChanged(window, oldGeometry) {
+        this.releaseWideIsolation(window, "geometry-changed");
         if (!window.screen || window.screen.name !== this.targetOutputName) {
             return;
         }
         const screenRect = window.screen.geometry;
         const newGeometry = window.geometry;
+        const motionTime = Date.now();
+        const explicitPlan = this.readMotionPlan(window, oldGeometry,
+            newGeometry, screenRect);
 
-        if (presentationTransition(oldGeometry, newGeometry, screenRect)) {
-            /* The script normally waits until the destination pair has
-             * finished scrolling before it commits 50%->72%. Preserve the
-             * incoming visual as a defensive fallback if custom timing or a
-             * fast follow-up makes the two animations overlap. */
-            const recordedIncoming = window.ccNiriIncomingVisual || null;
-            const chainedIncoming = this.motion.states.has(window)
-                ? this.motion.visualSnapshot(window, oldGeometry)
-                : recordedIncoming;
-            const sourceGeometry = chainedIncoming || oldGeometry;
-            this.motion.cancel(window);
-            const presentationAnimations = [{
-                /* Size/Position animations interfere with scripted real
-                 * geometry changes on KWin 6.7.5 and can leave a Wide
-                 * window physically at its old 50% width. Scale and
-                 * Translation are paint-only and keep geometry authoritative. */
-                type: Effect.Scale,
-                from: {
-                    value1: sourceGeometry.width / newGeometry.width,
-                    value2: sourceGeometry.height / newGeometry.height
-                },
-                to: {
-                    value1: 1,
-                    value2: 1
-                }
-            }, {
-                type: Effect.Translation,
-                from: {
-                    value1: sourceGeometry.x + sourceGeometry.width / 2 -
-                        (newGeometry.x + newGeometry.width / 2),
-                    value2: sourceGeometry.y + sourceGeometry.height / 2 -
-                        (newGeometry.y + newGeometry.height / 2)
-                },
-                to: {
-                    value1: 0,
-                    value2: 0
-                }
-            }];
-            if (chainedIncoming) {
-                presentationAnimations.push({
-                    type: Effect.Opacity,
-                    from: chainedIncoming.opacity,
-                    to: 1.0
-                });
+        const virtualEntry = parked(oldGeometry, screenRect) &&
+            isFocusWide(newGeometry, screenRect)
+            ? this.virtualPairEntry(window, newGeometry, screenRect,
+                motionTime) : null;
+        if ((explicitPlan && explicitPlan.role === "target") ||
+                presentationTransition(oldGeometry, newGeometry, screenRect) ||
+                virtualEntry) {
+            const entering = explicitPlan
+                ? explicitPlan.type === MotionType.PAIR_TO_WIDE
+                : isFocusWide(newGeometry, screenRect);
+            if (!entering) this.releaseAllWideIsolation("wide-exit");
+            const pairRect = explicitPlan
+                ? (entering ? explicitPlan.oldVisualRect :
+                    explicitPlan.newVisualRect)
+                : virtualEntry
+                ? virtualEntry.pairRect
+                : (entering ? oldGeometry : newGeometry);
+            const wideRect = explicitPlan
+                ? (entering ? explicitPlan.newVisualRect :
+                    explicitPlan.oldVisualRect)
+                : entering ? newGeometry : oldGeometry;
+            const viewport = viewportFromSlot(pairRect,
+                visibleSlot(pairRect, screenRect), this.innerGap);
+            const side = explicitPlan ? explicitPlan.side :
+                (pairRect.x + pairRect.width / 2 <
+                    viewport.x + viewport.width / 2 ? "left" : "right");
+            const anchor = side;
+            const parkedWideEntry = entering && parked(oldGeometry, screenRect);
+            const source = virtualEntry ? virtualEntry.visualPairRect :
+                explicitPlan && parkedWideEntry
+                ? explicitPlan.oldVisualRect :
+                this.motion.states.has(window)
+                ? this.motion.visualSnapshot(window, oldGeometry, motionTime)
+                : oldGeometry;
+            if (parkedWideEntry) {
+                this.parkingGrabber.grab(window, "wide-virtual-entry");
             }
-            this.motion.start(window, {
-                type: isFocusWide(newGeometry, screenRect)
-                    ? MotionType.WIDE_ENTER
-                    : MotionType.WIDE_EXIT,
-                duration: chainedIncoming
-                    ? this.duration + this.presentationDuration
-                    : this.presentationDuration,
+            const transform = anchoredScaleTranslation(source, newGeometry, anchor);
+            const transaction = this.motionTransaction.begin({
+                type: entering ? MotionType.PAIR_TO_WIDE : MotionType.WIDE_TO_PAIR,
+                viewport,
+                deltaX: 0,
+                layoutEpoch: explicitPlan ? Number(explicitPlan.epoch) : undefined,
+                now: motionTime,
+            });
+            transaction.wide = {
+                wideRect,
+                pairRect,
+                side,
+                target: window,
+                snapshot: explicitPlan ? explicitPlan.snapshot :
+                    widePairMotionSnapshot(transaction.type,
+                        wideRect, pairRect, side, this.innerGap),
+            };
+            this.pendingWideExit = entering ? null : {
+                wide: transaction.wide,
+                viewport,
+                armedAt: motionTime,
+                transactionId: transaction.id,
+            };
+            this.motionTransaction.record("continuing", window);
+            const targetMotion = this.motion.startTransaction(window,
+                transaction, "continuing", {
+                type: transaction.type,
+                duration: this.presentationDuration,
+                synchronizeDuration: true,
+                startTime: transaction.armedAt,
                 curve: MotionCurves.expressiveSpatial,
                 oldGeometry,
                 newGeometry,
-                channels: presentationAnimations,
+                channels: [{
+                    type: Effect.Scale,
+                    anchor,
+                    from: { value1: transform.scaleX, value2: 1 },
+                    to: { value1: 1, value2: 1 },
+                }, {
+                    type: Effect.Translation,
+                    from: { value1: transform.translationX, value2: 0 },
+                    to: { value1: 0, value2: 0 },
+                }].concat(parkedWideEntry ? [{
+                    type: Effect.Opacity,
+                    from: 0,
+                    to: 1,
+                }] : []),
+                fragmentShader: this.viewportClip.shaderFor(viewport),
             });
-            this.clearPendingDelta();
-            this.debug(`${chainedIncoming ? "PRESENTATION_CHAINED" : "PRESENTATION"}` +
-                ` old=${oldGeometry.x},${oldGeometry.y}` +
-                ` ${oldGeometry.width}x${oldGeometry.height}` +
-                ` new=${newGeometry.x},${newGeometry.y}` +
-                ` ${newGeometry.width}x${newGeometry.height}`);
+            if (!targetMotion && parkedWideEntry) {
+                this.parkingGrabber.release(window, "wide-virtual-no-op");
+            }
+            if (entering) {
+                const neighbor = virtualEntry
+                    ? virtualEntry.neighbor
+                    : this.plannedNeighbor(explicitPlan) ||
+                        this.pairNeighbor(window, pairRect, side);
+                if (neighbor) {
+                    const neighborRect = explicitPlan
+                        ? explicitPlan.snapshot.neighbor.oldVisualRect
+                        : neighbor.geometry;
+                    const virtualRect = transaction.wide.snapshot.neighbor
+                        .newVisualRect;
+                    this.motionTransaction.record("outgoing", neighbor);
+                    this.motion.startTransaction(neighbor, transaction, "outgoing", {
+                        type: transaction.type,
+                        duration: this.presentationDuration,
+                        synchronizeDuration: true,
+                        startTime: transaction.armedAt,
+                        curve: MotionCurves.expressiveSpatial,
+                        oldGeometry: neighborRect,
+                        newGeometry: neighborRect,
+                        channels: [{
+                            type: Effect.Translation,
+                            from: { value1: 0, value2: 0 },
+                            to: { value1: virtualRect.x - neighborRect.x,
+                                value2: 0 },
+                        }, {
+                            type: Effect.Opacity,
+                            from: 1,
+                            to: 0,
+                        }],
+                        fragmentShader: this.viewportClip.shaderFor(viewport),
+                    });
+                }
+            }
+            this.debug(`[MOTION_TX] BEGIN id=${transaction.id}` +
+                ` type=${transaction.type} target=${side}`);
+            if (entering) this.motionTransaction.clear();
             return;
         }
 
@@ -966,6 +1298,7 @@ class CCNiriScrollTransition {
         let motionType = MotionType.SCROLL;
         let activeTransaction = null;
         let motionRole = "static";
+        let wideTiming = null;
         if (oldSlot && newSlot) {
             /*
              * Script commits the continuing column first. Both coordinates
@@ -998,9 +1331,70 @@ class CCNiriScrollTransition {
                 ` oldProjectedX=${oldGeometry.x} newProjectedX=${newGeometry.x}`);
         } else if (oldParked && newSlot) {
             this.parkingGrabber.grab(window, "incoming");
-            const transaction = this.motionTransaction.current(Date.now());
+            let transaction = this.motionTransaction.current(motionTime);
+            const rememberedWide = this.pendingWideExit &&
+                motionTime - this.pendingWideExit.armedAt <= 2000 &&
+                wideExitNeighborMatches(this.pendingWideExit.wide,
+                    newGeometry, this.innerGap)
+                ? this.pendingWideExit : null;
+            const pendingWide = rememberedWide ||
+                (explicitPlan && explicitPlan.role === "neighbor" ? {
+                    wide: {
+                        wideRect: explicitPlan.snapshot.target.oldVisualRect,
+                        pairRect: explicitPlan.snapshot.target.newVisualRect,
+                        side: explicitPlan.side,
+                        snapshot: explicitPlan.snapshot,
+                    },
+                    viewport: viewportFromSlot(
+                        explicitPlan.snapshot.target.newVisualRect,
+                        explicitPlan.side, this.innerGap),
+                    armedAt: motionTime,
+                    transactionId: -1,
+                } : null);
+            if (pendingWide && (!transaction ||
+                    transaction.id !== pendingWide.transactionId)) {
+                transaction = this.motionTransaction.begin({
+                    type: MotionType.WIDE_TO_PAIR,
+                    viewport: pendingWide.viewport,
+                    deltaX: 0,
+                    now: pendingWide.armedAt,
+                });
+                transaction.wide = pendingWide.wide;
+                this.debug(`[MOTION_TX] recover wide exit id=${transaction.id}`);
+            }
             const pendingDeltaX = transaction ? transaction.deltaX : null;
-            if (!transaction) {
+            if (transaction && transaction.type === MotionType.WIDE_TO_PAIR &&
+                    transaction.wide) {
+                const wide = transaction.wide;
+                if (!wideExitNeighborMatches(wide, newGeometry, this.innerGap)) {
+                    this.parkingGrabber.release(window, "wide-non-neighbor");
+                    return;
+                }
+                const virtualX = wide.snapshot.neighbor.oldVisualRect.x;
+                wideTiming = wideTimelineSample(transaction.armedAt,
+                    motionTime, this.presentationDuration);
+                const translationX = (virtualX - newGeometry.x) *
+                    (1 - wideTiming.progress);
+                this.motionTransaction.record("incoming", window);
+                activeTransaction = transaction;
+                motionRole = "incoming";
+                motionType = transaction.type;
+                animations = [{
+                    type: Effect.Translation,
+                    from: { value1: translationX, value2: 0 },
+                    to: { value1: 0, value2: 0 },
+                }, {
+                    type: Effect.Opacity,
+                    from: wideTiming.progress,
+                    to: 1,
+                }];
+                incomingVisual = incomingVisualStart(newGeometry,
+                    translationX, 1, "center", wideTiming.progress);
+                this.debug(`[MOTION_TX] ROLE id=${transaction.id}` +
+                    ` role=incoming virtualX=${virtualX}` +
+                    ` progress=${wideTiming.progress.toFixed(3)}`);
+                this.pendingWideExit = null;
+            } else if (!transaction) {
                 /* Closing the visible right-hand Column can reveal its parked
                  * successor without changing scrollOffsetX. There is no
                  * continuing moving window from which to infer a delta, so
@@ -1186,12 +1580,15 @@ class CCNiriScrollTransition {
         if (incomingVisual) window.ccNiriIncomingVisual = incomingVisual;
         const motionOptions = {
             type: motionType,
-            duration: this.duration,
-            curve: MotionCurves.standardDecel,
+            duration: wideTiming ? wideTiming.remainingDuration : this.duration,
+            curve: wideTiming ? MotionCurves.expressiveSpatial :
+                MotionCurves.standardDecel,
+            synchronizeDuration: Boolean(wideTiming),
             oldGeometry,
             newGeometry,
             channels: animations,
         };
+        if (wideTiming) motionOptions.startTime = motionTime;
         if (activeTransaction) {
             motionOptions.fragmentShader = this.viewportClip.shaderFor(
                 activeTransaction.viewport
@@ -1205,6 +1602,8 @@ class CCNiriScrollTransition {
                 motionOptions
             )
             : this.motion.start(window, motionOptions);
+        if (motionType === MotionType.WIDE_TO_PAIR &&
+                motionRole === "incoming") this.motionTransaction.clear();
         if (!motionState) this.parkingGrabber.release(window, "motion-no-op");
     }
 }
@@ -1230,8 +1629,10 @@ if (typeof module !== "undefined" && module.exports) {
         visibleSlot,
         isFocusWide,
         presentationTransition,
+        wideExitNeighborMatches,
         parked,
         incomingVisualStart,
+        CCNiriScrollTransition,
     };
 } else {
     new CCNiriScrollTransition();

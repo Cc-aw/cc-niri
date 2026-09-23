@@ -8,6 +8,8 @@ const PRESENTATION_MAX_WIDTH_RATIO = 0.85;
  * handoff from the scripted motion effect to the native viewport clip effect. */
 const CC_NIRI_VIEWPORT_CLIP_ROLE = 1001;
 const CC_NIRI_VIEWPORT_CLIP_CAPABILITY_ROLE = 1002;
+const CC_NIRI_MOTION_PLAN_ROLE = 1003;
+const CC_NIRI_MOTION_COMPLETE_ROLE = 1004;
 
 const MotionTokens = Object.freeze({
     microPressMs: 90,
@@ -37,6 +39,8 @@ const MotionType = Object.freeze({
     REORDER: "REORDER",
     WIDE_ENTER: "WIDE_ENTER",
     WIDE_EXIT: "WIDE_EXIT",
+    WIDE_TO_PAIR: "WIDE_TO_PAIR",
+    PAIR_TO_WIDE: "PAIR_TO_WIDE",
 });
 
 /* cjs:start */
@@ -47,6 +51,8 @@ module.exports = {
     PRESENTATION_MAX_WIDTH_RATIO,
     CC_NIRI_VIEWPORT_CLIP_ROLE,
     CC_NIRI_VIEWPORT_CLIP_CAPABILITY_ROLE,
+    CC_NIRI_MOTION_PLAN_ROLE,
+    CC_NIRI_MOTION_COMPLETE_ROLE,
     MotionTokens,
     MotionCurves,
     MotionType,

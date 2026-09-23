@@ -12,7 +12,6 @@ class DockScrollController {
         this.requestDeferred = options.requestDeferred;
         this.getSessionId = options.getSessionId;
         this.stepMs = options.stepMs;
-        this.cancelWideTransition = options.cancelWideTransition;
         this.clearPresentation = options.clearPresentation;
         this.normalPresentationMode = options.normalPresentationMode;
         this.commitDockState = options.commitDockState;
@@ -20,6 +19,7 @@ class DockScrollController {
         this.focusIndex = options.focusIndex;
         this.transitionFocused = options.transitionFocused;
         this.setActiveWindow = options.setActiveWindow;
+        this.isActivationDeferred = options.isActivationDeferred || (() => false);
         this.relayout = options.relayout;
         this.debug = options.debug;
         this.pendingScroll = null;
@@ -115,7 +115,9 @@ class DockScrollController {
             offset,
             offset
         );
-        if (column.window.minimized) column.window.minimized = false;
+        if (!this.isActivationDeferred() && column.window.minimized) {
+            column.window.minimized = false;
+        }
         this.setActiveWindow(column.window);
         this.debug(`[cc-dock] SCROLL_COMPLETE token=${pending.token}` +
             ` index=${index} offset=${offset} caption=${column.window.caption}`);
@@ -163,11 +165,10 @@ class DockScrollController {
         const appState = this.getAppState();
         if (!column || !appState.safeRect) return false;
         this.cancel("superseded-by-dock-click");
-        this.cancelWideTransition("superseded-by-dock-click");
         const offsets = this.offsetsToTarget(column);
 
-        if (offsets.length &&
-                appState.presentation.mode !== this.normalPresentationMode) {
+        if (appState.presentation.mode !== this.normalPresentationMode ||
+                (appState.viewport && appState.viewport.mode !== "pair")) {
             this.clearPresentation();
             this.commitDockState(`${reason}-clear-presentation`);
         }

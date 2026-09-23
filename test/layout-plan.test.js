@@ -87,6 +87,74 @@ assert.deepEqual(
 );
 assert.deepEqual(presentationPlan.windows[2].rect, wideRect);
 
+const enteringWidePlan = computeLayoutPlan({
+    reason: "pair-to-wide",
+    epoch: 9,
+    columns,
+    safeRect,
+    innerGap: 8,
+    parkingBaseX: -5348,
+    scrollOffsetX: 1260,
+    scrollOffsets: null,
+    presentedColumn: columns[2],
+    presentedRect: wideRect,
+    retainedColumn: columns[1],
+});
+assert.deepEqual(enteringWidePlan.windows.map(item => item.placement),
+    ["parked", "visible", "visible", "parked"],
+    "the adjacent pair column remains paintable until Wide motion completes");
+assert.deepEqual(enteringWidePlan.windows[1].rect,
+    { x: 24, y: 50, width: 1252, height: 1320 },
+    "the neighbor stays at its real pair slot during motion");
+assert.equal(enteringWidePlan.viewportMotion.type, "PAIR_TO_WIDE");
+assert.equal(enteringWidePlan.viewportMotion.side, "right");
+assert.equal(enteringWidePlan.viewportMotion.id, 9);
+assert.deepEqual(enteringWidePlan.viewportMotion.parkAfterComplete, ["B"]);
+assert.equal(enteringWidePlan.viewportMotion.neighbor.newVisualRect.x, -885);
+assert.equal(enteringWidePlan.layoutSnapshots.from.viewportMode, "pair");
+assert.equal(enteringWidePlan.layoutSnapshots.to.viewportMode, "wide-focus");
+assert.deepEqual(enteringWidePlan.layoutSnapshots.to.entries[1].visualRect,
+    { x: -885, y: 50, width: 1252, height: 1320 });
+assert.equal(enteringWidePlan.layoutSnapshots.to.entries[1].placement,
+    "isolated-hidden");
+assert.ok(enteringWidePlan.layoutSnapshots.to.entries[1].realRect.x < 0,
+    "the neighbor has a virtual edge position distinct from real parking");
+assert.notEqual(enteringWidePlan.layoutSnapshots.to.entries[1].realRect.x,
+    enteringWidePlan.layoutSnapshots.to.entries[1].visualRect.x);
+assert.deepEqual(enteringWidePlan.viewportMotion.entries.map(entry =>
+    [entry.role, entry.oldOpacity, entry.newOpacity]),
+    [["target", 1, 1], ["neighbor", 1, 0]]);
+
+const exitingRightWidePlan = computeLayoutPlan({
+    reason: "wide-to-pair-left",
+    epoch: 10,
+    columns,
+    safeRect,
+    innerGap: 8,
+    parkingBaseX: -5348,
+    scrollOffsetX: 0,
+    scrollOffsets: null,
+    presentedColumn: null,
+    presentedRect: null,
+    wideExitColumn: columns[1],
+    wideRect,
+});
+assert.equal(exitingRightWidePlan.commitOrder[0].column, columns[1],
+    "Wide target commits before its left neighbor can trigger an incoming event");
+assert.equal(exitingRightWidePlan.viewportMotion.type, "WIDE_TO_PAIR");
+assert.equal(exitingRightWidePlan.viewportMotion.side, "right");
+assert.deepEqual(exitingRightWidePlan.viewportMotion.parkAfterComplete, []);
+assert.equal(exitingRightWidePlan.viewportMotion.neighbor.oldVisualRect.x, -885);
+assert.equal(exitingRightWidePlan.layoutSnapshots.from.viewportMode, "wide-focus");
+assert.equal(exitingRightWidePlan.layoutSnapshots.to.viewportMode, "pair");
+assert.equal(exitingRightWidePlan.layoutSnapshots.from.entries[1].placement,
+    "isolated-hidden");
+assert.equal(exitingRightWidePlan.layoutSnapshots.to.entries[1].placement,
+    "visible");
+assert.deepEqual(exitingRightWidePlan.viewportMotion.entries.map(entry =>
+    [entry.role, entry.oldOpacity, entry.newOpacity]),
+    [["target", 1, 1], ["neighbor", 0, 1]]);
+
 function mockWindow(id, frameGeometry, events) {
     let geometry = frameGeometry;
     let opacity = 1;

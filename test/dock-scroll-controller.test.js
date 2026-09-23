@@ -56,7 +56,6 @@ function fixture() {
         },
         getSessionId: () => "session",
         stepMs: 140,
-        cancelWideTransition: reason => calls.push(["cancel-wide", reason]),
         clearPresentation: () => {
             calls.push(["clear-presentation"]);
             appState.presentation = { windowUuid: null, mode: "normal" };

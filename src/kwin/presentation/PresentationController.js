@@ -12,7 +12,6 @@ class PresentationController {
         this.wideRatio = options.wideRatio;
         this.rectCopy = options.rectCopy;
         this.cancelPendingDockScroll = options.cancelPendingDockScroll;
-        this.cancelPendingWideTransition = options.cancelPendingWideTransition;
         this.focusColumn = options.focusColumn;
         this.recomputeLogicalLayout = options.recomputeLogicalLayout;
         this.ensureColumnVisible = options.ensureColumnVisible;
@@ -30,6 +29,12 @@ class PresentationController {
 
     column() {
         const appState = this.getAppState();
+        if (appState.presentation.mode !== this.modes.maximized &&
+                appState.viewport && appState.viewport.mode === "wide-focus") {
+            return appState.columns.find(column =>
+                column.id === appState.viewport.wideColumnId &&
+                column.persistentWide) || null;
+        }
         if (appState.presentation.mode === this.modes.normal ||
                 !appState.presentation.windowUuid) return null;
         return appState.columns.find(column =>
@@ -53,7 +58,8 @@ class PresentationController {
 
     rect() {
         const appState = this.getAppState();
-        return appState.presentation.mode === this.modes.wide
+        return appState.presentation.mode !== this.modes.maximized &&
+                appState.viewport && appState.viewport.mode === "wide-focus"
             ? this.wideRect()
             : this.rectCopy(appState.safeRect);
     }
@@ -73,6 +79,10 @@ class PresentationController {
         this.resetPresentedWindowLayoutState();
         appState.presentation.windowUuid = null;
         appState.presentation.mode = this.modes.normal;
+        if (appState.viewport) {
+            appState.viewport.mode = "pair";
+            appState.viewport.wideColumnId = null;
+        }
     }
 
     selectPersistent(column) {
@@ -80,11 +90,8 @@ class PresentationController {
         const oldWindowUuid = appState.presentation.windowUuid;
         const oldMode = appState.presentation.mode;
         this.clear();
-        if (column && column.persistentWide) {
-            appState.presentation.windowUuid =
-                this.normalizeUuid(column.window.internalId);
-            appState.presentation.mode = this.modes.wide;
-        }
+        // Preference alone never selects a Wide viewport. Only a directional
+        // focus intent or an explicit Wide command may do that.
         return oldWindowUuid !== appState.presentation.windowUuid ||
             oldMode !== appState.presentation.mode;
     }
@@ -97,8 +104,13 @@ class PresentationController {
             this.normalizeUuid(item.window.internalId) === normalizedUuid);
         if (!column || column.window.output !== appState.targetOutput) return false;
 
+        if (mode === this.modes.maximized) {
+            appState.prePresentationViewport = appState.viewport
+                ? Object.assign({}, appState.viewport)
+                : null;
+        }
+
         this.cancelPendingDockScroll(reason);
-        this.cancelPendingWideTransition(reason);
         this.resetPresentedWindowLayoutState();
 
         const oldScrollOffsetX = appState.scrollOffsetX;
@@ -118,10 +130,22 @@ class PresentationController {
             column.persistentWide = false;
             appState.presentation.windowUuid = null;
             appState.presentation.mode = this.modes.normal;
+            if (appState.viewport) {
+                appState.viewport.mode = "pair";
+                appState.viewport.wideColumnId = null;
+            }
         } else {
             if (mode === this.modes.wide) column.persistentWide = true;
-            appState.presentation.windowUuid = normalizedUuid;
-            appState.presentation.mode = mode;
+            appState.presentation.windowUuid = mode === this.modes.maximized
+                ? normalizedUuid : null;
+            appState.presentation.mode = mode === this.modes.maximized
+                ? mode : this.modes.normal;
+            if (appState.viewport) {
+                appState.viewport.mode = mode === this.modes.wide
+                    ? "wide-focus" : "pair";
+                appState.viewport.wideColumnId = mode === this.modes.wide
+                    ? column.id : null;
+            }
             if (mode === this.modes.maximized) {
                 targetState.internalChange = true;
                 try {
@@ -144,6 +168,24 @@ class PresentationController {
             ` reason=${reason}`);
         this.commitDockState(reason);
         return true;
+    }
+
+    restoreFromMaximize(windowUuid, reason) {
+        const appState = this.getAppState();
+        const normalizedUuid = this.normalizeUuid(windowUuid);
+        const column = appState.columns.find(item =>
+            this.normalizeUuid(item.window.internalId) === normalizedUuid);
+        if (!column) return false;
+        const preference = Boolean(column.persistentWide);
+        const previous = appState.prePresentationViewport;
+        const restoreWide = preference && previous &&
+            previous.mode === "wide-focus" &&
+            previous.wideColumnId === column.id;
+        const restored = this.setMode(windowUuid,
+            restoreWide ? this.modes.wide : this.modes.normal, reason);
+        if (restored) column.persistentWide = preference;
+        appState.prePresentationViewport = null;
+        return restored;
     }
 }
 

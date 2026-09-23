@@ -15,6 +15,9 @@ public:
 
 public Q_SLOTS:
     bool PublishState(const QString &json);
+    bool PublishMotionPlan(const QString &json);
+    bool ReportMotionComplete(const QString &json);
+    bool ReportMotionParked(const QString &json);
     QString GetState() const;
     bool RequestReorder(const QString &json);
     bool RequestCommand(const QString &json);
@@ -24,10 +27,14 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void StateChanged(const QString &json);
+    void MotionPlanChanged(const QString &json);
+    void MotionParked(const QString &json);
 
 private:
     QString m_lastState;
     QString m_sessionId;
+    QString m_lastMotionToken;
+    QString m_lastMotionTarget;
     QQueue<QString> m_pendingCommands;
     QSet<QString> m_recentCommandIds;
     QQueue<QString> m_recentCommandOrder;

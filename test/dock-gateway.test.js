@@ -23,13 +23,29 @@ function fixture() {
         handlers: {
             "set-column-order": command => handled.push(command),
             "emergency-restore": command => handled.push(command),
+            "finalize-contextual-wide": command => handled.push(command),
         },
+        generationAgnosticTypes: ["finalize-contextual-wide"],
         debug: message => debug.push(message),
         warn: message => warnings.push(message),
         now: () => 0x123,
         random: () => 0.5,
     });
     return { gateway, invocations, handled, warnings, debug, snapshot };
+}
+
+{
+    const { gateway, handled } = fixture();
+    const command = gateway.commandEnvelope({
+        commandId: "contextual-1",
+        type: "finalize-contextual-wide",
+        transitionToken: "1",
+        windowUuid: "focused",
+    });
+    gateway.commit({ columns: [] }, "intervening-state");
+    assert.equal(gateway.dispatch(command), true,
+        "token-checked internal motion finalizers survive unrelated dock generations");
+    assert.deepEqual(handled, [command]);
 }
 
 {
@@ -122,6 +138,25 @@ for (const [json, reason] of [
     gateway.takePendingCommand();
     assert.equal(invocations[0][3], "TakePendingCommand");
     assert.equal(typeof invocations[0][4], "function");
+}
+
+{
+    const { gateway, invocations } = fixture();
+    gateway.publishMotionPlan({ epoch: 9, type: "PAIR_TO_WIDE", entries: [] },
+        () => {});
+    assert.equal(invocations[0][3], "PublishMotionPlan");
+    const payload = JSON.parse(invocations[0][4]);
+    assert.equal(payload.protocol, 1);
+    assert.equal(payload.sessionId, gateway.sessionId());
+    assert.equal(payload.epoch, 9);
+    gateway.reportMotionParked({
+        type: "PAIR_TO_WIDE", transitionToken: "edge-1",
+        targetWindowUuid: "focused",
+    }, () => {});
+    assert.equal(invocations[1][3], "ReportMotionParked");
+    const parked = JSON.parse(invocations[1][4]);
+    assert.equal(parked.sessionId, gateway.sessionId());
+    assert.equal(parked.transitionToken, "edge-1");
 }
 
 const mainSource = fs.readFileSync(

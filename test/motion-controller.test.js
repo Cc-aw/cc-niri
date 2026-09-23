@@ -123,6 +123,21 @@ retargetController.start(retargetWindow, {
 });
 assert.equal(animationRequest.duration, 110,
     "a retarget with about 12.5% distance remaining does not restart at 220 ms");
+retargetController.start(retargetWindow, {
+    type: MotionType.PAIR_TO_WIDE,
+    duration: 220,
+    synchronizeDuration: true,
+    startTime: fakeNow,
+    oldGeometry: geometry,
+    newGeometry: geometry,
+    channels: [{
+        type: Effect.Translation,
+        from: { value1: 100, value2: 0 },
+        to: { value1: -900, value2: 0 },
+    }],
+});
+assert.equal(animationRequest.duration, 220,
+    "edge-coupled Wide participants use one shared duration after retargeting");
 Date.now = realDateNow;
 
 const transactionWindow = {};
