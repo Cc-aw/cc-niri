@@ -37,8 +37,8 @@ command -v cmake >/dev/null || {
     echo "cmake is required." >&2
     exit 1
 }
-if ! find /usr/lib /usr/lib64 -path '*/cmake/KWin/KWinConfig.cmake' \
-        -print -quit 2>/dev/null | grep -q .; then
+if [[ -z "$(find /usr/lib /usr/lib64 \
+        -path '*/cmake/KWin/KWinConfig.cmake' -print -quit 2>/dev/null)" ]]; then
     echo "KWin development files are required (Fedora: kwin-devel)." >&2
     exit 1
 fi

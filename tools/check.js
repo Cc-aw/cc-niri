@@ -28,6 +28,17 @@ run("production module regression suite", process.execPath, ["--test", ...tests]
 run("patch whitespace", "git", ["diff", "--check"]);
 
 if (native) {
+    for (const [name, dir] of [
+        ["Bridge", "build/bridge"],
+        ["Viewport clip", "build/native-viewport-clip"],
+        ["Plasmoid", "build/plasmoid"],
+    ]) {
+        if (!fs.existsSync(path.join(root, dir, "CMakeCache.txt"))) {
+            console.error(`${name} build tree is missing: ${dir}. ` +
+                "Run CMake configure before --native.");
+            process.exit(1);
+        }
+    }
     run("Bridge native build", "cmake", ["--build", "build/bridge"]);
     run("Viewport clip native build", "cmake", ["--build", "build/native-viewport-clip"]);
     run("Plasmoid native build", "cmake", ["--build", "build/plasmoid"]);

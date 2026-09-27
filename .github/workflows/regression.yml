@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  production-modules:
+  js-regression:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,3 +17,28 @@ jobs:
           node-version: 22
       - name: Verify generated bundles and run regression suite
         run: node tools/check.js
+
+  native-build:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:44
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install native build dependencies
+        run: |
+          dnf install -y \
+            gcc-c++ cmake ninja-build extra-cmake-modules \
+            qt6-qtbase-devel qt6-qtdeclarative-devel \
+            kf6-kcoreaddons-devel kf6-kconfig-devel kf6-ki18n-devel \
+            kf6-kio-devel kf6-knotifications-devel kf6-kservice-devel \
+            kf6-kwindowsystem-devel kwin-devel libplasma-devel \
+            plasma-activities-devel plasma-activities-stats-devel \
+            libksysguard-devel plasma-workspace-devel nodejs git
+      - name: Configure Bridge
+        run: cmake -S bridge -B build/bridge -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      - name: Configure native viewport clip
+        run: cmake -S native/viewport-clip -B build/native-viewport-clip -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      - name: Configure Plasmoid
+        run: cmake -S plasmoid/com.cc.scrolltasks -B build/plasmoid -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      - name: Build native components
+        run: node tools/check.js --native

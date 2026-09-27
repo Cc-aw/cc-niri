@@ -30,6 +30,7 @@ const targets = [
             "src/kwin/policy/WindowPolicy.js",
             "src/kwin/stability/LayoutTransaction.js",
             "src/kwin/stability/InvariantChecker.js",
+            "src/kwin/stability/StabilitySupervisor.js",
             "src/kwin/stability/ParkingManager.js",
             "src/kwin/stability/Recovery.js",
             "src/kwin/lifecycle/AdoptionController.js",
