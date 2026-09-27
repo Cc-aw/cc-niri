@@ -88,6 +88,7 @@ assert.equal(userMinimizedWindow.minimized, true,
     "recovery preserves minimization it does not own");
 
 let prepared = false;
+const recoveryWarnings = [];
 const recovery = new Recovery({
     appState: { columns: [{ window: parkedWindow }] },
     windowStates: { forEach: callback => callback(parkedState, parkedWindow) },
@@ -95,9 +96,12 @@ const recovery = new Recovery({
     indexOfWindow: () => 0,
     beforeRestore: () => { prepared = true; },
     debug: () => {},
+    warn: message => recoveryWarnings.push(message),
 });
 assert.equal(recovery.restoreAll("test"), 1);
 assert.equal(prepared, true, "recovery disables future layout work before restoring");
+assert.ok(recoveryWarnings.some(message => message.includes("EMERGENCY_RESTORE")),
+    "emergency restore remains visible when debug logging is disabled");
 
 assert.ok(mainSource.includes("CCScrollEmergencyRestore"));
 assert.ok(mainSource.includes('"Meta+Ctrl+Alt+Shift+F11"'),

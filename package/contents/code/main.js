@@ -1531,7 +1531,7 @@ class StabilitySupervisor {
             }
             this.checker.check("self-heal", epoch);
             this.phase = "normal";
-            this.debug(`[cc-stability] SELF_HEAL_RECOVERED epoch=${epoch}`);
+            this.warn(`[cc-stability] SELF_HEAL_RECOVERED epoch=${epoch}`);
         }, this.settleDelayMs);
     }
 
@@ -1674,6 +1674,7 @@ class Recovery {
         this.indexOfWindow = options.indexOfWindow;
         this.beforeRestore = options.beforeRestore;
         this.debug = options.debug;
+        this.warn = options.warn || options.debug;
     }
 
     restoreAll(reason) {
@@ -1686,7 +1687,7 @@ class Recovery {
             if (this.indexOfWindow(window) >= 0) return;
             if (this.parking.release(window, reason, true, restored)) restored += 1;
         });
-        this.debug(`[cc-stability] EMERGENCY_RESTORE count=${restored} reason=${reason}`);
+        this.warn(`[cc-stability] EMERGENCY_RESTORE count=${restored} reason=${reason}`);
         return restored;
     }
 }
@@ -3419,6 +3420,7 @@ const recovery = new Recovery({
         cancelPendingDockScroll(reason);
     },
     debug,
+    warn,
 });
 stabilitySupervisor = new StabilitySupervisor({
     checker: invariantChecker,

@@ -64,7 +64,7 @@ Open five windows; navigate H/L five times; press `L L H`; enter/exit Wide; open
 
 ## Automated verification record
 
-On 2026-09-27, `node tools/check.js --native` passed 49/49 Node tests and all three native builds on existing build trees. Separate fresh CMake configure and build runs passed for Bridge, Viewport Clip, and Plasmoid under Fedora 44 / KWin 6.7.5. `install.sh` completed twice after fixing its KWin development-file probe. The first GitHub Actions run passed JS and exposed a missing `epoxy` development dependency in the Fedora native container; the corrected run is pending. The full interactive matrix remains pending.
+On 2026-09-27, `node tools/check.js --native` passed 49/49 Node tests and all three native builds on existing build trees. Separate fresh CMake configure and build runs passed for Bridge, Viewport Clip, and Plasmoid under Fedora 44 / KWin 6.7.5. `install.sh` completed twice after fixing its KWin development-file probe. GitHub Actions passed JS but exposed missing Fedora `epoxy` and then `KF6ItemModels` development packages in separate runs; both were added to the native job. A full green remote run and the full interactive matrix remain pending.
 
 ### Live invariant fault injection, 2026-09-27
 

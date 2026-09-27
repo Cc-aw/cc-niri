@@ -20,6 +20,7 @@ function harness(initialErrors) {
     let restores = 0;
     let enabledAtRestore = null;
     const timers = [];
+    const warnings = [];
     const supervisor = new StabilitySupervisor({
         checker: {
             check: () => errors.length === 0,
@@ -38,7 +39,7 @@ function harness(initialErrors) {
         } },
         disableLayout: () => { enabled = false; },
         isEnabled: () => enabled,
-        warn: () => {},
+        warn: message => warnings.push(message),
         debug: () => {},
     });
     return {
@@ -46,6 +47,7 @@ function harness(initialErrors) {
         setErrors: next => { errors = next; },
         fire: index => timers[index].callback(),
         timers,
+        warnings,
         snapshot: () => ({ enabled, relayouts, restores, enabledAtRestore }),
     };
 }
@@ -70,6 +72,7 @@ function harness(initialErrors) {
     h.fire(1);
     assert.equal(h.snapshot().restores, 0);
     assert.equal(h.supervisor.phase, "normal");
+    assert.ok(h.warnings.some(message => message.includes("SELF_HEAL_RECOVERED")));
 }
 
 {

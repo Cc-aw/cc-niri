@@ -84,7 +84,7 @@ class StabilitySupervisor {
             }
             this.checker.check("self-heal", epoch);
             this.phase = "normal";
-            this.debug(`[cc-stability] SELF_HEAL_RECOVERED epoch=${epoch}`);
+            this.warn(`[cc-stability] SELF_HEAL_RECOVERED epoch=${epoch}`);
         }, this.settleDelayMs);
     }
 

@@ -8,6 +8,7 @@ class Recovery {
         this.indexOfWindow = options.indexOfWindow;
         this.beforeRestore = options.beforeRestore;
         this.debug = options.debug;
+        this.warn = options.warn || options.debug;
     }
 
     restoreAll(reason) {
@@ -20,7 +21,7 @@ class Recovery {
             if (this.indexOfWindow(window) >= 0) return;
             if (this.parking.release(window, reason, true, restored)) restored += 1;
         });
-        this.debug(`[cc-stability] EMERGENCY_RESTORE count=${restored} reason=${reason}`);
+        this.warn(`[cc-stability] EMERGENCY_RESTORE count=${restored} reason=${reason}`);
         return restored;
     }
 }
