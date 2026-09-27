@@ -64,7 +64,11 @@ Open five windows; navigate H/L five times; press `L L H`; enter/exit Wide; open
 
 ## Automated verification record
 
-On 2026-09-27, `node tools/check.js --native` passed 49/49 Node tests and all three native builds on existing build trees. Separate fresh CMake configure and build runs passed for Bridge, Viewport Clip, and Plasmoid under Fedora 44 / KWin 6.7.5. `install.sh` completed twice after fixing its KWin development-file probe. GitHub Actions itself and the full interactive matrix above remain pending.
+On 2026-09-27, `node tools/check.js --native` passed 49/49 Node tests and all three native builds on existing build trees. Separate fresh CMake configure and build runs passed for Bridge, Viewport Clip, and Plasmoid under Fedora 44 / KWin 6.7.5. `install.sh` completed twice after fixing its KWin development-file probe. The first GitHub Actions run passed JS and exposed a missing `epoxy` development dependency in the Fedora native container; the corrected run is pending. The full interactive matrix remains pending.
+
+### Live invariant fault injection, 2026-09-27
+
+A temporary, uncommitted KWin shortcut probe changed Column 1 `logicalX` by 17. The installed supervisor logged `INVARIANT_FAIL epoch=5` followed by `SELF_HEAL epoch=5`, without `FAIL_SAFE` during the observation interval. A second probe changed Column 1's state ownership. KWin logged `INVARIANT_FAIL epoch=6` then one `FAIL_SAFE epoch=6`; repeating the shortcut produced no second fail-safe. The probe was removed from source and the installed package, its shortcut configuration was deleted, and the normal script was reinstalled with a new Bridge session. This verifies the live self-heal and fail-safe paths and latch. Visual confirmation that every parked window was restored remains pending.
 
 ## Release gate
 
