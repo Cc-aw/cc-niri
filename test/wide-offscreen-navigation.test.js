@@ -126,6 +126,36 @@ assert.equal(pointerFocused.state.viewport.mode, ViewportMode.PAIR);
 assert.equal(pointerFocused.state.focusedColumnIndex, 2,
     "second L navigates to the next column");
 
+const pointerFocusedInward = setup(1, 0, 1);
+pointerFocusedInward.viewport.select(pointerFocusedInward.state.columns[1], {
+    source: FocusSource.POINTER, changedFocus: true,
+});
+pointerFocusedInward.press(-1);
+assert.equal(pointerFocusedInward.state.viewport.mode, ViewportMode.PAIR,
+    "H toward the visible left neighbor must not expand focused column 2");
+assert.equal(pointerFocusedInward.state.focusedColumnIndex, 0);
+assert.deepEqual(pointerFocusedInward.frames[0].plan.windows
+    .filter(item => item.placement === "visible")
+    .map(item => item.column.id), [1, 2]);
+
+const pointerFocusedLeft = setup(1, 1260, 1);
+pointerFocusedLeft.viewport.select(pointerFocusedLeft.state.columns[1], {
+    source: FocusSource.POINTER, changedFocus: true,
+});
+pointerFocusedLeft.press(1);
+assert.equal(pointerFocusedLeft.state.viewport.mode, ViewportMode.PAIR,
+    "L toward the visible right neighbor must navigate normally");
+assert.equal(pointerFocusedLeft.state.focusedColumnIndex, 2);
+
+const pointerFocusedOutward = setup(1, 1260, 1);
+pointerFocusedOutward.viewport.select(pointerFocusedOutward.state.columns[1], {
+    source: FocusSource.POINTER, changedFocus: true,
+});
+pointerFocusedOutward.press(-1);
+assert.equal(pointerFocusedOutward.state.viewport.mode, ViewportMode.WIDE_FOCUS,
+    "H toward the hidden side expands the focused preferred column");
+assert.equal(pointerFocusedOutward.state.focusedColumnIndex, 1);
+
 const oppositeAfterReveal = setup(0, 1260, 1);
 oppositeAfterReveal.press(-1);
 assert.ok(oppositeAfterReveal.viewport.pendingReveal);

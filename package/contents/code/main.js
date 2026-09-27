@@ -2552,6 +2552,13 @@ class ContextualViewport {
         if (!armed || !column || !column.persistentWide ||
                 this.appState.columns.indexOf(column) < 0 ||
                 this.appState.viewport.mode !== ViewportMode.PAIR) return false;
+        const index = this.appState.columns.indexOf(column);
+        const neighbor = this.appState.columns[index + direction];
+        const safeRect = this.appState.safeRect;
+        const offset = this.appState.scrollOffsetX;
+        if (neighbor && safeRect && neighbor.logicalX >= offset &&
+                neighbor.logicalX + neighbor.pixelWidth <=
+                    offset + safeRect.width) return false;
         return this.wide(column);
     }
 }
