@@ -43,5 +43,9 @@ jobs:
         run: cmake -S native/viewport-clip -B build/native-viewport-clip -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - name: Configure Plasmoid
         run: cmake -S plasmoid/com.cc.scrolltasks -B build/plasmoid -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
-      - name: Build native components
-        run: node tools/check.js --native
+      - name: Build Bridge
+        run: cmake --build build/bridge
+      - name: Build native viewport clip
+        run: cmake --build build/native-viewport-clip
+      - name: Build Plasmoid
+        run: cmake --build build/plasmoid
