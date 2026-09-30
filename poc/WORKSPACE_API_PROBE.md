@@ -81,3 +81,54 @@ currentDesktopForScreen(output)；最终以目标机器日志为准。
   Bridge / Viewport clip / Plasmoid 三项本机 native 构建通过。生产 bundle 无变化。
 - Pager、快捷键、Move to Desktop、sticky 切换、新窗口、双屏交互仍待人工验收；
   当前仅连接单输出，不能宣称双屏验证通过。远程 CI 未触发。
+
+## 单内屏实测（2026-09-30，本轮结束）
+
+用户确认当前仅笔记本内屏，双屏验收延后。
+已重新加载只读探针，通过 KDE 原生 DBus setCurrentDesktop 完成 1 → 2 → 1，
+并恢复原桌面 1。两次切换各收到一个 currentDesktopChanged，argumentCount=3，
+previous/current ID 正确，output=eDP-1，isTargetOutput=true；
+信号回调内 currentDesktopForScreen(eDP-1) 已返回目标 Desktop。
+本次日志基线为 sequence 20；探针保留运行，继续观察人工操作。
+
+待测：Pager、原生快捷键、窗口转移、Sticky 开关、新窗口。
+上述 DBus 实测不替代 Pager/快捷键路径验收。
+
+用户随后完成切换操作：sequence 22～61 共记录 12 次切换（6 次往返），
+均为 argumentCount=3、output=eDP-1、isTargetOutput=true；
+每次信号后的 currentDesktopForScreen 读数与 current ID 一致，无 API 错误，
+最终返回桌面 1。按本轮提供的快捷键操作计为原生快捷键路径通过；
+日志无法区分具体快捷键与 Pager，Pager 路径仍未单独确认。
+下一项为窗口跨 Desktop 转移及移回；探针继续运行，日志基线 sequence 63。
+
+窗口转移通过：Dolphin 同一 UUID 在 sequence 67 的 desktopsChanged 返回
+仅桌面 2，sequence 73 返回仅桌面 1，两次 onAllDesktops=false。
+对应 Desktop 切换 sequence 68/74 的输出与当前 Desktop 读数一致。
+用户确认按步骤完成窗口移出、进入目标 Desktop 并移回。
+下一项为 Sticky 开关；日志基线 sequence 77。
+
+Sticky 开关通过：新 Dolphin UUID 在 sequence 79 首次被 windowAdded 监听，
+初始仅属于桌面 1；sequence 82 的 desktopsChanged 为 desktops=[]、
+onAllDesktops=true；sequence 97 恢复仅桌面 1、onAllDesktops=false。
+期间 Desktop 往返信号与 per-output current 读数一致。
+用户确认按步骤完成所有桌面可见性检查并恢复桌面 1。
+这也实测验证了启动后新窗口自动接入监听，且随后能收到归属变化信号。
+当前待确认仅为 Pager 路径；双屏按用户安排延后。日志基线 sequence 98。
+
+用户确认当前面板没有 Pager，此项标记未测，不安装或调整面板。
+本轮结束后 unloadScript 返回 true，已解除探针监听。
+
+| 本轮验收项 | 结果 |
+| --- | --- |
+| 启动枚举及 currentDesktopForScreen(eDP-1) | 通过 |
+| 原生 DBus Desktop 切换并返回 | 通过 |
+| 用户原生快捷键往返切换 | 通过 |
+| 窗口单 Desktop 转移并移回 | 通过 |
+| Sticky 开关及恢复单 Desktop | 通过 |
+| 新窗口接入并监听归属变化 | 通过 |
+| Pager 点击路径 | 未测，当前无 Pager |
+| 双屏及副屏 output 过滤 | 延后，当前仅内屏 |
+
+结论：当前单屏环境所需的读取、切换和窗口归属信号已实测可用，
+可以据此继续 W2。此结论不覆盖 Pager 路径或双屏行为；
+双屏接入后仍需补测 output 过滤与逐屏 current 语义。
