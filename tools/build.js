@@ -4,6 +4,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const root = path.resolve(__dirname, "..");
+// Standalone poc/ scripts (including the W0 workspace API probe) are deliberately
+// excluded: loading a diagnostic must never change the installed runtime bundle.
 const targets = [
     {
         outputPath: "package/contents/code/main.js",
