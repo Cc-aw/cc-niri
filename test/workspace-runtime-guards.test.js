@@ -39,6 +39,7 @@ const stateFor = window => {
 const context = vm.createContext({
     windowPolicy: policy, workspaceMembership: membership, mainScreenState: appState,
     workspaceMountController: { canUseActiveWorkspace: () => true, initialize: () => { startupMounted += 1; return true; } },
+    workspaceTransferController: { onWindowAdded: () => {} },
     workspaceSnapshots: { removeWindow: () => false },
     stateFor, columnIndexForWindow: () => -1, COLUMN_WIDTH_HALF: "half", debug: () => {},
     columnStore: { insertWindow: window => { inserted += 1; return { id: inserted, window }; }, indexOf: () => 0 },

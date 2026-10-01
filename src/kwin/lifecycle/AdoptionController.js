@@ -230,8 +230,8 @@ class AdoptionController {
         const membershipPhase = this.membershipPhase(window, windowState);
         if (membershipPhase) {
             if (this.indexOfWindow(window) >= 0) {
-                // Membership changes detach a window; W3 Workspace unmount must
-                // never use this path. Snapshot transfers arrive in W6.
+                // Policy/membership fallback only. Workspace transfer removes
+                // the column before adoption; Workspace unmount uses its own path.
                 this.removeManagedWindow(window, "window-desktops-changed", false);
             }
             this.transition(window, windowState, membershipPhase, reason);

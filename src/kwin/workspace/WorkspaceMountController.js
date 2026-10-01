@@ -113,6 +113,7 @@ class WorkspaceMountController {
             column.persistentWide = entry.persistentWide;
             const windowState = this.stateFor(window);
             windowState.workspaceOwnerId = workspaceId;
+            windowState.workspaceColumnPreference = null;
             windowState.managedByScrollLayout = true;
             windowState.columnId = column.id;
             this.transitionAdoption(window, windowState, this.phases.managed, "workspace-mount");

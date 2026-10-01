@@ -142,6 +142,14 @@ reader must upgrade together. The installer saves the previous Bridge state
 before stopping it. Dock commands and animation messages retain protocol 1;
 Dock display continues to consume only active `columns`.
 
+W6 tracks KDE's native window desktop changes. Moving a window to another
+workspace releases script-owned parking, removes the source reference, and
+appends its width/Wide preference to the destination snapshot. A window moved
+into the current workspace waits for native activation before adoption; cc-niri
+does not focus it automatically. Floating and Dialog windows retain native
+behavior, and Sticky/multi-desktop windows leave the column layout. New and
+closed windows also update sleeping workspace snapshots.
+
 KWin can retain an already loaded native effect library across an in-place
 upgrade. Until the next Plasma login loads the new binary, capability role
 `1002` remains absent and scrolling safely uses the 20 px right-edge fallback;
