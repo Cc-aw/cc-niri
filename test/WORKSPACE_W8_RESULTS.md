@@ -1,7 +1,8 @@
 # W8 — Dynamic Trailing Empty Workspace
 
 2026-10-01，feature/workspace-stack。用户确认修复后的动画正常，要求继续下一阶段。
-本阶段实现可选末尾空桌面；尚未部署或启用 W8，当前日用会话保持 W6/W7 修复版。
+本阶段实现可选末尾空桌面；随后用户要求部署，已安装并设置 DynamicTrailingWorkspace=true。
+主屏实机检查通过，当前日用会话运行 W8。
 
 ## 行为
 
@@ -44,4 +45,31 @@ D-Bus integration、native clip 2 项 CTest 和 Bridge / clip / Plasmoid 三项 
 部署并显式启用后，在最后桌面创建或迁入测试应用，确认只追加一个空桌面，J 可进入、
 K 可返回；在新末尾再次打开窗口，再追加一个。关闭测试窗口后原桌面数量不减少。
 同时检查 Floating/Fullscreen、末尾已有窗口的 restart，以及关闭配置后保持固定桌面。
-W8 只考虑主屏占用；不需要双屏验收。此轮尚未执行这些真实桌面创建检查。
+W8 只考虑主屏占用；不需要双屏验收。
+
+## 2026-10-01 部署与主屏实机结果
+
+约 19:05–19:06 运行 ./install.sh、启用配置并 cc-niri restart。生产安装 main.js 与仓库
+bundle SHA256 一致；Script loaded / enabled at login、两个 Effect loaded、Bridge active。
+
+通过 10 项检查：
+
+1. 启用后原桌面保留；原末尾桌面已有应用，启动检查自动追加一个空桌面（2 → 3）。
+2. 将真实临时窗口移入末尾桌面，只追加一个空桌面。
+3. 自动追加不改变当前桌面和焦点。
+4. 将另一临时窗口移入新的末尾桌面，再只追加一个空桌面。
+5. 原桌面 UUID 与顺序保留。
+6. J 进入新增的末尾空桌面，Bridge workspaceId 一致，active Dock columns 为空。
+7. K 返回前一桌面。
+8. 关闭临时窗口不删除桌面，也不继续多建桌面。
+9. 所有 Snapshot 清除已关闭测试窗口 UUID。
+10. 恢复原桌面、列顺序、焦点与 viewportAnchor。
+
+最终保留 5 个桌面：启用检查追加 1 个，验收追加 2 个；遵循 create-only 策略，没有自动
+删除验收留下的空桌面。临时测试窗口/探针/状态接收器已全部退出，W8 保持启用。
+查询自 19:03:00 起没有新增 KWin core dump；KWin 日志没有 INVARIANT_FAIL、FAIL_SAFE、
+TypeError、ReferenceError 或 trailing desktop unavailable。
+
+日志 `/tmp/cc-niri-w8-deploy.log`、`/tmp/cc-niri-w8-live.log`，逐步快照
+`/tmp/cc-niri-live-results/w8-*.json`。Floating/Fullscreen 占用与关闭选项的行为已离线验证，
+本轮没有另做其专门实机用例；不把这些用例记为实机通过。
