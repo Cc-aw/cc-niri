@@ -2,7 +2,8 @@
 
 2026-10-01，feature/workspace-stack。用户明确要求新增自动回收并保持模块化。
 这扩展了原架构 MVP/W8 的 create-only 范围；原架构文档已增加 W9。
-尚未部署或启用 W9，当前日用会话仍为已部署的 W8 纵向网格修复版。
+已通过 `./install.sh` 部署并显式开启 W8/W9。主屏 eDP-1 功能复测通过；
+首轮 Firefox 离列异常未复现，原因仍未确定，不能标记为已解决。
 
 ## 模块与行为
 
@@ -49,10 +50,46 @@ Bridge 4 项 CTest、两项隔离 D-Bus 集成、clip 2 项 CTest，以及 Bridg
 三项 native 构建。另补充的延迟成功确认用例通过；配置 XML/UI 解析及 diff whitespace
 检查通过。门禁日志 `/tmp/cc-niri-w9-check.log`。
 
-## 待执行主屏实机验收
+## 主屏实机验收（2026-10-01 20:16–20:30）
 
-部署并显式开启 W8/W9 后检查：已有空非当前桌面收敛；窗口关闭或移走后的空桌面回收；
-当前桌面关掉最后窗口仍留在原桌面，J/K 离开后回收；Floating/Fullscreen/minimized
-阻止删除；Wide/滚动中切桌面；始终保留末尾空桌面且不循环创建/删除；restart 快照与
-纵向网格一致。关闭 W9 后 W8 恢复只追加。
-这轮仅离线实现，不将任何 W9 实机删除用例记为通过。
+当前仅测试笔记本 eDP-1。实际 KWin/Bridge/Qt 测试窗口检查通过：
+
+1. 启用后原 5 个桌面收敛到 3 个，两个有应用的原桌面 UUID 与当前 UUID 保留；
+   删除原有空非当前桌面，rows 从 5 同步为 3。
+2. 将真实测试窗口移到末尾，W8 只追加一个新的末尾空桌面。
+3. 确认浮动快捷键的目标 UUID，并确认测试窗口实际退出 Columns；Floating、
+   Fullscreen，以及非当前桌面的 minimized Floating 窗口均阻止回收。
+4. 当前桌面关闭最后窗口后仍保留且不跳桌面；J 离开后旧空桌面被回收，末尾保留。
+5. 将最后窗口移走也会回收空来源桌面。测试窗口关闭后数量回到 3，rows 同步减少，
+   Bridge snapshot 不包含已删除桌面，未发现重复追加/删除振荡。
+6. restart 后当前 UUID 与纵向网格一致。
+7. 关闭 W9 后，W8 仍追加末尾；空的非当前来源桌面保持存在。再次启用 W9 后自动回收。
+8. 所有原应用仍在原桌面，原列顺序、焦点及 viewportAnchor 最终与启用前一致。
+   恢复顺序通过正式 Bridge reorder 命令完成，未移动原应用归属。
+
+最终：3 行 1 列，W8/W9 开启；Script、transition、clip 与 Bridge 均在运行，
+DebugLogging 恢复 false，测试窗口与临时接收器已退出。
+自 20:15 起未发现新增 KWin core dump，未发现脚本 INVARIANT_FAIL/FAIL_SAFE。
+拓扑改变期间出现 vertical desktop layout not confirmed 警告（旧数量的异步请求被
+拒绝，后续实际 rows 校验通过）。Dock ToolTipDelegate 另有一次 containsMouse/null
+TypeError，未影响本轮回收检查；不能将日志表述为完全无警告或错误。
+
+### 验收异常与限制
+
+首轮 Firefox 仍在原桌面但不在 Columns，随后 restart 将其重新纳入并追加到列末尾。
+用户明确表示没有拖动、调整大小或切成浮动。首轮未开启事件日志，无法确定离列来源，
+也没有证据可以归因于用户操作或验收快捷键误作用。
+开启临时事件日志后，在浮动快捷键前验证目标 UUID，逐阶段读取 Dock Columns；
+完整复测中原用户列保持顺序，浮动日志只记录测试窗口，Firefox 未再次离列。
+原列顺序已恢复。此异常仍待出现时捕获原因，不因复测成功标记为修复。
+
+验收脚本也修正了三个断言问题：不能要求被占用再清空的末尾 UUID 永久不变；
+比较用户列时应过滤仍存活的测试窗口；旧探针未包含 normalWindow 字段，最终归属
+改为逐一按启用前原列 UUID 核对。修正后的对应检查通过。
+
+逐帧 J/K 动画、Wide/滚动途中快速切桌面仍需要用户视觉验收；本轮自动状态检查
+不替代这些观察。双屏不属于当前项目实机验收范围。
+日志：`/tmp/cc-niri-w9-deploy.log`、`/tmp/cc-niri-w9-live-guarded.log`、
+`/tmp/cc-niri-w9-finish.log`；阶段快照 `/tmp/cc-niri-live-results/`。
+最后收尾脚本因旧探针字段缺失退出后，已独立核对最终原列/焦点/锚点/归属与桌面数量，
+并关闭其临时接收器。
