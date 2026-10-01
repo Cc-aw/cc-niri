@@ -148,6 +148,7 @@ bool ScrollDockBridge::PublishState(const QString &json)
     }
     m_sessionId = sessionId;
     m_generation = generation;
+    if (!m_scrollPlans.updateContext(state)) m_scrollPlans = {};
     m_lastState = QString::fromUtf8(document.toJson(QJsonDocument::Compact));
     {
         m_lastSaveSucceeded = false;
@@ -166,6 +167,7 @@ bool ScrollDockBridge::PublishState(const QString &json)
 
 bool ScrollDockBridge::PublishMotionPlan(const QString &json)
 {
+    if (json.toUtf8().size() > CcNiri::MaxMotionPlanBytes) return false;
     QJsonParseError error;
     const QJsonDocument document = QJsonDocument::fromJson(json.toUtf8(), &error);
     if (error.error != QJsonParseError::NoError || !document.isObject()) {
@@ -175,6 +177,26 @@ bool ScrollDockBridge::PublishMotionPlan(const QString &json)
     const QJsonObject plan = document.object();
     const QString type = plan.value(QStringLiteral("type")).toString();
     const QJsonArray entries = plan.value(QStringLiteral("entries")).toArray();
+    if (type == QStringLiteral("SCROLL")) {
+        // Resolve membership against the last authoritative active workspace.
+        // Never alter Wide completion tokens when publishing scroll telemetry.
+        const auto state = QJsonDocument::fromJson(m_lastState.toUtf8()).object();
+        if (m_sessionId.isEmpty() || plan.value(QStringLiteral("sessionId")).toString() != m_sessionId
+            || plan.value(QStringLiteral("workspaceId")) != state.value(QStringLiteral("workspaceId"))
+            || plan.value(QStringLiteral("targetOutput")) != state.value(QStringLiteral("targetOutput"))) return false;
+        QSet<QString> owners;
+        for (const auto &value : state.value(QStringLiteral("columns")).toArray()) {
+            owners.insert(normalizedUuid(value.toObject().value(QStringLiteral("uuid"))));
+        }
+        for (const auto &value : entries) {
+            if (!owners.contains(value.toObject().value(QStringLiteral("windowId")).toString())) return false;
+        }
+        const auto disposition = m_scrollPlans.observe(plan);
+        if (disposition == CcNiri::ScrollPlanDisposition::Rejected) return false;
+        if (disposition == CcNiri::ScrollPlanDisposition::Duplicate) return true;
+        Q_EMIT MotionPlanChanged(QString::fromUtf8(document.toJson(QJsonDocument::Compact)));
+        return true;
+    }
     if (plan.value(QStringLiteral("protocol")).toInt() != 1 ||
             plan.value(QStringLiteral("sessionId")).toString() != m_sessionId ||
             m_sessionId.isEmpty() ||

@@ -1518,6 +1518,14 @@ function computeLayoutPlan(options) {
         oldScrollOffsetX,
         newScrollOffsetX,
         viewport: copyRect(safeRect),
+        entries: windows.filter(item => item.transitionRole !== "static").map(item => ({
+            windowId: motionWindowId(item),
+            columnId: item.columnId,
+            logicalX: item.column.logicalX,
+            pixelWidth: item.column.pixelWidth,
+            oldPlacement: item.oldPlacement,
+            newPlacement: item.newPlacement,
+        })),
         continuing: windows.filter(item => item.transitionRole === "continuing")
             .map(motionWindowId),
         incoming: windows.filter(item => item.transitionRole === "incoming")
@@ -1588,6 +1596,27 @@ function computeLayoutPlan(options) {
             ? windows.slice().sort((a, b) =>
                 transitionRank(a.transitionRole) - transitionRank(b.transitionRole))
             : windows,
+    };
+}
+
+// Generated from src/kwin/layout/ScrollMotionPlan.js
+// Pure protocol data only. The observer phase publishes without delaying the
+// existing geometry commit, starting Spring, or changing parking ownership.
+function createViewportScrollPlan(transaction, context) {
+    if (!transaction || !context.workspaceId || !context.targetOutput) return null;
+    return {
+        protocol: 2,
+        type: "SCROLL",
+        epoch: transaction.epoch,
+        issuedAt: context.issuedAt,
+        workspaceId: context.workspaceId,
+        targetOutput: context.targetOutput,
+        oldScrollOffsetX: transaction.oldScrollOffsetX,
+        newScrollOffsetX: transaction.newScrollOffsetX,
+        viewport: Object.assign({}, transaction.viewport),
+        entries: transaction.entries.map(entry => Object.assign({}, entry, {
+            windowId: context.normalizeUuid(entry.windowId),
+        })),
     };
 }
 
@@ -3349,7 +3378,7 @@ class DockGateway {
 
     publishMotionPlan(plan, callback) {
         const envelope = Object.assign({}, plan, {
-            protocol: this.protocol,
+            protocol: plan.type === "SCROLL" ? 2 : this.protocol,
             sessionId: this.sessionIdValue,
         });
         this.invoke(this.service, this.path, this.interfaceName,
@@ -5226,6 +5255,25 @@ function relayoutImpl(reason, scrollOffsets) {
         };
         motionPlanCommitGate.schedule(plan, envelope, { wideExitColumn });
         return;
+    }
+    // Protocol observation only: send before geometry commits, without waiting
+    // for an ACK or assigning native motion/parking ownership in this phase.
+    if (plan.scrollTransaction && (reason === "focus-next" || reason === "focus-previous")) {
+        const envelope = createViewportScrollPlan(plan.scrollTransaction, {
+            workspaceId: mainScreenState.activeWorkspaceId,
+            targetOutput: mainScreenState.targetOutput.name,
+            issuedAt: Date.now(),
+            normalizeUuid: normalizeWindowUuid,
+        });
+        if (envelope) {
+            try {
+                dockGateway.publishMotionPlan(envelope, accepted => {
+                    debug(`[SCROLL_PLAN] epoch=${envelope.epoch} accepted=${Boolean(accepted)}`);
+                });
+            } catch (error) {
+                warn(`[SCROLL_PLAN] publish unavailable epoch=${envelope.epoch} error=${error}`);
+            }
+        }
     }
     motionPlanCommitGate.cancel();
     commitLayoutPlan(plan, wideExitColumn, null);

@@ -30,6 +30,7 @@ const targets = [
             "src/kwin/layout/LayoutSnapshot.js",
             "src/kwin/layout/MotionPlanCommitGate.js",
             "src/kwin/layout/LayoutEngine.js",
+            "src/kwin/layout/ScrollMotionPlan.js",
             "src/kwin/layout/GeometryCommitter.js",
             "src/kwin/runtime/RuntimeConfig.js",
             "src/kwin/runtime/RuntimeLogger.js",

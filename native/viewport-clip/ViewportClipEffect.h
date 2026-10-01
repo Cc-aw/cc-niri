@@ -7,6 +7,7 @@
 #include <QSet>
 #include <QHash>
 #include <QString>
+#include "../../src/protocol/ViewportScrollPlan.h"
 
 namespace KWin
 {
@@ -38,6 +39,8 @@ private:
 
 private Q_SLOTS:
     void onMotionPlanChanged(const QString &json);
+    void onDockStateChanged(const QString &json);
+    void observeScrollPlan(const QJsonObject &plan);
     void onMotionParked(const QString &json);
 
 private:
@@ -47,6 +50,8 @@ private:
     void forwardMotionCompletion(EffectWindow *window);
     void clearWorkspaceState(LogicalOutput *output);
 
+    CcNiri::ViewportScrollPlanSequence m_scrollPlanObserver;
+    bool m_receivedDockStateSignal = false;
     QSet<EffectWindow *> m_activeWindows;
     QSet<EffectWindow *> m_motionPlanWindows;
     QSet<QString> m_loggedDeviceClips;

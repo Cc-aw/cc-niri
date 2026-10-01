@@ -21,6 +21,8 @@ const logs = [];
 const published = [];
 const deferred = [];
 const motionAcks = [];
+const motionPlans = [];
+const motionPublishWrites = [];
 let pendingCommand = "";
 const timers = [];
 const shortcuts = new Map();
@@ -93,7 +95,7 @@ const context = vm.createContext({ workspace, QTimer: Timer,
         if (method === "GetState") callback("");
         else if (method === "EnsureVerticalDesktopLayout") { desktopRows.push(args[0]); callback(true); }
         else if (method === "PublishState") { published.push(JSON.parse(args[0])); callback(true); }
-        else if (method === "PublishMotionPlan") motionAcks.push(callback);
+        else if (method === "PublishMotionPlan") { motionPlans.push(JSON.parse(args[0])); motionPublishWrites.push(geometryWrites); motionAcks.push(callback); }
         else if (method === "RequestDeferredCommand") { deferred.push(JSON.parse(args[0])); callback(true); }
         else if (method === "TakePendingCommand") { const command = pendingCommand; pendingCommand = ""; callback(command); }
         else if (typeof callback === "function") callback(true);
@@ -112,7 +114,7 @@ function nativeSwitch(index, active) {
     assert.equal(logs.filter(line => /BEGIN epoch=.*reason=workspace-mount/.test(line)).length, batches + 1,
         "native desktop changes issue one relayout, including empty workspaces");
 }
-return { evaluate, state, ids, nativeSwitch, desktops, desktopCreates, desktopRemoves, desktopRows, output, workspace, a, b, published, motionAcks, timers, shortcuts, logs,
+return { evaluate, state, ids, nativeSwitch, desktops, desktopCreates, desktopRemoves, desktopRows, output, workspace, a, b, published, motionAcks, motionPlans, motionPublishWrites, timers, shortcuts, logs,
     move(window, ids) { window.desktops = ids.map(id => desktops.find(d => d.id === id)); window.onAllDesktops = !ids.length; window.desktopsChanged.emit(); },
     add(uuid, index, properties = {}) { const window = Object.assign(windowFor(uuid, desktops[index]), properties); windows.push(window); workspace.windowAdded.emit(window); return window; },
     close(window) { windows = windows.filter(w => w !== window); window.closed.emit(); },

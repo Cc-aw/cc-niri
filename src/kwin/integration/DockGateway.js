@@ -69,7 +69,7 @@ class DockGateway {
 
     publishMotionPlan(plan, callback) {
         const envelope = Object.assign({}, plan, {
-            protocol: this.protocol,
+            protocol: plan.type === "SCROLL" ? 2 : this.protocol,
             sessionId: this.sessionIdValue,
         });
         this.invoke(this.service, this.path, this.interfaceName,

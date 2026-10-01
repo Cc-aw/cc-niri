@@ -3,6 +3,8 @@
 #include "ViewportClipEffect.h"
 
 #include "core/renderviewport.h"
+#include "core/output.h"
+#include "virtualdesktops.h"
 #include "effect/effecthandler.h"
 #include "effect/effectwindow.h"
 
@@ -10,6 +12,8 @@
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QDBusPendingCall>
+#include <QDBusPendingCallWatcher>
+#include <QDBusPendingReply>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -74,6 +78,21 @@ CcNiriViewportClipEffect::CcNiriViewportClipEffect()
     if (!parkedConnected) {
         qCWarning(CC_NIRI_VIEWPORT_CLIP) << "motion parked signal unavailable";
     }
+    const bool stateConnected = QDBusConnection::sessionBus().connect(
+        QStringLiteral("org.cc.ScrollDockBridge"), QStringLiteral("/ScrollDock"),
+        QStringLiteral("org.cc.ScrollDockBridge1"), QStringLiteral("StateChanged"),
+        this, SLOT(onDockStateChanged(QString)));
+    if (!stateConnected) qCWarning(CC_NIRI_VIEWPORT_CLIP) << "scroll observer state signal unavailable";
+    const auto request = QDBusMessage::createMethodCall(
+        QStringLiteral("org.cc.ScrollDockBridge"), QStringLiteral("/ScrollDock"),
+        QStringLiteral("org.cc.ScrollDockBridge1"), QStringLiteral("GetState"));
+    auto *watcher = new QDBusPendingCallWatcher(QDBusConnection::sessionBus().asyncCall(request), this);
+    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, watcher]() {
+        const QDBusPendingReply<QString> reply = *watcher;
+        // A state signal received during the query is newer than this reply.
+        if (!reply.isError() && !m_receivedDockStateSignal) onDockStateChanged(reply.value());
+        watcher->deleteLater();
+    });
     qCInfo(CC_NIRI_VIEWPORT_CLIP) << "[VIEWPORT_CLIP_NATIVE] READY";
 }
 
@@ -99,9 +118,14 @@ void CcNiriViewportClipEffect::clearWorkspaceState(LogicalOutput *output)
 
 void CcNiriViewportClipEffect::onMotionPlanChanged(const QString &json)
 {
+    if (json.toUtf8().size() > CcNiri::MaxMotionPlanBytes) return;
     const QJsonDocument document = QJsonDocument::fromJson(json.toUtf8());
     if (!document.isObject()) return;
     const QJsonObject plan = document.object();
+    if (plan.value(QStringLiteral("type")).toString() == QStringLiteral("SCROLL")) {
+        observeScrollPlan(plan);
+        return;
+    }
     const QJsonArray entries = plan.value(QStringLiteral("entries")).toArray();
     if (entries.size() != 2) return;
 
@@ -161,6 +185,42 @@ void CcNiriViewportClipEffect::onMotionPlanChanged(const QString &json)
         qCWarning(CC_NIRI_VIEWPORT_CLIP)
             << "motion plan did not resolve every EffectWindow";
     }
+}
+
+void CcNiriViewportClipEffect::onDockStateChanged(const QString &json)
+{
+    m_receivedDockStateSignal = true;
+    const auto document = QJsonDocument::fromJson(json.toUtf8());
+    if (document.isObject() && !m_scrollPlanObserver.updateContext(document.object())) {
+        m_scrollPlanObserver = {};
+    }
+}
+
+void CcNiriViewportClipEffect::observeScrollPlan(const QJsonObject &plan)
+{
+    if (!CcNiri::validViewportScrollPlan(plan)) return;
+    const auto entries = plan.value(QStringLiteral("entries")).toArray();
+    QSet<QString> resolved;
+    for (EffectWindow *window : effects->stackingOrder()) {
+        const auto id = window->internalId().toString(QUuid::WithoutBraces).toLower();
+        for (const auto &value : entries) {
+            if (value.toObject().value(QStringLiteral("windowId")).toString() != id) continue;
+            auto *output = window->screen();
+            auto *desktop = effects->currentDesktop(output);
+            const auto barrier = qMax(m_workspaceBarriers.value(nullptr), m_workspaceBarriers.value(output));
+            if (!output || !desktop || output->name() != plan.value(QStringLiteral("targetOutput")).toString()
+                || desktop->id() != plan.value(QStringLiteral("workspaceId")).toString()
+                || !acceptsWorkspaceMotion(plan.value(QStringLiteral("issuedAt")).toInteger(),
+                                           barrier, window->isOnCurrentDesktop())) return;
+            resolved.insert(id);
+        }
+    }
+    if (resolved.size() != entries.size()) return;
+    if (m_scrollPlanObserver.observe(plan) != CcNiri::ScrollPlanDisposition::Accepted) return;
+    // Deliberately no setData, repaint, geometry, Spring start, or window pointer
+    // retention. Legacy Wide markers and scripted SCROLL remain the owners.
+    qCInfo(CC_NIRI_VIEWPORT_CLIP) << "[SCROLL_PLAN_NATIVE] OBSERVE"
+        << QJsonDocument(plan).toJson(QJsonDocument::Compact);
 }
 
 void CcNiriViewportClipEffect::onMotionParked(const QString &json)

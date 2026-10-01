@@ -23,6 +23,11 @@ install(TARGETS cc-scroll-dock-bridge
 
 include(CTest)
 if(BUILD_TESTING)
+    qt_add_executable(cc-scroll-motion-plan-tests
+        tests/ScrollMotionPlanTest.cpp src/ScrollDockBridge.cpp src/ScrollDockBridge.h)
+    target_include_directories(cc-scroll-motion-plan-tests PRIVATE src)
+    target_link_libraries(cc-scroll-motion-plan-tests PRIVATE Qt6::Core Qt6::DBus)
+    add_test(NAME scroll-motion-protocol COMMAND cc-scroll-motion-plan-tests)
     find_package(Qt6 6.6 REQUIRED COMPONENTS Qml)
     qt_add_executable(cc-niri-workspace-recycle-qobject-tests tests/WorkspaceRecycleQObjectTest.cpp)
     target_link_libraries(cc-niri-workspace-recycle-qobject-tests PRIVATE Qt6::Core Qt6::Qml)

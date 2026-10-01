@@ -4,6 +4,7 @@
 #include <QQueue>
 #include <QSet>
 #include <QString>
+#include "../../src/protocol/ViewportScrollPlan.h"
 
 class ScrollDockBridge final : public QObject
 {
@@ -43,4 +44,5 @@ private:
     QSet<QString> m_recentCommandIds;
     QQueue<QString> m_recentCommandOrder;
     qint64 m_generation = -1;
+    CcNiri::ViewportScrollPlanSequence m_scrollPlans;
 };

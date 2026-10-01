@@ -145,6 +145,14 @@ function computeLayoutPlan(options) {
         oldScrollOffsetX,
         newScrollOffsetX,
         viewport: copyRect(safeRect),
+        entries: windows.filter(item => item.transitionRole !== "static").map(item => ({
+            windowId: motionWindowId(item),
+            columnId: item.columnId,
+            logicalX: item.column.logicalX,
+            pixelWidth: item.column.pixelWidth,
+            oldPlacement: item.oldPlacement,
+            newPlacement: item.newPlacement,
+        })),
         continuing: windows.filter(item => item.transitionRole === "continuing")
             .map(motionWindowId),
         incoming: windows.filter(item => item.transitionRole === "incoming")

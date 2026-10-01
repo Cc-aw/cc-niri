@@ -43,6 +43,11 @@ assert.deepEqual(scrollPlan.scrollTransaction, {
     newScrollOffsetX: 1260,
     deltaX: 1260,
     viewport: safeRect,
+    entries: [
+        { windowId: "A", columnId: 1, logicalX: 0, pixelWidth: 1252, oldPlacement: "visible", newPlacement: "parked" },
+        { windowId: "B", columnId: 2, logicalX: 1260, pixelWidth: 1252, oldPlacement: "visible", newPlacement: "visible" },
+        { windowId: "C", columnId: 3, logicalX: 2520, pixelWidth: 1252, oldPlacement: "parked", newPlacement: "visible" },
+    ],
     continuing: ["B"],
     incoming: ["C"],
     outgoing: ["A"],
