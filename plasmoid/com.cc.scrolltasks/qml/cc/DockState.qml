@@ -30,7 +30,7 @@ QtObject {
             console.warn("[cc-scroll-tasks] invalid state JSON", error);
             return null;
         }
-        if (envelope.protocol !== 1 || !envelope.sessionId ||
+        if (![1, 2].includes(envelope.protocol) || !envelope.sessionId ||
                 !Array.isArray(envelope.columns)) {
             console.warn("[cc-scroll-tasks] invalid state schema");
             return null;

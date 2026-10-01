@@ -89,6 +89,7 @@ assert.equal(migrated.workspaceId, "current-desktop-id");
 assert.deepEqual(migrated.columns.map(column => column.uuid), ["a", "b"]);
 assert.deepEqual(migrated.viewportAnchor, { uuid: "a", delta: 8 });
 assert.deepEqual(migrated.viewport, { mode: "wide", wideUuid: "b" });
+assert.equal(migrated.columns[1].persistentWide, true, "legacy active Wide implies the Column preference");
 assert.deepEqual(migrateLegacyWorkspaceSnapshot(JSON.stringify(legacy), "current-desktop-id", "DP-1"), migrated);
 for (const invalid of [null, "bad json", { ...legacy, protocol: 2 },
     { ...legacy, columns: {} }, { ...legacy, columns: [{ uuid: "a" }, { uuid: "{A}" }] },

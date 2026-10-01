@@ -1,5 +1,10 @@
 #include "ScrollDockBridge.h"
 
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QSaveFile>
+#include <QStandardPaths>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -12,15 +17,69 @@
 
 Q_LOGGING_CATEGORY(logBridge, "cc.scroll.dock.bridge")
 
-ScrollDockBridge::ScrollDockBridge(QObject *parent)
-    : QObject(parent)
-{
-}
-
 namespace
 {
 constexpr qsizetype MaxPendingCommands = 64;
 constexpr qsizetype MaxRecentCommandIds = 128;
+
+constexpr qint64 MaxStateBytes = 1024 * 1024;
+
+QString normalizedUuid(const QJsonValue &value)
+{
+    if (!value.isString()) return {};
+    QString uuid = value.toString().trimmed().toLower();
+    if (uuid.startsWith('{')) uuid.remove(0, 1);
+    if (uuid.endsWith('}')) uuid.chop(1);
+    return uuid;
+}
+
+bool validColumns(const QJsonValue &value, QStringList *order = nullptr, QSet<QString> *owners = nullptr)
+{
+    if (!value.isArray()) return false;
+    QSet<QString> seen;
+    for (const QJsonValue &column : value.toArray()) {
+        if (!column.isObject()) return false;
+        const QString uuid = normalizedUuid(column.toObject().value(QStringLiteral("uuid")));
+        if (uuid.isEmpty() || seen.contains(uuid) || (owners && owners->contains(uuid))) return false;
+        seen.insert(uuid);
+        if (owners) owners->insert(uuid);
+        if (order) order->append(uuid);
+    }
+    return true;
+}
+
+bool validState(const QJsonObject &state)
+{
+    const int protocol = state.value(QStringLiteral("protocol")).toInt();
+    if ((protocol != 1 && protocol != 2) ||
+        state.value(QStringLiteral("sessionId")).toString().isEmpty() ||
+        state.value(QStringLiteral("generation")).toInteger(-1) < 0 ||
+        !state.value(QStringLiteral("columns")).isArray()) return false;
+    if (protocol == 1) return true;
+    const QString activeId = state.value(QStringLiteral("workspaceId")).toString().trimmed();
+    if (activeId.isEmpty() || state.value(QStringLiteral("targetOutput")).toString().isEmpty() ||
+        !state.value(QStringLiteral("workspaces")).isArray()) return false;
+    QStringList activeOrder, rootOrder;
+    if (!validColumns(state.value(QStringLiteral("columns")), &rootOrder)) return false;
+    QSet<QString> ids, owners;
+    QJsonArray activeColumns;
+    for (const QJsonValue &value : state.value(QStringLiteral("workspaces")).toArray()) {
+        if (!value.isObject()) return false;
+        const QJsonObject workspace = value.toObject();
+        const QString id = workspace.value(QStringLiteral("id")).toString().trimmed();
+        QStringList order;
+        if (id.isEmpty() || ids.contains(id) || !validColumns(workspace.value(QStringLiteral("columns")), &order, &owners)) return false;
+        ids.insert(id);
+        if (id == activeId) { activeOrder = order; activeColumns = workspace.value(QStringLiteral("columns")).toArray(); }
+    }
+    if (!ids.contains(activeId) || activeOrder != rootOrder) return false;
+    const QJsonArray rootColumns = state.value(QStringLiteral("columns")).toArray();
+    for (qsizetype index = 0; index < rootColumns.size(); ++index) {
+        if (rootColumns.at(index).toObject().value(QStringLiteral("widthMode")).toString(QStringLiteral("half")) !=
+            activeColumns.at(index).toObject().value(QStringLiteral("widthMode")).toString(QStringLiteral("half"))) return false;
+    }
+    return true;
+}
 
 void wakeKWinCommandPump()
 {
@@ -34,9 +93,31 @@ void wakeKWinCommandPump()
 }
 }
 
+ScrollDockBridge::ScrollDockBridge(QObject *parent, const QString &statePath)
+    : QObject(parent)
+    , m_statePath(statePath.isEmpty()
+        ? QStandardPaths::writableLocation(QStandardPaths::GenericStateLocation) + QStringLiteral("/cc-niri/workspaces.json")
+        : statePath)
+{
+    QFile file(m_statePath);
+    if (!file.exists()) return;
+    if (!file.open(QIODevice::ReadOnly) || file.size() > MaxStateBytes) {
+        qCWarning(logBridge) << "workspace cache unavailable or too large";
+        return;
+    }
+    const QJsonDocument document = QJsonDocument::fromJson(file.readAll());
+    if (!document.isObject() || !validState(document.object())) {
+        qCWarning(logBridge) << "ignoring invalid workspace cache";
+        return;
+    }
+    // Only recovery data is loaded. Commands require a newly published live session.
+    m_lastState = QString::fromUtf8(document.toJson(QJsonDocument::Compact));
+}
+
 bool ScrollDockBridge::PublishState(const QString &json)
 {
     QJsonParseError error;
+    if (json.toUtf8().size() > MaxStateBytes) return false;
     const QJsonDocument document = QJsonDocument::fromJson(json.toUtf8(), &error);
     if (error.error != QJsonParseError::NoError || !document.isObject()) {
         qCWarning(logBridge) << "rejecting invalid state JSON" << error.errorString();
@@ -46,9 +127,7 @@ bool ScrollDockBridge::PublishState(const QString &json)
     const QJsonObject state = document.object();
     const QString sessionId = state.value(QStringLiteral("sessionId")).toString();
     const qint64 generation = state.value(QStringLiteral("generation")).toInteger(-1);
-    if (state.value(QStringLiteral("protocol")).toInt() != 1 ||
-        sessionId.isEmpty() || generation < 0 ||
-        !state.value(QStringLiteral("columns")).isArray()) {
+    if (!validState(state)) {
         qCWarning(logBridge) << "rejecting state with invalid schema";
         return false;
     }
@@ -69,6 +148,17 @@ bool ScrollDockBridge::PublishState(const QString &json)
     m_sessionId = sessionId;
     m_generation = generation;
     m_lastState = QString::fromUtf8(document.toJson(QJsonDocument::Compact));
+    {
+        m_lastSaveSucceeded = false;
+        QSaveFile file(m_statePath);
+        const QByteArray bytes = m_lastState.toUtf8();
+        if (!QDir().mkpath(QFileInfo(m_statePath).absolutePath()) || !file.open(QIODevice::WriteOnly) ||
+            file.write(bytes) != bytes.size() || !file.commit()) {
+            qCWarning(logBridge) << "workspace cache write failed" << file.errorString();
+        } else {
+            m_lastSaveSucceeded = true;
+        }
+    }
     Q_EMIT StateChanged(m_lastState);
     return true;
 }

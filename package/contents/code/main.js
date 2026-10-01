@@ -236,6 +236,10 @@ function migrateLegacyWorkspaceSnapshot(legacy, workspaceId, expectedTargetOutpu
     const presentation = source.presentation || {};
     // Protocol 1 represents contextual Wide through presentation, without viewport.
     return normalizeWorkspaceSnapshot(workspaceId, Object.assign({}, source, {
+        columns: source.columns.map(column => Object.assign({}, column, {
+            persistentWide: column.persistentWide === true || (presentation.mode === "wide" &&
+                workspaceSnapshotUuid(column.uuid) === workspaceSnapshotUuid(presentation.windowUuid)),
+        })),
         viewport: presentation.mode === "wide"
             ? { mode: "wide", wideUuid: presentation.windowUuid } : { mode: "pair" },
     }));
@@ -300,6 +304,63 @@ class WorkspaceSnapshotStore {
     clear() {
         this.snapshots.clear();
         this.uuidOwner.clear();
+    }
+}
+
+// Generated from src/kwin/workspace/WorkspacePersistence.js
+class WorkspacePersistence {
+    constructor(options) {
+        this.snapshots = options.snapshots;
+        this.hasDesktop = options.hasDesktop;
+    }
+
+    validColumns(columns) {
+        if (!Array.isArray(columns)) return false;
+        const normalized = normalizeWorkspaceSnapshot("validation", { columns });
+        return normalized.columns.length === columns.length;
+    }
+
+    restore(previousState, currentId, targetOutput) {
+        let source = previousState;
+        if (typeof source === "string") {
+            try { source = JSON.parse(source); } catch (_) { return false; }
+        }
+        const candidate = new WorkspaceSnapshotStore();
+        if (!source || source.targetOutput !== targetOutput) return false;
+        try {
+            if (source.protocol === 1) {
+                const legacy = migrateLegacyWorkspaceSnapshot(source, currentId, targetOutput);
+                if (!legacy) return false;
+                candidate.set(currentId, legacy);
+            } else if (source.protocol === 2) {
+                if (!Array.isArray(source.workspaces) || !this.validColumns(source.columns) ||
+                        typeof source.workspaceId !== "string" || !source.workspaceId.trim()) return false;
+                const ids = new Set();
+                for (const workspace of source.workspaces) {
+                    const id = workspace && typeof workspace.id === "string" ? workspace.id.trim() : "";
+                    if (!id || ids.has(id) || !this.validColumns(workspace.columns)) return false;
+                    ids.add(id);
+                    candidate.set(id, workspace); // Reject conflicting UUID owners before committing.
+                }
+                const active = candidate.get(source.workspaceId);
+                const columns = normalizeWorkspaceSnapshot("validation", source).columns;
+                if (!active || columns.length !== active.columns.length || columns.some((column, index) =>
+                    column.uuid !== active.columns[index].uuid || column.widthMode !== active.columns[index].widthMode)) return false;
+            } else return false;
+        } catch (_) { return false; }
+        const restored = candidate.all().filter(snapshot => this.hasDesktop(snapshot.workspaceId));
+        this.snapshots.clear();
+        restored.forEach(snapshot => this.snapshots.set(snapshot.workspaceId, snapshot));
+        return true;
+    }
+
+    snapshot(active) {
+        return Object.assign({}, active, {
+            workspaces: this.snapshots.all().map(snapshot => {
+                const { workspaceId, ...data } = snapshot;
+                return Object.assign({ id: workspaceId }, data);
+            }),
+        });
     }
 }
 
@@ -386,6 +447,9 @@ class WorkspaceMountController {
     constructor(options) {
         Object.assign(this, options);
         this.stopped = false;
+        this.persistence = options.persistence || new WorkspacePersistence({
+            snapshots: this.snapshots, hasDesktop: id => Boolean(this.topology.byId(id)),
+        });
     }
 
     currentId() {
@@ -547,9 +611,8 @@ class WorkspaceMountController {
         this.refreshState();
         const desktop = this.topology.current(this.appState.targetOutput);
         const id = this.topology.id(desktop);
-        const legacy = migrateLegacyWorkspaceSnapshot(previousState, id,
+        this.persistence.restore(previousState, id,
             this.appState.targetOutput ? this.appState.targetOutput.name : "");
-        if (legacy) this.snapshots.set(id, legacy);
         return this.mount(desktop, "script-start-workspace", false);
     }
 
@@ -2872,6 +2935,7 @@ class DockGateway {
         this.debug = options.debug;
         this.warn = options.warn;
         this.protocol = options.protocol || 1;
+        this.snapshotProtocol = options.snapshotProtocol || this.protocol;
         this.sessionIdValue = options.sessionId ||
             `${options.now().toString(16)}-` +
             `${Math.floor(options.random() * 0x100000000).toString(16)}`;
@@ -2893,7 +2957,7 @@ class DockGateway {
 
     envelopeSnapshot(snapshot) {
         return Object.assign({}, snapshot, {
-            protocol: this.protocol,
+            protocol: this.snapshotProtocol,
             sessionId: this.sessionIdValue,
             generation: this.generationValue,
         });
@@ -3942,6 +4006,10 @@ const workspaceMembership = new WorkspaceMembership({
     getCurrentDesktop: output => virtualDesktopTopology.current(output),
 });
 const workspaceSnapshots = new WorkspaceSnapshotStore();
+const workspacePersistence = new WorkspacePersistence({
+    snapshots: workspaceSnapshots,
+    hasDesktop: id => Boolean(virtualDesktopTopology.byId(id)),
+});
 let workspaceMountController;
 let workspaceSwitchController;
 const runtimeLogger = new RuntimeLogger({
@@ -3959,6 +4027,7 @@ const outputTopology = new OutputTopology({
 const innerGap = runtimeConfig.primary.inner;
 let contextualWideCoordinator;
 const dockGateway = new DockGateway({
+    snapshotProtocol: 2,
     invoke: callDBus,
     service: DOCK_BRIDGE_SERVICE,
     path: DOCK_BRIDGE_PATH,
@@ -4282,6 +4351,7 @@ workspaceMountController = new WorkspaceMountController({
     appState: mainScreenState,
     columnStore,
     snapshots: workspaceSnapshots,
+    persistence: workspacePersistence,
     topology: virtualDesktopTopology,
     membership: workspaceMembership,
     windowPolicy,
@@ -4372,7 +4442,8 @@ function createDockSnapshot() {
     const wideColumn = contextualViewport.column();
     const anchorColumn = mainScreenState.columns.reduce((anchor, column) =>
         column.logicalX <= mainScreenState.scrollOffsetX ? column : anchor, null);
-    return {
+    if (workspaceMountController && workspaceMountController.canUseActiveWorkspace()) workspaceMountController.capture();
+    return workspacePersistence.snapshot({
         workspaceId: mainScreenState.activeWorkspaceId,
         workspaceIndex: virtualDesktopTopology.indexOf(
             virtualDesktopTopology.byId(mainScreenState.activeWorkspaceId)),
@@ -4395,7 +4466,7 @@ function createDockSnapshot() {
             uuid: normalizeWindowUuid(anchorColumn.window.internalId),
             delta: mainScreenState.scrollOffsetX - anchorColumn.logicalX,
         } : null,
-    };
+    });
 }
 
 function publishDockState(reason) {

@@ -35,6 +35,20 @@ int main(int argc, char **argv)
     }
 
     ScrollDockBridge bridge;
+    if (app.arguments().contains(QStringLiteral("--save-current-state"))) {
+        const QDBusMessage request = QDBusMessage::createMethodCall(
+            QString::fromLatin1(Service), QString::fromLatin1(ObjectPath),
+            QStringLiteral("org.cc.ScrollDockBridge1"), QStringLiteral("GetState"));
+        const QDBusMessage reply = bus.call(request);
+        if (reply.type() == QDBusMessage::ErrorMessage) {
+            if (reply.errorName() == QStringLiteral("org.freedesktop.DBus.Error.ServiceUnknown") ||
+                reply.errorName() == QStringLiteral("org.freedesktop.DBus.Error.NameHasNoOwner")) return 0;
+            qCritical() << "cannot preserve previous Bridge state" << reply.errorMessage();
+            return 4;
+        }
+        const QString previous = reply.arguments().value(0).toString();
+        return previous.isEmpty() || (bridge.PublishState(previous) && bridge.lastSaveSucceeded()) ? 0 : 5;
+    }
     if (!bus.registerObject(
             QString::fromLatin1(ObjectPath),
             &bridge,

@@ -20,3 +20,12 @@ target_link_libraries(cc-scroll-dock-bridge PRIVATE Qt6::Core Qt6::DBus)
 install(TARGETS cc-scroll-dock-bridge
     RUNTIME DESTINATION "${CMAKE_INSTALL_LIBEXECDIR}"
 )
+
+include(CTest)
+if(BUILD_TESTING)
+    qt_add_executable(cc-scroll-dock-bridge-tests
+        tests/ScrollDockBridgeTest.cpp src/ScrollDockBridge.cpp src/ScrollDockBridge.h)
+    target_include_directories(cc-scroll-dock-bridge-tests PRIVATE src)
+    target_link_libraries(cc-scroll-dock-bridge-tests PRIVATE Qt6::Core Qt6::DBus)
+    add_test(NAME workspace-persistence COMMAND cc-scroll-dock-bridge-tests)
+endif()

@@ -174,3 +174,11 @@ assert.ok(applicationSource.includes(
 ));
 
 console.log("PASS DockGateway owns session, generation, schema, and transport");
+
+{
+    const { gateway, snapshot } = fixture();
+    gateway.snapshotProtocol = 2;
+    assert.equal(gateway.envelopeSnapshot(snapshot).protocol, 2);
+    assert.equal(gateway.commandEnvelope({ commandId: "w5", type: "set-column-order" }).protocol, 1,
+        "workspace state schema upgrade must preserve the Dock command protocol");
+}

@@ -11,7 +11,8 @@ class ScrollDockBridge final : public QObject
     Q_CLASSINFO("D-Bus Interface", "org.cc.ScrollDockBridge1")
 
 public:
-    explicit ScrollDockBridge(QObject *parent = nullptr);
+    explicit ScrollDockBridge(QObject *parent = nullptr, const QString &statePath = QString());
+    bool lastSaveSucceeded() const { return m_lastSaveSucceeded; }
 
 public Q_SLOTS:
     bool PublishState(const QString &json);
@@ -31,6 +32,8 @@ Q_SIGNALS:
     void MotionParked(const QString &json);
 
 private:
+    bool m_lastSaveSucceeded = false;
+    QString m_statePath;
     QString m_lastState;
     QString m_sessionId;
     QString m_lastMotionToken;

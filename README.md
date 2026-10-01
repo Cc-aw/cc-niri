@@ -128,7 +128,19 @@ If `~/.local/bin` is absent from your terminal's PATH, use
 `~/.local/bin/cc-niri` or the repository's `./cc-niri` directly. This Workspace
 branch binds `Meta+J` to the next desktop (down) and `Meta+K` to the previous
 (up), without wrapping. KDE's desktop layout must be one column for vertical
-animation. Workspace snapshots remain in memory until W5 persistence is added.
+animation. Workspace snapshots use protocol 2 and are saved atomically by the Bridge to
+`${XDG_STATE_HOME:-~/.local/state}/cc-niri/workspaces.json`. Script reload and
+`cc-niri restart` restore each workspace's UUID order, column width, Wide
+preference, focus and viewport anchor; KDE's actual current desktop wins at
+startup, and mounts return to Pair + normal. Closed, sticky and missing desktop
+members are reconciled against live windows. Protocol 1 data migrates to the
+current desktop. This restores layouts for existing windows and does not launch
+applications from a previous login.
+
+Use the full `./install.sh` when deploying W5: the script, Bridge and Dock state
+reader must upgrade together. The installer saves the previous Bridge state
+before stopping it. Dock commands and animation messages retain protocol 1;
+Dock display continues to consume only active `columns`.
 
 KWin can retain an already loaded native effect library across an in-place
 upgrade. Until the next Plasma login loads the new binary, capability role

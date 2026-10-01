@@ -13,6 +13,7 @@ const targets = [
             "src/kwin/model/ColumnStore.js",
             "src/kwin/model/WindowStateStore.js",
             "src/kwin/workspace/WorkspaceSnapshotStore.js",
+            "src/kwin/workspace/WorkspacePersistence.js",
             "src/kwin/workspace/WorkspaceMembership.js",
             "src/kwin/workspace/VirtualDesktopTopology.js",
             "src/kwin/workspace/WorkspaceMountController.js",

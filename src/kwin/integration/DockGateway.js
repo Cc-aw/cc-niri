@@ -14,6 +14,7 @@ class DockGateway {
         this.debug = options.debug;
         this.warn = options.warn;
         this.protocol = options.protocol || 1;
+        this.snapshotProtocol = options.snapshotProtocol || this.protocol;
         this.sessionIdValue = options.sessionId ||
             `${options.now().toString(16)}-` +
             `${Math.floor(options.random() * 0x100000000).toString(16)}`;
@@ -35,7 +36,7 @@ class DockGateway {
 
     envelopeSnapshot(snapshot) {
         return Object.assign({}, snapshot, {
-            protocol: this.protocol,
+            protocol: this.snapshotProtocol,
             sessionId: this.sessionIdValue,
             generation: this.generationValue,
         });

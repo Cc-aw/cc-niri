@@ -1,13 +1,16 @@
 "use strict";
 
 /* cjs:start */
-const { migrateLegacyWorkspaceSnapshot } = require("./WorkspaceSnapshotStore");
+const { WorkspacePersistence } = require("./WorkspacePersistence");
 /* cjs:end */
 
 class WorkspaceMountController {
     constructor(options) {
         Object.assign(this, options);
         this.stopped = false;
+        this.persistence = options.persistence || new WorkspacePersistence({
+            snapshots: this.snapshots, hasDesktop: id => Boolean(this.topology.byId(id)),
+        });
     }
 
     currentId() {
@@ -169,9 +172,8 @@ class WorkspaceMountController {
         this.refreshState();
         const desktop = this.topology.current(this.appState.targetOutput);
         const id = this.topology.id(desktop);
-        const legacy = migrateLegacyWorkspaceSnapshot(previousState, id,
+        this.persistence.restore(previousState, id,
             this.appState.targetOutput ? this.appState.targetOutput.name : "");
-        if (legacy) this.snapshots.set(id, legacy);
         return this.mount(desktop, "script-start-workspace", false);
     }
 

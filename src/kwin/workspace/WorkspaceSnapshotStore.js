@@ -72,6 +72,10 @@ function migrateLegacyWorkspaceSnapshot(legacy, workspaceId, expectedTargetOutpu
     const presentation = source.presentation || {};
     // Protocol 1 represents contextual Wide through presentation, without viewport.
     return normalizeWorkspaceSnapshot(workspaceId, Object.assign({}, source, {
+        columns: source.columns.map(column => Object.assign({}, column, {
+            persistentWide: column.persistentWide === true || (presentation.mode === "wide" &&
+                workspaceSnapshotUuid(column.uuid) === workspaceSnapshotUuid(presentation.windowUuid)),
+        })),
         viewport: presentation.mode === "wide"
             ? { mode: "wide", wideUuid: presentation.windowUuid } : { mode: "pair" },
     }));

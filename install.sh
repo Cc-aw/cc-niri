@@ -64,6 +64,8 @@ cmake -S "${PLASMOID_DIR}" -B "${PLASMOID_BUILD_DIR}" -G Ninja \
     -DKDE_INSTALL_PLUGINDIR=lib64/qt6/plugins
 cmake --build "${PLASMOID_BUILD_DIR}"
 
+# Preserve protocol 1/2 data before stopping the old Bridge during an upgrade.
+"${BRIDGE_BUILD_DIR}/cc-scroll-dock-bridge" --save-current-state
 "${SCRIPT_DIR}/cc-niri" stop
 cmake --install "${NATIVE_CLIP_BUILD_DIR}"
 cmake --install "${BRIDGE_BUILD_DIR}"
