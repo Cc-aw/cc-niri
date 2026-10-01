@@ -163,7 +163,8 @@ PlasmoidItem {
         screenGeometry: Plasmoid.containment.screenGeometry
         activity: activityInfo.currentActivity
 
-        filterByCurrentVirtualDesktop: false
+        // Dock order follows the active workspace's columns only.
+        filterByCurrentVirtualDesktop: true
         filterByScreen: true
         filterByActivity: false
         filterNotMinimized: Plasmoid.configuration.showOnlyMinimized

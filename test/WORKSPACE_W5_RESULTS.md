@@ -84,3 +84,11 @@ D-Bus integration 全部通过。
 覆盖，本轮未在日用窗口上修改。Dock reader 已随 Plasma 重启加载，并消费 protocol 2；
 鼠标拖动、点击与视觉效果仍需人工体验。不包含恢复应用程序启动，W6 transfer/W7 Effect
 清理不在 W5 验收范围内。
+
+## Dock 桌面过滤补修
+
+用户实测发现 J/K 后仍显示其它桌面窗口。原因是 Dock TasksModel 的
+filterByCurrentVirtualDesktop 硬编码为 false；active columns 正确不能替代任务模型的窗口过滤。
+现改为 true，符合架构第 50 节要求。Plasmoid QML 编译与原生构建通过，已安装并重启
+Plasma Shell；cc-niri Script、两个 Effect 和 Bridge 仍正常运行。固定 launcher 和 Sticky
+窗口遵循 KDE 的跨桌面规则，普通运行窗口按当前桌面过滤；切换后的图标显示待用户确认。
