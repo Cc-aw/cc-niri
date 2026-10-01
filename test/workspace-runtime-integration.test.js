@@ -36,6 +36,9 @@ function windowFor(uuid, desktop) {
         "maximizedChanged", "outputChanged", "desktopsChanged", "fullScreenChanged", "activeChanged",
         "readyForPaintingChanged", "windowShown", "interactiveMoveResizeStarted", "interactiveMoveResizeFinished",
         "closed", "skipTaskbarChanged", "transientChanged", "modalChanged"]) window[name] = signal();
+    let desktopList = window.desktops;
+    Object.defineProperty(window, "desktops", { get: () => Object.assign({ length: desktopList.length }, desktopList),
+        set: entries => { desktopList = Array.from(entries); } });
     let geometry = { x: 100, y: 100, width: 800, height: 600 };
     Object.defineProperty(window, "frameGeometry", { get: () => geometry, set: value => {
         const previous = geometry; geometry = value; geometryWrites += 1;

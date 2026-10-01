@@ -28,4 +28,18 @@ assert.equal(membership.isSticky({ desktops: [], onAllDesktops: false }), true,
     "KWin represents all-desktop membership with an empty desktop list");
 assert.equal(membership.isSticky({ desktops: [a, b] }), false, "multi-desktop differs from sticky");
 assert.equal(new WorkspaceMembership().belongsToActive(normal, primary), false, "unknown current desktop fails closed");
+// KWin QV4 wraps QList<VirtualDesktop*> as an indexed Qt sequence, not Array.
+const qtSequence = entries => Object.assign({ length: entries.length }, entries);
+assert.equal(Array.isArray(qtSequence([a])), false);
+const qtWindow = { desktops: qtSequence([a]), onAllDesktops: false };
+assert.deepEqual(membership.desktopIds(qtWindow), ["Desktop-A"]);
+assert.equal(membership.ownerId(qtWindow), "Desktop-A");
+assert.equal(membership.belongsToActive(qtWindow, primary), true);
+assert.equal(membership.isSticky({ desktops: qtSequence([]) }), true);
+assert.equal(membership.ownerId({ desktops: qtSequence([a, b]) }), null);
+assert.equal(membership.ownerId({ desktops: qtSequence([a]), onAllDesktops: true }), null);
+for (const desktops of ["A", { length: -1 }, { length: 0.5 }, { length: "1", 0: a }]) {
+    assert.equal(membership.ownerId({ desktops }), null);
+    assert.equal(membership.isSticky({ desktops }), false);
+}
 console.log("PASS workspace membership excludes sticky, multi-desktop and unknown membership");

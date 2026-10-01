@@ -5,20 +5,30 @@ class WorkspaceMembership {
         this.getCurrentDesktop = options.getCurrentDesktop || (() => null);
     }
 
+    desktopList(window) {
+        const list = window && window.desktops;
+        // QV4 exposes QList as a Qt sequence: indexed with length, but
+        // Array.isArray(list) is false. Copy by index across both runtimes.
+        if (!list || typeof list !== "object" || !Number.isInteger(list.length) ||
+                list.length < 0) return null;
+        const result = [];
+        for (let index = 0; index < list.length; index += 1) result.push(list[index]);
+        return result;
+    }
+
     desktopIds(window) {
-        if (!window || !Array.isArray(window.desktops)) return [];
-        return window.desktops.map(desktop => desktop && desktop.id)
+        return (this.desktopList(window) || []).map(desktop => desktop && desktop.id)
             .filter(id => typeof id === "string" && id.length > 0);
     }
 
     isSticky(window) {
-        return Boolean(window && (window.onAllDesktops ||
-            (Array.isArray(window.desktops) && window.desktops.length === 0)));
+        const list = this.desktopList(window);
+        return Boolean(window && (window.onAllDesktops || (list && list.length === 0)));
     }
 
     isSingleDesktop(window) {
-        return Boolean(window && !this.isSticky(window) &&
-            Array.isArray(window.desktops) && window.desktops.length === 1 &&
+        const list = this.desktopList(window);
+        return Boolean(window && !this.isSticky(window) && list && list.length === 1 &&
             this.desktopIds(window).length === 1);
     }
 

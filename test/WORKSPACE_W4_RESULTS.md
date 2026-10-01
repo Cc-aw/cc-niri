@@ -66,3 +66,19 @@ Meta+J/K 已注册并写入 KGlobalAccel 配置。Bridge 已发布主屏 eDP-1�
 D-Bus 查询失败拒绝继续、重复 start/stop、targeted Script.run、先 native 后 scripted effect、restart 和 status。
 新增控制测试后的完整 gate 为 61 个测试文件、三项 native 构建通过。
 用户接下来进行主屏 Workspace 上下切换与窗口布局的视觉验收。
+
+## 实机 H/L 无效修复（2026-10-01）
+
+用户反馈 H/L 无效，实际读取 Bridge 发现 Columns 为空，而 Script、Effects、Bridge 及
+Meta+H/L 注册正常。临时只读 KWin 诊断确认 window.desktops 是 Qt sequence：length=1、
+可按索引/map 读取，但 Array.isArray=false。原 WorkspaceMembership 的 Array.isArray gate
+错误排除了全部普通窗口；此前纯 JS Array 的 VM fixture 未暴露此差异。
+
+WorkspaceMembership 改为验证 object + 非负整数 length，然后按索引复制为 JS Array。
+继续排除空列表 Sticky、多 Desktop、非法 ID；字符串或非法 length 不被视为有效归属。
+新增 Qt sequence 单元回归；完整生产 bundle 的 VM 中所有窗口 desktops 改用非 Array
+的索引列表，覆盖启动、切换、Adoption 和 membership 变更。61 文件测试及 native 构建通过。
+
+仅升级 KWin Script 并安全停止/重启；无须重启 Plasma Shell。真实 Bridge 确认普通窗口
+已进入 Columns。连续调用 L/H 后读取 focusedUuid，确认分别移到下一列和上一列，
+不再停留于空 Columns。独立窗口诊断脚本已卸载，未改动窗口 Desktop 归属。
