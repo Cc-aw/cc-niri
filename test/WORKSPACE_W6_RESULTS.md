@@ -1,7 +1,9 @@
 # W6 — WorkspaceTransferController
 
 2026-10-01，feature/workspace-stack。实现固定 KDE Desktop 间的单桌面窗口迁移。
-本阶段代码完成并自动验证，未部署到日用会话；当前实机仍为 W5 与 Dock 桌面过滤修复。
+本阶段代码完成并自动验证。2026-10-01 与 W7 一起部署后发生 KWin 连续崩溃，实机验收未通过。
+用户已停用 Script、两个 Effect 与 Bridge；仓库修复通过离线验证，尚未重新部署。
+崩溃证据与测试边界见 [W6/W7 崩溃分析](WORKSPACE_W67_CRASH_RESULTS.md)。
 
 ## 行为
 

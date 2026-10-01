@@ -24,6 +24,10 @@ install(TARGETS cc-scroll-dock-bridge
 include(CTest)
 if(BUILD_TESTING)
     find_package(Qt6 6.6 REQUIRED COMPONENTS Qml)
+    qt_add_executable(cc-niri-workspace-qobject-tests tests/WorkspaceQObjectTest.cpp)
+    target_link_libraries(cc-niri-workspace-qobject-tests PRIVATE Qt6::Core Qt6::Qml)
+    add_test(NAME workspace-qobject-lifetime COMMAND cc-niri-workspace-qobject-tests
+        "${CMAKE_CURRENT_SOURCE_DIR}/../src/kwin/workspace/WorkspaceTransferController.js")
     qt_add_executable(cc-niri-kwin-syntax-tests tests/KWinSyntaxTest.cpp)
     target_link_libraries(cc-niri-kwin-syntax-tests PRIVATE Qt6::Core Qt6::Qml)
     add_test(NAME kwin-javascript-syntax COMMAND cc-niri-kwin-syntax-tests

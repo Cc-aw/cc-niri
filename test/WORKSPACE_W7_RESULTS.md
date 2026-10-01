@@ -1,7 +1,9 @@
 # W7 — WorkspaceEffectGuard
 
 2026-10-01，feature/workspace-stack。实现工作区切换的动画与裁剪清理。
-代码与自动验证完成，尚未部署到日用会话；W6 同样待部署实机验收。
+代码与自动验证完成。2026-10-01 与 W6 一起部署后发生 KWin 连续崩溃，实机验收未通过。
+崩溃栈指向 W6 的关闭窗口 WeakSet；当前组件停用，修复尚未重新部署。
+详情见 [W6/W7 崩溃分析](WORKSPACE_W67_CRASH_RESULTS.md)。
 
 ## 实现
 
@@ -44,7 +46,7 @@ orphan 角色清理、dataChanged 同步修改集合、三个角色全部清除�
 
 ## 后续部署与实机验收
 
-W6/W7 需要部署 KWin Script、scripted Effect 与 native viewport-clip。本阶段未操作实机。
+W6/W7 已尝试部署 KWin Script、scripted Effect 与 native viewport-clip，但在手动验收前发生崩溃。
 之后在内屏验证 H/L 滚动中 J/K、Wide 进入/退出中 J/K、快速桌面往返以及恢复后 H/L；
 检查裁剪/透明度/残影并结合 Effects.debug、WORKSPACE_CLIP_NATIVE 日志验收。
 Qt/KWin 可能保留已加载的 native library，部署后须确认会话实际运行新版本；构建通过

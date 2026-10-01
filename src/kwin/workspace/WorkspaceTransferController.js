@@ -4,7 +4,9 @@ class WorkspaceTransferController {
     constructor(options) {
         Object.assign(this, options);
         this.processing = new Set();
-        this.closed = new WeakSet();
+        // QV4 WeakSet entries holding closed QObject wrappers can crash in
+        // sameValueZero on a later add/has. Retain only bounded UUID strings.
+        this.closedUuids = new Set();
         this.layoutPending = false;
         this.stopped = false;
     }
@@ -25,9 +27,8 @@ class WorkspaceTransferController {
         }
     }
 
-    transfer(window, reason) {
+    transfer(window, reason, uuid) {
         const state = this.stateFor(window);
-        const uuid = this.normalizeUuid(window.internalId);
         const column = this.getColumn(window);
         const savedOwner = this.snapshots.workspaceForWindow(uuid);
         const previous = savedOwner || state.workspaceOwnerId;
@@ -48,7 +49,7 @@ class WorkspaceTransferController {
             // Restore opacity, script-owned minimization and accessible geometry
             // before removing the live column or assigning the new owner.
             this.releaseWindow(window, reason);
-            if (this.closed.has(window)) return true;
+            if (this.closedUuids.has(uuid)) return true;
             if (column) this.removeWindow(window, reason);
             this.snapshots.removeWindow(uuid);
             state.managedByScrollLayout = false;
@@ -64,12 +65,14 @@ class WorkspaceTransferController {
     }
 
     onMembershipChanged(window, reason = "window-desktops-changed") {
-        if (!window || this.closed.has(window) || this.stopped || !this.appState.enabled || this.processing.has(window)) return false;
-        this.processing.add(window);
+        if (!window || this.stopped || !this.appState.enabled) return false;
+        const uuid = this.normalizeUuid(window.internalId);
+        if (!uuid || this.closedUuids.has(uuid) || this.processing.has(uuid)) return false;
+        this.processing.add(uuid);
         let completed = false;
         try {
             for (let pass = 0; pass < 8; pass += 1) {
-                if (this.transfer(window, reason)) { completed = true; break; }
+                if (this.transfer(window, reason, uuid)) { completed = true; break; }
             }
             if (!completed) throw new Error("workspace-transfer-membership-unstable");
         } catch (error) {
@@ -77,7 +80,7 @@ class WorkspaceTransferController {
             this.onFailure(error);
             return false;
         } finally {
-            this.processing.delete(window);
+            this.processing.delete(uuid);
         }
         if (this.stopped) return false;
         try {
@@ -87,7 +90,7 @@ class WorkspaceTransferController {
             }
             // Adoption retains Floating/Dialog/native policies and waits for
             // real activation when entering the active workspace without focus.
-            if (!this.closed.has(window)) {
+            if (!this.closedUuids.has(uuid)) {
                 if (this.canCommit() && !this.isProcessing()) this.adoption.onMembershipChanged(window, reason);
                 else this.adoption.begin(window, reason);
             }
@@ -102,8 +105,11 @@ class WorkspaceTransferController {
 
     onWindowAdded(window) { return this.onMembershipChanged(window, "workspace-window-added"); }
     onWindowClosed(window) {
-        this.closed.add(window);
-        this.snapshots.removeWindow(this.normalizeUuid(window.internalId));
+        const uuid = this.normalizeUuid(window.internalId);
+        if (!uuid) return;
+        this.closedUuids.add(uuid);
+        if (this.closedUuids.size > 4096) this.closedUuids.delete(this.closedUuids.values().next().value);
+        this.snapshots.removeWindow(uuid);
     }
     commitClosed() {
         if (!this.stopped && !this.isProcessing() && this.canCommit()) this.commitDock("workspace-window-closed");
