@@ -21,14 +21,37 @@
 #include <QDateTime>
 #include "WorkspaceClipBarrier.h"
 #include <utility>
+#include <chrono>
 
 Q_LOGGING_CATEGORY(CC_NIRI_VIEWPORT_CLIP, "cc.niri.viewport.clip")
 
 namespace KWin
 {
 
+static CcNiri::ViewportMotion::TimePoint motionNow()
+{
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch());
+}
+static QString scrollWindowId(EffectWindow *window)
+{
+    return window->internalId().toString(QUuid::WithoutBraces).toLower();
+}
+static QRectF scrollGeometry(EffectWindow *window)
+{
+    const auto rect = window->frameGeometry();
+    return QRectF(rect.x(), rect.y(), rect.width(), rect.height());
+}
+
 CcNiriViewportClipEffect::CcNiriViewportClipEffect()
 {
+    m_scrollEndpointRegistered = QDBusConnection::sessionBus().registerObject(
+        QStringLiteral("/ccNiriViewportMotion"), this, QDBusConnection::ExportScriptableSlots);
+    if (!m_scrollEndpointRegistered) qCWarning(CC_NIRI_VIEWPORT_CLIP) << "scroll arm endpoint unavailable";
+    connect(effects, &EffectsHandler::screenRemoved, this, [this](LogicalOutput *) { clearScrollState(); });
+    connect(effects, &EffectsHandler::windowDeleted, this, [this](EffectWindow *window) {
+        m_scrollRuntime.remove(scrollWindowId(window));
+        m_activeWindows.remove(window); m_motionPlanWindows.remove(window);
+    });
     connect(effects, &EffectsHandler::desktopChanged, this,
             [this](VirtualDesktop *, VirtualDesktop *, EffectWindow *, LogicalOutput *output) {
                 clearWorkspaceState(output);
@@ -54,6 +77,8 @@ CcNiriViewportClipEffect::CcNiriViewportClipEffect()
             });
     connect(effects, &EffectsHandler::windowClosed, this,
             [this](EffectWindow *window) {
+                m_scrollRuntime.remove(scrollWindowId(window));
+                window->setData(ScrollOwnershipDataRole, QVariant());
                 m_activeWindows.remove(window);
                 m_motionPlanWindows.remove(window);
                 if (m_activeWindows.isEmpty()) {
@@ -98,6 +123,8 @@ CcNiriViewportClipEffect::CcNiriViewportClipEffect()
 
 CcNiriViewportClipEffect::~CcNiriViewportClipEffect()
 {
+    if (m_scrollEndpointRegistered) QDBusConnection::sessionBus().unregisterObject(QStringLiteral("/ccNiriViewportMotion"));
+    clearScrollState();
     for (EffectWindow *window : effects->stackingOrder()) {
         advertiseCapability(window, false);
         window->setData(ViewportClipDataRole, QVariant());
@@ -108,6 +135,7 @@ CcNiriViewportClipEffect::~CcNiriViewportClipEffect()
 
 void CcNiriViewportClipEffect::clearWorkspaceState(LogicalOutput *output)
 {
+    clearScrollState();
     m_workspaceBarriers.insert(output, QDateTime::currentMSecsSinceEpoch());
     clearWorkspaceClipWindows(effects->stackingOrder(), output, m_activeWindows,
         m_motionPlanWindows, ViewportClipDataRole, MotionPlanDataRole, MotionCompleteDataRole);
@@ -191,14 +219,22 @@ void CcNiriViewportClipEffect::onDockStateChanged(const QString &json)
 {
     m_receivedDockStateSignal = true;
     const auto document = QJsonDocument::fromJson(json.toUtf8());
-    if (document.isObject() && !m_scrollPlanObserver.updateContext(document.object())) {
-        m_scrollPlanObserver = {};
-    }
+    if (!document.isObject() || !m_scrollPlanObserver.updateContext(document.object())) m_scrollPlanObserver = {};
+    m_scrollRuntime.updateContext(document.isObject() ? document.object() : QJsonObject());
+    updateScrollOwnership();
 }
 
 void CcNiriViewportClipEffect::observeScrollPlan(const QJsonObject &plan)
 {
-    if (!CcNiri::validViewportScrollPlan(plan)) return;
+    if (!resolveScrollPlan(plan)) return;
+    if (m_scrollPlanObserver.observe(plan) != CcNiri::ScrollPlanDisposition::Accepted) return;
+    qCInfo(CC_NIRI_VIEWPORT_CLIP) << "[SCROLL_PLAN_NATIVE] OBSERVE"
+        << QJsonDocument(plan).toJson(QJsonDocument::Compact);
+}
+
+bool CcNiriViewportClipEffect::resolveScrollPlan(const QJsonObject &plan) const
+{
+    if (!CcNiri::validViewportScrollPlan(plan)) return false;
     const auto entries = plan.value(QStringLiteral("entries")).toArray();
     QSet<QString> resolved;
     for (EffectWindow *window : effects->stackingOrder()) {
@@ -211,16 +247,95 @@ void CcNiriViewportClipEffect::observeScrollPlan(const QJsonObject &plan)
             if (!output || !desktop || output->name() != plan.value(QStringLiteral("targetOutput")).toString()
                 || desktop->id() != plan.value(QStringLiteral("workspaceId")).toString()
                 || !acceptsWorkspaceMotion(plan.value(QStringLiteral("issuedAt")).toInteger(),
-                                           barrier, window->isOnCurrentDesktop())) return;
+                                           barrier, window->isOnCurrentDesktop())) return false;
             resolved.insert(id);
         }
     }
-    if (resolved.size() != entries.size()) return;
-    if (m_scrollPlanObserver.observe(plan) != CcNiri::ScrollPlanDisposition::Accepted) return;
-    // Deliberately no setData, repaint, geometry, Spring start, or window pointer
-    // retention. Legacy Wide markers and scripted SCROLL remain the owners.
-    qCInfo(CC_NIRI_VIEWPORT_CLIP) << "[SCROLL_PLAN_NATIVE] OBSERVE"
-        << QJsonDocument(plan).toJson(QJsonDocument::Compact);
+    return resolved.size() == entries.size();
+}
+
+bool CcNiriViewportClipEffect::ArmScrollPlan(const QString &json)
+{
+    if (json.toUtf8().size() > CcNiri::MaxMotionPlanBytes) return false;
+    const auto document = QJsonDocument::fromJson(json.toUtf8());
+    if (!document.isObject() || !resolveScrollPlan(document.object())) return false;
+    const auto plan = document.object();
+    const auto viewport = plan.value(QStringLiteral("viewport")).toObject();
+    const auto previousTargets = m_scrollRuntime.targets();
+    for (const auto &value : plan.value(QStringLiteral("entries")).toArray()) {
+        const auto entry = value.toObject();
+        if (entry.value(QStringLiteral("oldPlacement")) != QJsonValue(QStringLiteral("visible"))
+            || entry.value(QStringLiteral("newPlacement")) != QJsonValue(QStringLiteral("visible"))) continue;
+        const auto id = entry.value(QStringLiteral("windowId")).toString();
+        const QRectF oldRect(viewport.value(QStringLiteral("x")).toDouble() + entry.value(QStringLiteral("logicalX")).toDouble()
+            - plan.value(QStringLiteral("oldScrollOffsetX")).toDouble(), viewport.value(QStringLiteral("y")).toDouble(),
+            entry.value(QStringLiteral("pixelWidth")).toDouble(), viewport.value(QStringLiteral("height")).toDouble());
+        const auto near = [](const QRectF &a, const QRectF &b) {
+            return std::abs(a.x() - b.x()) <= 0.5 && std::abs(a.y() - b.y()) <= 0.5
+                && std::abs(a.width() - b.width()) <= 0.5 && std::abs(a.height() - b.height()) <= 0.5;
+        };
+        for (auto *window : effects->stackingOrder()) {
+            if (scrollWindowId(window) != id) continue;
+            if (!near(scrollGeometry(window), oldRect)
+                && (!previousTargets.contains(id) || !near(scrollGeometry(window), previousTargets.value(id)))) return false;
+        }
+    }
+    if (!m_scrollRuntime.arm(plan, motionNow())) return false;
+    updateScrollOwnership();
+    effects->addRepaintFull();
+    qCInfo(CC_NIRI_VIEWPORT_CLIP) << "[SCROLL_PLAN_NATIVE] ARM continuing=" << m_scrollRuntime.targets().size();
+    return true;
+}
+
+void CcNiriViewportClipEffect::CancelScrollPlan(const QString &json)
+{
+    if (json.toUtf8().size() > CcNiri::MaxMotionPlanBytes) return;
+    const auto document = QJsonDocument::fromJson(json.toUtf8());
+    if (!document.isObject()) return;
+    const auto object = document.object();
+    if (!CcNiri::scrollPlanInteger(object.value(QStringLiteral("epoch")))) return;
+    m_scrollRuntime.cancel(object.value(QStringLiteral("sessionId")).toString(), object.value(QStringLiteral("epoch")).toInteger());
+    updateScrollOwnership();
+    effects->addRepaintFull();
+}
+
+void CcNiriViewportClipEffect::updateScrollOwnership()
+{
+    const auto targets = m_scrollRuntime.targets();
+    for (auto *window : effects->stackingOrder()) {
+        const auto id = scrollWindowId(window);
+        if (!targets.contains(id)) {
+            if (window->data(ScrollOwnershipDataRole).isValid()) window->setData(ScrollOwnershipDataRole, QVariant());
+            continue;
+        }
+        const auto rect = targets.value(id);
+        const QVariantMap marker{{QStringLiteral("x"), rect.x()}, {QStringLiteral("y"), rect.y()},
+            {QStringLiteral("width"), rect.width()}, {QStringLiteral("height"), rect.height()}};
+        if (window->data(ScrollOwnershipDataRole).toMap() != marker) window->setData(ScrollOwnershipDataRole, marker);
+    }
+}
+void CcNiriViewportClipEffect::clearScrollState()
+{
+    m_scrollRuntime.clear(); updateScrollOwnership(); effects->addRepaintFull();
+}
+void CcNiriViewportClipEffect::prePaintScreen(ScreenPrePaintData &data)
+{
+    // Sample once per compositor paint pass. All continuing columns share it.
+    if (m_scrollRuntime.active()) {
+        if (!m_scrollRuntime.advance(motionNow())) updateScrollOwnership();
+        else data.mask |= PAINT_SCREEN_WITH_TRANSFORMED_WINDOWS;
+    }
+    effects->prePaintScreen(data);
+}
+void CcNiriViewportClipEffect::prePaintWindow(RenderView *view, EffectWindow *window, WindowPrePaintData &data)
+{
+    if (m_scrollRuntime.projection(scrollWindowId(window), scrollGeometry(window))) data.setTransformed();
+    effects->prePaintWindow(view, window, data);
+}
+void CcNiriViewportClipEffect::postPaintScreen()
+{
+    effects->postPaintScreen();
+    if (m_scrollRuntime.active()) effects->addRepaintFull();
 }
 
 void CcNiriViewportClipEffect::onMotionParked(const QString &json)
@@ -266,7 +381,7 @@ void CcNiriViewportClipEffect::advertiseCapability(EffectWindow *window, bool av
 
 bool CcNiriViewportClipEffect::isActive() const
 {
-    return !m_activeWindows.isEmpty();
+    return m_scrollRuntime.active() || !m_activeWindows.isEmpty();
 }
 
 bool CcNiriViewportClipEffect::blocksDirectScanout() const
@@ -323,6 +438,15 @@ void CcNiriViewportClipEffect::paintWindow(const RenderTarget &renderTarget,
                                             const Region &deviceRegion,
                                             WindowPaintData &data)
 {
+    const auto projection = m_scrollRuntime.projection(scrollWindowId(window), scrollGeometry(window));
+    if (projection) {
+        data.setXTranslation(data.xTranslation() + projection->translationX);
+        const auto &rect = projection->viewport;
+        Region clipped = deviceRegion;
+        clipped &= viewport.mapToDeviceCoordinates(RectF(rect.x(), rect.y(), rect.width(), rect.height())).rounded();
+        effects->paintWindow(renderTarget, viewport, window, mask | PAINT_WINDOW_TRANSFORMED, clipped, data);
+        return;
+    }
     const QVariantMap marker = window->data(ViewportClipDataRole).toMap();
     if (!marker.value(QStringLiteral("enabled")).toBool()) {
         effects->paintWindow(renderTarget, viewport, window, mask, deviceRegion, data);

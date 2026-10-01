@@ -4,6 +4,7 @@
 
 #include "effect/effect.h"
 
+#include "ScrollViewportRuntime.h"
 #include <QSet>
 #include <QHash>
 #include <QString>
@@ -15,6 +16,7 @@ namespace KWin
 class CcNiriViewportClipEffect : public Effect
 {
     Q_OBJECT
+    Q_CLASSINFO("D-Bus Interface", "org.cc.NiriViewportMotion1")
 
 public:
     CcNiriViewportClipEffect();
@@ -24,6 +26,9 @@ public:
     bool blocksDirectScanout() const override;
     int requestedEffectChainPosition() const override;
 
+    void prePaintScreen(ScreenPrePaintData &data) override;
+    void prePaintWindow(RenderView *view, EffectWindow *window, WindowPrePaintData &data) override;
+    void postPaintScreen() override;
     void paintWindow(const RenderTarget &renderTarget,
                      const RenderViewport &viewport,
                      EffectWindow *window,
@@ -31,7 +36,12 @@ public:
                      const Region &deviceRegion,
                      WindowPaintData &data) override;
 
+public Q_SLOTS:
+    Q_SCRIPTABLE bool ArmScrollPlan(const QString &json);
+    Q_SCRIPTABLE void CancelScrollPlan(const QString &json);
+
 private:
+    static constexpr int ScrollOwnershipDataRole = 1005;
     static constexpr int ViewportClipDataRole = 1001;
     static constexpr int CapabilityDataRole = 1002;
     static constexpr int MotionPlanDataRole = 1003;
@@ -45,6 +55,11 @@ private Q_SLOTS:
 
 private:
 
+    bool resolveScrollPlan(const QJsonObject &plan) const;
+    void updateScrollOwnership();
+    void clearScrollState();
+    CcNiri::ScrollViewportRuntime m_scrollRuntime;
+    bool m_scrollEndpointRegistered = false;
     void advertiseCapability(EffectWindow *window, bool available);
     void updateWindowMarker(EffectWindow *window);
     void forwardMotionCompletion(EffectWindow *window);

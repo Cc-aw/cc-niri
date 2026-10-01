@@ -77,6 +77,17 @@ class DockGateway {
         return envelope;
     }
 
+    armScrollPlan(plan, callback) {
+        const envelope = Object.assign({}, plan, { sessionId: this.sessionIdValue });
+        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1",
+            "ArmScrollPlan", JSON.stringify(envelope), callback);
+    }
+
+    disarmScrollPlan(epoch, callback = () => {}) {
+        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1",
+            "CancelScrollPlan", JSON.stringify({ sessionId: this.sessionIdValue, epoch }), callback);
+    }
+
     reportMotionParked(completion, callback) {
         const envelope = Object.assign({}, completion, {
             protocol: this.protocol,

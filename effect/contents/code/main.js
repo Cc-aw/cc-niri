@@ -88,6 +88,7 @@ const CC_NIRI_VIEWPORT_CLIP_ROLE = 1001;
 const CC_NIRI_VIEWPORT_CLIP_CAPABILITY_ROLE = 1002;
 const CC_NIRI_MOTION_PLAN_ROLE = 1003;
 const CC_NIRI_MOTION_COMPLETE_ROLE = 1004;
+const CC_NIRI_SCROLL_OWNERSHIP_ROLE = 1005;
 
 const MotionTokens = Object.freeze({
     microPressMs: 90,
@@ -1058,6 +1059,9 @@ class CCNiriScrollTransition {
                 this.parkingGrabber.release(window, "motion-complete");
             }
         });
+        if (effects.windowDataChanged) effects.windowDataChanged.connect((window, role) => {
+            if (role === CC_NIRI_SCROLL_OWNERSHIP_ROLE && window.data(role)) this.motion.cancel(window);
+        });
         effects.windowAdded.connect(this.manage.bind(this));
         effects.windowClosed.connect(window => {
             this.motion.cancel(window);
@@ -1463,6 +1467,13 @@ class CCNiriScrollTransition {
                 ` viewport=${transaction.viewport.x},${transaction.viewport.y}` +
                 ` ${transaction.viewport.width}x${transaction.viewport.height}`);
             this.debug(`[MOTION_TX] ROLE id=${transaction.id} role=continuing`);
+            const nativeOwner = typeof window.data === "function"
+                ? window.data(CC_NIRI_SCROLL_OWNERSHIP_ROLE) : null;
+            if (nativeOwner && rectNear(nativeOwner, newGeometry, 0.5)) {
+                this.motion.cancel(window);
+                this.debug(`[SCROLL_NATIVE] continuing epoch=${transaction.layoutEpoch}`);
+                return;
+            }
             animations = [{
                 type: Effect.Translation,
                 from: { value1: transaction.deltaX, value2: 0 },

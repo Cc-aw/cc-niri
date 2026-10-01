@@ -29,6 +29,7 @@ const targets = [
             "src/kwin/layout/Parking.js",
             "src/kwin/layout/LayoutSnapshot.js",
             "src/kwin/layout/MotionPlanCommitGate.js",
+            "src/kwin/layout/ScrollPlanCommitGate.js",
             "src/kwin/layout/LayoutEngine.js",
             "src/kwin/layout/ScrollMotionPlan.js",
             "src/kwin/layout/GeometryCommitter.js",

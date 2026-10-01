@@ -10,6 +10,7 @@ const CC_NIRI_VIEWPORT_CLIP_ROLE = 1001;
 const CC_NIRI_VIEWPORT_CLIP_CAPABILITY_ROLE = 1002;
 const CC_NIRI_MOTION_PLAN_ROLE = 1003;
 const CC_NIRI_MOTION_COMPLETE_ROLE = 1004;
+const CC_NIRI_SCROLL_OWNERSHIP_ROLE = 1005;
 
 const MotionTokens = Object.freeze({
     microPressMs: 90,
@@ -53,6 +54,7 @@ module.exports = {
     CC_NIRI_VIEWPORT_CLIP_CAPABILITY_ROLE,
     CC_NIRI_MOTION_PLAN_ROLE,
     CC_NIRI_MOTION_COMPLETE_ROLE,
+    CC_NIRI_SCROLL_OWNERSHIP_ROLE,
     MotionTokens,
     MotionCurves,
     MotionType,

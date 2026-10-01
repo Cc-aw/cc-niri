@@ -1379,6 +1379,67 @@ class MotionPlanCommitGate {
     }
 }
 
+// Generated from src/kwin/layout/ScrollPlanCommitGate.js
+// Native ACK means continuing ownership is installed before geometry changes.
+// Each callback is scoped to a layout epoch; a timeout also disarms that epoch.
+class ScrollPlanCommitGate {
+    constructor(options) { Object.assign(this, options); this.pending = null; this.activeEpoch = null; }
+    abort(epoch, callback = () => {}) {
+        try { this.disarm(epoch, callback); } catch (error) {
+            this.warn(`[SCROLL_PLAN] disarm unavailable ${error}`); callback();
+        }
+    }
+    cancel() {
+        const pending = this.pending;
+        this.pending = null;
+        if (pending) { this.clearTimer(pending.timer); this.abort(pending.plan.epoch); }
+        if (this.activeEpoch !== null) { this.abort(this.activeEpoch); this.activeEpoch = null; }
+    }
+    schedule(plan, envelope, context) {
+        if (this.pending) {
+            this.clearTimer(this.pending.timer);
+            this.abort(this.pending.plan.epoch);
+        }
+        const pending = { plan, envelope, context, activationWindow: null, timer: null };
+        this.pending = pending;
+        const commit = () => {
+            if (this.pending !== pending) return;
+            this.pending = null;
+            this.clearTimer(pending.timer);
+            if (this.currentEpoch() !== plan.epoch) { this.abort(plan.epoch); return; }
+            this.commit(plan, context, pending.activationWindow);
+        };
+        const finish = accepted => {
+            if (this.pending !== pending || pending.fallback) return;
+            this.clearTimer(pending.timer);
+            if (this.currentEpoch() !== plan.epoch) {
+                this.pending = null; this.abort(plan.epoch); return;
+            }
+            if (accepted) { this.activeEpoch = plan.epoch; commit(); return; }
+            this.activeEpoch = null;
+            pending.fallback = true;
+            this.warn(`[SCROLL_PLAN] native fallback epoch=${plan.epoch}`);
+            // Normally wait for native ownership removal before legacy geometry
+            // signals fire. An unavailable endpoint cannot block layout forever.
+            pending.timer = this.setTimer(commit, this.timeoutMs);
+            this.abort(plan.epoch, commit);
+        };
+        pending.timer = this.setTimer(() => finish(false), this.timeoutMs);
+        try {
+            this.publish(envelope, accepted => {
+                if (this.pending !== pending || pending.fallback) return;
+                if (!accepted || this.currentEpoch() !== plan.epoch) { finish(false); return; }
+                try { this.arm(envelope, finish); } catch (error) { finish(false); }
+            });
+        } catch (error) { finish(false); }
+    }
+    deferActivation(window) {
+        if (!this.pending) return false;
+        this.pending.activationWindow = window;
+        return true;
+    }
+}
+
 // Generated from src/kwin/layout/LayoutEngine.js
 function transitionRole(oldPlacement, newPlacement) {
     if (oldPlacement === "visible" && newPlacement === "visible") {
@@ -3386,6 +3447,17 @@ class DockGateway {
         return envelope;
     }
 
+    armScrollPlan(plan, callback) {
+        const envelope = Object.assign({}, plan, { sessionId: this.sessionIdValue });
+        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1",
+            "ArmScrollPlan", JSON.stringify(envelope), callback);
+    }
+
+    disarmScrollPlan(epoch, callback = () => {}) {
+        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1",
+            "CancelScrollPlan", JSON.stringify({ sessionId: this.sessionIdValue, epoch }), callback);
+    }
+
     reportMotionParked(completion, callback) {
         const envelope = Object.assign({}, completion, {
             protocol: this.protocol,
@@ -4527,6 +4599,19 @@ const motionPlanCommitGate = new MotionPlanCommitGate({
     clearTimer: clearRuntimeTimer,
 });
 
+const scrollPlanCommitGate = new ScrollPlanCommitGate({
+    publish: (envelope, callback) => dockGateway.publishMotionPlan(envelope, callback),
+    arm: (envelope, callback) => dockGateway.armScrollPlan(envelope, callback),
+    disarm: (epoch, callback) => dockGateway.disarmScrollPlan(epoch, callback),
+    currentEpoch: () => layoutTransaction.currentEpoch(),
+    commit: (plan, context, activationWindow) =>
+        commitLayoutPlan(plan, context.wideExitColumn, activationWindow),
+    timeoutMs: 150,
+    setTimer: setRuntimeTimer,
+    clearTimer: clearRuntimeTimer,
+    warn,
+});
+
 function setRuntimeTimer(callback, delayMs) {
     const timer = new QTimer();
     timer.singleShot = true;
@@ -4552,6 +4637,7 @@ const recovery = new Recovery({
         if (workspaceMountController) workspaceMountController.stop();
         mainScreenState.enabled = false;
         motionPlanCommitGate.cancel();
+        scrollPlanCommitGate.cancel();
         contextualWideCoordinator.cancel();
         cancelPendingDockScroll(reason);
     },
@@ -4767,6 +4853,7 @@ workspaceMountController = new WorkspaceMountController({
     phases: { managed: ADOPTION_MANAGED, waitingWorkspace: ADOPTION_WAITING_WORKSPACE },
     cancelPending: reason => {
         motionPlanCommitGate.cancel();
+        scrollPlanCommitGate.cancel();
         cancelPendingDockScroll(reason);
         contextualViewport.cancelReveal();
         contextualWideCoordinator.cancel();
@@ -4815,6 +4902,7 @@ workspaceTransferController = new WorkspaceTransferController({
     getColumn: window => mainScreenState.columns[columnStore.indexOfWindow(window)] || null,
     cancelPending: (window, reason) => {
         motionPlanCommitGate.cancel();
+        scrollPlanCommitGate.cancel();
         contextualWideCoordinator.cancelForWindow(window);
         contextualViewport.cancelReveal();
         cancelPendingDockScroll(reason);
@@ -5253,11 +5341,10 @@ function relayoutImpl(reason, scrollOffsets) {
                 newRealRect: plan.layoutSnapshots.to.entries[index].realRect,
             })),
         };
+        scrollPlanCommitGate.cancel();
         motionPlanCommitGate.schedule(plan, envelope, { wideExitColumn });
         return;
     }
-    // Protocol observation only: send before geometry commits, without waiting
-    // for an ACK or assigning native motion/parking ownership in this phase.
     if (plan.scrollTransaction && (reason === "focus-next" || reason === "focus-previous")) {
         const envelope = createViewportScrollPlan(plan.scrollTransaction, {
             workspaceId: mainScreenState.activeWorkspaceId,
@@ -5266,16 +5353,13 @@ function relayoutImpl(reason, scrollOffsets) {
             normalizeUuid: normalizeWindowUuid,
         });
         if (envelope) {
-            try {
-                dockGateway.publishMotionPlan(envelope, accepted => {
-                    debug(`[SCROLL_PLAN] epoch=${envelope.epoch} accepted=${Boolean(accepted)}`);
-                });
-            } catch (error) {
-                warn(`[SCROLL_PLAN] publish unavailable epoch=${envelope.epoch} error=${error}`);
-            }
+            motionPlanCommitGate.cancel();
+            scrollPlanCommitGate.schedule(plan, envelope, { wideExitColumn });
+            return;
         }
     }
     motionPlanCommitGate.cancel();
+    scrollPlanCommitGate.cancel();
     commitLayoutPlan(plan, wideExitColumn, null);
 }
 
@@ -5286,6 +5370,7 @@ function commitLayoutPlan(plan, wideExitColumn, activationWindow) {
 }
 
 function activateColumnWhenReady(window) {
+    if (scrollPlanCommitGate.deferActivation(window)) return;
     if (motionPlanCommitGate.deferActivation(window)) return;
     if (!contextualWideCoordinator.deferActivation(window)) {
         workspace.activeWindow = window;

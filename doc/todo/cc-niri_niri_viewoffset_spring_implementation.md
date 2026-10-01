@@ -1,7 +1,7 @@
 # CC Niri：按当前 niri ViewOffset 模型重构 H/L 连续横向滚动 —— 实现设计
 
-> **实施状态（2026-10-01）：** 用户指定的下一阶段目标 `viewoffset_spring`；Phase 1 纯 Spring / ViewportMotion 与 Phase 2 SCROLL plan 协议已实现；原生端仅观察，尚未接管 H/L 渲染或部署。以共享 ViewOffset + Spring 驱动普通 Pair/Column 的 H/L 横向滚动；第一版不改 Wide 尺寸动画或 J/K Workspace 切换。
-> 文档基线需与已完成 W0–W9 的当前 main 核对；原设计正文保留。阅读入口见 [文档索引](../README.md)；进度见 [Phase 1 记录](../../test/VIEWOFFSET_SPRING_PHASE1_RESULTS.md)、[Phase 2 记录](../../test/VIEWOFFSET_SPRING_PHASE2_RESULTS.md)。
+> **实施状态（2026-10-01）：** 用户指定的下一阶段目标 `viewoffset_spring`；Phase 1 纯 Spring / ViewportMotion、Phase 2 SCROLL plan 协议与 Phase 3 原生 continuing 投影已实现；incoming/outgoing 暂时保留旧视觉，尚未部署或完成实机视觉验收。以共享 ViewOffset + Spring 驱动普通 Pair/Column 的 H/L 横向滚动；第一版不改 Wide 尺寸动画或 J/K Workspace 切换。
+> 文档基线需与已完成 W0–W9 的当前 main 核对；原设计正文保留。阅读入口见 [文档索引](../README.md)；进度见 [Phase 1 记录](../../test/VIEWOFFSET_SPRING_PHASE1_RESULTS.md)、[Phase 2 记录](../../test/VIEWOFFSET_SPRING_PHASE2_RESULTS.md)、[Phase 3 记录](../../test/VIEWOFFSET_SPRING_PHASE3_RESULTS.md)。
 
 > 项目：`Cc-aw/cc-niri`  
 > 目标范围：普通 Pair/Column 模式下的 `Meta+H / Meta+L` 横向焦点移动  

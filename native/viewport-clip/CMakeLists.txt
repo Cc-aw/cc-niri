@@ -33,6 +33,8 @@ kcoreaddons_add_plugin(cc-niri-viewport-clip
         main.cpp
         ViewportClipEffect.cpp
         ViewportClipEffect.h
+        ScrollViewportRuntime.cpp
+        ScrollViewportRuntime.h
     INSTALL_NAMESPACE "kwin/effects/plugins"
 )
 
@@ -46,6 +48,11 @@ target_link_libraries(cc-niri-viewport-clip PRIVATE
 
 include(CTest)
 if(BUILD_TESTING)
+    add_executable(cc-niri-scroll-viewport-tests tests/ScrollViewportRuntimeTest.cpp ScrollViewportRuntime.cpp)
+    set_target_properties(cc-niri-scroll-viewport-tests PROPERTIES AUTOMOC OFF)
+    target_include_directories(cc-niri-scroll-viewport-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(cc-niri-scroll-viewport-tests PRIVATE cc-niri-viewport-motion Qt6::Core)
+    add_test(NAME scroll-viewport-runtime COMMAND cc-niri-scroll-viewport-tests)
     add_executable(cc-niri-viewport-motion-tests tests/ViewportMotionTest.cpp)
     set_target_properties(cc-niri-viewport-motion-tests PROPERTIES AUTOMOC OFF)
     target_link_libraries(cc-niri-viewport-motion-tests PRIVATE cc-niri-viewport-motion)
