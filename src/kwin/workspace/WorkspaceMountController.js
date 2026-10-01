@@ -130,15 +130,19 @@ class WorkspaceMountController {
         this.relayout("workspace-mount");
     }
 
-    mount(desktop, reason = "workspace-switch", commit = true) {
+    mountPrepared(desktop, reason) {
+        return this.mount(desktop, reason, false, true);
+    }
+
+    mount(desktop, reason = "workspace-switch", commit = true, prepared = false) {
         const state = this.appState;
         const id = this.topology.id(desktop);
-        if (this.stopped || state.workspaceSwitching || !state.enabled || !state.targetOutput || !id) return false;
+        if (this.stopped || (state.workspaceSwitching && !prepared) || !state.enabled || !state.targetOutput || !id) return false;
         state.workspaceSwitching = true;
         try {
-            this.cancelPending(reason);
+            if (!prepared) this.cancelPending(reason);
             this.pruneSnapshots();
-            this.capture();
+            if (!prepared) this.capture();
             const snapshot = this.snapshots.get(id);
             this.unmount(false);
             this.hydrate(id, snapshot);
@@ -151,10 +155,10 @@ class WorkspaceMountController {
             this.onFailure(error);
             return false;
         } finally {
-            state.workspaceSwitching = false;
+            if (!prepared) state.workspaceSwitching = false;
             // A native change can be emitted synchronously by preparation. Its
             // handler was gated by the batch; reconcile the final KDE authority.
-            if (!this.stopped && state.activeWorkspaceId && this.currentId() &&
+            if (!prepared && !this.stopped && state.activeWorkspaceId && this.currentId() &&
                     this.currentId() !== state.activeWorkspaceId) {
                 this.onDesktopChanged(null, null, state.targetOutput);
             }

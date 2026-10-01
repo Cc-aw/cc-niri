@@ -21,6 +21,8 @@ const deferred = [];
 const motionAcks = [];
 let pendingCommand = "";
 const timers = [];
+const shortcuts = new Map();
+const requests = [];
 class Timer {
     constructor() { this.timeout = signal(); timers.push(this); }
     start() { this.running = true; }
@@ -60,7 +62,7 @@ Object.defineProperty(workspace, "activeWindow", { get: () => activeWindow, set:
 } });
 const context = vm.createContext({ workspace, QTimer: Timer,
     readConfig: (key, fallback) => key === "DebugLogging" ? true : fallback,
-    registerShortcut: () => {}, console: { info: message => logs.push(message), warn: message => logs.push(message) },
+    registerShortcut: (name, _description, _sequence, handler) => shortcuts.set(name, handler), console: { info: message => logs.push(message), warn: message => logs.push(message) },
     callDBus: (_service, _path, _interface, method, ...args) => {
         const callback = args.at(-1);
         if (method === "GetState") callback("");
@@ -89,6 +91,55 @@ assert.equal(published.length, 1, "initial Dock state published once after lifec
 assert.equal(published[0].workspaceId, "A");
 assert.equal(published[0].workspaceIndex, 0);
 assert.equal(evaluate("invariantChecker.errors().length"), 0);
+// Exercise the real shortcut wiring with delayed KWin delivery.
+workspace.setCurrentDesktopForScreen = (desktop, screen) => {
+    assert.equal(screen, output); requests.push(desktop);
+};
+shortcuts.get("CCScrollWorkspacePrevious")(); assert.equal(requests.length, 0);
+shortcuts.get("CCScrollWorkspaceNext")();
+assert.equal(requests.at(-1).id, "B");
+assert.equal(state.workspaceSwitching, true);
+const switchTimer = evaluate("workspaceSwitchController.timer").timer;
+const beforeAwait = geometryWrites;
+const focusBeforeAwait = state.focusedColumnIndex;
+for (const name of ["CCScrollFocusNextColumn", "CCScrollToggleFocusWide", "CCScrollMoveColumnRight", "CCScrollToggleFloating"]) shortcuts.get(name)();
+evaluate("dockGateway.dispatch(dockGateway.commandEnvelope({type: 'set-presentation-mode', commandId: 'await-wide', windowUuid: 'a0', mode: PRESENTATION_WIDE}))");
+assert.equal(geometryWrites, beforeAwait); assert.equal(state.focusedColumnIndex, focusBeforeAwait);
+assert.equal(state.viewport.mode, "pair");
+assert.equal(a[0].desktops[0].id, "A");
+assert.equal(evaluate("stateFor(workspace.activeWindow).floating"), false);
+shortcuts.get("CCScrollWorkspaceNext")(); shortcuts.get("CCScrollWorkspacePrevious")();
+assert.equal(requests.length, 1, "repeated J/K ignored while waiting");
+const duringSwitch = windowFor("during-switch", desktops[1]);
+windows.push(duringSwitch); workspace.windowAdded.emit(duringSwitch);
+assert.equal(evaluate("stateFor(workspace.windowList().find(w => w.internalId === 'during-switch')).managedByScrollLayout"), false);
+const preSwitchGeneration = published.at(-1).generation;
+nativeSwitch(1, b[0]);
+assert.deepEqual(ids(), ["b0", "b1", "during-switch"]);
+assert.equal(published.at(-1).generation, preSwitchGeneration + 1);
+assert.equal(state.workspaceSwitching, false); assert.equal(switchTimer.running, false);
+// Closing a focused Column while awaiting must not activate an old successor.
+workspace.activeWindow = duringSwitch;
+shortcuts.get("CCScrollWorkspacePrevious")();
+const generationWhileWaiting = published.at(-1).generation;
+workspace.activeWindow = null;
+windows = windows.filter(window => window !== duringSwitch); duringSwitch.closed.emit();
+assert.equal(workspace.activeWindow, null);
+assert.equal(published.at(-1).generation, generationWhileWaiting);
+// Timeout with no native change remounts the actual workspace and reopens input.
+const timeout = evaluate("workspaceSwitchController.timer").callback;
+timeout(); assert.equal(state.activeWorkspaceId, "B"); assert.equal(state.workspaceSwitching, false);
+shortcuts.get("CCScrollWorkspacePrevious")();
+timeout(); assert.equal(state.workspaceSwitching, true, "previous epoch timeout ignored");
+nativeSwitch(0, a[0]);
+// Also cover the compatibility setter when per-screen requests are unavailable.
+delete workspace.setCurrentDesktopForScreen;
+Object.defineProperty(workspace, "currentDesktop", { configurable: true, get: () => current,
+    set: desktop => { nativeSwitch(desktops.indexOf(desktop), desktop.id === "B" ? b[0] : a[0]); } });
+shortcuts.get("CCScrollWorkspaceNext")(); assert.equal(state.activeWorkspaceId, "B");
+shortcuts.get("CCScrollWorkspacePrevious")(); assert.equal(state.activeWorkspaceId, "A");
+workspace.setCurrentDesktopForScreen = (desktop, screen) => { assert.equal(screen, output); requests.push(desktop); };
+
 evaluate("columnStore.reorder([mainScreenState.columns[1], mainScreenState.columns[0], ...mainScreenState.columns.slice(2)]); recomputeLogicalLayout()");
 evaluate("beginDockScroll(mainScreenState.columns[4], 'test-dock')");
 assert.equal(evaluate("dockScrollController.hasPending()"), true);
@@ -113,6 +164,10 @@ assert.ok(savedOffset >= 0);
 evaluate("toggleFocusWide(workspace.activeWindow)");
 assert.equal(state.viewport.mode, "wide-focus");
 assert.ok(motionAcks.length > 0, "the fake Bridge holds an actual pending Wide geometry ACK");
+shortcuts.get("CCScrollWorkspaceNext")();
+const writesWhileWaiting = geometryWrites;
+motionAcks.forEach(callback => callback(true));
+assert.equal(geometryWrites, writesWhileWaiting, "cancelled Wide ACK cannot commit during AWAITING_KWIN");
 nativeSwitch(1, b[1]);
 assert.equal(state.viewport.mode, "pair");
 assert.equal(evaluate("motionPlanCommitGate.pending"), null);
@@ -150,7 +205,14 @@ nativeSwitch(2, null);
 assert.deepEqual(ids(), []); assert.equal(published.at(-1).columns.length, 0);
 assert.equal(state.focusedColumnIndex, -1);
 assert.equal(evaluate("invariantChecker.errors().length"), 0);
+shortcuts.get("CCScrollWorkspacePrevious")();
+assert.equal(state.workspaceSwitching, true);
+const stoppedTimeout = evaluate("workspaceSwitchController.timer").callback;
 evaluate("emergencyRestoreAllWindows('test-end')");
+const afterRecovery = geometryWrites;
+stoppedTimeout(); workspace.currentDesktopChanged.emit(desktops[2], desktops[0], output);
+assert.equal(geometryWrites, afterRecovery, "emergency stop invalidates outstanding switch callbacks");
+assert.equal(evaluate("workspaceSwitchController.stopped"), true);
 for (const window of windows) {
     assert.equal(window.opacity, 1, `${window.internalId} recovered opacity`);
     assert.equal(window.minimized, false, `${window.internalId} recovered minimized`);

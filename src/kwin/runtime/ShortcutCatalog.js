@@ -2,6 +2,10 @@
 
 function createShortcutCatalog(actions) {
     return [
+        { name: "CCScrollWorkspacePrevious", description: "CC Scroll: Previous Workspace",
+            defaultSequence: "Meta+K", handler: actions.workspacePrevious },
+        { name: "CCScrollWorkspaceNext", description: "CC Scroll: Next Workspace",
+            defaultSequence: "Meta+J", handler: actions.workspaceNext },
         {
             name: "CCScrollFocusPreviousColumn",
             description: "CC Scroll: Focus Previous Column",

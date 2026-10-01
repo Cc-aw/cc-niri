@@ -66,7 +66,7 @@ assert.ok(mainSource.includes('"Meta+Z"'),
 assert.ok(!mainSource.includes("CCNiriMaximizeToggle"),
     "the old presentation shortcut is removed");
 assert.ok(mainSource.includes(
-    '"set-presentation-mode": handleDockPresentationCommand'
+    '"set-presentation-mode": command => runWorkspaceAction(() => handleDockPresentationCommand(command))'
 ));
 assert.ok(mainSource.includes('PRESENTATION_MAXIMIZED,\n            "native-maximize"'),
     "native maximize enters the shared presentation state");

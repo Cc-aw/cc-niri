@@ -16,6 +16,7 @@ const targets = [
             "src/kwin/workspace/WorkspaceMembership.js",
             "src/kwin/workspace/VirtualDesktopTopology.js",
             "src/kwin/workspace/WorkspaceMountController.js",
+            "src/kwin/workspace/WorkspaceSwitchController.js",
             "src/kwin/layout/Geometry.js",
             "src/kwin/layout/SafeArea.js",
             "src/kwin/layout/ColumnLayout.js",

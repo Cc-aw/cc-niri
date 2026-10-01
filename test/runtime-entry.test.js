@@ -7,6 +7,8 @@ const { CCNiri } = require("../src/kwin/runtime/CCNiri");
 
 const calls = [];
 const actions = {
+    workspacePrevious: () => calls.push("workspacePrevious"),
+    workspaceNext: () => calls.push("workspaceNext"),
     focusPrevious: () => calls.push("focusPrevious"),
     focusNext: () => calls.push("focusNext"),
     toggleWide: () => calls.push("toggleWide"),
@@ -18,8 +20,9 @@ const actions = {
     emergencyRestore: () => calls.push("emergencyRestore"),
 };
 const catalog = createShortcutCatalog(actions);
-assert.equal(catalog.length, 10);
+assert.equal(catalog.length, 12);
 assert.deepEqual(catalog.map(item => item.defaultSequence), [
+    "Meta+K", "Meta+J",
     "Meta+H",
     "Meta+L",
     "Meta+Z",
@@ -33,7 +36,7 @@ assert.deepEqual(catalog.map(item => item.defaultSequence), [
 ]);
 catalog.forEach(item => item.handler());
 assert.deepEqual(calls, [
-    "focusPrevious", "focusNext", "toggleWide", "moveLeft", "moveRight",
+    "workspacePrevious", "workspaceNext", "focusPrevious", "focusNext", "toggleWide", "moveLeft", "moveRight",
     "toggleFloating", "toggleFloating", "publishDockState",
     "applyDockCommand", "emergencyRestore",
 ]);

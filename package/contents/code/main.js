@@ -498,15 +498,19 @@ class WorkspaceMountController {
         this.relayout("workspace-mount");
     }
 
-    mount(desktop, reason = "workspace-switch", commit = true) {
+    mountPrepared(desktop, reason) {
+        return this.mount(desktop, reason, false, true);
+    }
+
+    mount(desktop, reason = "workspace-switch", commit = true, prepared = false) {
         const state = this.appState;
         const id = this.topology.id(desktop);
-        if (this.stopped || state.workspaceSwitching || !state.enabled || !state.targetOutput || !id) return false;
+        if (this.stopped || (state.workspaceSwitching && !prepared) || !state.enabled || !state.targetOutput || !id) return false;
         state.workspaceSwitching = true;
         try {
-            this.cancelPending(reason);
+            if (!prepared) this.cancelPending(reason);
             this.pruneSnapshots();
-            this.capture();
+            if (!prepared) this.capture();
             const snapshot = this.snapshots.get(id);
             this.unmount(false);
             this.hydrate(id, snapshot);
@@ -519,10 +523,10 @@ class WorkspaceMountController {
             this.onFailure(error);
             return false;
         } finally {
-            state.workspaceSwitching = false;
+            if (!prepared) state.workspaceSwitching = false;
             // A native change can be emitted synchronously by preparation. Its
             // handler was gated by the batch; reconcile the final KDE authority.
-            if (!this.stopped && state.activeWorkspaceId && this.currentId() &&
+            if (!prepared && !this.stopped && state.activeWorkspaceId && this.currentId() &&
                     this.currentId() !== state.activeWorkspaceId) {
                 this.onDesktopChanged(null, null, state.targetOutput);
             }
@@ -568,6 +572,132 @@ class WorkspaceMountController {
         if (this.stopped) return;
         this.stopped = true;
         this.cancelPending("workspace-stop");
+    }
+}
+
+// Generated from src/kwin/workspace/WorkspaceSwitchController.js
+class WorkspaceSwitchController {
+    constructor(options) {
+        Object.assign(this, options);
+        this.phase = "IDLE";
+        this.switchEpoch = 0;
+        this.timer = null;
+        this.stopped = false;
+    }
+
+    ready() {
+        return !this.stopped && !this.mount.stopped && this.appState.enabled &&
+            this.appState.targetOutput && this.appState.activeWorkspaceId;
+    }
+
+    previous() { return this.request(-1); }
+    next() { return this.request(1); }
+
+    request(direction) {
+        if (this.stopped || this.phase !== "IDLE") return false;
+        this.mount.refreshState();
+        if (!this.ready()) return false;
+        const current = this.topology.current(this.appState.targetOutput);
+        const target = direction < 0 ? this.topology.previous(current) : this.topology.next(current);
+        if (!target) return false; // Fixed topology, no wrapping or implicit creation.
+        const epoch = this.begin("workspace-shortcut");
+        if (epoch === null) return false;
+        this.phase = "AWAITING_KWIN";
+        // Arm before requesting: KWin may emit the desktop signal synchronously.
+        try {
+            this.timer = this.setTimer(() => this.finish(epoch, "workspace-timeout"), 400);
+            this.requestDesktop(target, this.appState.targetOutput);
+        } catch (error) {
+            this.debug(`[cc-workspace] request failed: ${error}`);
+            this.finish(epoch, "workspace-request-failed");
+        }
+        return true;
+    }
+
+    begin(reason) {
+        const epoch = ++this.switchEpoch;
+        this.phase = "PREPARING";
+        this.appState.workspaceSwitching = true;
+        try {
+            this.mount.cancelPending(reason);
+            this.mount.capture();
+            return this.valid(epoch) ? epoch : null;
+        } catch (error) {
+            this.fail(error);
+            return null;
+        }
+    }
+
+    valid(epoch) {
+        return !this.stopped && !this.mount.stopped && this.appState.enabled &&
+            epoch === this.switchEpoch && this.phase !== "IDLE";
+    }
+
+    clearTimeout() {
+        if (this.timer) this.clearTimer(this.timer);
+        this.timer = null;
+    }
+
+    finish(epoch, reason) {
+        if (!this.valid(epoch) || this.phase === "MOUNTING") return false;
+        this.clearTimeout();
+        this.phase = "MOUNTING";
+        try {
+            // Preparation can emit another native switch. Hydrate the final KDE
+            // authority before publishing one Dock generation for this transaction.
+            for (let pass = 0; pass < 8; pass += 1) {
+                const desktop = this.topology.current(this.appState.targetOutput);
+                if (!this.topology.id(desktop)) throw new Error("workspace-current-desktop-unavailable");
+                if (!this.mount.mountPrepared(desktop, reason)) return false;
+                if (!this.valid(epoch)) return false;
+                if (this.appState.activeWorkspaceId === this.topology.id(this.topology.current(this.appState.targetOutput))) {
+                    this.mount.commitDock(reason);
+                    return true;
+                }
+            }
+            throw new Error("workspace-desktop-changed-during-every-mount");
+        } catch (error) {
+            this.fail(error);
+            return false;
+        } finally {
+            if (epoch === this.switchEpoch) {
+                this.phase = "IDLE";
+                this.appState.workspaceSwitching = false;
+            }
+        }
+    }
+
+    onDesktopChanged(_previous, _current, output) {
+        if (!this.ready()) return false;
+        this.mount.refreshState();
+        if (!this.topology.affectsOutput(output, this.appState.targetOutput)) return false;
+        if (this.phase === "AWAITING_KWIN") return this.finish(this.switchEpoch, "workspace-switch");
+        if (this.phase !== "IDLE" || this.appState.activeWorkspaceId ===
+                this.topology.id(this.topology.current(this.appState.targetOutput))) return false;
+        const epoch = this.begin("workspace-native-switch");
+        return epoch !== null && this.finish(epoch, "workspace-switch");
+    }
+
+    onTopologyChanged() {
+        if (!this.ready()) return false;
+        if (this.phase === "AWAITING_KWIN") return this.finish(this.switchEpoch, "workspace-topology-change");
+        if (this.phase !== "IDLE") return false;
+        this.mount.pruneSnapshots();
+        return this.onDesktopChanged(null, null, this.appState.targetOutput);
+    }
+
+    fail(error) {
+        this.stop();
+        this.onFailure(error);
+    }
+
+    stop() {
+        if (this.stopped) return;
+        this.stopped = true;
+        ++this.switchEpoch;
+        this.clearTimeout();
+        this.phase = "IDLE";
+        this.appState.workspaceSwitching = false;
     }
 }
 
@@ -1531,6 +1661,10 @@ class RuntimeLifecycle {
 // Generated from src/kwin/runtime/ShortcutCatalog.js
 function createShortcutCatalog(actions) {
     return [
+        { name: "CCScrollWorkspacePrevious", description: "CC Scroll: Previous Workspace",
+            defaultSequence: "Meta+K", handler: actions.workspacePrevious },
+        { name: "CCScrollWorkspaceNext", description: "CC Scroll: Next Workspace",
+            defaultSequence: "Meta+J", handler: actions.workspaceNext },
         {
             name: "CCScrollFocusPreviousColumn",
             description: "CC Scroll: Focus Previous Column",
@@ -3799,6 +3933,7 @@ const workspaceMembership = new WorkspaceMembership({
 });
 const workspaceSnapshots = new WorkspaceSnapshotStore();
 let workspaceMountController;
+let workspaceSwitchController;
 const runtimeLogger = new RuntimeLogger({
     tag: TAG,
     enabled: runtimeConfig.debugLogging,
@@ -3822,13 +3957,13 @@ const dockGateway = new DockGateway({
     handlers: {
         "emergency-restore": () => emergencyRestoreAllWindows("bridge-unload"),
         "finalize-contextual-wide": command =>
-            contextualWideCoordinator.finalizePark(command),
+            runWorkspaceAction(() => contextualWideCoordinator.finalizePark(command)),
         "finalize-contextual-wide-exit": command =>
-            contextualWideCoordinator.finalizeExit(command),
-        "advance-dock-scroll": advancePendingDockScroll,
-        "set-presentation-mode": handleDockPresentationCommand,
-        "focus-column-right": handleDockFocusCommand,
-        "set-column-order": handleDockReorderCommand,
+            runWorkspaceAction(() => contextualWideCoordinator.finalizeExit(command)),
+        "advance-dock-scroll": command => runWorkspaceAction(() => advancePendingDockScroll(command)),
+        "set-presentation-mode": command => runWorkspaceAction(() => handleDockPresentationCommand(command)),
+        "focus-column-right": command => runWorkspaceAction(() => handleDockFocusCommand(command)),
+        "set-column-order": command => runWorkspaceAction(() => handleDockReorderCommand(command)),
     },
     generationAgnosticTypes: [
         "finalize-contextual-wide",
@@ -3934,6 +4069,7 @@ const recovery = new Recovery({
     parking: parkingManager,
     indexOfWindow: window => columnStore.indexOfWindow(window),
     beforeRestore: reason => {
+        if (workspaceSwitchController) workspaceSwitchController.stop();
         if (workspaceMountController) workspaceMountController.stop();
         mainScreenState.enabled = false;
         motionPlanCommitGate.cancel();
@@ -4168,7 +4304,27 @@ workspaceMountController = new WorkspaceMountController({
     },
     debug,
 });
+workspaceSwitchController = new WorkspaceSwitchController({
+    appState: mainScreenState,
+    mount: workspaceMountController,
+    topology: virtualDesktopTopology,
+    requestDesktop: (desktop, output) => {
+        if (typeof workspace.setCurrentDesktopForScreen === "function") {
+            workspace.setCurrentDesktopForScreen(desktop, output);
+        } else {
+            workspace.currentDesktop = desktop;
+        }
+    },
+    setTimer: setRuntimeTimer,
+    clearTimer: clearRuntimeTimer,
+    onFailure: error => {
+        warn(`[cc-workspace] switch failed: ${error}`);
+        emergencyRestoreAllWindows("workspace-switch-failure");
+    },
+    debug,
+});
 const controllerComposition = new ControllerComposition({
+    workspaceSwitch: workspaceSwitchController,
     workspaceMount: workspaceMountController,
     parking: parkingManager,
     geometry: geometryCommitter,
@@ -4186,7 +4342,7 @@ const controllerComposition = new ControllerComposition({
 }, [
     "parking", "geometry", "invariants", "transactions", "recovery",
     "adoption", "floating", "output", "fullscreen", "presentation",
-    "dockGateway", "dockScroll", "reorder", "workspaceMount",
+    "dockGateway", "dockScroll", "reorder", "workspaceMount", "workspaceSwitch",
 ]);
 
 function debug(message) {
@@ -4271,6 +4427,11 @@ function handleDockFocusCommand(command) {
 
 function handleDockReorderCommand(command) {
     return reorderController.applyDockCommand(command);
+}
+
+function runWorkspaceAction(action) {
+    if (!workspaceMountController || !workspaceMountController.canUseActiveWorkspace()) return false;
+    return action();
 }
 
 function applyPendingDockCommand() {
@@ -4748,6 +4909,9 @@ function removeColumn(window, reason, activateSuccessor = true) {
             `${reason}-removed`
         );
     }
+    // Removal still clears ownership during a switch; activation and publication
+    // wait for the final mount so a closing old window cannot switch KDE back.
+    if (!workspaceMountController.canUseActiveWorkspace()) return;
     if (!mainScreenState.columns.length) {
         mainScreenState.scrollOffsetX = 0;
         commitDockState(reason);
@@ -5425,12 +5589,14 @@ function onScreensChanged() {
 }
 
 const shortcuts = createShortcutCatalog({
-    focusPrevious: () => focusRelativeColumn(-1),
-    focusNext: () => focusRelativeColumn(1),
-    toggleWide: () => toggleFocusWide(workspace.activeWindow),
-    moveLeft: () => moveFocusedColumn(-1),
-    moveRight: () => moveFocusedColumn(1),
-    toggleFloating: () => toggleFloating(workspace.activeWindow),
+    workspacePrevious: () => workspaceSwitchController.previous(),
+    workspaceNext: () => workspaceSwitchController.next(),
+    focusPrevious: () => runWorkspaceAction(() => focusRelativeColumn(-1)),
+    focusNext: () => runWorkspaceAction(() => focusRelativeColumn(1)),
+    toggleWide: () => runWorkspaceAction(() => toggleFocusWide(workspace.activeWindow)),
+    moveLeft: () => runWorkspaceAction(() => moveFocusedColumn(-1)),
+    moveRight: () => runWorkspaceAction(() => moveFocusedColumn(1)),
+    toggleFloating: () => runWorkspaceAction(() => toggleFloating(workspace.activeWindow)),
     publishDockState: () => publishDockState("bridge-request"),
     applyDockCommand: applyPendingDockCommand,
     emergencyRestore: () => emergencyRestoreAllWindows("external-unload"),
@@ -5447,8 +5613,8 @@ const app = new CCNiri({
         },
         onWindowActivated: onWindowActivatedForScrollLayout,
         onCurrentDesktopChanged: (previous, current, output) =>
-            workspaceMountController.onDesktopChanged(previous, current, output),
-        onDesktopsChanged: () => workspaceMountController.onTopologyChanged(),
+            workspaceSwitchController.onDesktopChanged(previous, current, output),
+        onDesktopsChanged: () => workspaceSwitchController.onTopologyChanged(),
         onScreensChanged,
         onVirtualScreenGeometryChanged: () => {
             reapplyManagedLayouts("virtual-screen-geometry-changed");
