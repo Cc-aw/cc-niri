@@ -68,6 +68,7 @@ const targets = [
             "src/effect/ParkingAnimationGrabber.js",
             "src/effect/ViewportClipController.js",
             "src/effect/MotionController.js",
+            "src/effect/WorkspaceEffectGuard.js",
             "src/effect/MotionClassifier.js",
             "src/effect/WideMotionGeometry.js",
         ],

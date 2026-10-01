@@ -5,6 +5,7 @@
 #include "effect/effect.h"
 
 #include <QSet>
+#include <QHash>
 #include <QString>
 
 namespace KWin
@@ -44,10 +45,12 @@ private:
     void advertiseCapability(EffectWindow *window, bool available);
     void updateWindowMarker(EffectWindow *window);
     void forwardMotionCompletion(EffectWindow *window);
+    void clearWorkspaceState(LogicalOutput *output);
 
     QSet<EffectWindow *> m_activeWindows;
     QSet<EffectWindow *> m_motionPlanWindows;
     QSet<QString> m_loggedDeviceClips;
+    QHash<LogicalOutput *, qint64> m_workspaceBarriers;
 };
 
 } // namespace KWin

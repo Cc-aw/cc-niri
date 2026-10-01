@@ -150,6 +150,11 @@ does not focus it automatically. Floating and Dialog windows retain native
 behavior, and Sticky/multi-desktop windows leave the column layout. New and
 closed windows also update sleeping workspace snapshots.
 
+W7 cancels cc-niri motion and clears clip/temporary Wide state when KDE changes
+the active desktop. Sleeping desktop geometry cannot restart scroll animations;
+late cancelled group callbacks cannot prematurely finish a fresh animation.
+Vertical workspace animation continues to use KDE's native desktop effect.
+
 KWin can retain an already loaded native effect library across an in-place
 upgrade. Until the next Plasma login loads the new binary, capability role
 `1002` remains absent and scrolling safely uses the 20 px right-edge fallback;

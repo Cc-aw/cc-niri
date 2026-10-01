@@ -14,6 +14,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QVariantMap>
+#include <QDateTime>
+#include "WorkspaceClipBarrier.h"
 #include <utility>
 
 Q_LOGGING_CATEGORY(CC_NIRI_VIEWPORT_CLIP, "cc.niri.viewport.clip")
@@ -23,6 +25,10 @@ namespace KWin
 
 CcNiriViewportClipEffect::CcNiriViewportClipEffect()
 {
+    connect(effects, &EffectsHandler::desktopChanged, this,
+            [this](VirtualDesktop *, VirtualDesktop *, EffectWindow *, LogicalOutput *output) {
+                clearWorkspaceState(output);
+            });
     for (EffectWindow *window : effects->stackingOrder()) {
         advertiseCapability(window, true);
     }
@@ -75,9 +81,20 @@ CcNiriViewportClipEffect::~CcNiriViewportClipEffect()
 {
     for (EffectWindow *window : effects->stackingOrder()) {
         advertiseCapability(window, false);
+        window->setData(ViewportClipDataRole, QVariant());
         window->setData(MotionPlanDataRole, QVariant());
         window->setData(MotionCompleteDataRole, QVariant());
     }
+}
+
+void CcNiriViewportClipEffect::clearWorkspaceState(LogicalOutput *output)
+{
+    m_workspaceBarriers.insert(output, QDateTime::currentMSecsSinceEpoch());
+    clearWorkspaceClipWindows(effects->stackingOrder(), output, m_activeWindows,
+        m_motionPlanWindows, ViewportClipDataRole, MotionPlanDataRole, MotionCompleteDataRole);
+    m_loggedDeviceClips.clear();
+    effects->addRepaintFull();
+    qCInfo(CC_NIRI_VIEWPORT_CLIP) << "[WORKSPACE_CLIP_NATIVE] CLEAR";
 }
 
 void CcNiriViewportClipEffect::onMotionPlanChanged(const QString &json)
@@ -87,6 +104,21 @@ void CcNiriViewportClipEffect::onMotionPlanChanged(const QString &json)
     const QJsonObject plan = document.object();
     const QJsonArray entries = plan.value(QStringLiteral("entries")).toArray();
     if (entries.size() != 2) return;
+
+    // Reject a queued pre-switch plan before clearing a newer valid marker.
+    QSet<EffectWindow *> resolved;
+    for (EffectWindow *window : effects->stackingOrder()) {
+        const QString id = window->internalId().toString(QUuid::WithoutBraces).toLower();
+        for (const QJsonValue &value : entries) {
+            if (value.toObject().value(QStringLiteral("windowId")).toString().toLower() != id) continue;
+            const qint64 barrier = qMax(m_workspaceBarriers.value(nullptr),
+                m_workspaceBarriers.value(window->screen()));
+            if (!acceptsWorkspaceMotion(plan.value(QStringLiteral("issuedAt")).toInteger(),
+                barrier, window->isOnCurrentDesktop())) return;
+            resolved.insert(window);
+        }
+    }
+    if (resolved.size() != entries.size()) return;
 
     for (EffectWindow *window : std::as_const(m_motionPlanWindows)) {
         window->setData(MotionPlanDataRole, QVariant());

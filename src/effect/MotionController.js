@@ -59,10 +59,14 @@ class MotionController {
     cancel(window) {
         const state = this.states.get(window);
         if (!state) {
+            if (window.ccNiriScrollAnimation) cancel(window.ccNiriScrollAnimation);
+            delete window.ccNiriScrollAnimation;
+            delete window.ccNiriIncomingVisual;
             this.clearNativeViewportClip(window);
             return false;
         }
         this.states.delete(window);
+        delete window.ccNiriIncomingVisual;
         if (state.animationIds && state.animationIds.length) {
             cancel(state.animationIds);
         }
@@ -277,6 +281,9 @@ class MotionController {
          * channels in a group share one duration, so the first group-end
          * signal completes the current epoch for that window. */
         if (Number(animationId) === 0) {
+            // Group end signals carry no identity. A cancelled old group can
+            // finish after a new workspace has already started another group.
+            if (Date.now() - state.startTime < state.duration - 16) return false;
             this.states.delete(window);
             if (window.ccNiriScrollAnimation) delete window.ccNiriScrollAnimation;
             if (window.ccNiriIncomingVisual) delete window.ccNiriIncomingVisual;

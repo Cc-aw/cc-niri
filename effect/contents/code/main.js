@@ -539,10 +539,14 @@ class MotionController {
     cancel(window) {
         const state = this.states.get(window);
         if (!state) {
+            if (window.ccNiriScrollAnimation) cancel(window.ccNiriScrollAnimation);
+            delete window.ccNiriScrollAnimation;
+            delete window.ccNiriIncomingVisual;
             this.clearNativeViewportClip(window);
             return false;
         }
         this.states.delete(window);
+        delete window.ccNiriIncomingVisual;
         if (state.animationIds && state.animationIds.length) {
             cancel(state.animationIds);
         }
@@ -757,6 +761,9 @@ class MotionController {
          * channels in a group share one duration, so the first group-end
          * signal completes the current epoch for that window. */
         if (Number(animationId) === 0) {
+            // Group end signals carry no identity. A cancelled old group can
+            // finish after a new workspace has already started another group.
+            if (Date.now() - state.startTime < state.duration - 16) return false;
             this.states.delete(window);
             if (window.ccNiriScrollAnimation) delete window.ccNiriScrollAnimation;
             if (window.ccNiriIncomingVisual) delete window.ccNiriIncomingVisual;
@@ -777,6 +784,52 @@ class MotionController {
         this.clearNativeViewportClip(window);
         this.owner.debug(`[MOTION] complete type=${state.type} epoch=${state.epoch}`);
         return true;
+    }
+}
+
+// Generated from src/effect/WorkspaceEffectGuard.js
+class WorkspaceEffectGuard {
+    constructor(options) {
+        Object.assign(this, options);
+        this.epoch = 0;
+        this.clearing = false;
+    }
+
+    canAnimate(window) {
+        return !this.clearing && window && window.onCurrentDesktop !== false;
+    }
+
+    onDesktopChanged(_previous, _current, _with, output) {
+        if (output && !this.affectsOutput(output)) return false;
+        if (this.clearing) return false;
+        this.clearing = true;
+        ++this.epoch;
+        try {
+            const windows = new Set(this.motion.states.keys());
+            const stacking = this.getWindows();
+            for (let index = 0; index < stacking.length; ++index) windows.add(stacking[index]);
+            this.motionTransaction.clear();
+            this.clearTemporaryState();
+            this.motion.cancelAll();
+            this.releaseIsolation("workspace-switch");
+            this.parkingGrabber.releaseAll("workspace-switch");
+            windows.forEach(window => {
+                if (!window) return;
+                this.motion.cancel(window); // Also cancel orphaned legacy IDs.
+                delete window.ccNiriScrollAnimation;
+                delete window.ccNiriIncomingVisual;
+                if (typeof window.setData === "function") {
+                    window.setData(CC_NIRI_VIEWPORT_CLIP_ROLE, null);
+                    window.setData(CC_NIRI_MOTION_PLAN_ROLE, null);
+                    window.setData(CC_NIRI_MOTION_COMPLETE_ROLE, null);
+                }
+            });
+            this.repaint();
+            this.debug(`[WORKSPACE_EFFECT] clear epoch=${this.epoch}`);
+            return true;
+        } finally {
+            this.clearing = false;
+        }
     }
 }
 
@@ -976,9 +1029,24 @@ class CCNiriScrollTransition {
         this.motion = new MotionController(this);
         this.wideIsolationHolds = new Map();
         this.pendingWideExit = null;
+        this.workspaceGuard = new WorkspaceEffectGuard({
+            motion: this.motion,
+            motionTransaction: this.motionTransaction,
+            parkingGrabber: this.parkingGrabber,
+            getWindows: () => effects.stackingOrder,
+            affectsOutput: output => output.name ===
+                animationTargetOutput(effects.stackingOrder, this.targetOutputName),
+            clearTemporaryState: () => { this.pendingWideExit = null; },
+            releaseIsolation: reason => this.releaseAllWideIsolation(reason),
+            repaint: () => effects.addRepaintFull(),
+            debug: message => this.debug(message),
+        });
         this.loadConfig();
+        if (effects.desktopChanged) effects.desktopChanged.connect(
+            this.workspaceGuard.onDesktopChanged.bind(this.workspaceGuard));
         effect.configChanged.connect(this.loadConfig.bind(this));
         effect.animationEnded.connect((window, animationId) => {
+            if (this.workspaceGuard.clearing) return;
             this.debug(`[MOTION] ended animationId=${String(animationId)}`);
             const completed = this.motion.states.get(window) || null;
             if (this.motion.animationEnded(window, animationId)) {
@@ -1154,7 +1222,7 @@ class CCNiriScrollTransition {
         const opposite = side === "left" ? "right" : "left";
         const viewport = viewportFromSlot(targetRect, side, this.innerGap);
         for (const candidate of effects.stackingOrder) {
-            if (candidate === window || !candidate.screen ||
+            if (candidate === window || candidate.onCurrentDesktop === false || !candidate.screen ||
                     !this.isTargetOutput(candidate)) continue;
             const rect = candidate.geometry;
             if (visibleSlot(rect, viewport) === opposite &&
@@ -1172,7 +1240,7 @@ class CCNiriScrollTransition {
     plannedNeighbor(plan) {
         if (!plan) return null;
         for (const candidate of effects.stackingOrder) {
-            if (!candidate || typeof candidate.data !== "function") continue;
+            if (!candidate || candidate.onCurrentDesktop === false || typeof candidate.data !== "function") continue;
             const marker = candidate.data(CC_NIRI_MOTION_PLAN_ROLE);
             if (marker && marker.role === "neighbor" &&
                     marker.type === plan.type &&
@@ -1183,7 +1251,7 @@ class CCNiriScrollTransition {
 
     virtualPairEntry(window, wideRect, screenRect, motionTime) {
         for (const candidate of effects.stackingOrder) {
-            if (candidate === window || !candidate.screen ||
+            if (candidate === window || candidate.onCurrentDesktop === false || !candidate.screen ||
                     !this.isTargetOutput(candidate)) continue;
             const neighborRect = candidate.geometry;
             const neighborSlot = visibleSlot(neighborRect, screenRect);
@@ -1215,6 +1283,7 @@ class CCNiriScrollTransition {
     }
 
     geometryChanged(window, oldGeometry) {
+        if (window.onCurrentDesktop === false || (this.workspaceGuard && !this.workspaceGuard.canAnimate(window))) return;
         this.releaseWideIsolation(window, "geometry-changed");
         if (!this.isTargetOutput(window)) {
             return;

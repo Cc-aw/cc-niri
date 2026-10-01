@@ -201,6 +201,9 @@ assert.deepEqual(nativeClipWrites[0].value, {
     motionEpoch: nativeClipState.epoch,
     role: "continuing",
 });
+assert.equal(controller.animationEnded(nativeClipWindow, 0), false,
+    "early identity-free callback cannot finish the current motion");
+controller.states.get(nativeClipWindow).startTime = Date.now() - 220;
 controller.animationEnded(nativeClipWindow, 0);
 assert.deepEqual(nativeClipWrites.at(-1), { role: 1001, value: null });
 

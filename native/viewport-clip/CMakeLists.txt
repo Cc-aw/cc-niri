@@ -31,3 +31,11 @@ target_link_libraries(cc-niri-viewport-clip PRIVATE
     KF6::CoreAddons
     KWin::kwin
 )
+
+include(CTest)
+if(BUILD_TESTING)
+    add_executable(cc-niri-workspace-clip-tests tests/WorkspaceClipBarrierTest.cpp)
+    target_include_directories(cc-niri-workspace-clip-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(cc-niri-workspace-clip-tests PRIVATE Qt6::Core)
+    add_test(NAME workspace-clip-barrier COMMAND cc-niri-workspace-clip-tests)
+endif()
