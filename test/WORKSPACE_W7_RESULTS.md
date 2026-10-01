@@ -2,7 +2,8 @@
 
 2026-10-01，feature/workspace-stack。实现工作区切换的动画与裁剪清理。
 代码与自动验证完成。2026-10-01 与 W6 一起部署后发生 KWin 连续崩溃，实机验收未通过。
-崩溃栈指向 W6 的关闭窗口 WeakSet；当前组件停用，修复尚未重新部署。
+崩溃栈指向 W6 的关闭窗口 WeakSet；修复后已重新部署并启用，主屏自动实机检查通过。
+动画的人工视觉验收仍待确认，详情见 [修复后实机记录](WORKSPACE_W67_LIVE_RESULTS.md)。
 详情见 [W6/W7 崩溃分析](WORKSPACE_W67_CRASH_RESULTS.md)。
 
 ## 实现
