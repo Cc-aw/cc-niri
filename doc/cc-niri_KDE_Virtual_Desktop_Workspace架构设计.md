@@ -1747,6 +1747,34 @@ auto delete ❌
 
 ---
 
+## W9 — Auto Recycle Empty Workspace（后续扩展）
+
+2026-10-01 用户在 W8 部署验收后明确要求增加自动回收，并保持模块化。
+本节扩展 W8 的 create-only 范围；前文禁止 auto-delete 的要求仍适用于最初 MVP/W8。
+
+新增独立模块：
+
+```text
+WorkspaceOccupancy.js
+WorkspaceRecycleController.js
+```
+
+- AutoRecycleWorkspaces 默认 false，依赖 DynamicTrailingWorkspace=true。
+- 回收空的非当前 desktop；末尾 desktop 永远保留。当前空 desktop 离开后再回收，
+  不因关闭最后窗口强制切换当前桌面。
+- 回收的空判定使用所有输出、所有活动的实际存活窗口，而不是 active Columns 或缓存。
+  Floating / Fullscreen / minimized / Dialog / multi-desktop / native-only 都保护其归属桌面。
+  Sticky 与 Plasma/Dock/Desktop 不算单桌面占用；无法确认归属时不删除。
+- 每次只处理一个 UUID，延迟检查合并事件；启动、switch、transfer 和 W8 创建屏障期间不回收。
+  删除前解析当前原生 Desktop，删除后根据实际 topology 确认，再清理 snapshot 并发布 Bridge。
+- 原生失败或 no-op 按 topology 限制重试；Recovery / unload 取消任务。延迟任务仅保留 UUID，
+  不缓存已销毁的 Window 或 Desktop QObject。
+- W8 负责创建，W9 负责回收，共享占用判断并通过完成事件协调，避免创建/删除振荡。
+  main.js 仅组合依赖和连接信号，纵向 rows=count 继续生效。
+- 显式启用后，之前已有的空非当前桌面也可回收；不只限于 W9 本轮创建的桌面。
+
+---
+
 # 推荐 Git 分支
 
 必须单独开发：

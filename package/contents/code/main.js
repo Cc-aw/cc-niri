@@ -414,6 +414,41 @@ class WorkspaceMembership {
     }
 }
 
+// Generated from src/kwin/workspace/WorkspaceOccupancy.js
+class WorkspaceOccupancy {
+    constructor(options) { this.membership = options.membership; }
+
+    shell(window) {
+        return !window || isPlasmaShellWindow(window) || window.desktopWindow || window.dock;
+    }
+
+    occupies(window, desktopId, output) {
+        if (this.shell(window) || !window.managed || window.output !== output ||
+                window.popupWindow || window.dropdownMenu || window.menu || window.splash ||
+                this.membership.isSticky(window)) return false;
+        const application = window.normalWindow || window.dialog || window.modal || window.transient ||
+            window.utility || window.toolbar;
+        return Boolean(application && this.membership.desktopIds(window).includes(desktopId));
+    }
+
+    recyclingOwners(windows) {
+        const owners = new Set();
+        for (let index = 0; index < windows.length; ++index) {
+            const window = windows[index];
+            if (this.shell(window) || window.onAllDesktops) continue;
+            const list = this.membership.desktopList(window);
+            // Deletion must be conservative: include native-only windows, all
+            // outputs and activities. Unknown membership cannot prove emptiness.
+            if (!list) return null;
+            for (const desktop of list) {
+                if (!desktop || typeof desktop.id !== "string" || !desktop.id) return null;
+                owners.add(desktop.id);
+            }
+        }
+        return owners;
+    }
+}
+
 // Generated from src/kwin/workspace/VirtualDesktopTopology.js
 class VirtualDesktopTopology {
     constructor(options) {
@@ -900,6 +935,8 @@ class DynamicWorkspaceController {
     constructor(options) {
         Object.assign(this, options);
         this.enabled = options.enabled === true;
+        this.occupancy = options.occupancy || new WorkspaceOccupancy({ membership: this.membership });
+        this.onSettled = options.onSettled || (() => {});
         this.timer = null;
         this.pendingTopology = null;
         this.failedTopology = null;
@@ -924,18 +961,14 @@ class DynamicWorkspaceController {
     }
 
     occupies(window, desktopId, output) {
-        if (!window || !window.managed || window.output !== output || isPlasmaShellWindow(window) ||
-                window.desktopWindow || window.dock || window.popupWindow || window.dropdownMenu ||
-                window.menu || window.splash || this.membership.isSticky(window)) return false;
-        const application = window.normalWindow || window.dialog || window.modal || window.transient ||
-            window.utility || window.toolbar;
-        return Boolean(application && this.membership.desktopIds(window).includes(desktopId));
+        return this.occupancy.occupies(window, desktopId, output);
     }
 
     fail(key, reason) {
         this.pendingTopology = null;
         this.failedTopology = key;
         this.warn(`[cc-workspace] trailing desktop unavailable: ${reason}`);
+        this.onSettled();
     }
 
     reconcile() {
@@ -949,6 +982,7 @@ class DynamicWorkspaceController {
                 return false;
             }
             this.pendingTopology = null;
+            this.onSettled();
         }
         if (!this.isReady()) return false;
         // KDE keeps its row count when desktops are appended. One column
@@ -993,6 +1027,107 @@ class DynamicWorkspaceController {
         if (this.timer) this.clearTimer(this.timer);
         this.timer = null;
         this.pendingTopology = null;
+    }
+}
+
+// Generated from src/kwin/workspace/WorkspaceRecycleController.js
+class WorkspaceRecycleController {
+    constructor(options) {
+        Object.assign(this, options);
+        this.enabled = options.enabled === true;
+        this.timer = null;
+        this.pendingId = null;
+        this.pendingError = null;
+        this.confirmedIds = [];
+        this.failedTopology = null;
+        this.stopped = false;
+    }
+
+    request() {
+        if (!this.enabled || this.stopped || !this.isReady() || this.timer) return false;
+        // The timer retains only this controller; no Window/Desktop QObjects.
+        this.timer = this.setTimer(() => {
+            this.timer = null;
+            this.reconcile();
+        }, 200);
+        return true;
+    }
+
+    fail(key, reason) {
+        this.pendingId = null;
+        this.failedTopology = key;
+        this.warn(`[cc-workspace] recycle unavailable: ${reason}`);
+    }
+
+    reconcile() {
+        if (!this.enabled || this.stopped) return false;
+        let ids = this.getDesktopIds();
+        if (!ids.length || ids.some(id => typeof id !== "string" || !id)) return false;
+        let key = JSON.stringify(ids);
+        if (this.pendingId !== null) {
+            if (ids.includes(this.pendingId)) {
+                this.fail(key, this.pendingError || "removal not confirmed by KDE");
+                return false;
+            }
+            this.confirmedIds.push(this.pendingId);
+            this.pendingId = null;
+            this.pendingError = null;
+        }
+        if (!this.isReady()) return false;
+        this.ensureVerticalLayout(ids.length);
+        while (this.confirmedIds.length) {
+            try {
+                this.onRemoved(this.confirmedIds.shift());
+            } catch (error) {
+                this.stop();
+                this.warn(`[cc-workspace] recycle cleanup failed: ${error}`);
+                if (this.onFailure) this.onFailure(error);
+                return false;
+            }
+            if (this.stopped || !this.isReady()) return false;
+        }
+        ids = this.getDesktopIds();
+        if (!ids.length || ids.some(id => typeof id !== "string" || !id)) return false;
+        key = JSON.stringify(ids);
+        if (ids.length === 1 || this.failedTopology === key) return false;
+        const protectedIds = this.getProtectedIds();
+        if (!protectedIds.length || protectedIds.some(id => !id)) return false;
+        const owners = this.occupancy.recyclingOwners(this.getWindows());
+        if (!owners) return false;
+        // Current desktops stay even when empty. Keep the last desktop so W8
+        // creation and recycling cannot alternate deleting/creating the tail.
+        const id = ids.slice(0, -1).find(value => !protectedIds.includes(value) && !owners.has(value));
+        if (!id) return false;
+        if (typeof this.removeDesktop !== "function") {
+            this.fail(key, "removeDesktop API missing");
+            return false;
+        }
+        this.pendingId = id;
+        this.pendingError = null;
+        this.timer = this.setTimer(() => {
+            this.timer = null;
+            this.reconcile();
+        }, 1000);
+        try {
+            // The injected adapter resolves a live Desktop only at this call.
+            this.removeDesktop(id);
+            if (!this.stopped) this.ensureVerticalLayout(this.getDesktopIds().length);
+        } catch (error) {
+            // Native code can remove then raise. Confirm actual topology before
+            // deciding whether cleanup or a once-per-topology failure is due.
+            if (!this.stopped) this.pendingError = String(error);
+            return false;
+        }
+        return true;
+    }
+
+    stop() {
+        this.stopped = true;
+        if (this.timer) this.clearTimer(this.timer);
+        this.timer = null;
+        this.pendingId = null;
+        this.pendingError = null;
+        this.confirmedIds = [];
     }
 }
 
@@ -1591,6 +1726,7 @@ function loadRuntimeConfig(readValue) {
     return {
         targetOutputName: String(readValue("TargetOutputName", "")).trim(),
         dynamicTrailingWorkspace: Boolean(readValue("DynamicTrailingWorkspace", false)),
+        autoRecycleWorkspaces: Boolean(readValue("AutoRecycleWorkspaces", false)),
         primary: {
             top: number("GapTop", 50),
             bottom: number("GapBottom", 70),
@@ -4233,6 +4369,7 @@ const virtualDesktopTopology = new VirtualDesktopTopology({
 const workspaceMembership = new WorkspaceMembership({
     getCurrentDesktop: output => virtualDesktopTopology.current(output),
 });
+const workspaceOccupancy = new WorkspaceOccupancy({ membership: workspaceMembership });
 const workspaceSnapshots = new WorkspaceSnapshotStore();
 const workspacePersistence = new WorkspacePersistence({
     snapshots: workspaceSnapshots,
@@ -4242,6 +4379,7 @@ let workspaceMountController;
 let workspaceSwitchController;
 let workspaceTransferController;
 let dynamicWorkspaceController;
+let workspaceRecycleController;
 const runtimeLogger = new RuntimeLogger({
     tag: TAG,
     enabled: runtimeConfig.debugLogging,
@@ -4381,6 +4519,7 @@ const recovery = new Recovery({
         if (workspaceSwitchController) workspaceSwitchController.stop();
         if (workspaceTransferController) workspaceTransferController.stop();
         if (dynamicWorkspaceController) dynamicWorkspaceController.stop();
+        if (workspaceRecycleController) workspaceRecycleController.stop();
         if (workspaceMountController) workspaceMountController.stop();
         mainScreenState.enabled = false;
         motionPlanCommitGate.cancel();
@@ -4669,11 +4808,13 @@ workspaceTransferController = new WorkspaceTransferController({
 dynamicWorkspaceController = new DynamicWorkspaceController({
     enabled: runtimeConfig.dynamicTrailingWorkspace,
     isReady: () => scrollLayoutInitialized && mainScreenState.enabled &&
-        !mainScreenState.workspaceSwitching && !workspaceTransferController.isProcessing(),
+        !mainScreenState.workspaceSwitching && !workspaceTransferController.isProcessing() &&
+        (!workspaceRecycleController || workspaceRecycleController.pendingId === null),
     getTargetOutput: () => resolveTargetOutput(),
     getDesktops: () => workspace.desktops,
     getWindows: () => workspace.windowList(),
     membership: workspaceMembership,
+    occupancy: workspaceOccupancy,
     createDesktop: typeof workspace.createDesktop === "function"
         ? (position, name) => workspace.createDesktop(position, name) : null,
     ensureVerticalLayout: count => dockGateway.ensureVerticalDesktopLayout(
@@ -4682,9 +4823,38 @@ dynamicWorkspaceController = new DynamicWorkspaceController({
         }),
     setTimer: setRuntimeTimer,
     clearTimer: clearRuntimeTimer,
+    onSettled: () => { if (workspaceRecycleController) workspaceRecycleController.request(); },
+    warn,
+});
+workspaceRecycleController = new WorkspaceRecycleController({
+    enabled: runtimeConfig.dynamicTrailingWorkspace && runtimeConfig.autoRecycleWorkspaces,
+    isReady: () => scrollLayoutInitialized && workspaceMountController.canUseActiveWorkspace() &&
+        !workspaceTransferController.isProcessing() && dynamicWorkspaceController.pendingTopology === null,
+    getDesktopIds: () => virtualDesktopTopology.ordered().map(desktop => virtualDesktopTopology.id(desktop)),
+    getProtectedIds: () => [mainScreenState.activeWorkspaceId].concat(
+        Array.from(workspace.screens, output => virtualDesktopTopology.id(virtualDesktopTopology.current(output)))),
+    getWindows: () => workspace.windowList(),
+    occupancy: workspaceOccupancy,
+    removeDesktop: typeof workspace.removeDesktop === "function" ? id => {
+        const desktop = virtualDesktopTopology.byId(id);
+        if (desktop) workspace.removeDesktop(desktop);
+    } : null,
+    onRemoved: id => {
+        workspaceSnapshots.remove(id);
+        commitDockState("workspace-recycle");
+        dynamicWorkspaceController.request();
+    },
+    ensureVerticalLayout: count => dynamicWorkspaceController.ensureVerticalLayout(count),
+    onFailure: error => {
+        warn(`[cc-workspace] recycle cleanup failed: ${error}`);
+        emergencyRestoreAllWindows("workspace-recycle-failure");
+    },
+    setTimer: setRuntimeTimer,
+    clearTimer: clearRuntimeTimer,
     warn,
 });
 const controllerComposition = new ControllerComposition({
+    workspaceRecycle: workspaceRecycleController,
     dynamicWorkspace: dynamicWorkspaceController,
     workspaceTransfer: workspaceTransferController,
     workspaceSwitch: workspaceSwitchController,
@@ -4705,7 +4875,7 @@ const controllerComposition = new ControllerComposition({
 }, [
     "parking", "geometry", "invariants", "transactions", "recovery",
     "adoption", "floating", "output", "fullscreen", "presentation",
-    "dockGateway", "dockScroll", "reorder", "workspaceMount", "workspaceSwitch", "workspaceTransfer", "dynamicWorkspace",
+    "dockGateway", "dockScroll", "reorder", "workspaceMount", "workspaceSwitch", "workspaceTransfer", "dynamicWorkspace", "workspaceRecycle",
 ]);
 
 function debug(message) {
@@ -5869,6 +6039,7 @@ function onInteractiveMoveResizeStarted(window) {
 
 function onWindowPolicyChanged(window, reason) {
     dynamicWorkspaceController.request();
+    workspaceRecycleController.request();
     workspaceMountController.onWindowMembershipChanged(window);
     const state = stateFor(window);
     if (!windowPolicy.managedLayoutEligible(window) &&
@@ -5890,10 +6061,12 @@ function setupWindow(window) {
     window.outputChanged.connect(() => {
         onOutputChanged(window);
         dynamicWorkspaceController.request();
+        workspaceRecycleController.request();
     });
     if (window.desktopsChanged) window.desktopsChanged.connect(() => {
         workspaceTransferController.onMembershipChanged(window);
         dynamicWorkspaceController.request();
+        workspaceRecycleController.request();
     });
     window.fullScreenChanged.connect(() => onFullScreenChanged(window));
     if (window.skipTaskbarChanged) window.skipTaskbarChanged.connect(() =>
@@ -5927,6 +6100,7 @@ function setupWindow(window) {
         states.delete(window);
         if (!wasMounted) workspaceTransferController.commitClosed();
         dynamicWorkspaceController.request();
+        workspaceRecycleController.request();
     });
 
     if (!eligible(window)) return;
@@ -5975,6 +6149,7 @@ function onScreensChanged() {
     reapplyManagedLayouts("screens-changed");
     relayout("screens-changed");
     dynamicWorkspaceController.request();
+    workspaceRecycleController.request();
 }
 
 const shortcuts = createShortcutCatalog({
@@ -6001,15 +6176,18 @@ const app = new CCNiri({
             adoptionController.onWindowAdded(window);
             workspaceTransferController.onWindowAdded(window);
             dynamicWorkspaceController.request();
+            workspaceRecycleController.request();
         },
         onWindowActivated: onWindowActivatedForScrollLayout,
         onCurrentDesktopChanged: (previous, current, output) => {
             workspaceSwitchController.onDesktopChanged(previous, current, output);
             dynamicWorkspaceController.request();
+            workspaceRecycleController.request();
         },
         onDesktopsChanged: () => {
             workspaceSwitchController.onTopologyChanged();
             dynamicWorkspaceController.request();
+            workspaceRecycleController.request();
         },
         onScreensChanged,
         onVirtualScreenGeometryChanged: () => {
@@ -6023,7 +6201,10 @@ const app = new CCNiri({
         clearTimer: clearRuntimeTimer,
         markInitialized: value => {
             scrollLayoutInitialized = value;
-            if (value) dynamicWorkspaceController.request();
+            if (value) {
+                dynamicWorkspaceController.request();
+                workspaceRecycleController.request();
+            }
         },
         registerShortcut,
         shortcuts,

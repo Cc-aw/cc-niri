@@ -179,6 +179,31 @@ created desktops remain available in KDE Settings. If KDE refuses creation or
 the API is unavailable, cc-niri logs one warning for that desktop topology and
 continues without repeatedly requesting new desktops.
 
+W9 adds optional **Recycle empty workspaces automatically**, disabled by
+default and requiring W8. Empty desktops are reclaimed except the last desktop
+and each output's current desktop. Closing the last window does not force a
+desktop switch: that empty current workspace becomes reclaimable after leaving
+it. This also reclaims previously existing empty desktops after explicit opt-in.
+
+Recycling checks live window membership across all outputs and activities.
+Floating, fullscreen, minimized, dialog, multi-desktop and native-only windows
+protect their desktops even when they have no managed Columns. Unknown
+membership blocks removal. Confirmed removals clear workspace snapshots and
+update the Bridge, preserving the current desktop UUID, focus and column order.
+Creation and recycling run through separate controllers with one shared
+occupancy module; pending requests serialize desktop changes.
+
+After deploying W9 with `./install.sh`, enable the option and restart:
+
+```bash
+kwriteconfig6 --file kwinrc --group Script-cc-niri-maximize \
+  --key AutoRecycleWorkspaces --type bool true
+cc-niri restart
+```
+
+W8 must also be enabled. Set `AutoRecycleWorkspaces` to `false` and restart to
+keep W8's append-only behavior.
+
 KWin can retain an already loaded native effect library across an in-place
 upgrade. Until the next Plasma login loads the new binary, capability role
 `1002` remains absent and scrolling safely uses the 20 px right-edge fallback;

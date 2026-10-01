@@ -6,6 +6,7 @@ function loadRuntimeConfig(readValue) {
     return {
         targetOutputName: String(readValue("TargetOutputName", "")).trim(),
         dynamicTrailingWorkspace: Boolean(readValue("DynamicTrailingWorkspace", false)),
+        autoRecycleWorkspaces: Boolean(readValue("AutoRecycleWorkspaces", false)),
         primary: {
             top: number("GapTop", 50),
             bottom: number("GapBottom", 70),

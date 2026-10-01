@@ -4,6 +4,8 @@ class DynamicWorkspaceController {
     constructor(options) {
         Object.assign(this, options);
         this.enabled = options.enabled === true;
+        this.occupancy = options.occupancy || new WorkspaceOccupancy({ membership: this.membership });
+        this.onSettled = options.onSettled || (() => {});
         this.timer = null;
         this.pendingTopology = null;
         this.failedTopology = null;
@@ -28,18 +30,14 @@ class DynamicWorkspaceController {
     }
 
     occupies(window, desktopId, output) {
-        if (!window || !window.managed || window.output !== output || isPlasmaShellWindow(window) ||
-                window.desktopWindow || window.dock || window.popupWindow || window.dropdownMenu ||
-                window.menu || window.splash || this.membership.isSticky(window)) return false;
-        const application = window.normalWindow || window.dialog || window.modal || window.transient ||
-            window.utility || window.toolbar;
-        return Boolean(application && this.membership.desktopIds(window).includes(desktopId));
+        return this.occupancy.occupies(window, desktopId, output);
     }
 
     fail(key, reason) {
         this.pendingTopology = null;
         this.failedTopology = key;
         this.warn(`[cc-workspace] trailing desktop unavailable: ${reason}`);
+        this.onSettled();
     }
 
     reconcile() {
@@ -53,6 +51,7 @@ class DynamicWorkspaceController {
                 return false;
             }
             this.pendingTopology = null;
+            this.onSettled();
         }
         if (!this.isReady()) return false;
         // KDE keeps its row count when desktops are appended. One column
@@ -101,6 +100,6 @@ class DynamicWorkspaceController {
 }
 
 /* cjs:start */
-const { isPlasmaShellWindow } = require("../policy/WindowPolicy");
+const { WorkspaceOccupancy } = require("./WorkspaceOccupancy");
 module.exports = { DynamicWorkspaceController };
 /* cjs:end */

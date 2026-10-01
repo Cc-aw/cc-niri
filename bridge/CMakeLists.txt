@@ -24,6 +24,13 @@ install(TARGETS cc-scroll-dock-bridge
 include(CTest)
 if(BUILD_TESTING)
     find_package(Qt6 6.6 REQUIRED COMPONENTS Qml)
+    qt_add_executable(cc-niri-workspace-recycle-qobject-tests tests/WorkspaceRecycleQObjectTest.cpp)
+    target_link_libraries(cc-niri-workspace-recycle-qobject-tests PRIVATE Qt6::Core Qt6::Qml)
+    add_test(NAME workspace-recycle-qobject-lifetime COMMAND cc-niri-workspace-recycle-qobject-tests
+        "${CMAKE_CURRENT_SOURCE_DIR}/../src/kwin/policy/WindowPolicy.js"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../src/kwin/workspace/WorkspaceMembership.js"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../src/kwin/workspace/WorkspaceOccupancy.js"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../src/kwin/workspace/WorkspaceRecycleController.js")
     qt_add_executable(cc-niri-workspace-qobject-tests tests/WorkspaceQObjectTest.cpp)
     target_link_libraries(cc-niri-workspace-qobject-tests PRIVATE Qt6::Core Qt6::Qml)
     add_test(NAME workspace-qobject-lifetime COMMAND cc-niri-workspace-qobject-tests

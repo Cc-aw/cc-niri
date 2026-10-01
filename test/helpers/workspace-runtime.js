@@ -26,6 +26,7 @@ const timers = [];
 const shortcuts = new Map();
 const requests = [];
 const desktopCreates = [];
+const desktopRemoves = [];
 const desktopRows = [];
 class Timer {
     constructor() { this.timeout = signal(); timers.push(this); }
@@ -59,6 +60,17 @@ const workspace = { desktops, screens: [output], currentDesktopForScreen: () => 
     createDesktop(position, name) {
         desktopCreates.push({ position, name });
         desktops.splice(position, 0, { id: `D${desktopCreates.length}` });
+        workspace.desktopsChanged.emit();
+    },
+    removeDesktop(desktop) {
+        assert.equal(typeof desktop, "object", "KWin removeDesktop takes a VirtualDesktop QObject");
+        assert.notEqual(desktop, current, "never remove the current native desktop");
+        assert.equal(windows.some(window => !window.onAllDesktops &&
+            Array.from(window.desktops).some(owner => owner === desktop)), false, "never remove a window's native desktop");
+        const index = desktops.indexOf(desktop);
+        assert.ok(index >= 0);
+        desktopRemoves.push(desktop.id);
+        desktops.splice(index, 1);
         workspace.desktopsChanged.emit();
     },
     get currentDesktop() { return current; }, windowList: () => windows,
@@ -100,7 +112,7 @@ function nativeSwitch(index, active) {
     assert.equal(logs.filter(line => /BEGIN epoch=.*reason=workspace-mount/.test(line)).length, batches + 1,
         "native desktop changes issue one relayout, including empty workspaces");
 }
-return { evaluate, state, ids, nativeSwitch, desktops, desktopCreates, desktopRows, output, workspace, a, b, published, motionAcks, timers, shortcuts, logs,
+return { evaluate, state, ids, nativeSwitch, desktops, desktopCreates, desktopRemoves, desktopRows, output, workspace, a, b, published, motionAcks, timers, shortcuts, logs,
     move(window, ids) { window.desktops = ids.map(id => desktops.find(d => d.id === id)); window.onAllDesktops = !ids.length; window.desktopsChanged.emit(); },
     add(uuid, index, properties = {}) { const window = Object.assign(windowFor(uuid, desktops[index]), properties); windows.push(window); workspace.windowAdded.emit(window); return window; },
     close(window) { windows = windows.filter(w => w !== window); window.closed.emit(); },
