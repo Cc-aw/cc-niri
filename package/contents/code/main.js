@@ -298,6 +298,44 @@ class WorkspaceSnapshotStore {
     }
 }
 
+// Generated from src/kwin/workspace/WorkspaceMembership.js
+class WorkspaceMembership {
+    constructor(options = {}) {
+        this.getCurrentDesktop = options.getCurrentDesktop || (() => null);
+    }
+
+    desktopIds(window) {
+        if (!window || !Array.isArray(window.desktops)) return [];
+        return window.desktops.map(desktop => desktop && desktop.id)
+            .filter(id => typeof id === "string" && id.length > 0);
+    }
+
+    isSticky(window) {
+        return Boolean(window && (window.onAllDesktops ||
+            (Array.isArray(window.desktops) && window.desktops.length === 0)));
+    }
+
+    isSingleDesktop(window) {
+        return Boolean(window && !this.isSticky(window) &&
+            Array.isArray(window.desktops) && window.desktops.length === 1 &&
+            this.desktopIds(window).length === 1);
+    }
+
+    ownerId(window) {
+        return this.isSingleDesktop(window) ? this.desktopIds(window)[0] : null;
+    }
+
+    belongsTo(window, workspaceId) {
+        return typeof workspaceId === "string" && workspaceId.length > 0 &&
+            this.ownerId(window) === workspaceId;
+    }
+
+    belongsToActive(window, output) {
+        const desktop = this.getCurrentDesktop(output);
+        return this.belongsTo(window, desktop && desktop.id);
+    }
+}
+
 // Generated from src/kwin/layout/Geometry.js
 function copyRect(rect) {
     return rect
@@ -1473,6 +1511,7 @@ class LayoutTransaction {
 class InvariantChecker {
     constructor(options) {
         this.appState = options.appState;
+        this.workspaceMembership = options.workspaceMembership || null;
         this.windowStates = options.windowStates;
         this.normalizeUuid = options.normalizeUuid;
         this.stripWidth = options.stripWidth;
@@ -1496,6 +1535,10 @@ class InvariantChecker {
             windows.add(column.window);
             if (!uuid || uuids.has(uuid)) errors.push(`duplicate-uuid:${uuid || index}`);
             uuids.add(uuid);
+            if (this.workspaceMembership &&
+                    !this.workspaceMembership.isSingleDesktop(column.window)) {
+                errors.push(`sticky-managed:${uuid}`);
+            }
             if (column.logicalX !== expectedLogicalX) {
                 errors.push(`logical-x:${column.id}:${column.logicalX}:${expectedLogicalX}`);
             }
@@ -1676,7 +1719,7 @@ class StabilitySupervisor {
     }
 
     isCritical(error) {
-        return /^(duplicate-window|duplicate-uuid|state-ownership|wrong-output|invalid-width|invalid-viewport-mode):/.test(error);
+        return /^(duplicate-window|duplicate-uuid|state-ownership|wrong-output|invalid-width|invalid-viewport-mode|sticky-managed):/.test(error);
     }
 
     failSafe(epoch, errors) {
@@ -1842,6 +1885,7 @@ class AdoptionController {
         this.getAppState = options.getAppState;
         this.refreshAppState = options.refreshAppState;
         this.windowPolicy = options.windowPolicy;
+        this.workspaceMembership = options.workspaceMembership || null;
         this.dispositions = options.dispositions;
         this.removeManagedWindow = options.removeManagedWindow;
         this.isLayoutMode = options.isLayoutMode;
@@ -1880,6 +1924,8 @@ class AdoptionController {
             return this.phases.policyFloating;
         }
         if (windowState.floating) return this.phases.floating;
+        const membershipPhase = this.membershipPhase(window, windowState);
+        if (membershipPhase) return membershipPhase;
         if (!state.enabled || !state.targetOutput ||
                 window.output !== state.targetOutput) {
             return this.phases.waitingPrimary;
@@ -1890,6 +1936,16 @@ class AdoptionController {
             return this.phases.waitingNormal;
         }
         if (!window.active) return this.phases.waitingActivation;
+        return null;
+    }
+
+    membershipPhase(window, windowState) {
+        if (!this.workspaceMembership) return null;
+        windowState.workspaceOwnerId = this.workspaceMembership.ownerId(window);
+        if (!this.workspaceMembership.isSingleDesktop(window)) return this.phases.ignored;
+        if (!this.workspaceMembership.belongsToActive(window, this.getAppState().targetOutput)) {
+            return this.phases.waitingWorkspace;
+        }
         return null;
     }
 
@@ -1955,6 +2011,9 @@ class AdoptionController {
     begin(window, origin) {
         if (!window) return false;
         const windowState = this.stateFor(window);
+        if (this.workspaceMembership) {
+            windowState.workspaceOwnerId = this.workspaceMembership.ownerId(window);
+        }
         const decision = this.windowPolicy.classify(window);
         if (decision.kind !== this.dispositions.MANAGED_ELIGIBLE) {
             this.transition(window, windowState,
@@ -1963,13 +2022,18 @@ class AdoptionController {
                 origin);
             return false;
         }
-        if (windowState.managedByScrollLayout || this.indexOfWindow(window) >= 0) {
-            this.transition(window, windowState, this.phases.managed, origin);
-            return true;
-        }
         if (windowState.floating) {
             this.transition(window, windowState, this.phases.floating, origin);
             return false;
+        }
+        const membershipPhase = this.membershipPhase(window, windowState);
+        if (membershipPhase) {
+            this.transition(window, windowState, membershipPhase, origin);
+            return false;
+        }
+        if (windowState.managedByScrollLayout || this.indexOfWindow(window) >= 0) {
+            this.transition(window, windowState, this.phases.managed, origin);
+            return true;
         }
         windowState.adoptionOrigin = origin;
         this.transition(window, windowState, this.phases.waitingEligible, origin);
@@ -2000,10 +2064,19 @@ class AdoptionController {
         return this.advance(window, reason);
     }
 
+    onMembershipChanged(window, reason = "window-desktops-changed") {
+        if (!window || !this.hasState(window)) return false;
+        this.refreshAppState();
+        return this.onPolicyChanged(window, reason);
+    }
+
     onPolicyChanged(window, reason) {
         if (!window || !this.hasState(window)) return false;
         const decision = this.windowPolicy.classify(window);
         const windowState = this.stateFor(window);
+        if (this.workspaceMembership) {
+            windowState.workspaceOwnerId = this.workspaceMembership.ownerId(window);
+        }
         if (decision.kind !== this.dispositions.MANAGED_ELIGIBLE &&
                 this.indexOfWindow(window) >= 0) {
             this.removeManagedWindow(window, `policy-${decision.reason}`, false);
@@ -2018,6 +2091,16 @@ class AdoptionController {
         }
         if (windowState.floating) {
             this.transition(window, windowState, this.phases.floating, reason);
+            return false;
+        }
+        const membershipPhase = this.membershipPhase(window, windowState);
+        if (membershipPhase) {
+            if (this.indexOfWindow(window) >= 0) {
+                // Membership changes detach a window; W3 Workspace unmount must
+                // never use this path. Snapshot transfers arrive in W6.
+                this.removeManagedWindow(window, "window-desktops-changed", false);
+            }
+            this.transition(window, windowState, membershipPhase, reason);
             return false;
         }
         if (this.indexOfWindow(window) >= 0) {
@@ -2038,6 +2121,7 @@ class FloatingController {
         this.getAppState = options.getAppState;
         this.refreshAppState = options.refreshAppState;
         this.windowPolicy = options.windowPolicy;
+        this.workspaceMembership = options.workspaceMembership || null;
         this.dispositions = options.dispositions;
         this.prepareWindow = options.prepareWindow;
         this.adoptWindow = options.adoptWindow;
@@ -2077,6 +2161,8 @@ class FloatingController {
                 window.fullScreen) return false;
         this.refreshAppState();
         const appState = this.getAppState();
+        if (this.workspaceMembership &&
+                !this.workspaceMembership.belongsToActive(window, appState.targetOutput)) return false;
         if (!appState.enabled || !appState.targetOutput ||
                 window.output !== appState.targetOutput ||
                 this.indexOfWindow(window) >= 0) {
@@ -2123,6 +2209,8 @@ class FloatingController {
             return false;
         }
         return Boolean(this.rememberedWindow &&
+            (!this.workspaceMembership || this.workspaceMembership.belongsToActive(
+                this.rememberedWindow, this.getAppState().targetOutput)) &&
             this.hasState(this.rememberedWindow) &&
             this.stateFor(this.rememberedWindow).floating &&
             this.indexOfWindow(this.rememberedWindow) < 0);
@@ -2159,6 +2247,8 @@ class FloatingController {
 
     redirectActivation(window) {
         if (this.rememberedWindow && this.now() <= this.focusGuardUntil &&
+                (!this.workspaceMembership || this.workspaceMembership.belongsToActive(
+                    this.rememberedWindow, this.getAppState().targetOutput)) &&
                 this.hasState(this.rememberedWindow) &&
                 this.stateFor(this.rememberedWindow).floating &&
                 window !== this.rememberedWindow) {
@@ -3390,6 +3480,7 @@ const DOCK_SCROLL_STEP_MS = 140;
 const ADOPTION_UNTRACKED = "untracked";
 const ADOPTION_WAITING_ACTIVATION = "waiting-activation";
 const ADOPTION_WAITING_PRIMARY = "waiting-primary";
+const ADOPTION_WAITING_WORKSPACE = "waiting-workspace";
 const ADOPTION_WAITING_ELIGIBLE = "waiting-eligible";
 const ADOPTION_WAITING_NORMAL = "waiting-normal";
 const ADOPTION_ADOPTING = "adopting";
@@ -3421,6 +3512,11 @@ const columnStore = new ColumnStore(mainScreenState);
 const states = new WindowStateStore(createWindowState);
 const runtimeConfig = loadRuntimeConfig(readConfig);
 const windowPolicy = new WindowPolicy();
+const workspaceMembership = new WorkspaceMembership({
+    getCurrentDesktop: output => output &&
+        typeof workspace.currentDesktopForScreen === "function"
+        ? workspace.currentDesktopForScreen(output) : workspace.currentDesktop,
+});
 const runtimeLogger = new RuntimeLogger({
     tag: TAG,
     enabled: runtimeConfig.debugLogging,
@@ -3511,6 +3607,7 @@ const geometryCommitter = new GeometryCommitter({
 });
 const invariantChecker = new InvariantChecker({
     appState: mainScreenState,
+    workspaceMembership,
     windowStates: states,
     normalizeUuid: normalizeWindowUuid,
     stripWidth,
@@ -3578,6 +3675,7 @@ const adoptionController = new AdoptionController({
         untracked: ADOPTION_UNTRACKED,
         waitingActivation: ADOPTION_WAITING_ACTIVATION,
         waitingPrimary: ADOPTION_WAITING_PRIMARY,
+        waitingWorkspace: ADOPTION_WAITING_WORKSPACE,
         waitingEligible: ADOPTION_WAITING_ELIGIBLE,
         waitingNormal: ADOPTION_WAITING_NORMAL,
         adopting: ADOPTION_ADOPTING,
@@ -3593,6 +3691,7 @@ const adoptionController = new AdoptionController({
     getAppState: () => mainScreenState,
     refreshAppState: refreshMainScreenState,
     windowPolicy,
+    workspaceMembership,
     dispositions: WindowDisposition,
     removeManagedWindow: removeColumn,
     isLayoutMode,
@@ -3605,6 +3704,7 @@ const adoptionController = new AdoptionController({
     debug,
 });
 const floatingController = new FloatingController({
+    workspaceMembership,
     stateFor,
     hasState: window => states.has(window),
     indexOfWindow: window => columnStore.indexOfWindow(window),
@@ -3897,7 +3997,8 @@ function safeRectFor(output) {
 }
 
 function scrollEligible(window) {
-    return windowPolicy.canJoinColumn(window);
+    return windowPolicy.canJoinColumn(window) &&
+        workspaceMembership.belongsToActive(window, mainScreenState.targetOutput);
 }
 
 function refreshMainScreenState() {
@@ -4201,7 +4302,7 @@ function setPresentationMode(windowUuid, mode, reason) {
 }
 
 function addColumnAt(window, insertionIndex, reason) {
-    if (columnIndexForWindow(window) >= 0) return null;
+    if (!scrollEligible(window) || columnIndexForWindow(window) >= 0) return null;
     const windowState = stateFor(window);
     const column = columnStore.insertWindow(
         window,
@@ -4210,6 +4311,7 @@ function addColumnAt(window, insertionIndex, reason) {
     );
     if (!column) return null;
     windowState.managedByScrollLayout = true;
+    windowState.workspaceOwnerId = workspaceMembership.ownerId(window);
     windowState.columnId = column.id;
     const index = columnStore.indexOf(column);
     debug(`[cc-scroll] ADD_WINDOW caption=${window.caption}` +
@@ -4286,7 +4388,7 @@ function removeColumn(window, reason, activateSuccessor = true) {
     const removedColumn = mainScreenState.columns[index];
     if (reason !== "window-closed") {
         const needsAccessibleGeometry = reason === "shortcut-toggle-floating" ||
-            reason === "interactive-move-resize";
+            reason === "interactive-move-resize" || reason === "window-desktops-changed";
         releaseParkingOwnership(
             removedColumn.window,
             reason,
@@ -4643,7 +4745,8 @@ function isLayoutMode(mode) {
 
 function eligible(window) {
     return Boolean(window && !window.fullScreen &&
-        windowPolicy.managedLayoutEligible(window));
+        windowPolicy.managedLayoutEligible(window) &&
+        workspaceMembership.belongsToActive(window, mainScreenState.targetOutput));
 }
 
 function onManagedOutput(window) {
@@ -4665,6 +4768,7 @@ function createWindowState(window) {
         interactiveMoveResize: false,
         managedByScrollLayout: false,
         columnId: null,
+        workspaceOwnerId: workspaceMembership.ownerId(window),
         floating: false,
         adoptionPhase: ADOPTION_UNTRACKED,
         adoptionOrigin: "",
@@ -4930,6 +5034,8 @@ function setupWindow(window) {
     window.maximizedAboutToChange.connect(mode => onMaximizedAboutToChange(window, mode));
     window.maximizedChanged.connect(() => onMaximizedChanged(window));
     window.outputChanged.connect(() => onOutputChanged(window));
+    if (window.desktopsChanged) window.desktopsChanged.connect(() =>
+        adoptionController.onMembershipChanged(window));
     window.fullScreenChanged.connect(() => onFullScreenChanged(window));
     if (window.skipTaskbarChanged) window.skipTaskbarChanged.connect(() =>
         onWindowPolicyChanged(window, "skip-taskbar-changed"));

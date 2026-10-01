@@ -8,6 +8,7 @@ class FloatingController {
         this.getAppState = options.getAppState;
         this.refreshAppState = options.refreshAppState;
         this.windowPolicy = options.windowPolicy;
+        this.workspaceMembership = options.workspaceMembership || null;
         this.dispositions = options.dispositions;
         this.prepareWindow = options.prepareWindow;
         this.adoptWindow = options.adoptWindow;
@@ -47,6 +48,8 @@ class FloatingController {
                 window.fullScreen) return false;
         this.refreshAppState();
         const appState = this.getAppState();
+        if (this.workspaceMembership &&
+                !this.workspaceMembership.belongsToActive(window, appState.targetOutput)) return false;
         if (!appState.enabled || !appState.targetOutput ||
                 window.output !== appState.targetOutput ||
                 this.indexOfWindow(window) >= 0) {
@@ -93,6 +96,8 @@ class FloatingController {
             return false;
         }
         return Boolean(this.rememberedWindow &&
+            (!this.workspaceMembership || this.workspaceMembership.belongsToActive(
+                this.rememberedWindow, this.getAppState().targetOutput)) &&
             this.hasState(this.rememberedWindow) &&
             this.stateFor(this.rememberedWindow).floating &&
             this.indexOfWindow(this.rememberedWindow) < 0);
@@ -129,6 +134,8 @@ class FloatingController {
 
     redirectActivation(window) {
         if (this.rememberedWindow && this.now() <= this.focusGuardUntil &&
+                (!this.workspaceMembership || this.workspaceMembership.belongsToActive(
+                    this.rememberedWindow, this.getAppState().targetOutput)) &&
                 this.hasState(this.rememberedWindow) &&
                 this.stateFor(this.rememberedWindow).floating &&
                 window !== this.rememberedWindow) {

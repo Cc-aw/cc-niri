@@ -3,6 +3,7 @@
 class InvariantChecker {
     constructor(options) {
         this.appState = options.appState;
+        this.workspaceMembership = options.workspaceMembership || null;
         this.windowStates = options.windowStates;
         this.normalizeUuid = options.normalizeUuid;
         this.stripWidth = options.stripWidth;
@@ -26,6 +27,10 @@ class InvariantChecker {
             windows.add(column.window);
             if (!uuid || uuids.has(uuid)) errors.push(`duplicate-uuid:${uuid || index}`);
             uuids.add(uuid);
+            if (this.workspaceMembership &&
+                    !this.workspaceMembership.isSingleDesktop(column.window)) {
+                errors.push(`sticky-managed:${uuid}`);
+            }
             if (column.logicalX !== expectedLogicalX) {
                 errors.push(`logical-x:${column.id}:${column.logicalX}:${expectedLogicalX}`);
             }

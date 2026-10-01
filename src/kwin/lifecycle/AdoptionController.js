@@ -9,6 +9,7 @@ class AdoptionController {
         this.getAppState = options.getAppState;
         this.refreshAppState = options.refreshAppState;
         this.windowPolicy = options.windowPolicy;
+        this.workspaceMembership = options.workspaceMembership || null;
         this.dispositions = options.dispositions;
         this.removeManagedWindow = options.removeManagedWindow;
         this.isLayoutMode = options.isLayoutMode;
@@ -47,6 +48,8 @@ class AdoptionController {
             return this.phases.policyFloating;
         }
         if (windowState.floating) return this.phases.floating;
+        const membershipPhase = this.membershipPhase(window, windowState);
+        if (membershipPhase) return membershipPhase;
         if (!state.enabled || !state.targetOutput ||
                 window.output !== state.targetOutput) {
             return this.phases.waitingPrimary;
@@ -57,6 +60,16 @@ class AdoptionController {
             return this.phases.waitingNormal;
         }
         if (!window.active) return this.phases.waitingActivation;
+        return null;
+    }
+
+    membershipPhase(window, windowState) {
+        if (!this.workspaceMembership) return null;
+        windowState.workspaceOwnerId = this.workspaceMembership.ownerId(window);
+        if (!this.workspaceMembership.isSingleDesktop(window)) return this.phases.ignored;
+        if (!this.workspaceMembership.belongsToActive(window, this.getAppState().targetOutput)) {
+            return this.phases.waitingWorkspace;
+        }
         return null;
     }
 
@@ -122,6 +135,9 @@ class AdoptionController {
     begin(window, origin) {
         if (!window) return false;
         const windowState = this.stateFor(window);
+        if (this.workspaceMembership) {
+            windowState.workspaceOwnerId = this.workspaceMembership.ownerId(window);
+        }
         const decision = this.windowPolicy.classify(window);
         if (decision.kind !== this.dispositions.MANAGED_ELIGIBLE) {
             this.transition(window, windowState,
@@ -130,13 +146,18 @@ class AdoptionController {
                 origin);
             return false;
         }
-        if (windowState.managedByScrollLayout || this.indexOfWindow(window) >= 0) {
-            this.transition(window, windowState, this.phases.managed, origin);
-            return true;
-        }
         if (windowState.floating) {
             this.transition(window, windowState, this.phases.floating, origin);
             return false;
+        }
+        const membershipPhase = this.membershipPhase(window, windowState);
+        if (membershipPhase) {
+            this.transition(window, windowState, membershipPhase, origin);
+            return false;
+        }
+        if (windowState.managedByScrollLayout || this.indexOfWindow(window) >= 0) {
+            this.transition(window, windowState, this.phases.managed, origin);
+            return true;
         }
         windowState.adoptionOrigin = origin;
         this.transition(window, windowState, this.phases.waitingEligible, origin);
@@ -167,10 +188,19 @@ class AdoptionController {
         return this.advance(window, reason);
     }
 
+    onMembershipChanged(window, reason = "window-desktops-changed") {
+        if (!window || !this.hasState(window)) return false;
+        this.refreshAppState();
+        return this.onPolicyChanged(window, reason);
+    }
+
     onPolicyChanged(window, reason) {
         if (!window || !this.hasState(window)) return false;
         const decision = this.windowPolicy.classify(window);
         const windowState = this.stateFor(window);
+        if (this.workspaceMembership) {
+            windowState.workspaceOwnerId = this.workspaceMembership.ownerId(window);
+        }
         if (decision.kind !== this.dispositions.MANAGED_ELIGIBLE &&
                 this.indexOfWindow(window) >= 0) {
             this.removeManagedWindow(window, `policy-${decision.reason}`, false);
@@ -185,6 +215,16 @@ class AdoptionController {
         }
         if (windowState.floating) {
             this.transition(window, windowState, this.phases.floating, reason);
+            return false;
+        }
+        const membershipPhase = this.membershipPhase(window, windowState);
+        if (membershipPhase) {
+            if (this.indexOfWindow(window) >= 0) {
+                // Membership changes detach a window; W3 Workspace unmount must
+                // never use this path. Snapshot transfers arrive in W6.
+                this.removeManagedWindow(window, "window-desktops-changed", false);
+            }
+            this.transition(window, windowState, membershipPhase, reason);
             return false;
         }
         if (this.indexOfWindow(window) >= 0) {

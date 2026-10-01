@@ -89,7 +89,7 @@ class StabilitySupervisor {
     }
 
     isCritical(error) {
-        return /^(duplicate-window|duplicate-uuid|state-ownership|wrong-output|invalid-width|invalid-viewport-mode):/.test(error);
+        return /^(duplicate-window|duplicate-uuid|state-ownership|wrong-output|invalid-width|invalid-viewport-mode|sticky-managed):/.test(error);
     }
 
     failSafe(epoch, errors) {
