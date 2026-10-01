@@ -1,5 +1,8 @@
 # `cc-niri-maximize` V3 Phase 8.5：Dock ↔ Logical Column 双向顺序同步实现规格
 
+> **归档状态（2026-10-01）：** 已实现；见 test/PHASE_8_5_RESULTS.md。
+> 文档状态与阅读顺序见 [文档索引](../README.md)。原设计正文保留作为历史依据。
+
 > 交给 Codex 直接实现。
 >
 > 目标：让主屏底部 Dock 中的运行窗口顺序与 `cc-niri-maximize` 的 `columns[]` 逻辑顺序始终一致，并实现真正的双向通信：

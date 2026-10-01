@@ -1,5 +1,8 @@
 # `cc-niri-maximize` V2：Safe Area + Quick Tile + Inner Gap 实现规格
 
+> **归档状态（2026-10-01）：** 已实现；主屏 Safe Area 与 gap 基础。
+> 文档状态与阅读顺序见 [文档索引](../README.md)。原设计正文保留作为历史依据。
+
 > 交给 Codex 直接实现。  
 > 本文是在原 `cc-niri-maximize` 方案上的 **V2 修订规格**。重点修复两个行为缺口，并新增 `innerGap`：
 >

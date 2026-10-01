@@ -1,5 +1,8 @@
 # cc-niri 日常稳定版收尾设计
 
+> **归档状态（2026-10-01）：** 部分完成；native CI 与自动安全恢复已实现（b97594a），已有受控实机检查（8b6c887），但 test/V3_DAILY_ACCEPTANCE.md 的完整交互矩阵与 release gate 仍有 Pending / Partial 项。
+> 文档状态与阅读顺序见 [文档索引](../README.md)。原设计正文保留作为历史依据。
+
 > 目标：停止继续扩大功能面，把当前 `cc-niri` 从“功能基本完成的 V3 Alpha”收敛为一个可以长期日常使用、可回归、可安全退化的稳定版本。
 >
 > 当前基线：`main` 已具备 Column / Pair / Wide / Floating / Dock / WindowPolicy / Bridge / Native Viewport Clip / Recovery 等核心能力，JS 回归测试已达到 48/48。接下来只完成三项稳定性工作：

@@ -1,5 +1,8 @@
 # cc-niri 基于 KDE Virtual Desktop 的纵向 Workspace 架构设计
 
+> **归档状态（2026-10-01）：** 当前主屏范围 W0–W9 已实现、部署并由用户验收；见 test/WORKSPACE_W9_RESULTS.md。历史双屏要求不作为本轮验收范围。
+> 文档状态与阅读顺序见 [文档索引](../README.md)。原设计正文保留作为历史依据。
+
 > 目标：在保留现有横向 Column 架构的前提下，引入类似 niri 的纵向 Workspace。KDE Virtual Desktop 负责 Workspace，cc-niri 只管理当前 Workspace 内部的 Columns。
 >
 > 当前基线：`main`，已完成 V1 `MotionProfiles`。目标环境：Fedora 44 / Plasma / KWin 6.7.5 / Wayland。

@@ -1,5 +1,8 @@
 # CC Niri Phase 15：Wide Preference + Contextual Viewport Layout 实现设计
 
+> **归档状态（2026-10-01）：** 已实现；当前 Wide 语义依据（b9c54b8）。
+> 文档状态与阅读顺序见 [文档索引](../README.md)。原设计正文保留作为历史依据。
+
 > 项目：`Cc-aw/cc-niri`\
 > 基线：`3.0.0-alpha.38` / `883f778`\
 > 当前能力：模块化架构、MotionTransaction、Full-Delta Scroll、Native Viewport Clip 已完成。\

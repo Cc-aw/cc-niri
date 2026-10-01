@@ -1,5 +1,8 @@
 # CC Niri Phase 14：Viewport Motion Runtime Hardening 实现文档
 
+> **归档状态（2026-10-01）：** 已实现 MotionTransaction、native clip 与 full-delta 滚动（883f778）。
+> 文档状态与阅读顺序见 [文档索引](../README.md)。原设计正文保留作为历史依据。
+
 > 项目：`Cc-aw/cc-niri`  
 > 基线：`3.0.0-alpha.37` / `a6d590b`  
 > 当前阶段：模块化稳定性架构已经完成，下一阶段只处理滚动动画的运行时质量。  

@@ -1,5 +1,8 @@
 # `cc-niri-maximize` V3：Scrollable Columns 实现规格
 
+> **归档状态（2026-10-01）：** 已实现当前单窗口 Column 范围；Multi-window Column、Overview 等扩展不属于已完成范围。
+> 文档状态与阅读顺序见 [文档索引](../README.md)。原设计正文保留作为历史依据。
+
 > 交给 Codex 直接实现。
 >
 > 目标：在当前已经可工作的 `cc-niri-maximize V2`（Safe Area + Quick Tile + innerGap + 双屏 + Fullscreen）基础上，为**主屏**增加类似 niri 的横向滚动列式工作区。

@@ -1,5 +1,8 @@
 # cc-niri × Quickshell 视觉与动画升级：模块化 Codex 实现设计
 
+> **归档状态（2026-10-01）：** 部分实现；V1 MotionProfiles 已完成（bde8a03），V2–V11 尚未完整实施。
+> 文档状态与阅读顺序见 [文档索引](../README.md)。原设计正文保留作为历史依据。
+
 > **目标仓库：** `https://github.com/Cc-aw/cc-niri`  
 > **参考项目：** `https://github.com/StatIndet/quickshell`（Clavis Shell）  
 > **当前设计基线：** `cc-niri` `main`，V3 `3.0.0-alpha.41`，基线提交 `8b6c8873fb0f7a5d7ae83ea7a566008de3e70e9f`  
@@ -2735,7 +2738,7 @@ DockPresentation/DockController 继续发送现有命令。
 仓库现有：
 
 ```text
-docx/CC_Niri_Maximize_Clavis_Motion_实现设计.md
+doc/todo/CC_Niri_Maximize_Clavis_Motion_实现设计.md
 ```
 
 主要针对早期 alpha.30：

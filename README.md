@@ -1,5 +1,7 @@
 # CC Niri Maximize
 
+设计文档按实施状态整理在 [doc/README.md](doc/README.md)：[已实施](doc/done/) / [未完成](doc/todo/)。
+
 CC Niri Maximize V3 is being implemented in phases on top of the working V2 safe-area script. Version `3.0.0-alpha.41` adds semantic WindowPolicy and keeps dialogs and other auxiliary windows outside Columns. Alpha.40 restores Column order and the visible viewport after a KWin script reload.
 
 ## Current V3 phase

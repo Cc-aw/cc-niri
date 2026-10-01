@@ -1,5 +1,8 @@
 # CC Niri Phase 16：Window Policy & Dialog Always-Floating 实现设计
 
+> **归档状态（2026-10-01）：** 已实现语义策略与辅助窗口 policy-floating（5a17d0e）。
+> 文档状态与阅读顺序见 [文档索引](../README.md)。原设计正文保留作为历史依据。
+
 > 项目：`Cc-aw/cc-niri`  
 > 当前基线：`1e873641d4a59fcd12f9e4230cf4fcba039d46d4` / `3.0.0-alpha.39`  
 > 前置阶段：Phase 15.1 Contextual Wide Runtime Hardening 已完成。  

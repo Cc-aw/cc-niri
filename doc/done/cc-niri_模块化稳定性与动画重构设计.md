@@ -1,5 +1,8 @@
 # CC Niri 模块化与稳定性重构设计文档
 
+> **归档状态（2026-10-01）：** 已实现模块化架构与稳定性职责拆分（a6d590b）。
+> 文档状态与阅读顺序见 [文档索引](../README.md)。原设计正文保留作为历史依据。
+
 > 项目：`Cc-aw/cc-niri`  
 > 目标：在保持当前日常可用功能和交互语义的前提下，将项目重构为**稳定、动画流畅、模块边界清晰、便于长期维护**的 KWin scrolling window layer。  
 > 基线：当前主分支已经具备 Scrollable Columns、Safe Area、Focus Wide、Floating、Dock 双向同步、动画 Effect、Bridge、状态机和回归测试。  
@@ -1423,7 +1426,9 @@ git diff --exit-code
 当前：
 
 ```text
-docx/
+doc/
+├── done/
+├── todo/
 poc/
 ```
 

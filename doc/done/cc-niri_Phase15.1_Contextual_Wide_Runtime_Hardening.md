@@ -1,5 +1,8 @@
 # CC Niri Phase 15.1：Contextual Wide Runtime Hardening
 
+> **归档状态（2026-10-01）：** 已实现（1e87364）。
+> 文档状态与阅读顺序见 [文档索引](../README.md)。原设计正文保留作为历史依据。
+
 > 项目：`Cc-aw/cc-niri`  
 > 当前基线：`b9c54b89c8d8e686e66a1989b0e69229759f4a8b`  
 > 本阶段目标：**冻结 Wide 交互，不再改变用户语义，只做 Runtime Hardening。**  

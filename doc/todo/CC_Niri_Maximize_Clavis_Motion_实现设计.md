@@ -1,5 +1,8 @@
 # CC Niri Maximize — Clavis Motion 动画系统移植与实现设计
 
+> **归档状态（2026-10-01）：** 部分实现；窗口 MotionController、retarget、MotionTransaction、native clip 已有，Dock UI Motion、OSD、Spotlight 等尚未完成。后续视觉工作优先参考 Quickshell 升级设计。
+> 文档状态与阅读顺序见 [文档索引](../README.md)。原设计正文保留作为历史依据。
+
 **目标版本基线：** `CC Niri Maximize 3.0.0-alpha.30`  
 **参考项目：** `https://github.com/StatIndet/quickshell`（Clavis Shell）  
 **目标环境：** Fedora 44 / Plasma / KWin 6.7.5 / Wayland  

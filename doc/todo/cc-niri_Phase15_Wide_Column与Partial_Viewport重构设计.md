@@ -1,5 +1,8 @@
 # CC Niri Phase 15：Wide Column 模型重构与 Partial Viewport 设计
 
+> **归档状态（2026-10-01）：** 未按本文完整实施；当前采用 Wide Preference + Contextual Viewport。这是已被替代的候选方案，保留作参考，不作为默认下一阶段任务。
+> 文档状态与阅读顺序见 [文档索引](../README.md)。原设计正文保留作为历史依据。
+
 > 项目：`Cc-aw/cc-niri`  
 > 基线：`3.0.0-alpha.38` / `883f778`  
 > 当前能力：模块化状态架构、MotionTransaction、Full-Delta Scroll、Native Viewport Clip 已完成。  

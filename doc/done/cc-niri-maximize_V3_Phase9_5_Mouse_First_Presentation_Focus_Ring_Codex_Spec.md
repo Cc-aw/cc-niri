@@ -1,5 +1,8 @@
 # `cc-niri-maximize` V3 Phase 9.5 Revised：Mouse-first Presentation + Focus Ring
 
+> **归档状态（2026-10-01）：** Presentation 已实现；自定义 Focus Ring 曾实施后撤除，现使用原生 Dock 活跃指示，本文保留历史设计，不重新启用旧 Focus Ring。
+> 文档状态与阅读顺序见 [文档索引](../README.md)。原设计正文保留作为历史依据。
+
 > **本版替代上一版 Phase 9.5 文档。**
 >
 > 本次调整：
