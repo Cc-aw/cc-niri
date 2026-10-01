@@ -10,6 +10,7 @@ class AdoptionController {
         this.refreshAppState = options.refreshAppState;
         this.windowPolicy = options.windowPolicy;
         this.workspaceMembership = options.workspaceMembership || null;
+        this.workspaceReady = options.workspaceReady || (() => true);
         this.dispositions = options.dispositions;
         this.removeManagedWindow = options.removeManagedWindow;
         this.isLayoutMode = options.isLayoutMode;
@@ -70,6 +71,7 @@ class AdoptionController {
         if (!this.workspaceMembership.belongsToActive(window, this.getAppState().targetOutput)) {
             return this.phases.waitingWorkspace;
         }
+        if (!this.workspaceReady()) return this.phases.waitingWorkspace;
         return null;
     }
 
@@ -102,6 +104,13 @@ class AdoptionController {
     advance(window, reason) {
         if (!window || !this.hasState(window)) return false;
         const windowState = this.stateFor(window);
+        if (!this.workspaceReady()) {
+            if (this.indexOfWindow(window) < 0 && !windowState.floating &&
+                    this.windowPolicy.canJoinColumn(window)) {
+                this.transition(window, windowState, this.phases.waitingWorkspace, reason);
+            }
+            return false;
+        }
         if (windowState.adoptionPhase === this.phases.managed) {
             return this.indexOfWindow(window) >= 0;
         }
@@ -201,6 +210,7 @@ class AdoptionController {
         if (this.workspaceMembership) {
             windowState.workspaceOwnerId = this.workspaceMembership.ownerId(window);
         }
+        if (!this.workspaceReady()) return false;
         if (decision.kind !== this.dispositions.MANAGED_ELIGIBLE &&
                 this.indexOfWindow(window) >= 0) {
             this.removeManagedWindow(window, `policy-${decision.reason}`, false);

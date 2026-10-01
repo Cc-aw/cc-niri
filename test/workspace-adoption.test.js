@@ -16,8 +16,10 @@ const states = new Map();
 const columns = [];
 let adopts = 0;
 let removed = 0;
+let workspaceReady = true;
 const adoption = new AdoptionController({
     phases, workspaceMembership: membership,
+    workspaceReady: () => workspaceReady,
     stateFor: window => states.get(window), hasState: window => states.has(window),
     indexOfWindow: window => columns.indexOf(window), getAppState: () => appState,
     refreshAppState: () => {}, windowPolicy: new WindowPolicy(), dispositions: WindowDisposition,
@@ -86,4 +88,16 @@ assert.equal(states.get(sticky).adoptionPhase, phases.ignored);
 const single = create();
 assert.equal(adoption.onWindowAdded(single), true, "active single-desktop adoption remains unchanged");
 assert.equal(states.get(single).workspaceOwnerId, "A");
+workspaceReady = false;
+const incoming = create();
+const beforeBarrier = adopts;
+adoption.onWindowAdded(incoming);
+adoption.onActivated(incoming);
+adoption.onReady(incoming);
+adoption.onGeometryChanged(single);
+assert.equal(states.get(incoming).adoptionPhase, phases.waitingWorkspace);
+assert.equal(adopts, beforeBarrier, "KDE activation before desktop mount cannot insert into the old workspace");
+assert.equal(states.get(single).adoptionPhase, phases.managed, "mount barrier does not disturb ownership of old Columns");
+workspaceReady = true;
+assert.equal(adoption.onActivated(incoming), true);
 console.log("PASS workspace adoption ordering, native sticky detach and activation without focus stealing");

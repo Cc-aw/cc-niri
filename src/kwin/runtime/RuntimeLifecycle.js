@@ -6,6 +6,8 @@ class RuntimeLifecycle {
         this.setupWindow = options.setupWindow;
         this.onWindowAdded = options.onWindowAdded;
         this.onWindowActivated = options.onWindowActivated;
+        this.onCurrentDesktopChanged = options.onCurrentDesktopChanged;
+        this.onDesktopsChanged = options.onDesktopsChanged;
         this.onScreensChanged = options.onScreensChanged;
         this.onVirtualScreenGeometryChanged =
             options.onVirtualScreenGeometryChanged;
@@ -41,6 +43,8 @@ class RuntimeLifecycle {
         this.workspace.windowList().forEach(this.setupWindow);
         this.connect(this.workspace.windowAdded, this.onWindowAdded);
         this.connect(this.workspace.windowActivated, this.onWindowActivated);
+        if (this.onCurrentDesktopChanged) this.connect(this.workspace.currentDesktopChanged, this.onCurrentDesktopChanged);
+        if (this.onDesktopsChanged) this.connect(this.workspace.desktopsChanged, this.onDesktopsChanged);
         this.connect(this.workspace.screensChanged, this.onScreensChanged);
         this.connect(
             this.workspace.virtualScreenGeometryChanged,

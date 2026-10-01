@@ -1,0 +1,24 @@
+"use strict";
+const assert = require("node:assert/strict");
+const { VirtualDesktopTopology } = require("../src/kwin/workspace/VirtualDesktopTopology");
+const desktops = [{ id: "stable-A" }, { id: "stable-B" }, { id: "stable-C" }];
+const primary = { name: "eDP-1" };
+const secondary = { name: "other" };
+const topology = new VirtualDesktopTopology({ getDesktops: () => desktops,
+    getCurrentDesktop: output => output === primary ? desktops[1] : desktops[0] });
+assert.equal(topology.current(primary), desktops[1]);
+assert.equal(topology.id(desktops[0]), "stable-A");
+assert.equal(topology.indexOf({ id: "stable-B" }), 1);
+assert.equal(topology.previous(desktops[0]), null);
+assert.equal(topology.next(desktops[2]), null);
+assert.equal(topology.previous(desktops[1]), desktops[0]);
+assert.equal(topology.next(desktops[1]), desktops[2]);
+assert.equal(topology.next({ id: "removed" }), null);
+assert.equal(topology.byId("stable-C"), desktops[2]);
+assert.equal(topology.byId("missing"), null);
+assert.equal(topology.affectsOutput(primary, primary), true);
+assert.equal(topology.affectsOutput(secondary, primary), false);
+assert.equal(topology.affectsOutput(null, primary), true, "null output represents global desktop changes");
+topology.ordered().pop();
+assert.equal(desktops.length, 3);
+console.log("PASS desktop topology uses stable IDs and non-wrapping KDE order");

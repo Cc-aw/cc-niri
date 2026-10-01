@@ -6,7 +6,7 @@ function signal() {
     return {
         connect: handler => handlers.add(handler),
         disconnect: handler => handlers.delete(handler),
-        emit: value => handlers.forEach(handler => handler(value)),
+        emit: (...values) => handlers.forEach(handler => handler(...values)),
         size: () => handlers.size,
     };
 }
@@ -19,6 +19,8 @@ const workspace = {
     screensChanged: signal(),
     virtualScreenGeometryChanged: signal(),
     screenOrderChanged: signal(),
+    currentDesktopChanged: signal(),
+    desktopsChanged: signal(),
 };
 const events = [];
 const shortcuts = [{
@@ -32,6 +34,8 @@ const lifecycle = new RuntimeLifecycle({
     setupWindow: window => events.push(`setup:${window.id}`),
     onWindowAdded: window => events.push(`added:${window.id}`),
     onWindowActivated: window => events.push(`activated:${window.id}`),
+    onCurrentDesktopChanged: (previous, current, output) => events.push(`desktop:${previous}:${current}:${output}`),
+    onDesktopsChanged: () => events.push("desktops"),
     onScreensChanged: () => events.push("screens"),
     onVirtualScreenGeometryChanged: () => events.push("virtual"),
     connectManagedGeometry: () => events.push("managed-geometry"),
@@ -50,6 +54,11 @@ assert.equal(lifecycle.start(), false, "start is idempotent");
 assert.deepEqual(events.slice(0, 2), ["setup:a", "setup:b"]);
 assert.equal(workspace.windowAdded.size(), 1);
 assert.equal(workspace.screenOrderChanged.size(), 1);
+assert.equal(workspace.currentDesktopChanged.size(), 1);
+workspace.currentDesktopChanged.emit("old", "new", "eDP-1");
+workspace.desktopsChanged.emit();
+assert.ok(events.includes("desktop:old:new:eDP-1"));
+assert.ok(events.includes("desktops"));
 workspace.windowAdded.emit({ id: "c" });
 workspace.windowActivated.emit({ id: "c" });
 assert.ok(events.includes("added:c"));
@@ -62,6 +71,8 @@ assert.equal(lifecycle.stop(), false, "stop is idempotent");
 assert.equal(workspace.windowAdded.size(), 0);
 assert.equal(workspace.windowActivated.size(), 0);
 assert.equal(workspace.screensChanged.size(), 0);
+assert.equal(workspace.currentDesktopChanged.size(), 0);
+assert.equal(workspace.desktopsChanged.size(), 0);
 assert.equal(events.at(-1), "initialized:false");
 
 assert.equal(lifecycle.start(), true, "a stopped lifecycle can reconnect");

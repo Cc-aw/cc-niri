@@ -27,6 +27,7 @@ const foreign = { ...normal, desktops: [b] };
 const sticky = { ...normal, desktops: [], onAllDesktops: true };
 let inserted = 0;
 let prepared = 0;
+let startupMounted = 0;
 const appState = { enabled: true, targetOutput: primary, columns: [], focusedColumnIndex: -1,
     innerGap: 8, safeRect: { width: 100 }, scrollOffsetX: 0,
     presentation: { mode: "normal", windowUuid: null } };
@@ -37,6 +38,8 @@ const stateFor = window => {
 };
 const context = vm.createContext({
     windowPolicy: policy, workspaceMembership: membership, mainScreenState: appState,
+    workspaceMountController: { canUseActiveWorkspace: () => true, initialize: () => { startupMounted += 1; return true; } },
+    workspaceSnapshots: { removeWindow: () => false },
     stateFor, columnIndexForWindow: () => -1, COLUMN_WIDTH_HALF: "half", debug: () => {},
     columnStore: { insertWindow: window => { inserted += 1; return { id: inserted, window }; }, indexOf: () => 0 },
     refreshMainScreenState: () => {}, startupLayout: { load: () => false, orderWindows: windows => windows },
@@ -50,7 +53,8 @@ assert.equal(context.addColumnAt(sticky, 0, "test"), null);
 assert.equal(inserted, 0, "direct insertion cannot bypass membership");
 assert.equal(context.eligible(sticky), false, "native sticky maximize/tile must not be intercepted");
 context.initializeScrollLayout("");
-assert.equal(prepared, 1, "startup only prepares windows in the current single desktop");
+assert.equal(startupMounted, 1, "startup delegates its batch to WorkspaceMountController");
+assert.equal(prepared, 0, "application startup cannot adopt windows individually");
 context.addColumnAt(normal, 0, "test");
 assert.equal(states.get(normal).workspaceOwnerId, "A");
 
@@ -71,7 +75,7 @@ assert.equal(floating.redirectActivation(normal), false);
 assert.equal(floating.attach(foreign, "test"), false);
 assert.equal(floating.attach(sticky, "test"), false);
 assert.equal(focusWrites, 0, "remembered floating cannot pull focus from another workspace");
-assert.equal(prepared, 1, "rejected floating attach does not change native maximize/tile state");
+assert.equal(prepared, 0, "rejected floating attach does not change native maximize/tile state");
 
 appState.columns = [{ id: 1, window: sticky, logicalX: 0, pixelWidth: 100 }];
 appState.focusedColumnIndex = 0;

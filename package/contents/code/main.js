@@ -13,6 +13,11 @@ class ColumnStore {
         return this.state.columns.indexOf(column);
     }
 
+    clear() {
+        this.state.columns = [];
+        this.state.focusedColumnIndex = -1;
+    }
+
     indexOfWindow(window) {
         return this.state.columns.findIndex(column => column.window === window);
     }
@@ -333,6 +338,236 @@ class WorkspaceMembership {
     belongsToActive(window, output) {
         const desktop = this.getCurrentDesktop(output);
         return this.belongsTo(window, desktop && desktop.id);
+    }
+}
+
+// Generated from src/kwin/workspace/VirtualDesktopTopology.js
+class VirtualDesktopTopology {
+    constructor(options) {
+        this.getDesktops = options.getDesktops;
+        this.getCurrentDesktop = options.getCurrentDesktop;
+    }
+
+    ordered() { return this.getDesktops().slice(); }
+    current(output) { return this.getCurrentDesktop(output); }
+    id(desktop) {
+        return desktop && typeof desktop.id === "string" && desktop.id ? desktop.id : null;
+    }
+    indexOf(desktop) {
+        const id = this.id(desktop);
+        return id ? this.ordered().findIndex(item => this.id(item) === id) : -1;
+    }
+    previous(desktop) {
+        const index = this.indexOf(desktop);
+        return index > 0 ? this.ordered()[index - 1] : null;
+    }
+    next(desktop) {
+        const index = this.indexOf(desktop);
+        return index >= 0 ? this.ordered()[index + 1] || null : null;
+    }
+    byId(id) { return this.ordered().find(desktop => this.id(desktop) === id) || null; }
+    affectsOutput(output, targetOutput) {
+        return Boolean(targetOutput && (!output || output === targetOutput));
+    }
+}
+
+// Generated from src/kwin/workspace/WorkspaceMountController.js
+class WorkspaceMountController {
+    constructor(options) {
+        Object.assign(this, options);
+        this.stopped = false;
+    }
+
+    currentId() {
+        return this.topology.id(this.topology.current(this.appState.targetOutput));
+    }
+
+    canUseActiveWorkspace() {
+        return Boolean(!this.stopped && this.appState.enabled &&
+            !this.appState.workspaceSwitching && this.appState.activeWorkspaceId &&
+            this.currentId() === this.appState.activeWorkspaceId);
+    }
+
+    eligible(window, workspaceId) {
+        return Boolean(window && this.normalizeUuid(window.internalId) &&
+            this.windowPolicy.canJoinColumn(window) &&
+            this.membership.belongsTo(window, workspaceId) &&
+            window.output === this.appState.targetOutput && !this.stateFor(window).floating);
+    }
+
+    pruneSnapshots() {
+        const windows = new Map(this.getWindows().map(window => [this.normalizeUuid(window.internalId), window]));
+        this.snapshots.all().forEach(snapshot => {
+            if (!this.topology.byId(snapshot.workspaceId)) {
+                this.snapshots.remove(snapshot.workspaceId);
+                return;
+            }
+            snapshot.columns = snapshot.columns.filter(column =>
+                this.eligible(windows.get(column.uuid), snapshot.workspaceId));
+            this.snapshots.set(snapshot.workspaceId, snapshot);
+        });
+    }
+
+    capture() {
+        const state = this.appState;
+        if (!state.activeWorkspaceId) return null;
+        const columns = state.columns.filter(column => this.eligible(column.window, state.activeWorkspaceId));
+        const focused = this.columnStore.focusedColumn();
+        const anchor = columns.reduce((previous, column) =>
+            column.logicalX <= state.scrollOffsetX ? column : previous, null);
+        const wide = columns.find(column => column.id === state.viewport.wideColumnId);
+        return this.snapshots.set(state.activeWorkspaceId, {
+            columns: columns.map(column => ({ uuid: this.normalizeUuid(column.window.internalId),
+                widthMode: column.widthMode, persistentWide: column.persistentWide })),
+            focusedUuid: focused ? this.normalizeUuid(focused.window.internalId) : null,
+            viewportAnchor: anchor ? { uuid: this.normalizeUuid(anchor.window.internalId),
+                delta: state.scrollOffsetX - anchor.logicalX } : null,
+            viewport: { mode: state.viewport.mode, wideUuid: wide ? this.normalizeUuid(wide.window.internalId) : null },
+            presentation: state.presentation,
+        });
+    }
+
+    unmount(capture = true) {
+        if (capture) this.capture();
+        this.resetPresentation();
+        this.appState.columns.forEach(column => {
+            const state = this.stateFor(column.window);
+            state.managedByScrollLayout = false;
+            state.columnId = null;
+            // Parking remains script-owned. A sleeping workspace is not detached.
+            state.viewportBeforeFullscreen = null;
+            this.transitionAdoption(column.window, state, this.phases.waitingWorkspace, "workspace-unmount");
+        });
+        this.columnStore.clear();
+        this.appState.scrollOffsetX = 0;
+        this.appState.activeWorkspaceId = null;
+        this.appState.prePresentationViewport = null;
+    }
+
+    reconcile(workspaceId, snapshot) {
+        const saved = new Map((snapshot ? snapshot.columns : []).map(column => [column.uuid, column]));
+        const windows = new Map();
+        // prepareWindow can synchronously emit signals. A second enumeration also
+        // includes windows added during native maximize/tile preparation.
+        for (let pass = 0; pass < 2; pass += 1) {
+            this.getWindows().forEach(window => {
+                const uuid = this.normalizeUuid(window.internalId);
+                if (windows.has(uuid) || !this.eligible(window, workspaceId) ||
+                        (window.fullScreen && !saved.has(uuid))) return;
+                if (window.fullScreen || this.prepareWindow(window)) windows.set(uuid, window);
+            });
+        }
+        windows.forEach((window, uuid) => {
+            if (!this.eligible(window, workspaceId) ||
+                    (window.fullScreen && !saved.has(uuid))) windows.delete(uuid);
+        });
+        const order = [];
+        saved.forEach((entry, uuid) => {
+            if (windows.has(uuid)) { order.push({ window: windows.get(uuid), entry }); windows.delete(uuid); }
+        });
+        windows.forEach((window, uuid) => order.push({ window, entry: { uuid, widthMode: "half", persistentWide: false } }));
+        return order;
+    }
+
+    hydrate(workspaceId, snapshot) {
+        const state = this.appState;
+        const entries = this.reconcile(workspaceId, snapshot);
+        state.activeWorkspaceId = workspaceId;
+        entries.forEach(({ window, entry }) => {
+            const column = this.columnStore.insertWindow(window, state.columns.length, entry.widthMode);
+            column.persistentWide = entry.persistentWide;
+            const windowState = this.stateFor(window);
+            windowState.workspaceOwnerId = workspaceId;
+            windowState.managedByScrollLayout = true;
+            windowState.columnId = column.id;
+            this.transitionAdoption(window, windowState, this.phases.managed, "workspace-mount");
+        });
+        this.recomputeLayout();
+        const kdeIndex = this.columnStore.indexOfWindow(this.getActiveWindow());
+        const savedIndex = snapshot ? state.columns.findIndex(column =>
+            this.normalizeUuid(column.window.internalId) === snapshot.focusedUuid) : -1;
+        this.columnStore.focusIndex(kdeIndex >= 0 ? kdeIndex : savedIndex >= 0 ? savedIndex : 0);
+        const anchor = snapshot && snapshot.viewportAnchor;
+        const anchorColumn = anchor && state.columns.find(column =>
+            this.normalizeUuid(column.window.internalId) === anchor.uuid);
+        state.scrollOffsetX = this.boundOffset(anchorColumn ? anchorColumn.logicalX + anchor.delta : 0);
+        const focused = this.columnStore.focusedColumn();
+        // Keep a valid saved anchor unless KDE selected a different Column.
+        if (focused && (!anchorColumn || (kdeIndex >= 0 && kdeIndex !== savedIndex))) this.ensureVisible(focused);
+        this.resetPresentation(); // V1 mounts always use Pair + normal.
+        this.relayout("workspace-mount");
+    }
+
+    mount(desktop, reason = "workspace-switch", commit = true) {
+        const state = this.appState;
+        const id = this.topology.id(desktop);
+        if (this.stopped || state.workspaceSwitching || !state.enabled || !state.targetOutput || !id) return false;
+        state.workspaceSwitching = true;
+        try {
+            this.cancelPending(reason);
+            this.pruneSnapshots();
+            this.capture();
+            const snapshot = this.snapshots.get(id);
+            this.unmount(false);
+            this.hydrate(id, snapshot);
+            this.capture();
+            if (commit) this.commitDock(reason);
+            this.debug(`[cc-workspace] MOUNT id=${id} columns=${state.columns.length} reason=${reason}`);
+            return true;
+        } catch (error) {
+            this.stop();
+            this.onFailure(error);
+            return false;
+        } finally {
+            state.workspaceSwitching = false;
+            // A native change can be emitted synchronously by preparation. Its
+            // handler was gated by the batch; reconcile the final KDE authority.
+            if (!this.stopped && state.activeWorkspaceId && this.currentId() &&
+                    this.currentId() !== state.activeWorkspaceId) {
+                this.onDesktopChanged(null, null, state.targetOutput);
+            }
+        }
+    }
+
+    initialize(previousState) {
+        this.refreshState();
+        const desktop = this.topology.current(this.appState.targetOutput);
+        const id = this.topology.id(desktop);
+        const legacy = migrateLegacyWorkspaceSnapshot(previousState, id,
+            this.appState.targetOutput ? this.appState.targetOutput.name : "");
+        if (legacy) this.snapshots.set(id, legacy);
+        return this.mount(desktop, "script-start-workspace", false);
+    }
+
+    onDesktopChanged(_previous, _current, output) {
+        this.refreshState();
+        if (!this.topology.affectsOutput(output, this.appState.targetOutput) ||
+                !this.appState.activeWorkspaceId || this.currentId() === this.appState.activeWorkspaceId) return false;
+        // Query KDE's actual current desktop; never hydrate a stale signal payload.
+        return this.mount(this.topology.current(this.appState.targetOutput));
+    }
+
+    onTopologyChanged() {
+        if (this.stopped || this.appState.workspaceSwitching) return false;
+        this.pruneSnapshots();
+        return this.onDesktopChanged(null, null, this.appState.targetOutput);
+    }
+
+    onWindowMembershipChanged(window) {
+        const owner = this.snapshots.workspaceForWindow(this.normalizeUuid(window.internalId)) ||
+            this.stateFor(window).workspaceOwnerId;
+        if (owner && !this.eligible(window, owner)) {
+            this.snapshots.removeWindow(this.normalizeUuid(window.internalId));
+            // Sleeping parked windows becoming Sticky must immediately be accessible.
+            this.releaseWindow(window, "workspace-membership-changed");
+        }
+    }
+
+    onWindowClosed(window) { this.snapshots.removeWindow(this.normalizeUuid(window.internalId)); }
+    stop() {
+        if (this.stopped) return;
+        this.stopped = true;
+        this.cancelPending("workspace-stop");
     }
 }
 
@@ -1189,6 +1424,8 @@ class RuntimeLifecycle {
         this.setupWindow = options.setupWindow;
         this.onWindowAdded = options.onWindowAdded;
         this.onWindowActivated = options.onWindowActivated;
+        this.onCurrentDesktopChanged = options.onCurrentDesktopChanged;
+        this.onDesktopsChanged = options.onDesktopsChanged;
         this.onScreensChanged = options.onScreensChanged;
         this.onVirtualScreenGeometryChanged =
             options.onVirtualScreenGeometryChanged;
@@ -1224,6 +1461,8 @@ class RuntimeLifecycle {
         this.workspace.windowList().forEach(this.setupWindow);
         this.connect(this.workspace.windowAdded, this.onWindowAdded);
         this.connect(this.workspace.windowActivated, this.onWindowActivated);
+        if (this.onCurrentDesktopChanged) this.connect(this.workspace.currentDesktopChanged, this.onCurrentDesktopChanged);
+        if (this.onDesktopsChanged) this.connect(this.workspace.desktopsChanged, this.onDesktopsChanged);
         this.connect(this.workspace.screensChanged, this.onScreensChanged);
         this.connect(
             this.workspace.virtualScreenGeometryChanged,
@@ -1512,6 +1751,7 @@ class InvariantChecker {
     constructor(options) {
         this.appState = options.appState;
         this.workspaceMembership = options.workspaceMembership || null;
+        this.workspaceSnapshots = options.workspaceSnapshots || null;
         this.windowStates = options.windowStates;
         this.normalizeUuid = options.normalizeUuid;
         this.stripWidth = options.stripWidth;
@@ -1539,6 +1779,10 @@ class InvariantChecker {
                     !this.workspaceMembership.isSingleDesktop(column.window)) {
                 errors.push(`sticky-managed:${uuid}`);
             }
+            if (this.workspaceMembership && this.appState.activeWorkspaceId &&
+                    !this.workspaceMembership.belongsTo(column.window, this.appState.activeWorkspaceId)) {
+                errors.push(`wrong-workspace:${uuid}`);
+            }
             if (column.logicalX !== expectedLogicalX) {
                 errors.push(`logical-x:${column.id}:${column.logicalX}:${expectedLogicalX}`);
             }
@@ -1553,12 +1797,32 @@ class InvariantChecker {
                     !adoptionOwnsColumn) {
                 errors.push(`state-ownership:${column.id}`);
             }
+            if (windowState && this.appState.activeWorkspaceId &&
+                    windowState.workspaceOwnerId !== this.appState.activeWorkspaceId) {
+                errors.push(`mounted-workspace-owner:${uuid}`);
+            }
             if (this.appState.targetOutput &&
                     column.window.output !== this.appState.targetOutput) {
                 errors.push(`wrong-output:${column.id}`);
             }
             expectedLogicalX += column.pixelWidth + this.appState.innerGap;
         });
+
+        if (this.appState.activeWorkspaceId) {
+            this.windowStates.forEach((state, window) => {
+                if (state.workspaceOwnerId !== this.appState.activeWorkspaceId &&
+                        (state.managedByScrollLayout || state.columnId !== null)) {
+                    errors.push(`inactive-mounted:${this.normalizeUuid(window.internalId)}`);
+                }
+            });
+        }
+        if (this.workspaceSnapshots) {
+            const owners = new Set();
+            this.workspaceSnapshots.all().forEach(snapshot => snapshot.columns.forEach(column => {
+                if (owners.has(column.uuid)) errors.push(`duplicate-workspace-owner:${column.uuid}`);
+                owners.add(column.uuid);
+            }));
+        }
 
         if (!columns.length) {
             if (this.appState.focusedColumnIndex !== -1) errors.push("empty-focus");
@@ -1719,7 +1983,7 @@ class StabilitySupervisor {
     }
 
     isCritical(error) {
-        return /^(duplicate-window|duplicate-uuid|state-ownership|wrong-output|invalid-width|invalid-viewport-mode|sticky-managed):/.test(error);
+        return /^(duplicate-window|duplicate-uuid|state-ownership|wrong-output|invalid-width|invalid-viewport-mode|sticky-managed|wrong-workspace|mounted-workspace-owner|inactive-mounted|duplicate-workspace-owner):/.test(error);
     }
 
     failSafe(epoch, errors) {
@@ -1886,6 +2150,7 @@ class AdoptionController {
         this.refreshAppState = options.refreshAppState;
         this.windowPolicy = options.windowPolicy;
         this.workspaceMembership = options.workspaceMembership || null;
+        this.workspaceReady = options.workspaceReady || (() => true);
         this.dispositions = options.dispositions;
         this.removeManagedWindow = options.removeManagedWindow;
         this.isLayoutMode = options.isLayoutMode;
@@ -1946,6 +2211,7 @@ class AdoptionController {
         if (!this.workspaceMembership.belongsToActive(window, this.getAppState().targetOutput)) {
             return this.phases.waitingWorkspace;
         }
+        if (!this.workspaceReady()) return this.phases.waitingWorkspace;
         return null;
     }
 
@@ -1978,6 +2244,13 @@ class AdoptionController {
     advance(window, reason) {
         if (!window || !this.hasState(window)) return false;
         const windowState = this.stateFor(window);
+        if (!this.workspaceReady()) {
+            if (this.indexOfWindow(window) < 0 && !windowState.floating &&
+                    this.windowPolicy.canJoinColumn(window)) {
+                this.transition(window, windowState, this.phases.waitingWorkspace, reason);
+            }
+            return false;
+        }
         if (windowState.adoptionPhase === this.phases.managed) {
             return this.indexOfWindow(window) >= 0;
         }
@@ -2077,6 +2350,7 @@ class AdoptionController {
         if (this.workspaceMembership) {
             windowState.workspaceOwnerId = this.workspaceMembership.ownerId(window);
         }
+        if (!this.workspaceReady()) return false;
         if (decision.kind !== this.dispositions.MANAGED_ELIGIBLE &&
                 this.indexOfWindow(window) >= 0) {
             this.removeManagedWindow(window, `policy-${decision.reason}`, false);
@@ -3494,6 +3768,8 @@ const DOCK_BRIDGE_PATH = "/ScrollDock";
 const DOCK_BRIDGE_INTERFACE = "org.cc.ScrollDockBridge1";
 
 const mainScreenState = {
+    activeWorkspaceId: null,
+    workspaceSwitching: false,
     targetOutput: null,
     safeRect: null,
     columns: [],
@@ -3512,11 +3788,17 @@ const columnStore = new ColumnStore(mainScreenState);
 const states = new WindowStateStore(createWindowState);
 const runtimeConfig = loadRuntimeConfig(readConfig);
 const windowPolicy = new WindowPolicy();
-const workspaceMembership = new WorkspaceMembership({
+const virtualDesktopTopology = new VirtualDesktopTopology({
+    getDesktops: () => workspace.desktops,
     getCurrentDesktop: output => output &&
         typeof workspace.currentDesktopForScreen === "function"
         ? workspace.currentDesktopForScreen(output) : workspace.currentDesktop,
 });
+const workspaceMembership = new WorkspaceMembership({
+    getCurrentDesktop: output => virtualDesktopTopology.current(output),
+});
+const workspaceSnapshots = new WorkspaceSnapshotStore();
+let workspaceMountController;
 const runtimeLogger = new RuntimeLogger({
     tag: TAG,
     enabled: runtimeConfig.debugLogging,
@@ -3609,6 +3891,7 @@ const invariantChecker = new InvariantChecker({
     appState: mainScreenState,
     workspaceMembership,
     windowStates: states,
+    workspaceSnapshots,
     normalizeUuid: normalizeWindowUuid,
     stripWidth,
     managedPhases: [ADOPTION_MANAGED, ADOPTION_SETTLING],
@@ -3651,6 +3934,7 @@ const recovery = new Recovery({
     parking: parkingManager,
     indexOfWindow: window => columnStore.indexOfWindow(window),
     beforeRestore: reason => {
+        if (workspaceMountController) workspaceMountController.stop();
         mainScreenState.enabled = false;
         motionPlanCommitGate.cancel();
         contextualWideCoordinator.cancel();
@@ -3692,6 +3976,7 @@ const adoptionController = new AdoptionController({
     refreshAppState: refreshMainScreenState,
     windowPolicy,
     workspaceMembership,
+    workspaceReady: () => workspaceMountController && workspaceMountController.canUseActiveWorkspace(),
     dispositions: WindowDisposition,
     removeManagedWindow: removeColumn,
     isLayoutMode,
@@ -3847,7 +4132,44 @@ const reorderController = new ReorderController({
     moveFocusedColumn: delta => columnStore.moveFocused(delta),
     debug,
 });
+workspaceMountController = new WorkspaceMountController({
+    appState: mainScreenState,
+    columnStore,
+    snapshots: workspaceSnapshots,
+    topology: virtualDesktopTopology,
+    membership: workspaceMembership,
+    windowPolicy,
+    stateFor,
+    getWindows: () => workspace.windowList(),
+    getActiveWindow: () => workspace.activeWindow,
+    normalizeUuid: normalizeWindowUuid,
+    refreshState: refreshMainScreenState,
+    prepareWindow: prepareInitialColumn,
+    transitionAdoption: (window, state, phase, reason) =>
+        adoptionController.transition(window, state, phase, reason),
+    phases: { managed: ADOPTION_MANAGED, waitingWorkspace: ADOPTION_WAITING_WORKSPACE },
+    cancelPending: reason => {
+        motionPlanCommitGate.cancel();
+        cancelPendingDockScroll(reason);
+        contextualViewport.cancelReveal();
+        contextualWideCoordinator.cancel();
+    },
+    resetPresentation: clearPresentationState,
+    recomputeLayout: recomputeLogicalLayout,
+    boundOffset: offset => boundScrollOffset(offset, stripWidth(),
+        mainScreenState.safeRect ? mainScreenState.safeRect.width : 0),
+    ensureVisible: ensureColumnVisible,
+    relayout,
+    commitDock: commitDockState,
+    releaseWindow: (window, reason) => releaseParkingOwnership(window, reason, true),
+    onFailure: error => {
+        warn(`[cc-workspace] mount failed: ${error}`);
+        emergencyRestoreAllWindows("workspace-mount-failure");
+    },
+    debug,
+});
 const controllerComposition = new ControllerComposition({
+    workspaceMount: workspaceMountController,
     parking: parkingManager,
     geometry: geometryCommitter,
     invariants: invariantChecker,
@@ -3864,7 +4186,7 @@ const controllerComposition = new ControllerComposition({
 }, [
     "parking", "geometry", "invariants", "transactions", "recovery",
     "adoption", "floating", "output", "fullscreen", "presentation",
-    "dockGateway", "dockScroll", "reorder",
+    "dockGateway", "dockScroll", "reorder", "workspaceMount",
 ]);
 
 function debug(message) {
@@ -3885,6 +4207,9 @@ function createDockSnapshot() {
     const anchorColumn = mainScreenState.columns.reduce((anchor, column) =>
         column.logicalX <= mainScreenState.scrollOffsetX ? column : anchor, null);
     return {
+        workspaceId: mainScreenState.activeWorkspaceId,
+        workspaceIndex: virtualDesktopTopology.indexOf(
+            virtualDesktopTopology.byId(mainScreenState.activeWorkspaceId)),
         targetOutput: mainScreenState.targetOutput ? mainScreenState.targetOutput.name : "",
         focusedUuid: focusedColumn
             ? normalizeWindowUuid(focusedColumn.window.internalId)
@@ -4016,6 +4341,7 @@ function widthForMode(mode) {
 }
 
 function recomputeLogicalLayout() {
+    if (!mainScreenState.safeRect) return;
     const layout = deriveColumnLayout(
         mainScreenState.columns,
         mainScreenState.safeRect.width,
@@ -4222,6 +4548,7 @@ function activateColumnWhenReady(window) {
 }
 
 function relayout(reason, scrollOffsets) {
+    if (reason !== "workspace-mount" && !workspaceMountController.canUseActiveWorkspace()) return;
     const epoch = beginLayoutTransaction(reason);
     try {
         relayoutImpl(reason, scrollOffsets);
@@ -4302,7 +4629,8 @@ function setPresentationMode(windowUuid, mode, reason) {
 }
 
 function addColumnAt(window, insertionIndex, reason) {
-    if (!scrollEligible(window) || columnIndexForWindow(window) >= 0) return null;
+    if (!workspaceMountController.canUseActiveWorkspace() ||
+            !scrollEligible(window) || columnIndexForWindow(window) >= 0) return null;
     const windowState = stateFor(window);
     const column = columnStore.insertWindow(
         window,
@@ -4379,6 +4707,7 @@ function prepareInitialColumn(window) {
 }
 
 function removeColumn(window, reason, activateSuccessor = true) {
+    workspaceSnapshots.removeWindow(normalizeWindowUuid(window.internalId));
     contextualWideCoordinator.cancelForWindow(window);
     const index = columnIndexForWindow(window);
     if (index < 0) return;
@@ -4455,34 +4784,9 @@ function removeColumn(window, reason, activateSuccessor = true) {
 }
 
 function initializeScrollLayout(previousState) {
-    /* This immutable startup snapshot is the only path allowed to adopt an
-     * inactive window. Anything arriving later through windowAdded follows
-     * the runtime state machine and waits for its first activation. */
     refreshMainScreenState();
-    if (!mainScreenState.enabled || !mainScreenState.targetOutput) return;
-    const restored = startupLayout.load(previousState);
-    startupLayout.orderWindows(workspace.windowList().filter(window =>
-        scrollEligible(window) && !window.fullScreen &&
-        window.output === mainScreenState.targetOutput
-    ).filter(prepareInitialColumn)).forEach(addInitialColumn);
-
-    if (!mainScreenState.columns.length) return;
-    const activeIndex = columnIndexForWindow(workspace.activeWindow);
-    columnStore.focusIndex(activeIndex >= 0 ? activeIndex : 0);
-    recomputeLogicalLayout();
-    if (restored) {
-        mainScreenState.scrollOffsetX = startupLayout.restoreOffset(
-            mainScreenState.columns,
-            mainScreenState.scrollOffsetX,
-            offset => boundScrollOffset(offset, stripWidth(),
-                mainScreenState.safeRect.width)
-        );
-    }
-    ensureColumnVisible(columnStore.focusedColumn());
-    debug(`[cc-scroll] STARTUP_RESTORE restored=${restored}` +
-        ` columns=${mainScreenState.columns.length}` +
-        ` offset=${mainScreenState.scrollOffsetX}`);
-    relayout("startup");
+    startupLayout.load(previousState);
+    return workspaceMountController.initialize(previousState);
 }
 
 function adoptNewWindowAsColumn(window, reason, focusNew = true) {
@@ -4576,7 +4880,7 @@ function beginWindowAdoption(window, origin) {
 }
 
 function onWindowActivatedForScrollLayout(window) {
-    if (!window) return;
+    if (!window || !workspaceMountController.canUseActiveWorkspace()) return;
     if (layoutTransaction.isActive()) {
         debug(`[cc-stability] SUPPRESS activation epoch=${layoutTransaction.currentEpoch()}` +
             ` caption=${window.caption}`);
@@ -4744,7 +5048,8 @@ function isLayoutMode(mode) {
 }
 
 function eligible(window) {
-    return Boolean(window && !window.fullScreen &&
+    return Boolean(workspaceMountController && workspaceMountController.canUseActiveWorkspace() &&
+        window && !window.fullScreen &&
         windowPolicy.managedLayoutEligible(window) &&
         workspaceMembership.belongsToActive(window, mainScreenState.targetOutput));
 }
@@ -4859,6 +5164,8 @@ function leavePseudoMaximize(window, state, reason) {
 
 function onFrameGeometryChanged(window, oldGeometry) {
     const state = stateFor(window);
+    if (!workspaceMountController.canUseActiveWorkspace() ||
+            !workspaceMembership.belongsToActive(window, mainScreenState.targetOutput)) return;
     if (state.internalChange || state.interactiveMoveResize || window.fullScreen) return;
     if (contextualWideCoordinator.onTargetGeometryChanged(window)) return;
     if (!windowPolicy.canJoinColumn(window)) return;
@@ -5016,6 +5323,7 @@ function onInteractiveMoveResizeStarted(window) {
 }
 
 function onWindowPolicyChanged(window, reason) {
+    workspaceMountController.onWindowMembershipChanged(window);
     const state = stateFor(window);
     if (!windowPolicy.managedLayoutEligible(window) &&
             isLayoutMode(state.layoutMode)) {
@@ -5034,8 +5342,10 @@ function setupWindow(window) {
     window.maximizedAboutToChange.connect(mode => onMaximizedAboutToChange(window, mode));
     window.maximizedChanged.connect(() => onMaximizedChanged(window));
     window.outputChanged.connect(() => onOutputChanged(window));
-    if (window.desktopsChanged) window.desktopsChanged.connect(() =>
-        adoptionController.onMembershipChanged(window));
+    if (window.desktopsChanged) window.desktopsChanged.connect(() => {
+        workspaceMountController.onWindowMembershipChanged(window);
+        adoptionController.onMembershipChanged(window);
+    });
     window.fullScreenChanged.connect(() => onFullScreenChanged(window));
     if (window.skipTaskbarChanged) window.skipTaskbarChanged.connect(() =>
         onWindowPolicyChanged(window, "skip-taskbar-changed"));
@@ -5061,6 +5371,7 @@ function setupWindow(window) {
         stateFor(window).interactiveMoveResize = false;
     });
     window.closed.connect(() => {
+        workspaceMountController.onWindowClosed(window);
         removeColumn(window, "window-closed");
         floatingController.onWindowClosed(window);
         states.delete(window);
@@ -5135,6 +5446,9 @@ const app = new CCNiri({
             adoptionController.onWindowAdded(window);
         },
         onWindowActivated: onWindowActivatedForScrollLayout,
+        onCurrentDesktopChanged: (previous, current, output) =>
+            workspaceMountController.onDesktopChanged(previous, current, output),
+        onDesktopsChanged: () => workspaceMountController.onTopologyChanged(),
         onScreensChanged,
         onVirtualScreenGeometryChanged: () => {
             reapplyManagedLayouts("virtual-screen-geometry-changed");

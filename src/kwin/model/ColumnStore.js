@@ -9,6 +9,11 @@ class ColumnStore {
         return this.state.columns.indexOf(column);
     }
 
+    clear() {
+        this.state.columns = [];
+        this.state.focusedColumnIndex = -1;
+    }
+
     indexOfWindow(window) {
         return this.state.columns.findIndex(column => column.window === window);
     }

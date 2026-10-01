@@ -4,6 +4,7 @@ class InvariantChecker {
     constructor(options) {
         this.appState = options.appState;
         this.workspaceMembership = options.workspaceMembership || null;
+        this.workspaceSnapshots = options.workspaceSnapshots || null;
         this.windowStates = options.windowStates;
         this.normalizeUuid = options.normalizeUuid;
         this.stripWidth = options.stripWidth;
@@ -31,6 +32,10 @@ class InvariantChecker {
                     !this.workspaceMembership.isSingleDesktop(column.window)) {
                 errors.push(`sticky-managed:${uuid}`);
             }
+            if (this.workspaceMembership && this.appState.activeWorkspaceId &&
+                    !this.workspaceMembership.belongsTo(column.window, this.appState.activeWorkspaceId)) {
+                errors.push(`wrong-workspace:${uuid}`);
+            }
             if (column.logicalX !== expectedLogicalX) {
                 errors.push(`logical-x:${column.id}:${column.logicalX}:${expectedLogicalX}`);
             }
@@ -45,12 +50,32 @@ class InvariantChecker {
                     !adoptionOwnsColumn) {
                 errors.push(`state-ownership:${column.id}`);
             }
+            if (windowState && this.appState.activeWorkspaceId &&
+                    windowState.workspaceOwnerId !== this.appState.activeWorkspaceId) {
+                errors.push(`mounted-workspace-owner:${uuid}`);
+            }
             if (this.appState.targetOutput &&
                     column.window.output !== this.appState.targetOutput) {
                 errors.push(`wrong-output:${column.id}`);
             }
             expectedLogicalX += column.pixelWidth + this.appState.innerGap;
         });
+
+        if (this.appState.activeWorkspaceId) {
+            this.windowStates.forEach((state, window) => {
+                if (state.workspaceOwnerId !== this.appState.activeWorkspaceId &&
+                        (state.managedByScrollLayout || state.columnId !== null)) {
+                    errors.push(`inactive-mounted:${this.normalizeUuid(window.internalId)}`);
+                }
+            });
+        }
+        if (this.workspaceSnapshots) {
+            const owners = new Set();
+            this.workspaceSnapshots.all().forEach(snapshot => snapshot.columns.forEach(column => {
+                if (owners.has(column.uuid)) errors.push(`duplicate-workspace-owner:${column.uuid}`);
+                owners.add(column.uuid);
+            }));
+        }
 
         if (!columns.length) {
             if (this.appState.focusedColumnIndex !== -1) errors.push("empty-focus");
