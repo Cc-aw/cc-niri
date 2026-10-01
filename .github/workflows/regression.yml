@@ -49,3 +49,7 @@ jobs:
         run: cmake --build build/native-viewport-clip
       - name: Build Plasmoid
         run: cmake --build build/plasmoid
+      - name: Run native regression tests
+        run: |
+          ctest --test-dir build/bridge --output-on-failure
+          ctest --test-dir build/native-viewport-clip --output-on-failure

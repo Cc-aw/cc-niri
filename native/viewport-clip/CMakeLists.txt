@@ -17,6 +17,17 @@ find_package(Qt6 6.6 REQUIRED COMPONENTS Core DBus Gui Quick Widgets)
 find_package(KF6 6.0 REQUIRED COMPONENTS CoreAddons)
 find_package(KWin 6.7 REQUIRED COMPONENTS kwineffects)
 
+# Pure production math/state; no KWin or Qt dependency. Window integration is a
+# later phase, and both the plugin and regression test use the same library.
+add_library(cc-niri-viewport-motion STATIC
+    Spring.cpp Spring.h ViewportMotion.cpp ViewportMotion.h
+)
+set_target_properties(cc-niri-viewport-motion PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+target_include_directories(cc-niri-viewport-motion PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
 kcoreaddons_add_plugin(cc-niri-viewport-clip
     SOURCES
         main.cpp
@@ -26,6 +37,7 @@ kcoreaddons_add_plugin(cc-niri-viewport-clip
 )
 
 target_link_libraries(cc-niri-viewport-clip PRIVATE
+    cc-niri-viewport-motion
     Qt6::Core
     Qt6::DBus
     KF6::CoreAddons
@@ -34,6 +46,10 @@ target_link_libraries(cc-niri-viewport-clip PRIVATE
 
 include(CTest)
 if(BUILD_TESTING)
+    add_executable(cc-niri-viewport-motion-tests tests/ViewportMotionTest.cpp)
+    set_target_properties(cc-niri-viewport-motion-tests PROPERTIES AUTOMOC OFF)
+    target_link_libraries(cc-niri-viewport-motion-tests PRIVATE cc-niri-viewport-motion)
+    add_test(NAME viewport-spring-motion COMMAND cc-niri-viewport-motion-tests)
     add_executable(cc-niri-workspace-clip-tests tests/WorkspaceClipBarrierTest.cpp)
     target_include_directories(cc-niri-workspace-clip-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(cc-niri-workspace-clip-tests PRIVATE Qt6::Core)

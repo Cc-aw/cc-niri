@@ -10,14 +10,14 @@
 
 ## 下一阶段目标
 
-2026-10-01 用户明确指定以下两个目标，优先于 Quickshell 后续视觉升级：
+2026-10-01 用户明确指定以下两个目标，并确认先实现 ViewOffset Spring，再实现 Focus Ring；优先于 Quickshell 后续视觉升级：
 
 | 目标 | 设计与起点 |
 | --- | --- |
 | [focus_ring](todo/cc-niri_Focus_Ring_实现设计.md) | 新的主屏原生 Focus Ring；从 Static Native POC、归属判断开始，再接入视觉变换与 retarget。历史 Phase 9.5 的实现仅作背景。 |
-| [viewoffset_spring](todo/cc-niri_niri_viewoffset_spring_implementation.md) | 普通 H/L 使用共享 ViewOffset + Spring；从当前 W0–W9 基线核对及纯 Spring 单元开始，分阶段接入 native 投影。第一版不改 Wide 尺寸动画或 J/K 切换。 |
+| [viewoffset_spring](todo/cc-niri_niri_viewoffset_spring_implementation.md) | 普通 H/L 使用共享 ViewOffset + Spring；[Phase 1 纯数学与状态已实现](../test/VIEWOFFSET_SPRING_PHASE1_RESULTS.md)，尚未接入 H/L；下一阶段发布 SCROLL plan，再分阶段接入 native 投影。第一版不改 Wide 尺寸动画或 J/K 切换。 |
 
-两个目标分别模块化实施与验收。本文记录任务优先级，尚未开始实现或部署。
+两个目标分别模块化实施与验收。Spring 当前仅完成纯单元阶段，Focus Ring 尚未开始；均未部署到日用会话。
 
 ## 已实施
 
