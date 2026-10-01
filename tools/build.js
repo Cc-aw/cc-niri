@@ -58,6 +58,7 @@ const targets = [
         outputPath: "effect/contents/code/main.js",
         modulePaths: [
             "src/kwin/runtime/RuntimeLogger.js",
+            "src/effect/TargetOutput.js",
             "src/effect/MotionTokens.js",
             "src/effect/MotionProfiles.js",
             "src/effect/MotionSampler.js",

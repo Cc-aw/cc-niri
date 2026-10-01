@@ -4,7 +4,7 @@
       xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
   <kcfgfile name=""/>
   <group name="">
-    <entry name="TargetOutputName" type="String"><default>DP-1</default></entry>
+    <entry name="TargetOutputName" type="String"><default></default></entry>
     <entry name="InnerGap" type="Int"><default>8</default></entry>
     <entry name="Duration" type="Int"><default>220</default></entry>
     <entry name="PresentationDuration" type="Int"><default>220</default></entry>

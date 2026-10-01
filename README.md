@@ -135,6 +135,11 @@ upgrade. Until the next Plasma login loads the new binary, capability role
 `1002` remains absent and scrolling safely uses the 20 px right-edge fallback;
 no full-delta motion is enabled on an unconfirmed clip implementation.
 
+The transition effect follows the layout script's target output. `cc-niri start`
+synchronizes its output setting from the script configuration; an empty or
+missing output name selects the leftmost/topmost available output, including
+laptop `eDP-1`. Animation selection does not depend on physical resolution.
+
 The third-party `Geometry Change` KWin effect also animates every script-driven
 parking jump and is incompatible with the Column transition effect. Installation
 temporarily disables it (without uninstalling it); uninstall restores it when it

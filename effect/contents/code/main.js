@@ -62,6 +62,21 @@ class RuntimeLogger {
     }
 }
 
+// Generated from src/effect/TargetOutput.js
+function animationTargetOutput(windows, configuredName) {
+    // Scripted effects expose outputs on EffectWindow.screen. Include native
+    // desktop/panel surfaces so empty primary workspaces retain their output.
+    const outputs = new Map();
+    for (let index = 0; index < windows.length; index += 1) {
+        const screen = windows[index] && windows[index].screen;
+        if (screen && screen.name && screen.geometry) outputs.set(screen.name, screen);
+    }
+    if (configuredName && outputs.has(configuredName)) return configuredName;
+    const ordered = Array.from(outputs.values()).sort((a, b) =>
+        a.geometry.x - b.geometry.x || a.geometry.y - b.geometry.y);
+    return ordered.length ? ordered[0].name : null;
+}
+
 // Generated from src/effect/MotionTokens.js
 const SAFE_RIGHT_EDGE_SLIDE_X = 20;
 const UNARMED_TRANSACTION_TTL_MS = 80;
@@ -985,7 +1000,7 @@ class CCNiriScrollTransition {
     }
 
     loadConfig() {
-        this.targetOutputName = String(effect.readConfig("TargetOutputName", "DP-1"));
+        this.targetOutputName = String(effect.readConfig("TargetOutputName", "")).trim();
         this.innerGap = Math.max(0, Number(effect.readConfig("InnerGap", 8)) || 0);
         this.duration = Math.max(1, animationTime(
             Math.max(1, Number(effect.readConfig("Duration", MotionTokens.spatialMs)) ||
@@ -1130,12 +1145,17 @@ class CCNiriScrollTransition {
             ` staleDelta=${expired.deltaX}`);
     }
 
+    isTargetOutput(window) {
+        return Boolean(window && window.screen && window.screen.name ===
+            animationTargetOutput(effects.stackingOrder, this.targetOutputName));
+    }
+
     pairNeighbor(window, targetRect, side) {
         const opposite = side === "left" ? "right" : "left";
         const viewport = viewportFromSlot(targetRect, side, this.innerGap);
         for (const candidate of effects.stackingOrder) {
             if (candidate === window || !candidate.screen ||
-                    candidate.screen.name !== this.targetOutputName) continue;
+                    !this.isTargetOutput(candidate)) continue;
             const rect = candidate.geometry;
             if (visibleSlot(rect, viewport) === opposite &&
                 Math.abs(rect.y - targetRect.y) < 2 &&
@@ -1164,7 +1184,7 @@ class CCNiriScrollTransition {
     virtualPairEntry(window, wideRect, screenRect, motionTime) {
         for (const candidate of effects.stackingOrder) {
             if (candidate === window || !candidate.screen ||
-                    candidate.screen.name !== this.targetOutputName) continue;
+                    !this.isTargetOutput(candidate)) continue;
             const neighborRect = candidate.geometry;
             const neighborSlot = visibleSlot(neighborRect, screenRect);
             if (!neighborSlot ||
@@ -1196,7 +1216,7 @@ class CCNiriScrollTransition {
 
     geometryChanged(window, oldGeometry) {
         this.releaseWideIsolation(window, "geometry-changed");
-        if (!window.screen || window.screen.name !== this.targetOutputName) {
+        if (!this.isTargetOutput(window)) {
             return;
         }
         const screenRect = window.screen.geometry;

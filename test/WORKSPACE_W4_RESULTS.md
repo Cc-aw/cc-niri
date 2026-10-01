@@ -82,3 +82,22 @@ WorkspaceMembership 改为验证 object + 非负整数 length，然后按索引�
 仅升级 KWin Script 并安全停止/重启；无须重启 Plasma Shell。真实 Bridge 确认普通窗口
 已进入 Columns。连续调用 L/H 后读取 focusedUuid，确认分别移到下一列和上一列，
 不再停留于空 Columns。独立窗口诊断脚本已卸载，未改动窗口 Desktop 归属。
+
+## 内屏 H/L 滚动动画修复（2026-10-01）
+
+用户反馈原 DP 4K 屏正常、内屏 H/L 瞬移。定位到 scripted transition 的默认
+TargetOutputName=DP-1，而布局脚本自动选择 eDP-1；geometryChanged 直接拒绝内屏窗口。
+这不是分辨率或缩放差异。Effect config 默认改为空；启动命令从布局 Script 读取
+TargetOutputName 同步至 Effect。独立 animationTargetOutput 按 EffectWindow.screen 枚举
+输出，包括原生 Desktop/panel surface，使用与 OutputTopology 相同的显式目标优先、
+目标缺失则按 x/y 选择左上输出规则。几何变化与邻列发现复用同一目标过滤。
+
+回归测试对照真实 OutputTopology 检查单 DP、单 eDP、配置缺失与热插拔场景；使用
+Qt 风格非 Array stackingOrder。生产 Effect geometryChanged 的 eDP/DP 测试确认会
+启动 SCROLL Translation，原有 220ms 时长、逻辑位移与 Wide/Pair 行为保持。
+62 个测试文件及三项 native 构建通过。
+
+安全停止后仅升级 scripted Effect 和终端命令，重新启动，不替换 native binary。
+实机在 eDP-1 上越过可见列边界，/Effects.debug 报告多个窗口的 Translation 动画，
+Duration=220ms、continuing/incoming From=940,0 To=0,0。
+窗口处于同一可见 Pair 时仅切换焦点，不应把此情况当作缺少滚动动画。

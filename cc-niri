@@ -65,6 +65,10 @@ start_niri() {
     fi
     systemctl --user enable --now "$SERVICE" >/dev/null
     compatibility start
+    # The layout script owns output selection; keep animation filtering aligned.
+    local target_name
+    target_name="$(kreadconfig6 --file kwinrc --group "Script-${PLUGIN_ID}" --key TargetOutputName --default "")"
+    kwriteconfig6 --file kwinrc --group "Effect-${EFFECT_ID}" --key TargetOutputName "$target_name"
     enable_plugin "$CLIP_ID" true
     enable_plugin "$EFFECT_ID" true
     # Keep the script disabled during reconfigure to avoid an automatic load

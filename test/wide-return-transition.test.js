@@ -108,7 +108,8 @@ let repaints = 0;
 global.Effect = { Opacity: 1, Translation: 2, Scale: 3 };
 global.set = options => { held.push(options); return [17]; };
 global.cancel = ids => cancelled.push(ids);
-global.effects = { addRepaintFull: () => { repaints += 1; } };
+global.effects = { addRepaintFull: () => { repaints += 1; },
+    stackingOrder: [{ screen: { name: "DP-1", geometry: { x: 0, y: 0 } } }] };
 try {
     const transition = Object.create(CCNiriScrollTransition.prototype);
     transition.wideIsolationHolds = new Map();
