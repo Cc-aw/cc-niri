@@ -1,0 +1,129 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PLUGIN_ID=cc-niri-maximize
+EFFECT_ID=cc-niri-maximize-scroll-transition
+CLIP_ID=cc-niri-viewport-clip
+SERVICE=cc-scroll-dock-bridge.service
+COMPAT_GROUP=CCNiriCompatibility
+INSTALLED_MAIN="${XDG_DATA_HOME:-${HOME}/.local/share}/kwin/scripts/${PLUGIN_ID}/contents/code/main.js"
+
+usage() { echo 'Usage: cc-niri {start|stop|restart|status|help}'; }
+fail() { echo "cc-niri: $*" >&2; exit 1; }
+kwin() { local path="$1" method="$2"; shift 2; gdbus call --session --dest org.kde.KWin --object-path "$path" --method "$method" "$@"; }
+script_loaded() {
+    local reply
+    reply="$(kwin /Scripting org.kde.kwin.Scripting.isScriptLoaded "$PLUGIN_ID")" || fail "Cannot query KWin; no components were unloaded."
+    [[ "$reply" == '(true,)' ]]
+}
+enable_plugin() { kwriteconfig6 --file kwinrc --group Plugins --key "${1}Enabled" --type bool "$2"; }
+shortcut() {
+    local names
+    names="$(gdbus call --session --dest org.kde.kglobalaccel --object-path /component/kwin --method org.kde.kglobalaccel.Component.shortcutNames)" || return 1
+    [[ "$names" == *"'$1'"* ]] || return 1
+    gdbus call --session --dest org.kde.kglobalaccel --object-path /component/kwin --method org.kde.kglobalaccel.Component.invokeShortcut "$1";
+}
+
+restore_parked_windows() {
+    # Recovery must execute in the old runtime while all WindowState ownership
+    # still exists, before unloading either the script, effects, or Bridge.
+    local reply
+    if ! shortcut CCScrollEmergencyRestore >/dev/null 2>&1; then
+        reply="$(gdbus call --session --dest org.cc.ScrollDockBridge --object-path /ScrollDock \
+            --method org.cc.ScrollDockBridge1.RequestEmergencyRestore 2>/dev/null || true)"
+        [[ "$reply" == '(true,)' ]] || fail 'Cannot request window recovery; keeping the script loaded.'
+        shortcut CCScrollApplyDockCommand >/dev/null || fail 'Cannot invoke window recovery; keeping the script loaded.'
+    fi
+    sleep 0.3
+}
+
+compatibility() {
+    local mode="$1" effect key
+    while read -r effect key; do
+        if [[ "$mode" == start ]]; then
+            if [[ "$(kreadconfig6 --file kwinrc --group Plugins --key "${effect}Enabled" --default false)" == true ]]; then
+                kwriteconfig6 --file kwinrc --group "$COMPAT_GROUP" --key "$key" --type bool true
+            fi
+            enable_plugin "$effect" false
+            kwin /Effects org.kde.kwin.Effects.unloadEffect "$effect" >/dev/null
+        elif [[ "$(kreadconfig6 --file kwinrc --group "$COMPAT_GROUP" --key "$key" --default false)" == true ]]; then
+            enable_plugin "$effect" true
+            kwin /Effects org.kde.kwin.Effects.loadEffect "$effect" >/dev/null
+        fi
+    done <<'EFFECTS'
+kwin4_effect_geometry_change GeometryChangeWasEnabled
+squash SquashWasEnabled
+magiclamp MagicLampWasEnabled
+EFFECTS
+}
+
+start_niri() {
+    [[ -f "$INSTALLED_MAIN" ]] || fail 'Script is not installed. Run ./install.sh in the repository first.'
+    if script_loaded; then
+        echo 'cc-niri is already loaded. Use cc-niri restart to reload it.'
+        return
+    fi
+    systemctl --user enable --now "$SERVICE" >/dev/null
+    compatibility start
+    enable_plugin "$CLIP_ID" true
+    enable_plugin "$EFFECT_ID" true
+    # Keep the script disabled during reconfigure to avoid an automatic load
+    # racing with the explicit load/run below.
+    enable_plugin "$PLUGIN_ID" false
+    kwin /KWin org.kde.KWin.reconfigure >/dev/null
+    local effect reply script_id
+    for effect in "$CLIP_ID" "$EFFECT_ID"; do
+        reply="$(kwin /Effects org.kde.kwin.Effects.loadEffect "$effect")"
+        [[ "$reply" == '(true,)' ]] || fail "Unable to load effect: $effect"
+    done
+    reply="$(kwin /Scripting org.kde.kwin.Scripting.loadScript "$INSTALLED_MAIN" "$PLUGIN_ID")"
+    [[ "$reply" =~ ^\(([0-9]+),\)$ ]] || fail "Unable to load script: $reply"
+    script_id="${BASH_REMATCH[1]}"
+    kwin "/Scripting/Script${script_id}" org.kde.kwin.Script.run >/dev/null
+    enable_plugin "$PLUGIN_ID" true
+    script_loaded || fail 'KWin did not keep the script loaded.'
+    echo 'cc-niri started. Meta+J: down; Meta+K: up.'
+}
+
+stop_niri() {
+    if script_loaded; then restore_parked_windows; fi
+    enable_plugin "$PLUGIN_ID" false
+    enable_plugin "$EFFECT_ID" false
+    enable_plugin "$CLIP_ID" false
+    if script_loaded; then
+        [[ "$(kwin /Scripting org.kde.kwin.Scripting.unloadScript "$PLUGIN_ID")" == '(true,)' ]] || fail 'Unable to unload script.'
+    fi
+    kwin /Effects org.kde.kwin.Effects.unloadEffect "$EFFECT_ID" >/dev/null
+    kwin /Effects org.kde.kwin.Effects.unloadEffect "$CLIP_ID" >/dev/null
+    compatibility stop
+    kwin /KWin org.kde.KWin.reconfigure >/dev/null
+    systemctl --user disable --now "$SERVICE" >/dev/null 2>&1 || true
+    echo 'cc-niri stopped; parked windows restored.'
+}
+
+status_niri() {
+    local loaded=false enabled effect reply
+    if script_loaded; then loaded=true; fi
+    enabled="$(kreadconfig6 --file kwinrc --group Plugins --key "${PLUGIN_ID}Enabled" --default false)"
+    echo "Script loaded: $loaded; enabled at login: $enabled"
+    for effect in "$EFFECT_ID" "$CLIP_ID"; do
+        reply="$(kwin /Effects org.kde.kwin.Effects.isEffectLoaded "$effect")"
+        echo "$effect: $reply"
+    done
+    echo "Bridge: $(systemctl --user is-active "$SERVICE" || true)"
+}
+
+case "${1:-help}" in
+    help|-h|--help) usage; exit 0 ;;
+    start|stop|restart|status) [[ $# == 1 ]] || { usage >&2; exit 2; } ;;
+    *) usage >&2; exit 2 ;;
+esac
+for dependency in gdbus kwriteconfig6 kreadconfig6 systemctl; do
+    command -v "$dependency" >/dev/null || fail "$dependency is required."
+done
+case "$1" in
+    start) start_niri ;;
+    stop) stop_niri ;;
+    restart) stop_niri; start_niri ;;
+    status) status_niri ;;
+esac

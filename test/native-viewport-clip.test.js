@@ -44,12 +44,8 @@ assert.match(source,
 assert.match(cmake, /KWin::kwin/);
 assert.match(cmake, /INSTALL_NAMESPACE "kwin\/effects\/plugins"/);
 assert.match(install, /cmake --install "\$\{NATIVE_CLIP_BUILD_DIR\}"/);
-assert.match(install, /loadEffect "\$\{NATIVE_CLIP_EFFECT_ID\}"/);
-assert.match(
-    install,
-    /Effects\.loadEffect "\$\{NATIVE_CLIP_EFFECT_ID\}"[\s\S]*?Effects\.loadEffect "\$\{EFFECT_ID\}"/,
-    "the native effect loads before the scripted effect reads capability markers"
-);
+assert.ok(install.includes('"${SCRIPT_DIR}/cc-niri" start'),
+    "deployment loads native and scripted effects through the shared control command");
 assert.match(uninstall, /unloadEffect "\$\{NATIVE_CLIP_EFFECT_ID\}"/);
 assert.match(uninstall, /rm -f -- "\$\{NATIVE_CLIP_EFFECT_PATH\}"/);
 

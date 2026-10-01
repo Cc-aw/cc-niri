@@ -106,6 +106,30 @@ Plasma applet. It disables both the obsolete custom Focus Ring and the global
 Dim Inactive effect, reloads KWin components, and restarts Plasma Shell so the
 compiled applet is loaded.
 
+The installer also installs `~/.local/bin/cc-niri`. For daily control from any
+terminal (no rebuild or Plasma Shell restart):
+
+```bash
+cc-niri start
+cc-niri stop
+cc-niri restart
+cc-niri status
+```
+
+`stop` restores script-owned parked windows across all workspaces before
+unloading the script and effects, then stops the Bridge. It disables automatic
+startup; `start` enables it again. Compatibility effects saved during installation
+are restored on stop and disabled again on start. If window recovery cannot be
+requested, stop exits without unloading the script. `status` reports KWin's loaded
+script/effects, login enablement, and Bridge status. After using the emergency
+restore shortcut, use `restart` to reactivate layout.
+
+If `~/.local/bin` is absent from your terminal's PATH, use
+`~/.local/bin/cc-niri` or the repository's `./cc-niri` directly. This Workspace
+branch binds `Meta+J` to the next desktop (down) and `Meta+K` to the previous
+(up), without wrapping. KDE's desktop layout must be one column for vertical
+animation. Workspace snapshots remain in memory until W5 persistence is added.
+
 KWin can retain an already loaded native effect library across an in-place
 upgrade. Until the next Plasma login loads the new binary, capability role
 `1002` remains absent and scrolling safely uses the 20 px right-edge fallback;

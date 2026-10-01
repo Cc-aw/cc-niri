@@ -41,10 +41,28 @@ Wide 旧 ACK 在等待与挂载后不能写 geometry、超时重挂载、旧 epo
 
 ## 边界与主屏实机验收
 
-未部署日用脚本，尚未做 W4 实机视觉验收；本机 native 构建不代表远程 CI。
+本阶段提交时未部署日用脚本；本轮后续部署记录见下节。W4 实机视觉验收尚未完成；本机 native 构建不代表远程 CI。
 下一次主屏测试使用 Meta+J 向下、Meta+K 向上，检查 1 → 2 → 1 的列顺序、焦点、
 滚动锚点及 Dock；快速连按、Wide/Dock scroll 中切换、切换时新增/关闭窗口，以及 emergency。
 现有单内屏即可验收，不以双屏为前提。
 
 Snapshot 当前仅在脚本运行内保存；跨 Reload 的多 Workspace Bridge 持久化留到 W5。
 完整窗口 transfer 留到 W6；Effect motion/clip 清理留到 W7。
+
+## 部署与终端控制（2026-10-01）
+
+按用户要求执行完整 `./install.sh`，W4 已部署到当前用户 KWin Script。
+新增 `~/.local/bin/cc-niri start|stop|restart|status`，仓库 `./cc-niri` 同样可用。
+Installer 在全部 build 成功后先恢复/停止旧 runtime，再替换 native binary 和 packages；
+Uninstaller 复用同一 stop 路径。日常启停不重新编译或重启 Plasma Shell。
+
+部署后实际执行一次 `./cc-niri restart`，关闭与重新启动成功。status 确认 Script loaded=true、
+登录启用=true、transition/viewport-clip 两特效已加载、Bridge active。
+安装的 main.js 与仓库 W4 bundle 完全一致；终端命令与仓库内容完全一致。
+Meta+J/K 已注册并写入 KGlobalAccel 配置。Bridge 已发布主屏 eDP-1、Workspace 1 的初始状态。
+部署日志未发现本轮 workspace failure、invariant failure 或 JavaScript 运行异常。
+
+终端控制 mock 测试验证恢复→卸载→Bridge stop 顺序、恢复失败拒绝卸载、
+D-Bus 查询失败拒绝继续、重复 start/stop、targeted Script.run、先 native 后 scripted effect、restart 和 status。
+新增控制测试后的完整 gate 为 61 个测试文件、三项 native 构建通过。
+用户接下来进行主屏 Workspace 上下切换与窗口布局的视觉验收。

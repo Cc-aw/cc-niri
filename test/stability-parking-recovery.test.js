@@ -114,18 +114,14 @@ assert.ok(mainSource.includes(
 assert.ok(mainSource.includes("this.handlers[command.type](command)"));
 assert.ok(bridgeHeader.includes("bool RequestEmergencyRestore();"));
 assert.ok(bridgeSource.includes("ScrollDockBridge::RequestEmergencyRestore()"));
-for (const [name, source] of [
-    ["install", installSource],
-    ["uninstall", uninstallSource],
-]) {
-    assert.ok(source.includes("restore_parked_windows"),
-        `${name} must request recovery before unloading the script`);
-    assert.ok(source.includes("RequestEmergencyRestore"));
-    assert.ok(source.includes("CCScrollApplyDockCommand"));
-    assert.ok(source.includes("restore_attempt < 10"),
-        `${name} waits for the bridge to acquire the current KWin session`);
-    assert.ok(source.includes('restore_action="CCScrollEmergencyRestore"'),
-        `${name} has a direct recovery fallback when the bridge is unavailable`);
+const controlSource = fs.readFileSync(path.join(root, "cc-niri"), "utf8");
+for (const source of [installSource, uninstallSource]) {
+    assert.ok(source.includes('"${SCRIPT_DIR}/cc-niri" stop'),
+        "deployment and uninstall use the shared recovery/stop command");
 }
+assert.ok(controlSource.includes("restore_parked_windows"));
+assert.ok(controlSource.includes("RequestEmergencyRestore"));
+assert.ok(controlSource.includes("CCScrollApplyDockCommand"));
+assert.ok(controlSource.includes("CCScrollEmergencyRestore"));
 
 console.log("PASS stability parking ownership and emergency recovery");
