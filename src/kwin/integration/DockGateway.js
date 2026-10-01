@@ -34,6 +34,11 @@ class DockGateway {
             "GetState", callback);
     }
 
+    ensureVerticalDesktopLayout(count, callback) {
+        this.invoke(this.service, this.path, this.interfaceName,
+            "EnsureVerticalDesktopLayout", count, callback);
+    }
+
     envelopeSnapshot(snapshot) {
         return Object.assign({}, snapshot, {
             protocol: this.snapshotProtocol,

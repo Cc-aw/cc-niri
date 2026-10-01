@@ -161,9 +161,12 @@ monitor, cc-niri appends one empty desktop. Normal, Floating, Fullscreen,
 minimized and dialog windows count; non-sticky multi-desktop windows count on
 each assigned desktop. Sticky windows and Plasma shell surfaces do not count.
 Desktop creation preserves the current desktop, focus and column layout.
+With W8 enabled, startup and desktop-count changes also keep KDE's grid at one
+column (`rows = desktop count`) so J/K retains vertical animation as it grows.
 Existing empty desktops remain, and closing windows never deletes desktops.
 
-After deploying W8, enable it in the script configuration or from a terminal:
+Deploy Script and Bridge together with `./install.sh`. Then enable W8 in the
+script configuration or from a terminal:
 
 ```bash
 kwriteconfig6 --file kwinrc --group Script-cc-niri-maximize \

@@ -14,6 +14,7 @@
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QDBusPendingCall>
+#include <QDBusVariant>
 
 Q_LOGGING_CATEGORY(logBridge, "cc.scroll.dock.bridge")
 
@@ -253,6 +254,34 @@ bool ScrollDockBridge::ReportMotionParked(const QString &json)
     Q_EMIT MotionParked(QString::fromUtf8(
         document.toJson(QJsonDocument::Compact)));
     return true;
+}
+
+bool ScrollDockBridge::EnsureVerticalDesktopLayout(int expectedCount)
+{
+    if (expectedCount <= 0) return false;
+    const auto bus = QDBusConnection::sessionBus();
+    const QString interface = QStringLiteral("org.kde.KWin.VirtualDesktopManager");
+    const auto property = [&](const QString &name, uint &value) {
+        auto message = QDBusMessage::createMethodCall(QStringLiteral("org.kde.KWin"),
+            QStringLiteral("/VirtualDesktopManager"), QStringLiteral("org.freedesktop.DBus.Properties"),
+            QStringLiteral("Get"));
+        message.setArguments({interface, name});
+        const auto reply = bus.call(message, QDBus::Block, 1000);
+        if (reply.type() != QDBusMessage::ReplyMessage || reply.arguments().size() != 1) return false;
+        bool ok = false;
+        value = reply.arguments().first().value<QDBusVariant>().variant().toUInt(&ok);
+        return ok;
+    };
+    uint count = 0, rows = 0;
+    // Reject delayed requests for a topology that KDE has already replaced.
+    if (!property(QStringLiteral("count"), count) || count != static_cast<uint>(expectedCount) ||
+        !property(QStringLiteral("rows"), rows)) return false;
+    if (rows == count) return true;
+    auto message = QDBusMessage::createMethodCall(QStringLiteral("org.kde.KWin"),
+        QStringLiteral("/VirtualDesktopManager"), QStringLiteral("org.freedesktop.DBus.Properties"),
+        QStringLiteral("Set"));
+    message.setArguments({interface, QStringLiteral("rows"), QVariant::fromValue(QDBusVariant(count))});
+    return bus.call(message, QDBus::Block, 1000).type() == QDBusMessage::ReplyMessage;
 }
 
 QString ScrollDockBridge::GetState() const

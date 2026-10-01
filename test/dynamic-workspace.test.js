@@ -6,12 +6,13 @@ function fixture(options = {}) {
     const output = { name: "eDP-1" };
     let desktops = [{ id: "A" }, { id: "B" }];
     let windows = [];
-    const timers = new Set(), calls = [], warnings = [];
+    const timers = new Set(), calls = [], warnings = [], rows = [];
     let ready = true;
     const controller = new DynamicWorkspaceController({
         enabled: true, isReady: () => ready, getTargetOutput: () => output,
         getDesktops: () => desktops, getWindows: () => windows,
         membership: new WorkspaceMembership(),
+        ensureVerticalLayout: count => rows.push(count),
         createDesktop: (position, name) => {
             calls.push({ position, name });
             desktops.push({ id: `new-${calls.length}` });
@@ -21,7 +22,7 @@ function fixture(options = {}) {
         clearTimer: timer => timers.delete(timer), warn: message => warnings.push(message),
         ...options,
     });
-    return { controller, output, calls, warnings, timers,
+    return { controller, output, calls, warnings, timers, rows,
         window: (desktop = "B", values = {}) => ({ managed: true, normalWindow: true, output,
             desktops: [{ id: desktop }], ...values }),
         setWindows: value => { windows = value; }, setDesktops: value => { desktops = value; },
@@ -36,13 +37,16 @@ function fixture(options = {}) {
 {
     const f = fixture(); f.setWindows([f.window("A")]); f.controller.request(); f.flush();
     assert.equal(f.calls.length, 0, "existing trailing empty desktop suffices");
+    assert.equal(f.rows.at(-1), 2, "startup synchronizes rows even without creation");
     f.setWindows([f.window()]); for (let i = 0; i < 10; ++i) f.controller.request();
     assert.equal(f.timers.size, 1); f.flush(); f.flush();
     assert.deepEqual(f.calls, [{ position: 2, name: "" }], "append exactly once, including synchronous signals");
+    assert.equal(f.rows.at(-1), 3, "creation immediately synchronizes vertical layout with the new count");
     f.setWindows([]); f.controller.request(); f.flush();
     assert.equal(f.calls.length, 1, "closing windows never deletes or adds desktops");
     f.setWindows([f.window("new-1")]); f.controller.request(); f.flush(); f.flush();
     assert.equal(f.calls.length, 2, "occupying the new last desktop appends another empty one");
+    assert.equal(f.rows.at(-1), 4);
 }
 for (const properties of [
     { floating: true }, { fullScreen: true }, { minimized: true },

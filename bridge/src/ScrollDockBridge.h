@@ -20,6 +20,7 @@ public Q_SLOTS:
     bool ReportMotionComplete(const QString &json);
     bool ReportMotionParked(const QString &json);
     QString GetState() const;
+    bool EnsureVerticalDesktopLayout(int expectedCount);
     bool RequestReorder(const QString &json);
     bool RequestCommand(const QString &json);
     bool RequestDeferredCommand(const QString &json, int delayMs);

@@ -26,6 +26,7 @@ const timers = [];
 const shortcuts = new Map();
 const requests = [];
 const desktopCreates = [];
+const desktopRows = [];
 class Timer {
     constructor() { this.timeout = signal(); timers.push(this); }
     start() { this.running = true; }
@@ -78,6 +79,7 @@ const context = vm.createContext({ workspace, QTimer: Timer,
     callDBus: (_service, _path, _interface, method, ...args) => {
         const callback = args.at(-1);
         if (method === "GetState") callback("");
+        else if (method === "EnsureVerticalDesktopLayout") { desktopRows.push(args[0]); callback(true); }
         else if (method === "PublishState") { published.push(JSON.parse(args[0])); callback(true); }
         else if (method === "PublishMotionPlan") motionAcks.push(callback);
         else if (method === "RequestDeferredCommand") { deferred.push(JSON.parse(args[0])); callback(true); }
@@ -98,7 +100,7 @@ function nativeSwitch(index, active) {
     assert.equal(logs.filter(line => /BEGIN epoch=.*reason=workspace-mount/.test(line)).length, batches + 1,
         "native desktop changes issue one relayout, including empty workspaces");
 }
-return { evaluate, state, ids, nativeSwitch, desktops, desktopCreates, output, workspace, a, b, published, motionAcks, timers, shortcuts, logs,
+return { evaluate, state, ids, nativeSwitch, desktops, desktopCreates, desktopRows, output, workspace, a, b, published, motionAcks, timers, shortcuts, logs,
     move(window, ids) { window.desktops = ids.map(id => desktops.find(d => d.id === id)); window.onAllDesktops = !ids.length; window.desktopsChanged.emit(); },
     add(uuid, index, properties = {}) { const window = Object.assign(windowFor(uuid, desktops[index]), properties); windows.push(window); workspace.windowAdded.emit(window); return window; },
     close(window) { windows = windows.filter(w => w !== window); window.closed.emit(); },

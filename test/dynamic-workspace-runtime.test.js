@@ -12,6 +12,7 @@ function setup(config) {
 {
     const r = setup(); r.add("last-desktop", 2); r.flush();
     assert.equal(r.calls.length, 0, "default runtime never creates desktops");
+    assert.equal(r.desktopRows.length, 0, "disabled feature does not change KDE's grid");
 }
 {
     const r = setup({ DynamicTrailingWorkspace: true }); r.flush();
@@ -20,6 +21,7 @@ function setup(config) {
     const columns = r.ids();
     const window = r.add("last-desktop", 2); r.flush(); r.flush();
     assert.deepEqual(r.calls, [{ position: 3, name: "" }]);
+    assert.equal(r.desktopRows.at(-1), 4, "production create path requests one column immediately");
     assert.equal(r.workspace.currentDesktop.id, "A");
     assert.equal(r.workspace.activeWindow, focus); assert.deepEqual(r.ids(), columns);
     assert.equal(r.evaluate("workspaceSnapshots.workspaceForWindow('last-desktop')"), "C");

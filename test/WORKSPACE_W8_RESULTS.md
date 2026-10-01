@@ -73,3 +73,40 @@ TypeError、ReferenceError 或 trailing desktop unavailable。
 日志 `/tmp/cc-niri-w8-deploy.log`、`/tmp/cc-niri-w8-live.log`，逐步快照
 `/tmp/cc-niri-live-results/w8-*.json`。Floating/Fullscreen 占用与关闭选项的行为已离线验证，
 本轮没有另做其专门实机用例；不把这些用例记为实机通过。
+
+## 新增桌面后的纵向布局修复
+
+用户随后反馈按 J 向右切换。读取真实 VirtualDesktopManager 得到 count=5、rows=2；
+W8 只创建了桌面，没有同步 KDE 行数，导致网格增加了列。此前实机检查只验证桌面
+UUID 导航和 Dock，漏掉了网格行列与动画方向，这是 W8 的接线遗漏。
+
+先通过 KWin Properties.Set 将当前 rows 设置为 5，恢复 5 行 1 列。永久修复在 W8
+启动检查、拓扑确认及同步 createDesktop 返回后，请求 rows=当前桌面数。
+Bridge 新增 EnsureVerticalDesktopLayout，读取 KDE 实际 count 后拒绝过期请求，
+相同行数幂等返回，否则通过 unsigned D-Bus variant 设置原生 rows。只同步网格，
+不更改桌面 UUID、顺序、当前桌面或窗口；关闭 W8 后不强制网格。
+
+新增模块/生产 bundle 回归断言及隔离 D-Bus mock KWin 集成测试，覆盖追加后行数、
+启动已有桌面、disabled 不写网格、unsigned variant、过期数量、幂等与 KWin 缺失。
+完整 `node tools/check.js --native` 通过：69 个 JS 测试文件、Bridge 3 项 CTest、隔离
+Bridge 持久化与新增网格同步两项 D-Bus 集成测试、clip 2 项 CTest 及三项 native 构建。
+生产 Script 已改为通过 DockGateway 发送新增 IPC，保留项目网关架构约束。
+
+修复已通过 ./install.sh 同时部署 Script 与 Bridge。约 19:16–19:17 主屏实机 7 项检查通过：
+
+1. 将旧 rows=2 场景暂时复现后 restart 自动恢复 rows=5。
+2. 真实测试窗口移入末尾后追加一个桌面（5 → 6）。
+3. 新增后自动 rows=6，保持一列。
+4. J 进入新桌面时网格仍为一列。
+5. K 返回原前一桌面。
+6. 关闭测试窗口后，显式清理本次新建且已确认没有窗口的测试桌面，恢复原 5 个 UUID；
+   W8 随拓扑变化自动恢复 rows=5。这是测试工件清理，不是 W8 自动删除行为。
+7. 恢复原列顺序、焦点和 viewportAnchor。
+
+当前 count=5 / rows=5，组件保持启用；测试窗口、探针和接收器已退出。未将自动状态
+检查当作逐帧视觉观察，动画方向仍可由用户按 J/K 确认。
+自 19:15:00 起未发现新增 KWin core dump。19:17:01 追加过程中出现一次
+vertical desktop layout not confirmed 警告；创建前数量的异步请求可能在创建后被拒绝，
+后续实测 rows=6，以及清理后 rows=5 均通过。未把本轮日志记为完全没有警告。
+门禁、部署与实机日志分别为 `/tmp/cc-niri-w8-vertical-check.log`、
+`/tmp/cc-niri-w8-vertical-deploy.log`、`/tmp/cc-niri-w8-vertical-live.log`。

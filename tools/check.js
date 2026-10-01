@@ -42,6 +42,7 @@ if (native) {
     run("Bridge native build", "cmake", ["--build", "build/bridge"]);
     run("Bridge native persistence tests", "ctest", ["--test-dir", "build/bridge", "--output-on-failure"]);
     run("Bridge isolated DBus restart tests", "dbus-run-session", ["--", "python3", "test/bridge-persistence-integration.py", "build/bridge/cc-scroll-dock-bridge"]);
+    run("Bridge isolated vertical workspace tests", "dbus-run-session", ["--", "python3", "test/bridge-workspace-layout-integration.py", "build/bridge/cc-scroll-dock-bridge"]);
     run("Viewport clip native build", "cmake", ["--build", "build/native-viewport-clip"]);
     run("Viewport clip workspace barrier tests", "ctest", ["--test-dir", "build/native-viewport-clip", "--output-on-failure"]);
     run("Plasmoid native build", "cmake", ["--build", "build/plasmoid"]);

@@ -950,7 +950,11 @@ class DynamicWorkspaceController {
             }
             this.pendingTopology = null;
         }
-        if (!this.isReady() || this.failedTopology === key) return false;
+        if (!this.isReady()) return false;
+        // KDE keeps its row count when desktops are appended. One column
+        // requires rows=count, including existing desktops at startup.
+        this.ensureVerticalLayout(ids.length);
+        if (this.failedTopology === key) return false;
         const output = this.getTargetOutput();
         if (!output) return false;
         const windows = this.getWindows();
@@ -972,6 +976,9 @@ class DynamicWorkspaceController {
         }, 1000);
         try {
             this.createDesktop(ids.length, "");
+            // Synchronous creation must repair the grid before the next J/K;
+            // delayed creation is handled by the confirmation check above.
+            if (!this.stopped) this.ensureVerticalLayout(this.desktopIds().length);
         } catch (error) {
             this.clearTimer(this.timer);
             this.timer = null;
@@ -3171,6 +3178,11 @@ class DockGateway {
             "GetState", callback);
     }
 
+    ensureVerticalDesktopLayout(count, callback) {
+        this.invoke(this.service, this.path, this.interfaceName,
+            "EnsureVerticalDesktopLayout", count, callback);
+    }
+
     envelopeSnapshot(snapshot) {
         return Object.assign({}, snapshot, {
             protocol: this.snapshotProtocol,
@@ -4664,6 +4676,10 @@ dynamicWorkspaceController = new DynamicWorkspaceController({
     membership: workspaceMembership,
     createDesktop: typeof workspace.createDesktop === "function"
         ? (position, name) => workspace.createDesktop(position, name) : null,
+    ensureVerticalLayout: count => dockGateway.ensureVerticalDesktopLayout(
+        count, accepted => {
+            if (!accepted) warn("[cc-workspace] vertical desktop layout not confirmed");
+        }),
     setTimer: setRuntimeTimer,
     clearTimer: clearRuntimeTimer,
     warn,
