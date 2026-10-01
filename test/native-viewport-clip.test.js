@@ -43,7 +43,8 @@ assert.match(source,
     "outgoing Pair-to-Wide motion repaints its compositor-only translation");
 assert.match(cmake, /KWin::kwin/);
 assert.match(cmake, /INSTALL_NAMESPACE "kwin\/effects\/plugins"/);
-assert.match(install, /cmake --install "\$\{NATIVE_CLIP_BUILD_DIR\}"/);
+assert.ok(install.includes('"${SCRIPT_DIR}/tools/install-native-clip.py"'),
+    "native deployment uses an immutable canonical library path");
 assert.ok(install.includes('"${SCRIPT_DIR}/cc-niri" start'),
     "deployment loads native and scripted effects through the shared control command");
 assert.match(uninstall, /unloadEffect "\$\{NATIVE_CLIP_EFFECT_ID\}"/);

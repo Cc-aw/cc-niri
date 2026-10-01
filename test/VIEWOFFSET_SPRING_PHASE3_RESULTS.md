@@ -54,3 +54,9 @@ incoming/outgoing 仍由旧 Scripted Effect 播放；它们与 continuing 的曲
 
 下一步 Phase 4：incoming 从 parked → visible 后使用 native projection，并关闭其旧
 Translation / Scale / Opacity；Phase 5 再处理 outgoing 的 deferred park。
+
+## 后续实机部署
+
+2026-10-01 23:02 起完成第三阶段部署，详见[内屏验收记录](VIEWOFFSET_SPRING_PHASE3_LIVE_RESULTS.md)。
+上面的“本轮没有安装”描述的是 `07591a9` 开发提交完成时的状态；本次验收中发现并修复
+原生库热加载复用问题，确认 native ARM 和工作区清理正常。滚动中间距变化仍待 Phase 4/5。

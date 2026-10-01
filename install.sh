@@ -47,18 +47,18 @@ if [[ -z "$(find /usr/lib /usr/lib64 \
 fi
 
 
-cmake -S "${NATIVE_CLIP_DIR}" -B "${NATIVE_CLIP_BUILD_DIR}" -G Ninja \
+cmake -S "${NATIVE_CLIP_DIR}" -B "${NATIVE_CLIP_BUILD_DIR}" \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DCMAKE_INSTALL_PREFIX="${HOME}/.local" \
     -DKDE_INSTALL_PLUGINDIR=lib64/qt6/plugins
 cmake --build "${NATIVE_CLIP_BUILD_DIR}"
 
-cmake -S "${BRIDGE_DIR}" -B "${BRIDGE_BUILD_DIR}" -G Ninja \
+cmake -S "${BRIDGE_DIR}" -B "${BRIDGE_BUILD_DIR}" \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DCMAKE_INSTALL_PREFIX="${HOME}/.local"
 cmake --build "${BRIDGE_BUILD_DIR}"
 
-cmake -S "${PLASMOID_DIR}" -B "${PLASMOID_BUILD_DIR}" -G Ninja \
+cmake -S "${PLASMOID_DIR}" -B "${PLASMOID_BUILD_DIR}" \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DCMAKE_INSTALL_PREFIX="${HOME}/.local" \
     -DKDE_INSTALL_PLUGINDIR=lib64/qt6/plugins
@@ -67,7 +67,8 @@ cmake --build "${PLASMOID_BUILD_DIR}"
 # Preserve protocol 1/2 data before stopping the old Bridge during an upgrade.
 "${BRIDGE_BUILD_DIR}/cc-scroll-dock-bridge" --save-current-state
 "${SCRIPT_DIR}/cc-niri" stop
-cmake --install "${NATIVE_CLIP_BUILD_DIR}"
+python3 "${SCRIPT_DIR}/tools/install-native-clip.py" \
+    "${NATIVE_CLIP_BUILD_DIR}" "${HOME}/.local"
 cmake --install "${BRIDGE_BUILD_DIR}"
 cmake --install "${PLASMOID_BUILD_DIR}"
 install -Dm755 "${SCRIPT_DIR}/cc-niri" "${HOME}/.local/bin/cc-niri"
