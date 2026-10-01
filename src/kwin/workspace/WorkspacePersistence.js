@@ -53,8 +53,10 @@ class WorkspacePersistence {
     snapshot(active) {
         return Object.assign({}, active, {
             workspaces: this.snapshots.all().map(snapshot => {
-                const { workspaceId, ...data } = snapshot;
-                return Object.assign({ id: workspaceId }, data);
+                // KWin's QJSEngine does not parse object rest destructuring.
+                const data = Object.assign({}, snapshot);
+                delete data.workspaceId;
+                return Object.assign({ id: snapshot.workspaceId }, data);
             }),
         });
     }

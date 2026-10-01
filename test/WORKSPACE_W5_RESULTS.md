@@ -1,7 +1,7 @@
 # W5 — Bridge 多 Workspace 持久化
 
 2026-10-01，feature/workspace-stack。主屏布局；W4 内屏动画修复已获用户确认。
-本阶段实现源代码和自动验证，未部署到当前日用会话。
+本阶段已部署到当前日用会话，完成 eDP-1 单主屏的自动实机验收。
 
 ## 保存与恢复
 
@@ -57,12 +57,30 @@ Bridge CTest 及独立 D-Bus integration 通过；Bridge / Viewport clip / Plasm
   protocol 1/2 持久化、进程停止/重启、故障缓存，以及部署交接写盘失败的非零退出。
   使用临时 XDG_STATE_HOME 和独立总线，不触碰真实桌面或用户保存目录。
 
-## 主屏实机验收准备
+## 主屏实机部署与验收
 
-首次部署需运行完整 ./install.sh，同步升级 Script、Bridge、Dock reader。
-当前日用仍为已确认动画恢复的 W4。
+运行完整 ./install.sh 升级 Script、Bridge、Dock reader，并重启 Plasma Shell。
+首次启动暴露 QJSEngine 不支持对象剩余解构，改成 Object.assign 拷贝并删除 workspaceId 后
+重新部署成功。新增原生 QJSEngine 编译生产 Script/Effect bundle 的 CTest：旧 bundle
+可复现语法失败，修复后通过。完整回归门禁仍为 65 个 JS 测试文件，两个 CTest 与隔离
+D-Bus integration 全部通过。
 
-A/B 分别调整列顺序、焦点、滚动位置、列宽或 Wide 偏好；切到其中一个后执行
-cc-niri restart，确认当前桌面不被改变，再往返两工作区检查保存的状态。
-继续检查关闭窗口、新窗口、Sticky 转换、空工作区、Dock 命令和 H/L 动画。
-只需笔记本内屏；不包含恢复上次登录的应用程序启动，也不将 W6 transfer/W7 Effect 清理判为 W5 项。
+- Script loaded、登录启用、scroll transition Effect、native viewport clip 均为 true，Bridge active。
+- W4 protocol 1 的桌面 A 五个窗口顺序、half 宽度、焦点、anchor 和当前 Wide 推导出的
+  persistentWide 偏好迁移到 protocol 2；磁盘 workspaces.json 与实时 GetState 相同。
+- 临时调整 A 列顺序并滚动，切到空桌面 B 执行 cc-niri restart：session 更新，KDE 实际
+  Desktop 仍为 B，休眠 A 的 order/width/Wide/focus/anchor Snapshot 完整保留。
+  返回 A 挂载保存的非默认列顺序与偏好。
+- 单独重启 Bridge：缓存 GetState 与重启前一致；KWin 后续重新发布建立 live session，
+  磁盘与实时快照再次一致。
+- 在 B 创建两个独立 Konsole 临时窗口，调整列顺序及 Wide 后重启 cc-niri：两个窗口的
+  非默认顺序与 persistentWide 恢复。切回 A 关闭 B 的一个窗口，再切入 B 时移除关闭 UUID；
+  关闭另一个后 B 回到空列，磁盘同步保存空状态。
+- 通过实际 KGlobalAccel H/L 动作触发滚动，Effects.debug 报告 eDP-1 当前窗口的 Translation，
+  Duration 220 ms、940 px 位移。此项确认动画运行，视觉流畅度仍需用户观察。
+- 已关闭全部临时窗口，恢复原桌面 A、原五列顺序、ChatGPT 焦点与 Wide 展示。
+
+实机验证只使用笔记本内屏。third/twoThirds 宽度、Sticky、多 Desktop 与非法缓存由自动回归
+覆盖，本轮未在日用窗口上修改。Dock reader 已随 Plasma 重启加载，并消费 protocol 2；
+鼠标拖动、点击与视觉效果仍需人工体验。不包含恢复应用程序启动，W6 transfer/W7 Effect
+清理不在 W5 验收范围内。

@@ -23,6 +23,12 @@ install(TARGETS cc-scroll-dock-bridge
 
 include(CTest)
 if(BUILD_TESTING)
+    find_package(Qt6 6.6 REQUIRED COMPONENTS Qml)
+    qt_add_executable(cc-niri-kwin-syntax-tests tests/KWinSyntaxTest.cpp)
+    target_link_libraries(cc-niri-kwin-syntax-tests PRIVATE Qt6::Core Qt6::Qml)
+    add_test(NAME kwin-javascript-syntax COMMAND cc-niri-kwin-syntax-tests
+        "${CMAKE_CURRENT_SOURCE_DIR}/../package/contents/code/main.js"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../effect/contents/code/main.js")
     qt_add_executable(cc-scroll-dock-bridge-tests
         tests/ScrollDockBridgeTest.cpp src/ScrollDockBridge.cpp src/ScrollDockBridge.h)
     target_include_directories(cc-scroll-dock-bridge-tests PRIVATE src)
