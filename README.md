@@ -155,6 +155,27 @@ the active desktop. Sleeping desktop geometry cannot restart scroll animations;
 late cancelled group callbacks cannot prematurely finish a fresh animation.
 Vertical workspace animation continues to use KDE's native desktop effect.
 
+W8 adds the optional **Keep an empty workspace at the end** setting, disabled by
+default. When the last KDE desktop contains application windows on the target
+monitor, cc-niri appends one empty desktop. Normal, Floating, Fullscreen,
+minimized and dialog windows count; non-sticky multi-desktop windows count on
+each assigned desktop. Sticky windows and Plasma shell surfaces do not count.
+Desktop creation preserves the current desktop, focus and column layout.
+Existing empty desktops remain, and closing windows never deletes desktops.
+
+After deploying W8, enable it in the script configuration or from a terminal:
+
+```bash
+kwriteconfig6 --file kwinrc --group Script-cc-niri-maximize \
+  --key DynamicTrailingWorkspace --type bool true
+cc-niri restart
+```
+
+Set the same key to `false` and restart to return to fixed desktops; already
+created desktops remain available in KDE Settings. If KDE refuses creation or
+the API is unavailable, cc-niri logs one warning for that desktop topology and
+continues without repeatedly requesting new desktops.
+
 KWin can retain an already loaded native effect library across an in-place
 upgrade. Until the next Plasma login loads the new binary, capability role
 `1002` remains absent and scrolling safely uses the 20 px right-edge fallback;

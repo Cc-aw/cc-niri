@@ -10,7 +10,7 @@ function signal() {
         emit: (...values) => Array.from(handlers).forEach(fn => fn(...values)) };
 }
 
-function createRuntime() {
+function createRuntime(config = {}) {
 const desktops = [{ id: "A" }, { id: "B" }, { id: "C" }];
 const output = { name: "eDP-1", geometry: { x: 0, y: 0, width: 2560, height: 1440 }, geometryChanged: signal() };
 let current = desktops[0];
@@ -25,6 +25,7 @@ let pendingCommand = "";
 const timers = [];
 const shortcuts = new Map();
 const requests = [];
+const desktopCreates = [];
 class Timer {
     constructor() { this.timeout = signal(); timers.push(this); }
     start() { this.running = true; }
@@ -54,6 +55,11 @@ const b = [windowFor("b0", desktops[1]), windowFor("b1", desktops[1])];
 windows = [...a, ...b];
 activeWindow = a[0]; a[0].active = true;
 const workspace = { desktops, screens: [output], currentDesktopForScreen: () => current,
+    createDesktop(position, name) {
+        desktopCreates.push({ position, name });
+        desktops.splice(position, 0, { id: `D${desktopCreates.length}` });
+        workspace.desktopsChanged.emit();
+    },
     get currentDesktop() { return current; }, windowList: () => windows,
     windowAdded: signal(), windowActivated: signal(), currentDesktopChanged: signal(), desktopsChanged: signal(),
     screensChanged: signal(), screenOrderChanged: signal(), virtualScreenGeometryChanged: signal(),
@@ -66,7 +72,8 @@ Object.defineProperty(workspace, "activeWindow", { get: () => activeWindow, set:
     workspace.windowActivated.emit(window);
 } });
 const context = vm.createContext({ workspace, QTimer: Timer,
-    readConfig: (key, fallback) => key === "DebugLogging" ? true : fallback,
+    readConfig: (key, fallback) => Object.prototype.hasOwnProperty.call(config, key)
+        ? config[key] : key === "DebugLogging" ? true : fallback,
     registerShortcut: (name, _description, _sequence, handler) => shortcuts.set(name, handler), console: { info: message => logs.push(message), warn: message => logs.push(message) },
     callDBus: (_service, _path, _interface, method, ...args) => {
         const callback = args.at(-1);
@@ -91,7 +98,7 @@ function nativeSwitch(index, active) {
     assert.equal(logs.filter(line => /BEGIN epoch=.*reason=workspace-mount/.test(line)).length, batches + 1,
         "native desktop changes issue one relayout, including empty workspaces");
 }
-return { evaluate, state, ids, nativeSwitch, desktops, output, workspace, a, b, published, motionAcks, timers, shortcuts, logs,
+return { evaluate, state, ids, nativeSwitch, desktops, desktopCreates, output, workspace, a, b, published, motionAcks, timers, shortcuts, logs,
     move(window, ids) { window.desktops = ids.map(id => desktops.find(d => d.id === id)); window.onAllDesktops = !ids.length; window.desktopsChanged.emit(); },
     add(uuid, index, properties = {}) { const window = Object.assign(windowFor(uuid, desktops[index]), properties); windows.push(window); workspace.windowAdded.emit(window); return window; },
     close(window) { windows = windows.filter(w => w !== window); window.closed.emit(); },

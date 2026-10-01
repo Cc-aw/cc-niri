@@ -46,7 +46,7 @@ widthMode 仍为 half。清理该次临时窗口后，改用正确的 presentati
   FAIL_SAFE、TypeError、ReferenceError。restart 的 external-unload EMERGENCY_RESTORE
   属于正常退出时恢复停车窗口。
 - 本次结果验证真实 compositor 的窗口生命周期、迁移、快捷键和结束状态，不代表已观察
-  每一帧画面。H/L 动画流畅度、纵向 J/K 动画、透明度/裁剪/残影需用户视觉确认。
+  每一帧画面。随后用户反馈“动画正常”，记录 H/L、J/K、Wide 这轮人工动画验收通过。
 - Sticky/multi-desktop、更多异常路径及长期使用仍未在此次实机检查中覆盖；不将 W6/W7
   全部人工验收项记为完成。
 

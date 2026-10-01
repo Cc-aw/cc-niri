@@ -7,6 +7,10 @@
     <entry name="TargetOutputName" type="String">
       <default></default>
     </entry>
+    <entry name="DynamicTrailingWorkspace" type="Bool">
+      <label>Keep an empty workspace at the end</label>
+      <default>false</default>
+    </entry>
     <entry name="GapTop" type="Int">
       <default>50</default>
     </entry>

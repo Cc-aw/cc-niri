@@ -895,6 +895,100 @@ class WorkspaceTransferController {
     stop() { this.stopped = true; }
 }
 
+// Generated from src/kwin/workspace/DynamicWorkspaceController.js
+class DynamicWorkspaceController {
+    constructor(options) {
+        Object.assign(this, options);
+        this.enabled = options.enabled === true;
+        this.timer = null;
+        this.pendingTopology = null;
+        this.failedTopology = null;
+        this.stopped = false;
+    }
+
+    request() {
+        if (!this.enabled || this.stopped || !this.isReady() || this.timer) return false;
+        // Retain no Window QObject across this deferred occupancy check.
+        this.timer = this.setTimer(() => {
+            this.timer = null;
+            this.reconcile();
+        }, 100);
+        return true;
+    }
+
+    desktopIds() {
+        const desktops = this.getDesktops();
+        const ids = [];
+        for (let index = 0; index < desktops.length; ++index) ids.push(desktops[index].id);
+        return ids;
+    }
+
+    occupies(window, desktopId, output) {
+        if (!window || !window.managed || window.output !== output || isPlasmaShellWindow(window) ||
+                window.desktopWindow || window.dock || window.popupWindow || window.dropdownMenu ||
+                window.menu || window.splash || this.membership.isSticky(window)) return false;
+        const application = window.normalWindow || window.dialog || window.modal || window.transient ||
+            window.utility || window.toolbar;
+        return Boolean(application && this.membership.desktopIds(window).includes(desktopId));
+    }
+
+    fail(key, reason) {
+        this.pendingTopology = null;
+        this.failedTopology = key;
+        this.warn(`[cc-workspace] trailing desktop unavailable: ${reason}`);
+    }
+
+    reconcile() {
+        if (!this.enabled || this.stopped) return false;
+        const ids = this.desktopIds();
+        if (!ids.length || ids.some(id => typeof id !== "string" || !id)) return false;
+        const key = JSON.stringify(ids);
+        if (this.pendingTopology !== null) {
+            if (this.pendingTopology === key) {
+                this.fail(key, "creation not confirmed by KDE");
+                return false;
+            }
+            this.pendingTopology = null;
+        }
+        if (!this.isReady() || this.failedTopology === key) return false;
+        const output = this.getTargetOutput();
+        if (!output) return false;
+        const windows = this.getWindows();
+        let occupied = false;
+        for (let index = 0; index < windows.length; ++index) {
+            if (this.occupies(windows[index], ids[ids.length - 1], output)) { occupied = true; break; }
+        }
+        if (!occupied) return false;
+        if (typeof this.createDesktop !== "function") {
+            this.fail(key, "createDesktop API missing");
+            return false;
+        }
+        // Arm before calling KWin: desktopsChanged may be synchronous. A no-op
+        // at the native desktop limit is warned once per topology, never retried.
+        this.pendingTopology = key;
+        this.timer = this.setTimer(() => {
+            this.timer = null;
+            this.reconcile();
+        }, 1000);
+        try {
+            this.createDesktop(ids.length, "");
+        } catch (error) {
+            this.clearTimer(this.timer);
+            this.timer = null;
+            this.fail(key, String(error));
+            return false;
+        }
+        return true;
+    }
+
+    stop() {
+        this.stopped = true;
+        if (this.timer) this.clearTimer(this.timer);
+        this.timer = null;
+        this.pendingTopology = null;
+    }
+}
+
 // Generated from src/kwin/layout/Geometry.js
 function copyRect(rect) {
     return rect
@@ -1489,6 +1583,7 @@ function loadRuntimeConfig(readValue) {
         Math.max(0, Number(readValue(key, fallback)) || 0);
     return {
         targetOutputName: String(readValue("TargetOutputName", "")).trim(),
+        dynamicTrailingWorkspace: Boolean(readValue("DynamicTrailingWorkspace", false)),
         primary: {
             top: number("GapTop", 50),
             bottom: number("GapBottom", 70),
@@ -4134,6 +4229,7 @@ const workspacePersistence = new WorkspacePersistence({
 let workspaceMountController;
 let workspaceSwitchController;
 let workspaceTransferController;
+let dynamicWorkspaceController;
 const runtimeLogger = new RuntimeLogger({
     tag: TAG,
     enabled: runtimeConfig.debugLogging,
@@ -4272,6 +4368,7 @@ const recovery = new Recovery({
     beforeRestore: reason => {
         if (workspaceSwitchController) workspaceSwitchController.stop();
         if (workspaceTransferController) workspaceTransferController.stop();
+        if (dynamicWorkspaceController) dynamicWorkspaceController.stop();
         if (workspaceMountController) workspaceMountController.stop();
         mainScreenState.enabled = false;
         motionPlanCommitGate.cancel();
@@ -4557,7 +4654,22 @@ workspaceTransferController = new WorkspaceTransferController({
         emergencyRestoreAllWindows("workspace-transfer-failure");
     },
 });
+dynamicWorkspaceController = new DynamicWorkspaceController({
+    enabled: runtimeConfig.dynamicTrailingWorkspace,
+    isReady: () => scrollLayoutInitialized && mainScreenState.enabled &&
+        !mainScreenState.workspaceSwitching && !workspaceTransferController.isProcessing(),
+    getTargetOutput: () => resolveTargetOutput(),
+    getDesktops: () => workspace.desktops,
+    getWindows: () => workspace.windowList(),
+    membership: workspaceMembership,
+    createDesktop: typeof workspace.createDesktop === "function"
+        ? (position, name) => workspace.createDesktop(position, name) : null,
+    setTimer: setRuntimeTimer,
+    clearTimer: clearRuntimeTimer,
+    warn,
+});
 const controllerComposition = new ControllerComposition({
+    dynamicWorkspace: dynamicWorkspaceController,
     workspaceTransfer: workspaceTransferController,
     workspaceSwitch: workspaceSwitchController,
     workspaceMount: workspaceMountController,
@@ -4577,7 +4689,7 @@ const controllerComposition = new ControllerComposition({
 }, [
     "parking", "geometry", "invariants", "transactions", "recovery",
     "adoption", "floating", "output", "fullscreen", "presentation",
-    "dockGateway", "dockScroll", "reorder", "workspaceMount", "workspaceSwitch", "workspaceTransfer",
+    "dockGateway", "dockScroll", "reorder", "workspaceMount", "workspaceSwitch", "workspaceTransfer", "dynamicWorkspace",
 ]);
 
 function debug(message) {
@@ -5740,6 +5852,7 @@ function onInteractiveMoveResizeStarted(window) {
 }
 
 function onWindowPolicyChanged(window, reason) {
+    dynamicWorkspaceController.request();
     workspaceMountController.onWindowMembershipChanged(window);
     const state = stateFor(window);
     if (!windowPolicy.managedLayoutEligible(window) &&
@@ -5758,9 +5871,13 @@ function setupWindow(window) {
     window.quickTileModeChanged.connect(() => applyDetectedTile(window, "quickTileModeChanged"));
     window.maximizedAboutToChange.connect(mode => onMaximizedAboutToChange(window, mode));
     window.maximizedChanged.connect(() => onMaximizedChanged(window));
-    window.outputChanged.connect(() => onOutputChanged(window));
+    window.outputChanged.connect(() => {
+        onOutputChanged(window);
+        dynamicWorkspaceController.request();
+    });
     if (window.desktopsChanged) window.desktopsChanged.connect(() => {
         workspaceTransferController.onMembershipChanged(window);
+        dynamicWorkspaceController.request();
     });
     window.fullScreenChanged.connect(() => onFullScreenChanged(window));
     if (window.skipTaskbarChanged) window.skipTaskbarChanged.connect(() =>
@@ -5793,6 +5910,7 @@ function setupWindow(window) {
         floatingController.onWindowClosed(window);
         states.delete(window);
         if (!wasMounted) workspaceTransferController.commitClosed();
+        dynamicWorkspaceController.request();
     });
 
     if (!eligible(window)) return;
@@ -5840,6 +5958,7 @@ function onScreensChanged() {
     connectManagedGeometry();
     reapplyManagedLayouts("screens-changed");
     relayout("screens-changed");
+    dynamicWorkspaceController.request();
 }
 
 const shortcuts = createShortcutCatalog({
@@ -5865,11 +5984,17 @@ const app = new CCNiri({
             setupWindow(window);
             adoptionController.onWindowAdded(window);
             workspaceTransferController.onWindowAdded(window);
+            dynamicWorkspaceController.request();
         },
         onWindowActivated: onWindowActivatedForScrollLayout,
-        onCurrentDesktopChanged: (previous, current, output) =>
-            workspaceSwitchController.onDesktopChanged(previous, current, output),
-        onDesktopsChanged: () => workspaceSwitchController.onTopologyChanged(),
+        onCurrentDesktopChanged: (previous, current, output) => {
+            workspaceSwitchController.onDesktopChanged(previous, current, output);
+            dynamicWorkspaceController.request();
+        },
+        onDesktopsChanged: () => {
+            workspaceSwitchController.onTopologyChanged();
+            dynamicWorkspaceController.request();
+        },
         onScreensChanged,
         onVirtualScreenGeometryChanged: () => {
             reapplyManagedLayouts("virtual-screen-geometry-changed");
@@ -5880,7 +6005,10 @@ const app = new CCNiri({
         readPreviousState: callback => dockGateway.readPreviousState(callback),
         setTimer: setRuntimeTimer,
         clearTimer: clearRuntimeTimer,
-        markInitialized: value => { scrollLayoutInitialized = value; },
+        markInitialized: value => {
+            scrollLayoutInitialized = value;
+            if (value) dynamicWorkspaceController.request();
+        },
         registerShortcut,
         shortcuts,
         commitInitialState: () => commitDockState("script-start"),

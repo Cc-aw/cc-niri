@@ -91,6 +91,7 @@
      </layout>
     </widget>
    </item>
+   <item><widget class="QCheckBox" name="kcfg_DynamicTrailingWorkspace"><property name="text"><string>Append an empty workspace when the last workspace has application windows on the target monitor</string></property><property name="toolTip"><string>Creates desktops only; never deletes desktops or switches focus. Restart cc-niri after changing this option.</string></property></widget></item>
    <item><widget class="QCheckBox" name="kcfg_DebugLogging"><property name="text"><string>Enable debug logging</string></property></widget></item>
    <item><spacer name="verticalSpacer"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property></spacer></item>
   </layout>

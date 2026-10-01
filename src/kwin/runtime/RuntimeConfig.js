@@ -5,6 +5,7 @@ function loadRuntimeConfig(readValue) {
         Math.max(0, Number(readValue(key, fallback)) || 0);
     return {
         targetOutputName: String(readValue("TargetOutputName", "")).trim(),
+        dynamicTrailingWorkspace: Boolean(readValue("DynamicTrailingWorkspace", false)),
         primary: {
             top: number("GapTop", 50),
             bottom: number("GapBottom", 70),
