@@ -1,6 +1,6 @@
 "use strict";
 
-// Native ACK means continuing ownership is installed before geometry changes.
+// Native ACK means continuing/incoming ownership is installed before geometry changes.
 // Each callback is scoped to a layout epoch; a timeout also disarms that epoch.
 class ScrollPlanCommitGate {
     constructor(options) { Object.assign(this, options); this.pending = null; this.activeEpoch = null; }
@@ -27,7 +27,7 @@ class ScrollPlanCommitGate {
             this.pending = null;
             this.clearTimer(pending.timer);
             if (this.currentEpoch() !== plan.epoch) { this.abort(plan.epoch); return; }
-            this.commit(plan, context, pending.activationWindow);
+            this.commit(plan, Object.assign({}, context, { nativeScroll: Boolean(pending.nativeAccepted) }), pending.activationWindow);
         };
         const finish = accepted => {
             if (this.pending !== pending || pending.fallback) return;
@@ -35,7 +35,7 @@ class ScrollPlanCommitGate {
             if (this.currentEpoch() !== plan.epoch) {
                 this.pending = null; this.abort(plan.epoch); return;
             }
-            if (accepted) { this.activeEpoch = plan.epoch; commit(); return; }
+            if (accepted) { pending.nativeAccepted = true; this.activeEpoch = plan.epoch; commit(); return; }
             this.activeEpoch = null;
             pending.fallback = true;
             this.warn(`[SCROLL_PLAN] native fallback epoch=${plan.epoch}`);

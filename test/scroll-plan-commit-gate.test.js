@@ -2,18 +2,20 @@
 const assert = require("node:assert/strict");
 const { ScrollPlanCommitGate } = require("../src/kwin/layout/ScrollPlanCommitGate");
 let epoch = 1;
-const published = [], arms = [], cancelled = [], commits = [], timers = [];
+const published = [], arms = [], cancelled = [], commits = [], timers = [], contexts = [];
 const gate = new ScrollPlanCommitGate({
     publish: (p, cb) => published.push(cb), arm: (p, cb) => arms.push(cb),
     disarm: (e, cb) => { cancelled.push(e); cb(); }, currentEpoch: () => epoch,
     setTimer: cb => { timers.push(cb); return cb; }, clearTimer: () => {}, timeoutMs: 150,
-    commit: (plan, context, window) => commits.push([plan.epoch, window]), warn: () => {},
+    commit: (plan, context, window) => { contexts.push(context); commits.push([plan.epoch, window]); }, warn: () => {},
 });
 gate.schedule({epoch}, {}, {}); gate.deferActivation("a");
 published[0](true); assert.equal(commits.length, 0, "Bridge ACK alone cannot commit");
 arms[0](true); assert.deepEqual(commits, [[1, "a"]]);
+assert.equal(contexts[0].nativeScroll, true, "only native ACK opts into native reveal order");
 epoch = 2; gate.schedule({epoch}, {}, {}); published[1](true);
 gate.pending.timer(); assert.deepEqual(commits.at(-1), [2, null]);
+assert.equal(contexts.at(-1).nativeScroll, false, "timeout keeps legacy reveal order");
 arms[1](true); assert.equal(commits.length, 2); assert.ok(cancelled.includes(2));
 epoch = 3; gate.schedule({epoch}, {}, {}); published[2](true);
 epoch = 4; gate.schedule({epoch}, {}, {}); arms[2](true);

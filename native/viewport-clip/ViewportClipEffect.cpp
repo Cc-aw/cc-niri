@@ -283,7 +283,13 @@ bool CcNiriViewportClipEffect::ArmScrollPlan(const QString &json)
     if (!m_scrollRuntime.arm(plan, motionNow())) return false;
     updateScrollOwnership();
     effects->addRepaintFull();
-    qCInfo(CC_NIRI_VIEWPORT_CLIP) << "[SCROLL_PLAN_NATIVE] ARM continuing=" << m_scrollRuntime.targets().size();
+    int incoming = 0;
+    const auto targets = m_scrollRuntime.targets();
+    for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
+        if (m_scrollRuntime.role(it.key()) == QStringLiteral("incoming")) ++incoming;
+    }
+    qCInfo(CC_NIRI_VIEWPORT_CLIP) << "[SCROLL_PLAN_NATIVE] ARM continuing=" << targets.size() - incoming
+        << "incoming=" << incoming;
     return true;
 }
 
@@ -310,7 +316,8 @@ void CcNiriViewportClipEffect::updateScrollOwnership()
         }
         const auto rect = targets.value(id);
         const QVariantMap marker{{QStringLiteral("x"), rect.x()}, {QStringLiteral("y"), rect.y()},
-            {QStringLiteral("width"), rect.width()}, {QStringLiteral("height"), rect.height()}};
+            {QStringLiteral("width"), rect.width()}, {QStringLiteral("height"), rect.height()},
+            {QStringLiteral("role"), m_scrollRuntime.role(id)}};
         if (window->data(ScrollOwnershipDataRole).toMap() != marker) window->setData(ScrollOwnershipDataRole, marker);
     }
 }

@@ -2,7 +2,7 @@
 #include "ScrollViewportRuntime.h"
 #include <cmath>
 namespace CcNiri {
-void ScrollViewportRuntime::clear() { m_columns.clear(); m_motion.snap(m_motion.target()); }
+void ScrollViewportRuntime::clear() { m_columns.clear(); m_roles.clear(); m_motion.snap(m_motion.target()); }
 bool ScrollViewportRuntime::updateContext(const QJsonObject &state) {
     const auto session = state.value(QStringLiteral("sessionId")).toString();
     const auto workspace = state.value(QStringLiteral("workspaceId")).toString();
@@ -24,19 +24,22 @@ bool ScrollViewportRuntime::arm(const QJsonObject &plan, ViewportMotion::TimePoi
     if (disposition == ScrollPlanDisposition::Rejected) return false;
     if (disposition == ScrollPlanDisposition::Duplicate) return active();
     QHash<QString, QRectF> columns;
+    QHash<QString, QString> roles;
     const auto viewport = plan.value(QStringLiteral("viewport")).toObject();
     const QRectF rect(viewport.value(QStringLiteral("x")).toDouble(), viewport.value(QStringLiteral("y")).toDouble(),
         viewport.value(QStringLiteral("width")).toDouble(), viewport.value(QStringLiteral("height")).toDouble());
     const double target = plan.value(QStringLiteral("newScrollOffsetX")).toDouble();
     for (const auto &value : plan.value(QStringLiteral("entries")).toArray()) {
         const auto entry = value.toObject();
-        if (entry.value(QStringLiteral("oldPlacement")) != QJsonValue(QStringLiteral("visible"))
-            || entry.value(QStringLiteral("newPlacement")) != QJsonValue(QStringLiteral("visible"))) continue;
-        columns.insert(entry.value(QStringLiteral("windowId")).toString(),
+        if (entry.value(QStringLiteral("newPlacement")) != QJsonValue(QStringLiteral("visible"))) continue;
+        const auto id = entry.value(QStringLiteral("windowId")).toString();
+        roles.insert(id, entry.value(QStringLiteral("oldPlacement")) == QJsonValue(QStringLiteral("parked"))
+            ? QStringLiteral("incoming") : QStringLiteral("continuing"));
+        columns.insert(id,
             QRectF(rect.x() + entry.value(QStringLiteral("logicalX")).toDouble() - target, rect.y(),
                    entry.value(QStringLiteral("pixelWidth")).toDouble(), rect.height()));
     }
-    // A non-overlapping jump belongs to the legacy incoming/outgoing path.
+    // All newly visible columns, including non-overlapping jumps, share the offset.
     if (columns.isEmpty()) { clear(); return false; }
     const auto epoch = plan.value(QStringLiteral("epoch")).toInteger();
     const bool continuing = active() && m_viewport == rect && m_motion.target() == plan.value(QStringLiteral("oldScrollOffsetX")).toDouble();
@@ -44,7 +47,7 @@ bool ScrollViewportRuntime::arm(const QJsonObject &plan, ViewportMotion::TimePoi
     const bool started = continuing ? m_motion.start(m_frameOffset, target, epoch, now)
         : m_motion.start(plan.value(QStringLiteral("oldScrollOffsetX")).toDouble(), target, epoch, now);
     if (!started) return false;
-    m_columns = columns; m_viewport = rect; m_frameOffset = m_motion.current(now);
+    m_columns = columns; m_roles = roles; m_viewport = rect; m_frameOffset = m_motion.current(now);
     return true;
 }
 void ScrollViewportRuntime::cancel(const QString &session, qint64 epoch) {

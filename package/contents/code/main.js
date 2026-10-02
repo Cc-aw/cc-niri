@@ -1380,7 +1380,7 @@ class MotionPlanCommitGate {
 }
 
 // Generated from src/kwin/layout/ScrollPlanCommitGate.js
-// Native ACK means continuing ownership is installed before geometry changes.
+// Native ACK means continuing/incoming ownership is installed before geometry changes.
 // Each callback is scoped to a layout epoch; a timeout also disarms that epoch.
 class ScrollPlanCommitGate {
     constructor(options) { Object.assign(this, options); this.pending = null; this.activeEpoch = null; }
@@ -1407,7 +1407,7 @@ class ScrollPlanCommitGate {
             this.pending = null;
             this.clearTimer(pending.timer);
             if (this.currentEpoch() !== plan.epoch) { this.abort(plan.epoch); return; }
-            this.commit(plan, context, pending.activationWindow);
+            this.commit(plan, Object.assign({}, context, { nativeScroll: Boolean(pending.nativeAccepted) }), pending.activationWindow);
         };
         const finish = accepted => {
             if (this.pending !== pending || pending.fallback) return;
@@ -1415,7 +1415,7 @@ class ScrollPlanCommitGate {
             if (this.currentEpoch() !== plan.epoch) {
                 this.pending = null; this.abort(plan.epoch); return;
             }
-            if (accepted) { this.activeEpoch = plan.epoch; commit(); return; }
+            if (accepted) { pending.nativeAccepted = true; this.activeEpoch = plan.epoch; commit(); return; }
             this.activeEpoch = null;
             pending.fallback = true;
             this.warn(`[SCROLL_PLAN] native fallback epoch=${plan.epoch}`);
@@ -1717,7 +1717,7 @@ class GeometryCommitter {
             ` actual=${this.rectText(window.frameGeometry)}`);
     }
 
-    commit(plan) {
+    commit(plan, options = {}) {
         const transaction = plan.scrollTransaction;
         const wideExitTarget = plan.wideExitColumn
             ? plan.windows.find(item => item.column === plan.wideExitColumn)
@@ -1768,8 +1768,16 @@ class GeometryCommitter {
             }
             if (item.placement === "visible" &&
                     this.isWindowHidden(column.window)) {
-                this.commitGeometry(column, item.rect, plan.reason);
-                this.setWindowVisibility(column.window, true);
+                if (options.nativeScroll && item.transitionRole === "incoming") {
+                    // Native ownership is armed before this batch. Unhide while
+                    // still parked, then commit the real target; its first paint
+                    // uses strip projection and native clipping, never a fade.
+                    this.setWindowVisibility(column.window, true);
+                    this.commitGeometry(column, item.rect, plan.reason);
+                } else {
+                    this.commitGeometry(column, item.rect, plan.reason);
+                    this.setWindowVisibility(column.window, true);
+                }
             } else {
                 if (item.placement === "visible") {
                     this.setWindowVisibility(column.window, true);
@@ -4605,7 +4613,7 @@ const scrollPlanCommitGate = new ScrollPlanCommitGate({
     disarm: (epoch, callback) => dockGateway.disarmScrollPlan(epoch, callback),
     currentEpoch: () => layoutTransaction.currentEpoch(),
     commit: (plan, context, activationWindow) =>
-        commitLayoutPlan(plan, context.wideExitColumn, activationWindow),
+        commitLayoutPlan(plan, context.wideExitColumn, activationWindow, { nativeScroll: context.nativeScroll }),
     timeoutMs: 150,
     setTimer: setRuntimeTimer,
     clearTimer: clearRuntimeTimer,
@@ -5363,8 +5371,8 @@ function relayoutImpl(reason, scrollOffsets) {
     commitLayoutPlan(plan, wideExitColumn, null);
 }
 
-function commitLayoutPlan(plan, wideExitColumn, activationWindow) {
-    const commitResult = geometryCommitter.commit(plan);
+function commitLayoutPlan(plan, wideExitColumn, activationWindow, options) {
+    const commitResult = geometryCommitter.commit(plan, options);
     contextualWideCoordinator.onPlanCommitted(plan, wideExitColumn,
         commitResult, activationWindow);
 }

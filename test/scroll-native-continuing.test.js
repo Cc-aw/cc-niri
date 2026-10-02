@@ -36,3 +36,16 @@ const unrelated = {screen: output, geometry: owner, data: role => role === 1005 
 effect.geometryChanged(unrelated, right);
 assert.equal(starts.at(-1).role, "continuing", "ownership for another target cannot suppress motion");
 console.log("PASS only matching native continuing bypasses scripted channels; entry/exit/fallback survive");
+
+const ownedIncoming = {screen: output, geometry: right,
+    data: role => role === 1005 ? {...right, role: "incoming"} : null};
+const beforeOwnedIncoming = starts.length;
+effect.geometryChanged(ownedIncoming, parking);
+assert.equal(starts.length, beforeOwnedIncoming, "native incoming skips every Script animation channel");
+assert.equal(cancellations.at(-1), ownedIncoming);
+assert.equal(effect.motionTransaction.current(Date.now()).type, MotionType.SCROLL, "incoming leaves outgoing direction intact");
+const staleIncoming = {screen: output, geometry: right,
+    data: role => role === 1005 ? {...owner, role: "incoming"} : null};
+effect.geometryChanged(staleIncoming, parking);
+assert.equal(starts.at(-1).role, "incoming", "wrong target falls back to Script incoming");
+console.log("PASS native incoming bypass preserves outgoing and fallback");

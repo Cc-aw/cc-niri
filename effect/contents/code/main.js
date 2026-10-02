@@ -1060,7 +1060,7 @@ class CCNiriScrollTransition {
             }
         });
         if (effects.windowDataChanged) effects.windowDataChanged.connect((window, role) => {
-            if (role === CC_NIRI_SCROLL_OWNERSHIP_ROLE && window.data(role)) this.motion.cancel(window);
+            if (role === CC_NIRI_SCROLL_OWNERSHIP_ROLE && window.data(role)) this.takeNativeScrollOwnership(window);
         });
         effects.windowAdded.connect(this.manage.bind(this));
         effects.windowClosed.connect(window => {
@@ -1086,6 +1086,12 @@ class CCNiriScrollTransition {
         this.viewportClip.setEnabled(Boolean(
             effect.readConfig("DebugViewportClipTint", false)
         ));
+    }
+
+    takeNativeScrollOwnership(window) {
+        this.motion.cancel(window);
+        this.parkingGrabber.release(window, "native-scroll");
+        this.releaseWideIsolation(window, "native-scroll");
     }
 
     manage(window) {
@@ -1427,6 +1433,15 @@ class CCNiriScrollTransition {
             return;
         }
 
+        const nativeIncoming = typeof window.data === "function"
+            ? window.data(CC_NIRI_SCROLL_OWNERSHIP_ROLE) : null;
+        if (nativeIncoming && nativeIncoming.role === "incoming" &&
+                rectNear(nativeIncoming, newGeometry, 0.5) &&
+                parked(oldGeometry, screenRect) && visibleSlot(newGeometry, screenRect)) {
+            this.takeNativeScrollOwnership(window);
+            this.debug("[SCROLL_NATIVE] incoming");
+            return;
+        }
         if (!sameSize(oldGeometry, newGeometry)) return;
         const oldSlot = visibleSlot(oldGeometry, screenRect);
         const newSlot = visibleSlot(newGeometry, screenRect);

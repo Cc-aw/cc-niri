@@ -252,7 +252,7 @@ const relayoutSource = applicationSource.slice(
     applicationSource.indexOf("function relayout(reason")
 );
 assert.ok(relayoutSource.includes("computeLayoutPlan({"));
-assert.ok(relayoutSource.includes("geometryCommitter.commit(plan)"));
+assert.ok(relayoutSource.includes("geometryCommitter.commit(plan, options)"));
 assert.equal(relayoutSource.includes("frameGeometry ="), false,
     "relayout orchestration cannot write KWin geometry directly");
 

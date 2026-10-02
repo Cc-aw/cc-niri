@@ -35,7 +35,7 @@ class GeometryCommitter {
             ` actual=${this.rectText(window.frameGeometry)}`);
     }
 
-    commit(plan) {
+    commit(plan, options = {}) {
         const transaction = plan.scrollTransaction;
         const wideExitTarget = plan.wideExitColumn
             ? plan.windows.find(item => item.column === plan.wideExitColumn)
@@ -86,8 +86,16 @@ class GeometryCommitter {
             }
             if (item.placement === "visible" &&
                     this.isWindowHidden(column.window)) {
-                this.commitGeometry(column, item.rect, plan.reason);
-                this.setWindowVisibility(column.window, true);
+                if (options.nativeScroll && item.transitionRole === "incoming") {
+                    // Native ownership is armed before this batch. Unhide while
+                    // still parked, then commit the real target; its first paint
+                    // uses strip projection and native clipping, never a fade.
+                    this.setWindowVisibility(column.window, true);
+                    this.commitGeometry(column, item.rect, plan.reason);
+                } else {
+                    this.commitGeometry(column, item.rect, plan.reason);
+                    this.setWindowVisibility(column.window, true);
+                }
             } else {
                 if (item.placement === "visible") {
                     this.setWindowVisibility(column.window, true);

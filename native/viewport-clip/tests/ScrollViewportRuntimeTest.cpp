@@ -35,10 +35,15 @@ int main() {
     check(!runtime.arm(first, 0ns), "no authority");
     check(runtime.updateContext(state()), "context");
     check(runtime.arm(first, 0ns), "arm");
-    check(runtime.targets().size() == 1, "continuing only");
+    check(runtime.targets().size() == 2, "continuing and incoming");
     const auto rect = runtime.targets().value(QStringLiteral("1"));
     check(!runtime.projection(QStringLiteral("0"), rect), "outgoing excluded");
-    check(!runtime.projection(QStringLiteral("2"), rect), "incoming excluded");
+    const auto incomingRect = runtime.targets().value(QStringLiteral("2"));
+    check(runtime.role(QStringLiteral("2")) == QStringLiteral("incoming"), "incoming ownership role");
+    check(runtime.role(QStringLiteral("1")) == QStringLiteral("continuing"), "continuing ownership role");
+    check(!runtime.projection(QStringLiteral("2"), QRectF(-99999, 50.25, 1252.25, 1320.25)), "parking geometry cannot be projected");
+    const auto incoming = runtime.projection(QStringLiteral("2"), incomingRect);
+    check(incoming.has_value() && incomingRect.x() + incoming->translationX == incoming->viewport.right() + 8, "incoming starts beyond the right strip edge");
     check(!runtime.projection(QStringLiteral("1"), rect.translated(1260.25, 0)), "pre-commit old geometry excluded");
     check(runtime.projection(QStringLiteral("1"), rect)->translationX == 1260.25, "first sample is old projection");
     check(runtime.advance(100ms), "animation active");
@@ -64,10 +69,11 @@ int main() {
     runtime.updateContext(state(QStringLiteral("s"), QStringLiteral("b")));
     check(!runtime.active() && !runtime.arm(plan(5, 0, 1260.25), 4s), "workspace barrier");
     runtime.updateContext(state()); check(runtime.arm(plan(6, 0, 1260.25), 4s), "return workspace");
-    runtime.remove(QStringLiteral("1")); check(!runtime.active(), "close last window");
+    runtime.remove(QStringLiteral("1")); check(runtime.active(), "incoming survives continuing close");
+    runtime.remove(QStringLiteral("2")); check(!runtime.active() && runtime.role(QStringLiteral("2")).isEmpty(), "close last window clears role");
     runtime.updateContext({}); check(!runtime.arm(plan(7, 0, 1260.25), 4s), "invalid context clears authority");
     runtime.updateContext(state()); check(runtime.arm(first, 0ns), "reload resets motion epoch and clock");
-    check(!runtime.arm(plan(2, 1260.25, 3780.75), 1ms), "nonoverlap falls back");
+    check(runtime.arm(plan(2, 1260.25, 3780.75), 1ms), "nonoverlap incoming projection");
     ScrollViewportRuntime shared;
     shared.updateContext(state());
     auto wider = plan(1, 0, 1260.25);
@@ -82,10 +88,34 @@ int main() {
             {QStringLiteral("newPlacement"), i > 0 ? QStringLiteral("visible") : QStringLiteral("parked")}});
     }
     wider.insert(QStringLiteral("entries"), wideEntries);
-    check(shared.arm(wider, 0ns) && shared.targets().size() == 2, "multi-column shared viewport");
+    check(shared.arm(wider, 0ns) && shared.targets().size() == 3, "multi-column shared viewport");
     shared.advance(100ms);
     const auto targets = shared.targets();
     check(shared.projection(QStringLiteral("1"), targets.value(QStringLiteral("1")))->translationX
         == shared.projection(QStringLiteral("2"), targets.value(QStringLiteral("2")))->translationX, "same frame means identical translation");
-    std::cout << "PASS native scroll projection ownership and lifecycle" << std::endl;
+    // Each production-frame sample must keep adjacent new-visible columns attached.
+    for (bool reverse : {false, true}) {
+        ScrollViewportRuntime attached;
+        attached.updateContext(state());
+        check(attached.arm(plan(1, reverse ? 1260.25 : 0, reverse ? 0 : 1260.25), 0ns), "bidirectional incoming arm");
+        const auto newTargets = attached.targets();
+        const auto leftId = reverse ? QStringLiteral("0") : QStringLiteral("1");
+        const auto rightId = reverse ? QStringLiteral("1") : QStringLiteral("2");
+        if (reverse) {
+            auto initial = attached.projection(leftId, newTargets.value(leftId));
+            check(newTargets.value(leftId).right() + initial->translationX == initial->viewport.left() - 8, "incoming starts beyond left edge");
+        }
+        for (auto time : {0ms, 7ms, 20ms, 60ms, 100ms, 220ms, 400ms}) {
+            check(attached.advance(time), "frame active");
+            auto left = attached.projection(leftId, newTargets.value(leftId));
+            auto right = attached.projection(rightId, newTargets.value(rightId));
+            check(left && right, "both new-visible columns project");
+            const double gap = newTargets.value(rightId).x() + right->translationX
+                - newTargets.value(leftId).right() - left->translationX;
+            check(std::abs(gap - 8) < 1e-8, "fixed gap throughout spring in either direction");
+        }
+        attached.cancel(QStringLiteral("s"), 1);
+        check(!attached.active() && attached.role(leftId).isEmpty(), "cancel clears all incoming roles");
+    }
+    std::cout << "PASS native scroll projection ownership and lifecycle with incoming fixed gap" << std::endl;
 }
