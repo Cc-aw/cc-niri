@@ -1,6 +1,6 @@
 # 设计文档索引
 
-按当前源码、Git 实施记录和验收结果整理，更新于 2026-10-01。
+按当前源码、Git 实施记录和验收结果整理，更新于 2026-10-02。
 
 旧 `docx/` 的 8 份 Markdown 已核对正文与对应设计一致，统一合并到下列 `done/`、`todo/`；重复副本及旧目录已移除。
 
@@ -34,7 +34,7 @@
 | [Phase 15 Contextual Wide](done/cc-niri_Phase15_WidePreference_ContextualViewport实现设计.md) | 已实现；当前 Wide 语义依据（b9c54b8）。 |
 | [Phase 15.1 Wide Hardening](done/cc-niri_Phase15.1_Contextual_Wide_Runtime_Hardening.md) | 已实现（1e87364）。 |
 | [Phase 16 WindowPolicy](done/cc-niri_Phase16_WindowPolicy_Dialog_Always_Floating.md) | 已实现语义策略与辅助窗口 policy-floating（5a17d0e）。 |
-| [Workspace W0–W9](done/cc-niri_KDE_Virtual_Desktop_Workspace架构设计.md) | 当前主屏范围 W0–W9 已实现、部署并由用户验收；见 [W9 验收](../test/WORKSPACE_W9_RESULTS.md)。历史双屏要求不作为本轮验收范围。 |
+| [Workspace W0–W9](done/cc-niri_KDE_Virtual_Desktop_Workspace架构设计.md) | 当前主屏范围 W0–W9 已实现、部署并由用户验收；见 [W9 验收](../test/WORKSPACE_W9_RESULTS.md)；返回桌面的 [Wide 恢复修复](../test/WORKSPACE_WIDE_RESTORE_RESULTS.md) 已部署并验证。历史双屏要求不作为本轮验收范围。 |
 
 ## 未完成 / 未采用
 

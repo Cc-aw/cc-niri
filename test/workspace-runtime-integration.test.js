@@ -181,7 +181,7 @@ motionAcks.forEach(callback => callback(true));
 timers.filter(timer => timer.running).forEach(timer => timer.timeout.emit());
 assert.equal(geometryWrites, writesAfterSwitch, "old Wide ACK and timer cannot commit after mount");
 nativeSwitch(0, a[0]);
-assert.equal(state.viewport.mode, "pair");
+assert.equal(state.viewport.mode, "wide-focus", "return restores the saved Wide viewport");
 assert.equal(state.presentation.mode, "normal");
 assert.equal(state.columns.find(column => column.window === a[0]).persistentWide, true);
 assert.equal(evaluate("invariantChecker.errors().length"), 0);

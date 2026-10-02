@@ -42,6 +42,7 @@ function fixture() {
             state.viewport = { mode: "pair", wideColumnId: null };
             state.presentation = { mode: "normal", windowUuid: null };
         },
+        restoreViewport: viewport => { state.viewport = {...viewport}; },
         recomputeLayout: () => {
             events.push("logical");
             deriveColumnLayout(state.columns, state.safeRect.width, state.innerGap).forEach((layout, index) => Object.assign(state.columns[index], layout));
@@ -53,7 +54,7 @@ function fixture() {
         },
         relayout: () => {
             assert.equal(controller.canUseActiveWorkspace(), false, "adoption blocked until relayout completes");
-            assert.equal(state.viewport.mode, "pair"); assert.equal(state.presentation.mode, "normal");
+            assert.ok(["pair", "wide-focus"].includes(state.viewport.mode)); assert.equal(state.presentation.mode, "normal");
             events.push("relayout");
         },
         commitDock: () => events.push("dock"),
@@ -203,3 +204,28 @@ assert.equal(reentrant.state.activeWorkspaceId, "B", "a native change during the
 assert.equal(reentrant.state.columns[0].window, destination);
 assert.equal(reentrant.controller.canUseActiveWorkspace(), true);
 console.log("PASS batch workspace mount preserves order, focus, anchor, sleeping parking and recovery");
+
+const wide = fixture(); const wideOwner = wide.window("wide"); wide.window("neighbor");
+const otherWide = wide.window("other", wide.desktops[1]);
+wide.setActive(wideOwner); wide.controller.initialize("");
+wide.state.columns[0].persistentWide = true;
+wide.state.viewport = {mode: "wide-focus", wideColumnId: wide.state.columns[0].id};
+const oldWideId = wide.state.viewport.wideColumnId;
+wide.setActive(otherWide); wide.switchTo(1);
+assert.equal(wide.state.viewport.mode, "pair", "Wide never leaks to another desktop");
+assert.equal(wide.snapshots.get("A").viewport.wideUuid, "wide");
+wide.setActive(wideOwner); wide.switchTo(0);
+assert.equal(wide.state.viewport.mode, "wide-focus", "saved Wide survives workspace return");
+assert.notEqual(wide.state.viewport.wideColumnId, oldWideId, "restored Wide maps UUID to fresh Column ID");
+assert.equal(wide.columns.focusedColumn().id, wide.state.viewport.wideColumnId);
+wide.setActive(otherWide); wide.switchTo(1);
+wide.setActive(wide.state.columns[0].window); // then explicitly select A's neighbor on return
+const neighbor = wide.controller.getWindows().find(w => w.internalId === "neighbor");
+wide.setActive(neighbor); wide.switchTo(0);
+assert.equal(wide.state.viewport.mode, "pair", "KDE focus on another Column must not force old Wide");
+// Persistent preference without an active Wide viewport is not an expansion request.
+wide.setActive(wideOwner); wide.columns.focusIndex(wide.columns.indexOfWindow(wideOwner));
+wide.state.viewport = {mode: "pair", wideColumnId: null};
+wide.setActive(otherWide); wide.switchTo(1); wide.setActive(wideOwner); wide.switchTo(0);
+assert.equal(wide.state.viewport.mode, "pair", "Pair with a Wide preference remains Pair");
+console.log("PASS workspace Wide viewport restores only its surviving focused UUID with fresh Column ID");

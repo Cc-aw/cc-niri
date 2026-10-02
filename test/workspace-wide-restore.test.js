@@ -1,0 +1,26 @@
+"use strict";
+const assert = require("node:assert/strict");
+const {createRuntime} = require("./helpers/workspace-runtime");
+const r = createRuntime();
+r.evaluate("toggleFocusWide(workspace.activeWindow)");
+r.motionAcks.at(-1)(true);
+const original = {...r.a[0].frameGeometry};
+const oldId = r.state.viewport.wideColumnId;
+assert.equal(r.state.viewport.mode, "wide-focus");
+r.nativeSwitch(1, r.b[0]); assert.equal(r.state.viewport.mode, "pair");
+r.nativeSwitch(0, r.a[0]);
+assert.equal(r.state.viewport.mode, "wide-focus");
+assert.notEqual(r.state.viewport.wideColumnId, oldId);
+r.motionAcks.at(-1)(true);
+assert.deepEqual({...r.a[0].frameGeometry}, original, "actual Wide width and position survive J/K roundtrip");
+assert.equal(r.evaluate("invariantChecker.errors().length"), 0);
+// Late activation of the same owner does not undo restored Wide.
+r.workspace.windowActivated.emit(r.a[0]); assert.equal(r.state.viewport.mode, "wide-focus");
+r.nativeSwitch(1, r.b[0]);
+r.nativeSwitch(0, r.a[1]); assert.equal(r.state.viewport.mode, "pair");
+const removed = createRuntime();
+removed.evaluate("toggleFocusWide(workspace.activeWindow)"); removed.motionAcks.at(-1)(true);
+removed.nativeSwitch(1, removed.b[0]); removed.close(removed.a[0]);
+removed.nativeSwitch(0, removed.a[1]); assert.equal(removed.state.viewport.mode, "pair", "closed Wide owner is not revived");
+assert.equal(removed.evaluate("invariantChecker.errors().length"), 0);
+console.log("PASS production workspace Wide geometry, focus and stale-owner restoration");

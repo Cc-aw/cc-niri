@@ -130,7 +130,16 @@ class WorkspaceMountController {
         const focused = this.columnStore.focusedColumn();
         // Keep a valid saved anchor unless KDE selected a different Column.
         if (focused && (!anchorColumn || (kdeIndex >= 0 && kdeIndex !== savedIndex))) this.ensureVisible(focused);
-        this.resetPresentation(); // V1 mounts always use Pair + normal.
+        this.resetPresentation();
+        // Snapshots store UUIDs, while newly mounted Columns receive fresh IDs.
+        // Restore the saved viewport only when KDE still focuses that Wide owner.
+        const savedViewport = snapshot && snapshot.viewport;
+        if (focused && focused.persistentWide && !focused.window.fullScreen &&
+                savedViewport && ["wide", "wide-focus"].includes(savedViewport.mode) &&
+                savedViewport.wideUuid === this.normalizeUuid(focused.window.internalId) &&
+                snapshot.presentation.mode !== "maximized") {
+            this.restoreViewport({ mode: "wide-focus", wideColumnId: focused.id });
+        }
         this.relayout("workspace-mount");
     }
 
