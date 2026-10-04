@@ -55,6 +55,7 @@
 
 - 第一轮通过：用户在点击切换两个受管窗口及快速 Meta+H / L 后反馈“这次正常”，确认边框只跟随当前焦点、旧窗口无残留，颜色和圆角正常。
 - 第一轮后只读诊断：仍为 `independent-eligibility`，独立资格 generation=37、eligibleCount=2；drawCount 已增至 2252，KWin PID 仍为 2088。读取时 owner 为空，不将快照视作某个窗口的焦点匹配证明。
-- 第二轮浮动 / 恢复受管、F11 和 J/K 隐藏 / 恢复已邀请测试，待反馈；关闭窗口以及关闭边框期间修改资格后重新开启的人工复验也待进行。
+- 第二轮通过：用户反馈“全部正常”，确认 Meta+Shift+Return 浮动 / 恢复受管、F11 全屏 / 退出以及 J/K 工作区往返时，边框正确隐藏与恢复，旧工作区无残留。第二轮后 KWin PID 仍为 2088，独立资格 generation=45、eligibleCount=2。
+- 最后一轮已邀请测试：边框 off 期间切换焦点并改变浮动资格，on 后检查最新资格及恢复受管；打开、聚焦、关闭临时受管窗口检查清理。该轮待用户反馈，不提前标记通过。
 
 本阶段人工验收尚未全部完成。后续 Phase 3 验证视觉 transform 与 Spring / viewport clip，Phase 4 连续 retarget，Phase 5 Wide / Maximize 与非等比缩放粗细，Phase 6 主屏缩放；双屏实机仍按用户范围暂缓。
