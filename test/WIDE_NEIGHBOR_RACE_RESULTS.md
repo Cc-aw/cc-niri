@@ -1,6 +1,6 @@
 # Wide 返回 Pair：邻窗偶发不可见竞态修复
 
-日期：2026-10-04。代码和自动验证完成，尚未部署 / 实机验收。
+日期：2026-10-04。代码和自动验证完成；已单独部署动画脚本并通过加载检查，人工 H/L 验收待反馈。
 
 用户现象：窗口 1 的 72% Wide 视图按 Meta+L 返回 `1|2`，窗口 2 偶尔不出现。用户确认触发键是 Meta+L。本轮在 Focus Ring Phase 2 部署前先修复此问题。
 
@@ -34,8 +34,19 @@ Wide 进入时，窗口 2 的真实 frameGeometry 可能暂时留在原半宽槽
 - `node tools/check.js`：85 个 JS 测试文件全部通过，生成包一致性和 diff whitespace 通过。日志 `/tmp/cc-niri-wide-neighbor-gate.log`。
 - `ctest --test-dir build/bridge -R kwin-javascript-syntax --output-on-failure` 通过，实际 KWin 使用的 Qt JavaScript 引擎可解析新生成 Effect。
 
-## 部署验收待办
+## 本轮单独部署与验收待办
 
-未改正在运行的插件 / 脚本。Focus Ring Phase 2 也仍未部署。
+用户再次反馈截图里右侧窗口没有出现。核对时发现已安装动画脚本仍为旧版本：未包含 WideNeighborLifecycle，SHA256 为 `d6414bd5d9d7efe655c4274104b55509f5adb42febcb24e52972132d477f58c7`。此前代码 / 自动回归通过不能代表当前桌面问题已经消失。
+
+本轮通过已安装 `cc-niri stop/start` 的恢复流程，只替换 `effects/cc-niri-maximize-scroll-transition/contents/code/main.js`：
+
+- 已安装与仓库修复版 SHA256 一致：`38c85a97fd2f485463784a857a1d8541f86d90ad5696d394aeb5b17cef3fd8fa`，Effect 加载成功。
+- KWin PID 前后均为 2088，没有重启；布局 Script 加载成功。
+- 已安装布局 hash 前后相同；Focus Ring 仍为 `static-isolated-border-poc`，Phase 2 未部署。
+- 未覆盖 Native 库，没有安装源码里新的 Phase 2 插件。
+- 备份与命令审计：`/tmp/cc-niri-wide-neighbor-backup-20261004-l_od7rgz`，包含旧 Effect、kwinrc、Bridge 原快照、commands.json、manifest.json、result.json、部署后 KWin 日志。
+- 日志没有新 Effect 语法错误或 KWin 崩溃；旧布局的 QV4 deferredScrollParking 前向引用警告仍可见，本轮未修改该布局。
+
+已邀请用户实测慢速与快速 H/L。仍须用户反馈才能标记窗口 2 实机恢复通过。Focus Ring Phase 2 继续暂缓。
 
 配套部署后，在主屏用 Meta+Z 为窗口 1 保留 Wide 偏好，然后重复 Meta+L 返回 `1|2`、Meta+H 回到窗口 1；分别测试立即反向、动画刚结束和等待停放后返回。确认窗口 2 都会出现，位移 / 淡入连续，不需要额外点击。再检查普通 H/L、滚动中 J/K、Wide J/K 状态保持，以及独立 Focus Ring 的新版本资格同步。
