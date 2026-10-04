@@ -1,6 +1,6 @@
 # ViewOffset Spring Phase 5：Outgoing Deferred Park
 
-日期：2026-10-04。代码和自动验证完成，尚未部署；当前实机会话仍为 Phase 3 加工作区 Wide 恢复修复。
+日期：2026-10-04。代码和自动验证完成；已配套部署第四、第五阶段，自动实机检查及本轮内屏人工验收通过，见 [部署记录](VIEWOFFSET_SPRING_PHASE5_LIVE_RESULTS.md)。
 
 ## 实现
 
@@ -24,7 +24,7 @@
 
 ## 边界与下一步
 
-第四与第五阶段需配套部署 Script、Script Effect 和 native effect 后完成内屏验收。
-逐帧数学与生产运行时检查不能代替实机视觉验收，此前相邻窗口间距变化仍待确认。
+第四与第五阶段已配套部署 Script、Script Effect 和 native effect；本轮慢速 H/L、滚动中 J/K 清理和 Wide J/K 人工验收通过。
+逐帧数学与生产运行时检查不能代替实机视觉验收，此前相邻窗口间距变化已在本轮慢速 H/L 人工验收中消失，完整快速交互矩阵仍属后续范围。
 快速连续操作时，旧 outgoing 的退休与重新进入仍沿用当前布局提交边界，完整连续 retarget 矩阵属于 Phase 7。
 下一开发阶段为 Phase 6：在 native capability 有效时彻底关闭普通 SCROLL 的旧 Script motion 路径，保留 fallback。
