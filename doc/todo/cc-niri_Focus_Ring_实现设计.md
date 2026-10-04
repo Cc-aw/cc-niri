@@ -1,6 +1,6 @@
 # cc-niri Focus Ring 实现设计
 
-> **实施状态（2026-10-04）：** Phase 1 Static Native POC 已部署并通过静态实机验收：4px、圆角兼容及跨应用颜色一致。Phase 2 新增独立 JS FocusRingController 与 Script → Native eligibility 通道，完整自动门禁、配套部署及三轮人工实机验收全部通过。验收后按用户要求将线宽调整为 3px，已通过原生检查并部署，见 Phase 2 记录。当前原生边框仍使用独立 OutlinedBorderItem 绘制树。见 [Phase 2 记录](../../test/FOCUS_RING_PHASE2_RESULTS.md)；Phase 3 同帧 Visual Transform 已实现并通过自动验证，已单独部署，人工实机验收进行中，见 [Phase 3 记录](../../test/FOCUS_RING_PHASE3_RESULTS.md)；retarget、Presentation 与主屏缩放留给后续阶段。
+> **实施状态（2026-10-04）：** Phase 1 Static Native POC 已部署并通过静态实机验收：4px、圆角兼容及跨应用颜色一致。Phase 2 新增独立 JS FocusRingController 与 Script → Native eligibility 通道，完整自动门禁、配套部署及三轮人工实机验收全部通过。验收后按用户要求将线宽调整为 3px，已通过原生检查并部署，见 Phase 2 记录。当前原生边框仍使用独立 OutlinedBorderItem 绘制树。见 [Phase 2 记录](../../test/FOCUS_RING_PHASE2_RESULTS.md)；Phase 3 同帧 Visual Transform 已实现并通过自动验证，已单独部署并通过两轮主屏实机验收，见 [Phase 3 记录](../../test/FOCUS_RING_PHASE3_RESULTS.md)；retarget、Presentation 与主屏缩放留给后续阶段。
 > 文档基线需与已完成 W0–W9 的当前 main 核对；原设计正文保留。阅读入口见 [文档索引](../README.md)。
 
 > 目标：为 cc-niri 实现类似 niri 的“当前窗口光圈 / Focus Ring”，用于在无常驻 Dock 的工作流中明确当前输入焦点。  
@@ -1521,7 +1521,7 @@ layoutTransaction.isActive()
 
 ## Phase 3 — Visual Transform
 
-实现与自动验证已完成，Ring 原生库已单独更新，人工实机验收进行中，见 [Phase 3 记录](../../test/FOCUS_RING_PHASE3_RESULTS.md)。实际采用一次 paintWindow 调用内的 FocusRingPaintFrame，捕获已有绘制变换、原生位置 / transform / opacity 及 device clip，没有独立动画时钟。
+实现与自动验证已完成，Ring 原生库已单独更新并通过两轮主屏实机验收，见 [Phase 3 记录](../../test/FOCUS_RING_PHASE3_RESULTS.md)。实际采用一次 paintWindow 调用内的 FocusRingPaintFrame，捕获已有绘制变换、原生位置 / transform / opacity 及 device clip，没有独立动画时钟。
 
 Native：
 
@@ -1936,8 +1936,8 @@ Focus Ring 跟 KWin 的最终 visual transform 走。
 - KWin 6.7.5 的实际 `paintWindow()` 返回 void；EffectWindow data 接口与布局 Script Window 是不同对象。旧代码示例的直接 JS setData 不可用于布局脚本。
 - Phase 1 继续使用 KWin 导出的 OutlinedBorderItem；跨应用颜色反馈后，WindowItem 内仅保留不绘制的 damage 子项，colored border 改为独立 Item 树，经 paintWindow 96 在窗口效果完成后绘制，避开应用阴影 / 圆角捕获。保留遮挡、WindowPaintData 和 native device clip，详见 [颜色修复](../../test/FOCUS_RING_COLOR_RESULTS.md)。只改 scene bounds 与边框绘制，不改 frameGeometry、ColumnStore、viewport、Spring、停放状态或输入。
 - BorderOutline 经初轮实机反馈从 2 改为 4 logical px，Phase 2 验收后按用户要求改为 3 logical px；颜色为 `#7FC8FF`、alpha=1；半径自动兼容现有 Rounded Corners active Size（本机 12）或原生 windowContainer radius，支持 CornerRadius 手动覆盖。外扩 3px 纳入 WindowItem boundingRect，创建、更新、移除使用 Item 的局部 damage。原文 2px 直角为初始方案；初轮 4px 样式见 [样式调整记录](../../test/FOCUS_RING_STYLE_RESULTS.md)，当前 3px 部署见 [Phase 2 记录](../../test/FOCUS_RING_PHASE2_RESULTS.md)。
-- Phase 3 新增 FocusRingPaintFrame，仅在一次 paintWindow 调用内保存同一视觉帧，复制原生位置 / transform / opacity 与既有 WindowPaintData / device clip；独立绘制根也叠加 Item opacity 一次，避免原生透明度遗漏。源码与 144 个真实 Spring 样本检查通过，已单独部署，人工验收进行中；该场景子项和窗口一起进入已有 native viewport clip / Script Effect 绘制链，不另取 animation clock，也不每帧传位置。是否满足 Wide 非等比缩放时固定粗细，仍需后续验证；不能凭静态测试宣称动态验收通过。
+- Phase 3 新增 FocusRingPaintFrame，仅在一次 paintWindow 调用内保存同一视觉帧，复制原生位置 / transform / opacity 与既有 WindowPaintData / device clip；独立绘制根也叠加 Item opacity 一次，避免原生透明度遗漏。源码与 144 个真实 Spring 样本检查通过，已单独部署并通过慢速 H/L 贴合 / 裁剪及工作区清理实机验收；该场景子项和窗口一起进入已有 native viewport clip / Script Effect 绘制链，不另取 animation clock，也不每帧传位置。是否满足 Wide 非等比缩放时固定粗细，仍需后续验证；不能凭静态测试宣称动态验收通过。
 - Phase 1 已部署版本只读 Bridge protocol 2；Phase 2 源码已解除该依赖，新增 `src/kwin/visual/FocusRingController.js`，直接向 `org.kde.KWin /ccNiriFocusRing org.cc.NiriFocusRing1.PublishEligibility` 发布独立资格集合。Native 按真实 activeWindow 选择唯一 owner，启用时通过专用空快捷键请求重发。旧 / 乱序、禁用与 retired session 均受协议检查；没有 role 1007、轮询或 per-frame DBus。
 - 全屏、非当前桌面 / 活动、非主输出、非成员、最小化、透明停放、窗口关闭时隐藏。QPointer 与父项销毁连接清理场景子项；隐藏 Ring 时不阻止 direct scanout。
 - 元数据默认关闭；本轮已补齐 immutable 安装与 install.sh / cc-niri 启停、卸载清理，通过 `cc-niri focus-ring on/off/status` 独立控制，start / stop / restart 保留用户 opt-in。已在内屏启用，颜色 / 圆角 / 全屏 / 独立开关静态验收通过，见 [实机记录](../../test/FOCUS_RING_PHASE1_LIVE_RESULTS.md)。
-- Static Native POC 实机验证已通过；Phase 2 模块化资格控制器已实现、配套部署并通过实机验收。Phase 3 同帧绘制已实现并通过自动验证，已单独部署，Spring / viewport clip 人工实机验收进行中；随后进入 retarget、Wide/Maximize 和主屏缩放。双屏 / mixed DPI 实机验证按用户主屏范围暂缓。
+- Static Native POC 实机验证已通过；Phase 2 模块化资格控制器已实现、配套部署并通过实机验收。Phase 3 同帧绘制已实现并通过自动验证，已单独部署，Spring / viewport clip 与工作区清理实机验收通过；随后进入 retarget、Wide/Maximize 和主屏缩放。双屏 / mixed DPI 实机验证按用户主屏范围暂缓。

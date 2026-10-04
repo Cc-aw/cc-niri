@@ -1,6 +1,6 @@
 # Focus Ring Phase 3：同帧 Visual Transform
 
-日期：2026-10-04。实现与自动验证完成；第三阶段已单独部署并启用，自动加载 / 独立重载检查通过，主屏人工验收进行中。当前边框仍为 3px。
+日期：2026-10-04。实现与自动验证完成；第三阶段已单独部署并启用，自动加载 / 独立重载检查及两轮主屏人工实机验收全部通过。当前边框仍为 3px。
 
 ## 实现
 
@@ -25,7 +25,7 @@
 
 测试验证真实 KWin Item 和绘制参数，使用捕获 renderer，不创建 GL context。设备像素、实机圆角效果与真实滚动画面仍需要后续人工确认；1.5 / 2 的参数检查不代表 Phase 6 缩放实机验收通过。
 
-## 部署与待验收
+## 部署与实机验收
 
 本阶段只需要更新 Ring 原生库，布局 Script、动画 Effect、Native Clip 与 Bridge 不需要配套升级。本轮采用现有 immutable 安装器和独立 focus-ring off/on 完成部署：
 
@@ -50,7 +50,11 @@
 人工验收进度：
 
 - 第一轮通过：用户反馈“贴合、裁剪都正常”，确认慢速 Meta+L 两次、Meta+H 两次时边框紧贴当前窗口，没有提前 / 延后、错位或重影；左右视口边缘与窗口一起裁剪且无残留。
-- 第二轮滚动中 J/K 往返与独立 off/on 清理 / 恢复已邀请测试，待用户反馈，尚未标记第三阶段实机全部通过。
+- 第二轮通过：用户反馈“两项都正常”，确认滚动开始后立即 J、稍后 K 返回时，边框贴合当前窗口，没有旧位置残留或裁剪异常；独立 off 无残留，on 后回到受管窗口正常恢复。
+- 第一轮后只读诊断 active=true、width=3、cornerRadius=12、drawCount=3824；第二轮后 active=true、drawCount=7716、generation=291，确认新版本实际进入边框绘制。两次 KWin PID 均为 2088，布局 / 动画 / Clip / Bridge 和边框仍运行。
+- 最终诊断与完整 KWin 日志审计保存在部署备份中的 `manual-result.json`、`final-kwin.log`；未发现新增 TypeError / ReferenceError / SyntaxError / KCrash，KWin PID 未变。`result.json` 的人工验收状态已更新为 passed。
+
+第三阶段两轮主屏实机验收完成。
 
 本阶段不把快速连续反向的完整矩阵、Wide / Maximize 的固定线宽、主屏最终像素清晰度提前标记完成；分别留给 Phase 4、5、6。双屏按用户范围暂缓。
 
