@@ -9,17 +9,29 @@ class DeferredScrollParking {
         const current = this.context();
         return ["sessionId", "workspaceId", "targetOutput"].every(key => current[key] === context[key]);
     }
+    pause() {
+        const pending = this.pending;
+        if (!pending) return;
+        for (const key of ["timer", "watchdog", "rescue"]) {
+            if (pending[key]) this.clearTimer(pending[key]);
+            pending[key] = null;
+        }
+        pending.paused = true;
+    }
     start(epoch, items) {
-        this.cancel();
+        // GeometryCommitter already transferred retained outgoing items and
+        // released any incoming owner. Do not park the previous visual batch.
+        this.pause();
+        this.pending = null;
         const pending = { epoch, items, context: this.context(), timer: null, watchdog: null, rescue: null };
         this.pending = pending;
         items.forEach(item => { this.stateFor(item.column.window).scrollPendingParkEpoch = epoch; });
         const poll = () => {
-            if (this.pending !== pending) return;
+            if (this.pending !== pending || pending.paused) return;
             if (!this.sameContext(pending.context)) { this.cancel(); return; }
             try {
                 this.status(json => {
-                    if (this.pending !== pending) return;
+                    if (this.pending !== pending || pending.paused) return;
                     let status;
                     try { status = JSON.parse(String(json)); } catch (_) { status = null; }
                     if (status && this.sameContext(pending.context) &&
@@ -34,11 +46,11 @@ class DeferredScrollParking {
         };
         pending.timer = this.setTimer(poll, 32);
         pending.watchdog = this.setTimer(() => {
-            if (this.pending !== pending) return;
+            if (this.pending !== pending || pending.paused) return;
             this.warn(`[SCROLL_PLAN] completion timeout epoch=${epoch}`);
             // Cancel ACK clears projection before a fallback parks real windows.
-            pending.rescue = this.setTimer(() => { if (this.pending === pending) this.cancel(); }, 150);
-            try { this.disarm(epoch, () => { if (this.pending === pending) this.cancel(); }); }
+            pending.rescue = this.setTimer(() => { if (this.pending === pending && !pending.paused) this.cancel(); }, 150);
+            try { this.disarm(epoch, () => { if (this.pending === pending && !pending.paused) this.cancel(); }); }
             catch (_) { /* The bounded rescue handles an unavailable endpoint. */ }
         }, 3500);
     }

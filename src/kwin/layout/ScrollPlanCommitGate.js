@@ -19,7 +19,8 @@ class ScrollPlanCommitGate {
     schedule(plan, envelope, context) {
         if (this.pending) {
             this.clearTimer(this.pending.timer);
-            this.abort(this.pending.plan.epoch);
+            // The newer arm supersedes ownership. Do not cancel an in-flight
+            // arm here: its last painted sample is the next Spring origin.
         }
         const pending = { plan, envelope, context, activationWindow: null, timer: null };
         this.pending = pending;
@@ -53,6 +54,9 @@ class ScrollPlanCommitGate {
                 try { this.arm(envelope, finish); } catch (error) { finish(false); }
             });
         } catch (error) { finish(false); }
+    }
+    baseOffset(offset) {
+        return this.pending ? this.pending.envelope.oldScrollOffsetX : offset;
     }
     deferActivation(window) {
         if (!this.pending) return false;

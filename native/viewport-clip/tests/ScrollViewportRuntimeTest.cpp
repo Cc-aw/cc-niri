@@ -46,7 +46,7 @@ int main() {
     check(!runtime.projection(QStringLiteral("2"), QRectF(-99999, 50.25, 1252.25, 1320.25)), "parking geometry cannot be projected");
     const auto incoming = runtime.projection(QStringLiteral("2"), incomingRect);
     check(incoming.has_value() && incomingRect.x() + incoming->translationX == incoming->viewport.right() + 8, "incoming starts beyond the right strip edge");
-    check(!runtime.projection(QStringLiteral("1"), rect.translated(1260.25, 0)), "pre-commit old geometry excluded");
+    check(runtime.projection(QStringLiteral("1"), rect.translated(1260.25, 0))->translationX == 0, "pre-commit source remains at its old visual position");
     check(runtime.projection(QStringLiteral("1"), rect)->translationX == 1260.25, "first sample is old projection");
     check(runtime.advance(100ms), "animation active");
     const auto sample = runtime.projection(QStringLiteral("1"), rect)->translationX;
@@ -135,5 +135,58 @@ int main() {
         attached.cancel(QStringLiteral("s"), 1);
         check(!attached.active() && attached.role(leftId).isEmpty(), "cancel clears all incoming roles");
     }
+    // Repeated keys retarget before settling, preserving all painted windows,
+    // including outgoing that is absent from both new logical snapshots.
+    for (bool reverse : {false, true}) {
+        ScrollViewportRuntime chain; chain.updateContext(state());
+        const double step = 1260.25;
+        const double initial = reverse ? 3 * step : 0;
+        const double direction = reverse ? -step : step;
+        check(chain.arm(plan(1, initial, initial + direction), 0ns), "chain first arm");
+        for (int epoch = 2; epoch <= 3; ++epoch) {
+            const auto lastFrame = (epoch - 1) * 40ms;
+            check(chain.advance(lastFrame), "chain sample remains active");
+            const auto frames = chain.targets();
+            QHash<QString, double> painted;
+            for (auto it = frames.cbegin(); it != frames.cend(); ++it) {
+                auto projection = chain.projection(it.key(), it.value());
+                check(projection.has_value(), "old frame has projection");
+                painted.insert(it.key(), it.value().x() + projection->translationX);
+            }
+            check(chain.arm(plan(epoch, initial + (epoch - 1) * direction, initial + epoch * direction), lastFrame + 3ms, frames), "retarget without wait");
+            check(!chain.completed(), "new epoch owns completion");
+            for (auto it = painted.cbegin(); it != painted.cend(); ++it) {
+                const auto newFrame = chain.targets().value(it.key());
+                auto afterCommit = chain.projection(it.key(), newFrame);
+                auto beforeCommit = chain.projection(it.key(), frames.value(it.key()));
+                check(afterCommit && beforeCommit, "both source and target survive retarget ACK");
+                check(std::abs(newFrame.x() + afterCommit->translationX - it.value()) < 1e-8, "after geometry retarget continuity");
+                check(std::abs(frames.value(it.key()).x() + beforeCommit->translationX - it.value()) < 1e-8, "before geometry retarget continuity");
+            }
+        }
+        check(chain.targets().size() == 5, "all unfinished outgoing retained across three keys");
+        chain.advance(120ms);
+        const auto targets = chain.targets();
+        for (int i = 0; i < 4; ++i) {
+            const auto left = targets.value(QString::number(i));
+            const auto right = targets.value(QString::number(i + 1));
+            const auto lp = chain.projection(QString::number(i), left);
+            const auto rp = chain.projection(QString::number(i + 1), right);
+            check(lp && rp && std::abs(right.x() + rp->translationX - left.right() - lp->translationX - 8) < 1e-8, "fixed gap for retained chain");
+        }
+        chain.cancel(QStringLiteral("s"), 1); chain.cancel(QStringLiteral("s"), 2);
+        check(chain.active() && chain.status().value(QStringLiteral("epoch")).toInteger() == 3, "old epochs cannot finish latest retarget");
+        chain.advance(4s); check(chain.completed(), "latest chain completes");
+        chain.cancel(QStringLiteral("s"), 3); check(!chain.active(), "latest finalization clears full chain");
+    }
+    // An arm can be superseded before any geometry ACK. The origin is still the
+    // last painted sample, rather than the uncommitted logical target.
+    ScrollViewportRuntime uncommitted; uncommitted.updateContext(state());
+    check(uncommitted.arm(plan(1, 0, 1260.25), 0ns), "uncommitted arm");
+    uncommitted.advance(40ms); const auto source = uncommitted.sourceFrames().value(QStringLiteral("1"));
+    const double paintedX = source.x() + uncommitted.projection(QStringLiteral("1"), source)->translationX;
+    QHash<QString, QRectF> sourceMap{{QStringLiteral("1"), source}};
+    check(uncommitted.arm(plan(2, 0, 2520.5), 43ms, sourceMap), "supersede uncommitted geometry");
+    check(std::abs(source.x() + uncommitted.projection(QStringLiteral("1"), source)->translationX - paintedX) < 1e-8, "uncommitted sample continuity");
     std::cout << "PASS native scroll projection ownership and lifecycle with incoming fixed gap" << std::endl;
 }

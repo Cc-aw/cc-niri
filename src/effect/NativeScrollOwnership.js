@@ -30,7 +30,7 @@ function nativeScrollGeometryRole(window, oldGeometry, newGeometry, screenRect) 
             parked(newGeometry, screenRect) ? "outgoing-finalize" : null;
     }
     if (!rectNear(marker, newGeometry, 0.5) || !visibleSlot(newGeometry, screenRect)) return null;
-    if (marker.role === "incoming") return parked(oldGeometry, screenRect) ? "incoming" : null;
+    if (marker.role === "incoming") return parked(oldGeometry, screenRect) || visibleSlot(oldGeometry, screenRect) ? "incoming" : null;
     return visibleSlot(oldGeometry, screenRect) ? "continuing" : null;
 }
 

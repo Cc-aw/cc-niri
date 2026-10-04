@@ -43,6 +43,7 @@ function setup(wideIndex, offset, focusedIndex) {
     const context = vm.createContext({
         mainScreenState: state, contextualViewport: viewport, columnStore: store,
         contextualWideCoordinator: { isActivationDeferred: () => false },
+        scrollPlanCommitGate: { pending: null },
         PRESENTATION_NORMAL: "normal", FocusSource,
         workspace: { activeWindow: state.columns[focusedIndex].window },
         dockScrollController: { cancel: () => false },

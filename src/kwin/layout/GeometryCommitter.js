@@ -58,11 +58,13 @@ class GeometryCommitter {
         }
         plan.commitOrder.forEach(item => {
             const column = item.column;
-            if (options.nativeScroll && item.transitionRole === "outgoing") {
+            if (options.nativeScroll && item.placement === "parked" &&
+                    (item.transitionRole === "outgoing" || this.stateFor(column.window).scrollPendingParkEpoch != null)) {
                 this.rememberVisibleGeometry(column.window, this.rectCopy(column.window.frameGeometry));
                 pendingPark.push(item);
                 return;
             }
+            if (item.placement === "visible") this.stateFor(column.window).scrollPendingParkEpoch = null;
             if (wideExitTarget && item.placement === "visible" &&
                     column !== plan.wideExitColumn &&
                     !this.sameRectNear(

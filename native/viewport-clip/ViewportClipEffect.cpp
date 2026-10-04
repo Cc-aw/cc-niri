@@ -262,6 +262,13 @@ bool CcNiriViewportClipEffect::ArmScrollPlan(const QString &json)
     const auto plan = document.object();
     const auto viewport = plan.value(QStringLiteral("viewport")).toObject();
     const auto previousTargets = m_scrollRuntime.targets();
+    const auto previousSources = m_scrollRuntime.sourceFrames();
+    QHash<QString, QRectF> frames;
+    for (auto *window : effects->stackingOrder()) {
+        if (window->isOnCurrentDesktop() && window->screen()
+            && window->screen()->name() == plan.value(QStringLiteral("targetOutput")).toString())
+            frames.insert(scrollWindowId(window), scrollGeometry(window));
+    }
     for (const auto &value : plan.value(QStringLiteral("entries")).toArray()) {
         const auto entry = value.toObject();
         if (entry.value(QStringLiteral("oldPlacement")) != QJsonValue(QStringLiteral("visible"))) continue;
@@ -276,10 +283,11 @@ bool CcNiriViewportClipEffect::ArmScrollPlan(const QString &json)
         for (auto *window : effects->stackingOrder()) {
             if (scrollWindowId(window) != id) continue;
             if (!near(scrollGeometry(window), oldRect)
-                && (!previousTargets.contains(id) || !near(scrollGeometry(window), previousTargets.value(id)))) return false;
+                && (!previousTargets.contains(id) || !near(scrollGeometry(window), previousTargets.value(id)))
+                && (!previousSources.contains(id) || !near(scrollGeometry(window), previousSources.value(id)))) return false;
         }
     }
-    if (!m_scrollRuntime.arm(plan, motionNow())) return false;
+    if (!m_scrollRuntime.arm(plan, motionNow(), frames)) return false;
     updateScrollOwnership();
     effects->addRepaintFull();
     int incoming = 0, outgoing = 0;

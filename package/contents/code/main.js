@@ -1408,7 +1408,8 @@ class ScrollPlanCommitGate {
     schedule(plan, envelope, context) {
         if (this.pending) {
             this.clearTimer(this.pending.timer);
-            this.abort(this.pending.plan.epoch);
+            // The newer arm supersedes ownership. Do not cancel an in-flight
+            // arm here: its last painted sample is the next Spring origin.
         }
         const pending = { plan, envelope, context, activationWindow: null, timer: null };
         this.pending = pending;
@@ -1442,6 +1443,9 @@ class ScrollPlanCommitGate {
                 try { this.arm(envelope, finish); } catch (error) { finish(false); }
             });
         } catch (error) { finish(false); }
+    }
+    baseOffset(offset) {
+        return this.pending ? this.pending.envelope.oldScrollOffsetX : offset;
     }
     deferActivation(window) {
         if (!this.pending) return false;
@@ -1750,11 +1754,13 @@ class GeometryCommitter {
         }
         plan.commitOrder.forEach(item => {
             const column = item.column;
-            if (options.nativeScroll && item.transitionRole === "outgoing") {
+            if (options.nativeScroll && item.placement === "parked" &&
+                    (item.transitionRole === "outgoing" || this.stateFor(column.window).scrollPendingParkEpoch != null)) {
                 this.rememberVisibleGeometry(column.window, this.rectCopy(column.window.frameGeometry));
                 pendingPark.push(item);
                 return;
             }
+            if (item.placement === "visible") this.stateFor(column.window).scrollPendingParkEpoch = null;
             if (wideExitTarget && item.placement === "visible" &&
                     column !== plan.wideExitColumn &&
                     !this.sameRectNear(
@@ -1843,17 +1849,29 @@ class DeferredScrollParking {
         const current = this.context();
         return ["sessionId", "workspaceId", "targetOutput"].every(key => current[key] === context[key]);
     }
+    pause() {
+        const pending = this.pending;
+        if (!pending) return;
+        for (const key of ["timer", "watchdog", "rescue"]) {
+            if (pending[key]) this.clearTimer(pending[key]);
+            pending[key] = null;
+        }
+        pending.paused = true;
+    }
     start(epoch, items) {
-        this.cancel();
+        // GeometryCommitter already transferred retained outgoing items and
+        // released any incoming owner. Do not park the previous visual batch.
+        this.pause();
+        this.pending = null;
         const pending = { epoch, items, context: this.context(), timer: null, watchdog: null, rescue: null };
         this.pending = pending;
         items.forEach(item => { this.stateFor(item.column.window).scrollPendingParkEpoch = epoch; });
         const poll = () => {
-            if (this.pending !== pending) return;
+            if (this.pending !== pending || pending.paused) return;
             if (!this.sameContext(pending.context)) { this.cancel(); return; }
             try {
                 this.status(json => {
-                    if (this.pending !== pending) return;
+                    if (this.pending !== pending || pending.paused) return;
                     let status;
                     try { status = JSON.parse(String(json)); } catch (_) { status = null; }
                     if (status && this.sameContext(pending.context) &&
@@ -1868,11 +1886,11 @@ class DeferredScrollParking {
         };
         pending.timer = this.setTimer(poll, 32);
         pending.watchdog = this.setTimer(() => {
-            if (this.pending !== pending) return;
+            if (this.pending !== pending || pending.paused) return;
             this.warn(`[SCROLL_PLAN] completion timeout epoch=${epoch}`);
             // Cancel ACK clears projection before a fallback parks real windows.
-            pending.rescue = this.setTimer(() => { if (this.pending === pending) this.cancel(); }, 150);
-            try { this.disarm(epoch, () => { if (this.pending === pending) this.cancel(); }); }
+            pending.rescue = this.setTimer(() => { if (this.pending === pending && !pending.paused) this.cancel(); }, 150);
+            try { this.disarm(epoch, () => { if (this.pending === pending && !pending.paused) this.cancel(); }); }
             catch (_) { /* The bounded rescue handles an unavailable endpoint. */ }
         }, 3500);
     }
@@ -5405,9 +5423,6 @@ function endLayoutTransaction(reason, epoch) {
 }
 
 function relayoutImpl(reason, scrollOffsets) {
-    // Retire old parking without snapping the native last-painted offset.
-    // A following SCROLL may retarget; other layouts cancel through the gate.
-    deferredScrollParking.cancel(false);
     if (!mainScreenState.enabled) {
         warn(`[cc-scroll] relayout skipped: disabled reason=${reason}`);
         return;
@@ -5420,6 +5435,9 @@ function relayoutImpl(reason, scrollOffsets) {
     const presentedColumn = presentationColumn();
     contextualWideCoordinator.prepareLayoutTransition(presentedColumn);
     const wideExitColumn = contextualWideCoordinator.wideExitColumn();
+    if (scrollOffsets) scrollOffsets = Object.assign({}, scrollOffsets, {
+        oldScrollOffsetX: scrollPlanCommitGate.baseOffset(scrollOffsets.oldScrollOffsetX),
+    });
     const plan = computeLayoutPlan({
         reason,
         epoch: layoutTransaction.currentEpoch(),
@@ -5435,6 +5453,13 @@ function relayoutImpl(reason, scrollOffsets) {
         wideExitColumn,
         wideRect: presentationController.wideRect(),
     });
+    const directionalFocus = reason === "focus-next" || reason === "focus-previous";
+    if (directionalFocus && !plan.viewportMotion && !plan.scrollTransaction &&
+            !scrollPlanCommitGate.pending && deferredScrollParking.pending) {
+        // Focus can move inside the already committed pair without stopping
+        // its in-flight visual offset or retiring any outgoing window.
+        return;
+    }
     if (plan.viewportMotion) {
         const motion = plan.viewportMotion;
         const envelope = {
@@ -5469,6 +5494,7 @@ function relayoutImpl(reason, scrollOffsets) {
         });
         if (envelope) {
             motionPlanCommitGate.cancel();
+            deferredScrollParking.pause();
             scrollPlanCommitGate.schedule(plan, envelope, { wideExitColumn });
             return;
         }
@@ -5479,6 +5505,7 @@ function relayoutImpl(reason, scrollOffsets) {
 }
 
 function commitLayoutPlan(plan, wideExitColumn, activationWindow, options) {
+    if (!options || !options.nativeScroll) deferredScrollParking.cancel();
     const commitResult = geometryCommitter.commit(plan, options);
     if (options && options.nativeScroll) deferredScrollParking.start(plan.epoch, commitResult.pendingPark);
     contextualWideCoordinator.onPlanCommitted(plan, wideExitColumn,
@@ -5897,7 +5924,8 @@ function focusRelativeColumn(delta) {
     if (!mainScreenState.enabled || !columns.length) return;
     cancelPendingDockScroll(delta < 0 ? "focus-previous" : "focus-next", true);
     const activeIndex = columnIndexForWindow(workspace.activeWindow);
-    if (activeIndex >= 0 && !contextualWideCoordinator.isActivationDeferred()) {
+    if (activeIndex >= 0 && !contextualWideCoordinator.isActivationDeferred() &&
+            !scrollPlanCommitGate.pending) {
         columnStore.focusIndex(activeIndex);
     }
     const oldIndex = columnStore.focusedIndex();

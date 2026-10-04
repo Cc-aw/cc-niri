@@ -19,7 +19,7 @@ for (const patch of [{epoch:-1},{epoch:NaN},{epoch:Number.MAX_SAFE_INTEGER+1},{t
     assert.equal(readNativeScrollMarker(fixture("continuing",left,true,patch)),null,JSON.stringify(patch));
 }
 const sleeping=fixture("continuing",left);sleeping.onCurrentDesktop=false;assert.equal(readNativeScrollMarker(sleeping),null);
-assert.equal(classify(fixture("incoming",left),right,left),null,"incoming role cannot suppress continuing layout");
+assert.equal(classify(fixture("incoming",left),right,left),"incoming","previous outgoing can re-enter without a physical parking jump");
 assert.equal(classify(fixture("outgoing",right),left,parking),null,"stale outgoing frame keeps fallback");
 assert.equal(readNativeScrollMarker({screen:output}),null);
 console.log("PASS native motion capability plus typed scoped frame ownership, Wide and fallback boundaries");
