@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #include "FocusRingEffect.h"
+#include "FocusRingPaintFrame.h"
 #include "core/output.h"
 #include "effect/effecthandler.h"
 #include "scene/windowitem.h"
@@ -145,23 +146,25 @@ void CcNiriFocusRingEffect::paintWindow(const RenderTarget &target, const Render
     // clipping. Finish this window's effects, then draw only its ring, before
     // KWin paints any higher window. This callback is not in drawWindow, so an
     // OffscreenEffect's recursive capture cannot include our colored pixels.
-    const WindowPaintData ringData(data);
+    const auto frame = m_owner == window && eligible(window)
+        ? FocusRingPaintFrame::capture(window->windowItem(), mask, region, data) : std::nullopt;
     effects->paintWindow(target, viewport, window, mask, region, data);
-    if (m_owner != window || !eligible(window)) return;
+    if (!frame || m_owner != window || !eligible(window)) return;
     auto *scene = window->windowItem()->scene();
-    if (scene && m_ring.paint(scene->renderer(), target, viewport, mask, region, ringData)) ++m_drawCount;
+    if (scene && m_ring.paint(scene->renderer(), target, viewport, *frame)) ++m_drawCount;
 }
 bool CcNiriFocusRingEffect::isActive() const { return m_ring.attached() && eligible(m_owner.data()); }
 bool CcNiriFocusRingEffect::blocksDirectScanout() const { return isActive(); }
 QString CcNiriFocusRingEffect::GetFocusRingStatus() const {
     return QString::fromUtf8(QJsonDocument(QJsonObject{
-        {QStringLiteral("phase"), QStringLiteral("independent-eligibility")},
+        {QStringLiteral("phase"), QStringLiteral("visual-transform")},
         {QStringLiteral("eligibilitySource"), QStringLiteral("layout-script")},
         {QStringLiteral("eligibilityEnabled"), m_context.enabled},
         {QStringLiteral("sessionId"), m_context.session},
         {QStringLiteral("generation"), double(m_context.generation)},
         {QStringLiteral("eligibleCount"), m_context.windows.size()},
         {QStringLiteral("renderer"), QStringLiteral("post-window-native-item")},
+        {QStringLiteral("paintSource"), QStringLiteral("window-paint-pass")},
         {QStringLiteral("drawCount"), double(m_drawCount)},
         {QStringLiteral("windowOpacity"), m_owner ? m_owner->opacity() : 0.0},
         {QStringLiteral("active"), isActive()},

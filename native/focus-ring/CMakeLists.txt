@@ -12,7 +12,7 @@ find_package(Qt6 6.6 REQUIRED COMPONENTS Core DBus Gui Quick Widgets)
 find_package(KF6 6.0 REQUIRED COMPONENTS CoreAddons Config)
 find_package(KWin 6.7 REQUIRED COMPONENTS kwineffects)
 kcoreaddons_add_plugin(cc-niri-focus-ring
-    SOURCES main.cpp FocusRingEffect.cpp FocusRingEffect.h FocusRingItem.cpp FocusRingItem.h FocusRingContext.cpp FocusRingContext.h
+    SOURCES main.cpp FocusRingEffect.cpp FocusRingEffect.h FocusRingItem.cpp FocusRingItem.h FocusRingPaintFrame.cpp FocusRingPaintFrame.h FocusRingContext.cpp FocusRingContext.h
     INSTALL_NAMESPACE "kwin/effects/plugins")
 set_property(TARGET cc-niri-focus-ring APPEND PROPERTY AUTOMOC_MACRO_NAMES KWIN_EFFECT_FACTORY_SUPPORTED)
 target_link_libraries(cc-niri-focus-ring PRIVATE Qt6::Core Qt6::DBus Qt6::Gui KF6::CoreAddons KF6::ConfigCore KWin::kwin)
@@ -29,10 +29,17 @@ if(BUILD_TESTING)
     set_target_properties(cc-niri-focus-ring-context-tests PROPERTIES AUTOMOC OFF)
     target_link_libraries(cc-niri-focus-ring-context-tests PRIVATE Qt6::Core)
     add_test(NAME focus-ring-context COMMAND cc-niri-focus-ring-context-tests)
-    add_executable(cc-niri-focus-ring-item-tests tests/FocusRingItemTest.cpp FocusRingItem.cpp FocusRingItem.h)
+    add_executable(cc-niri-focus-ring-item-tests tests/FocusRingItemTest.cpp FocusRingItem.cpp FocusRingItem.h FocusRingPaintFrame.cpp)
     target_link_libraries(cc-niri-focus-ring-item-tests PRIVATE Qt6::Core Qt6::Gui KWin::kwin)
     add_test(NAME focus-ring-scene-item COMMAND cc-niri-focus-ring-item-tests)
-    add_executable(cc-niri-focus-ring-paint-tests tests/FocusRingPaintTest.cpp FocusRingItem.cpp FocusRingItem.h)
+    add_executable(cc-niri-focus-ring-paint-tests tests/FocusRingPaintTest.cpp FocusRingItem.cpp FocusRingItem.h FocusRingPaintFrame.cpp)
     target_link_libraries(cc-niri-focus-ring-paint-tests PRIVATE Qt6::Core Qt6::Gui KWin::kwin)
     add_test(NAME focus-ring-isolated-paint COMMAND cc-niri-focus-ring-paint-tests)
+    # Test-only composition with production Spring; the Ring plugin has no
+    # motion/clock dependency and never reads scroll state itself.
+    add_executable(cc-niri-focus-ring-visual-transform-tests tests/FocusRingVisualTransformTest.cpp
+        FocusRingItem.cpp FocusRingItem.h FocusRingPaintFrame.cpp
+        ../viewport-clip/ScrollViewportRuntime.cpp ../viewport-clip/ViewportMotion.cpp ../viewport-clip/Spring.cpp)
+    target_link_libraries(cc-niri-focus-ring-visual-transform-tests PRIVATE Qt6::Core Qt6::Gui KWin::kwin)
+    add_test(NAME focus-ring-visual-transform COMMAND cc-niri-focus-ring-visual-transform-tests)
 endif()

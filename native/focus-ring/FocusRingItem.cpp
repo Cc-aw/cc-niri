@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #include "FocusRingItem.h"
+#include "FocusRingPaintFrame.h"
 #include <QColor>
 #include <cmath>
 #include <algorithm>
@@ -43,17 +44,15 @@ bool FocusRingItem::attach(Item *windowItem, Item *contentItem, const QSizeF &fr
     return true;
 }
 bool FocusRingItem::paint(ItemRenderer *renderer, const RenderTarget &target, const RenderViewport &viewport,
-        int mask, const Region &region, const WindowPaintData &data) {
-    if (!attached() || !m_parent || !renderer || region.isEmpty()) return false;
-    m_paintRoot->setPosition(m_parent->position());
-    m_paintRoot->setTransform(m_parent->transform());
-    WindowPaintData ringData(data);
-    // Keep the current visual transform and fade opacity, but no app-specific
-    // brightness/saturation or source color profile. The border has its own
-    // sRGB material and KWin converts it directly to this render target.
-    ringData.setBrightness(1);
-    ringData.setSaturation(1);
-    renderer->renderItem(target, viewport, m_paintRoot, mask, region, ringData, {}, {});
+        const FocusRingPaintFrame &frame) {
+    if (!attached() || !m_parent || frame.owner() != m_parent.data() || !renderer
+        || frame.deviceRegion().isEmpty()) return false;
+    // Preserve the window's state at entry to this paint call, even if nested
+    // downstream work changes the Item or focus before the border is drawn.
+    m_paintRoot->setPosition(frame.position());
+    m_paintRoot->setTransform(frame.transform());
+    m_paintRoot->setOpacity(frame.itemOpacity());
+    renderer->renderItem(target, viewport, m_paintRoot, frame.mask(), frame.deviceRegion(), frame.paintData(), {}, {});
     return true;
 }
 void FocusRingItem::clear() {
