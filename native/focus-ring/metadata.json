@@ -1,0 +1,11 @@
+{
+    "KPlugin": {
+        "Category": "Appearance",
+        "Description": "Static native focus ring POC for CC Niri managed windows",
+        "EnabledByDefault": false,
+        "License": "GPL-2.0-or-later",
+        "Name": "CC Niri Focus Ring",
+        "Version": "0.1.0"
+    },
+    "org.kde.kwin.effect": { "internal": false }
+}

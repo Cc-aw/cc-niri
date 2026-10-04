@@ -31,6 +31,7 @@ if (native) {
     for (const [name, dir] of [
         ["Bridge", "build/bridge"],
         ["Viewport clip", "build/native-viewport-clip"],
+        ["Focus ring", "build/native-focus-ring"],
         ["Plasmoid", "build/plasmoid"],
     ]) {
         if (!fs.existsSync(path.join(root, dir, "CMakeCache.txt"))) {
@@ -46,6 +47,8 @@ if (native) {
     run("Bridge isolated SCROLL protocol tests", "dbus-run-session", ["--", "python3", "test/bridge-scroll-plan-integration.py", "build/bridge/cc-scroll-dock-bridge"]);
     run("Viewport clip native build", "cmake", ["--build", "build/native-viewport-clip"]);
     run("Viewport clip workspace barrier tests", "ctest", ["--test-dir", "build/native-viewport-clip", "--output-on-failure"]);
+    run("Focus ring native build", "cmake", ["--build", "build/native-focus-ring"]);
+    run("Focus ring ownership and scene tests", "ctest", ["--test-dir", "build/native-focus-ring", "--output-on-failure"]);
     run("Plasmoid native build", "cmake", ["--build", "build/plasmoid"]);
 }
 
