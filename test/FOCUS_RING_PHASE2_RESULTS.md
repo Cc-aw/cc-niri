@@ -51,4 +51,10 @@
 3. `cc-niri focus-ring off` 后切焦点或调整受管名单，再 `on`；不用再移动窗口即可获取最新名单。
 4. J/K 往返，旧工作区不残留边框，返回后当前窗口恢复；主屏范围测试即可。
 
-以上人工实机项目正在验收，尚未标记通过。后续 Phase 3 验证视觉 transform 与 Spring / viewport clip，Phase 4 连续 retarget，Phase 5 Wide / Maximize 与非等比缩放粗细，Phase 6 主屏缩放；双屏实机仍按用户范围暂缓。
+人工验收进度（2026-10-04）：
+
+- 第一轮通过：用户在点击切换两个受管窗口及快速 Meta+H / L 后反馈“这次正常”，确认边框只跟随当前焦点、旧窗口无残留，颜色和圆角正常。
+- 第一轮后只读诊断：仍为 `independent-eligibility`，独立资格 generation=37、eligibleCount=2；drawCount 已增至 2252，KWin PID 仍为 2088。读取时 owner 为空，不将快照视作某个窗口的焦点匹配证明。
+- 第二轮浮动 / 恢复受管、F11 和 J/K 隐藏 / 恢复已邀请测试，待反馈；关闭窗口以及关闭边框期间修改资格后重新开启的人工复验也待进行。
+
+本阶段人工验收尚未全部完成。后续 Phase 3 验证视觉 transform 与 Spring / viewport clip，Phase 4 连续 retarget，Phase 5 Wide / Maximize 与非等比缩放粗细，Phase 6 主屏缩放；双屏实机仍按用户范围暂缓。
