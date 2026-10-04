@@ -1,6 +1,6 @@
 # Focus Ring Phase 2：独立资格与归属管理
 
-日期：2026-10-04。代码和自动验证完成；本阶段尚未部署、尚未实机验收。当前内屏继续运行已验收的 Phase 1 静态边框。
+日期：2026-10-04。代码和自动验证完成；本阶段已在主屏配套部署并启用，自动加载 / 独立开关检查通过，人工验收进行中。
 
 ## 实现
 
@@ -29,13 +29,26 @@
 
 ## 部署与下一步
 
-此阶段改变了 Script 与 Native 的资格接口，需要配套部署生成的 Script 和新的 immutable Native 库。沿用 `install.sh` 的卸载 / 启动和 hash 路径安装；不要原地覆盖正在映射的 `.so`。没有修改正在运行的插件、kwinrc 或当前窗口。
+此阶段改变 Script 与 Native 的资格接口，本轮已配套部署生成的布局 Script 和新的 immutable Native 库。采用与 `install.sh` 相同的 `cc-niri stop/start` 恢复流程及 `tools/install-native-clip.py` 安装器；未原地覆盖已映射的 `.so`。
 
-部署后先验证：
+- 部署前重新运行 `node tools/check.js --native`：85 个 JS 测试文件、Bridge / Clip / Ring 原生测试及构建全部通过，包含刚验收的 Wide 邻窗回归。日志 `/tmp/cc-niri-focus-phase2-deploy-gate.log`。
+- 主屏 eDP-1；部署前后 KWin PID 均为 2088，未重启 KWin 或 Plasma。
+- 新 canonical：`~/.local/lib/cc-niri/focus-ring/2e2772e5e1c6d4130e7b8f3fd55bfbc91b59dd2a588d9fcb6ba1a4fe7ae02335/cc-niri-focus-ring.so`。旧版本库保留用于回退。
+- 新布局 SHA256：`c5bd51fe916bc98806eeede352079d66cd561b243edec93a019f786e8e502f77`，与仓库生成包一致。
+- 动画 Effect 未替换，仍为已通过实机验收的 Wide 邻窗修复版本；Clip / Bridge / Dock 二进制未替换。
+- 新诊断接口返回 `phase=independent-eligibility`、`eligibilitySource=layout-script`、enabled=true、eligibleCount=2；资格输出与工作区和当前布局一致。保持 width=4、color=#7FC8FF。
+- 自动 off 检查：effect 卸载，诊断 endpoint 删除；布局 / Spring / Clip / Bridge 仍运行。on 后无需移动窗口，获得同一独立 session 的新名单，generation 从 4 增至 5。
+- 部署前后持久工作区快照一致：列、焦点、Wide 偏好、viewport 及 anchor 保留。
+- 初始诊断 owner 为空，尚不能用该快照证明实际焦点边框绘制正确；该项由以下人工步骤验证。
+- 日志无新增脚本运行异常或 KWin 崩溃。加载 Native 前可见可选资格端点暂不存在的 DBus 报错，Native 加载后重发成功；已有 `deferredScrollParking` 前向引用警告仍可见。
+
+备份与命令审计：`/tmp/cc-niri-focus-phase2-backup-20261004-icg1x3ww`，含旧布局 / Effect、kwinrc、旧库 canonical、工作区快照、commands.json、result.json 与 KWin 日志。部署辅助脚本 `/tmp/cc-niri-focus-phase2-deploy.py` 在检查失败时恢复旧布局与旧库发现链接。
+
+人工验收步骤：
 
 1. 在两个普通受管应用间点击及快速 H/L，边框只在真实当前窗口；事务中焦点也及时跟随。
 2. Meta+Shift+Return 浮动后边框隐藏，恢复受管后出现；F11 隐藏与退出恢复、关窗无残留。
 3. `cc-niri focus-ring off` 后切焦点或调整受管名单，再 `on`；不用再移动窗口即可获取最新名单。
 4. J/K 往返，旧工作区不残留边框，返回后当前窗口恢复；主屏范围测试即可。
 
-以上实机项目待验收。后续 Phase 3 验证视觉 transform 与 Spring / viewport clip，Phase 4 连续 retarget，Phase 5 Wide / Maximize 与非等比缩放粗细，Phase 6 主屏缩放；双屏实机仍按用户范围暂缓。
+以上人工实机项目正在验收，尚未标记通过。后续 Phase 3 验证视觉 transform 与 Spring / viewport clip，Phase 4 连续 retarget，Phase 5 Wide / Maximize 与非等比缩放粗细，Phase 6 主屏缩放；双屏实机仍按用户范围暂缓。
