@@ -1,6 +1,6 @@
 # Focus Ring Phase 3：同帧 Visual Transform
 
-日期：2026-10-04。实现与自动验证完成；尚未部署、尚未实机验收。当前桌面继续运行 Phase 2 的 3px 原生边框。
+日期：2026-10-04。实现与自动验证完成；第三阶段已单独部署并启用，自动加载 / 独立重载检查通过，主屏人工验收进行中。当前边框仍为 3px。
 
 ## 实现
 
@@ -27,13 +27,30 @@
 
 ## 部署与待验收
 
-本阶段只需要更新 Ring 原生库，布局 Script、动画 Effect、Native Clip 与 Bridge 不需要配套升级。采用现有 immutable 安装器和独立 focus-ring off/on；本轮未安装，也未改动运行组件。当前发现链接仍指向 Phase 2 的 3px canonical：`~/.local/lib/cc-niri/focus-ring/f4247a8124c3004669e8970726e494260c9238e8e2fa5c9abbe26f3bca860bd2/cc-niri-focus-ring.so`。
+本阶段只需要更新 Ring 原生库，布局 Script、动画 Effect、Native Clip 与 Bridge 不需要配套升级。本轮采用现有 immutable 安装器和独立 focus-ring off/on 完成部署：
 
-部署后在主屏先验收：
+- 新 canonical：`~/.local/lib/cc-niri/focus-ring/399751fceefb723f68514d887c6642259ecc84d0b24b20ce03c956fe46a87db4/cc-niri-focus-ring.so`。旧 Phase 2 的 3px canonical 保留。
+- 安装产物 SHA256 与独立 staging 结果一致。CMake 调整 install RPATH，因此构建树 hash 为 `7502d7e99d503ce81cccc01b0766d81801075f97ffbd0f0b84ed9251200ec527`，安装 hash 为 `399751fceefb723f68514d887c6642259ecc84d0b24b20ce03c956fe46a87db4`；部署脚本按安装产物校验。
+- 新接口确认 `phase=visual-transform`、`paintSource=window-paint-pass`、width=3、color=#7FC8FF，独立资格 enabled=true。
+- 首次新版本加载获得 generation=250、eligibleCount=2；再次独立 off 后 effect 卸载且 endpoint 删除，on 后获得同一独立 session 的新名单 generation=251。布局始终保持加载。
+- 布局 Script、动画 Effect 与 Viewport Clip 的安装文件 hash 前后相同；动画仍包含已验收的 Wide 邻窗修复，Clip / Bridge / Dock 二进制未替换。
+- 部署前后 KWin PID 均为 2088，没有重启 KWin / Plasma；日志只有预期 READY，无新增运行异常或崩溃。
+- 最初快照 owner 为空、drawCount=0，仅表示当时没有符合条件的当前焦点窗口，不据此宣称实际绘制或贴合验收通过。
+
+成功部署备份与命令审计：`/tmp/cc-niri-focus-phase3-backup-20261004-fng_qf28`，包括旧库路径、kwinrc、manifest.json、commands.json、result.json 和 KWin 日志。辅助脚本 `/tmp/cc-niri-focus-phase3-deploy.py`，失败时恢复旧版本库链接并重新开启边框。
+
+首次部署辅助校验误把安装产物与构建树原始 hash 比较，因为 RPATH 调整而误报。已自动恢复第二阶段 3px 版本，KWin PID 未变；该次新库未进入启用检查。审计保留于 `/tmp/cc-niri-focus-phase3-backup-20261004-4wygfoyy`。改为独立 staging 安装 hash 校验后重新部署成功；未因此修改插件源码。
+
+主屏人工验收步骤：
 
 1. 同工作区至少 3 个半宽窗口，慢速 Meta+L 两次、Meta+H 两次，确认当前边框随窗口连续移动，不提前跳目标、不延后一帧。
 2. 检查左右 viewport 边缘，移动中的边框与窗口一同裁剪，没有独立残留或重影。
 3. 滚动中 J/K 往返与独立 off/on，确认新模块没有保留旧位移或旧 owner。
+
+人工验收进度：
+
+- 第一轮通过：用户反馈“贴合、裁剪都正常”，确认慢速 Meta+L 两次、Meta+H 两次时边框紧贴当前窗口，没有提前 / 延后、错位或重影；左右视口边缘与窗口一起裁剪且无残留。
+- 第二轮滚动中 J/K 往返与独立 off/on 清理 / 恢复已邀请测试，待用户反馈，尚未标记第三阶段实机全部通过。
 
 本阶段不把快速连续反向的完整矩阵、Wide / Maximize 的固定线宽、主屏最终像素清晰度提前标记完成；分别留给 Phase 4、5、6。双屏按用户范围暂缓。
 
