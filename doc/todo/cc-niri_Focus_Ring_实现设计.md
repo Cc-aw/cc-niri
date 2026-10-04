@@ -1,6 +1,6 @@
 # cc-niri Focus Ring 实现设计
 
-> **实施状态（2026-10-04）：** Phase 1 Static Native POC 已实现并通过本机 KWin 6.7.5 构建、真实场景子项测试和自动回归，尚未部署。独立 `native/focus-ring/` 使用 OutlinedBorderItem 场景子项；受管名单暂时只读 Bridge，正式 JS 归属控制器、缩放粗细及动态实机验收留给后续阶段。见 [Phase 1 记录](../../test/FOCUS_RING_PHASE1_RESULTS.md)。
+> **实施状态（2026-10-04）：** Phase 1 Static Native POC 已实现并通过本机 KWin 6.7.5 构建、真实场景子项测试和自动回归；现已部署，加载 / 卸载自动检查通过；4px / 圆角及跨应用颜色修复后，静态人工验收已通过。独立 `native/focus-ring/` 使用 OutlinedBorderItem 场景子项；受管名单暂时只读 Bridge，正式 JS 归属控制器、缩放粗细及动态实机验收留给后续阶段。见 [Phase 1 记录](../../test/FOCUS_RING_PHASE1_RESULTS.md)。
 > 文档基线需与已完成 W0–W9 的当前 main 核对；原设计正文保留。阅读入口见 [文档索引](../README.md)。
 
 > 目标：为 cc-niri 实现类似 niri 的“当前窗口光圈 / Focus Ring”，用于在无常驻 Dock 的工作流中明确当前输入焦点。  
@@ -1930,10 +1930,10 @@ Focus Ring 跟 KWin 的最终 visual transform 走。
 上文按最初设计保留；实现以本节和阶段记录为准。
 
 - KWin 6.7.5 的实际 `paintWindow()` 返回 void；EffectWindow data 接口与布局 Script Window 是不同对象。旧代码示例的直接 JS setData 不可用于布局脚本。
-- Phase 1 使用 KWin 导出的 OutlinedBorderItem，作为 WindowItem 的场景子项，排在 windowContainer 前，保证内容不被覆盖。只改 scene bounds，不改 frameGeometry、ColumnStore、viewport、Spring、停放状态或输入。
-- BorderOutline 为 2 logical px、`#7FC8FF`、alpha=1、radius=0；外扩 2px 纳入 WindowItem boundingRect，创建、更新、移除使用 Item 的局部 damage。
+- Phase 1 继续使用 KWin 导出的 OutlinedBorderItem；跨应用颜色反馈后，WindowItem 内仅保留不绘制的 damage 子项，colored border 改为独立 Item 树，经 paintWindow 96 在窗口效果完成后绘制，避开应用阴影 / 圆角捕获。保留遮挡、WindowPaintData 和 native device clip，详见 [颜色修复](../../test/FOCUS_RING_COLOR_RESULTS.md)。只改 scene bounds 与边框绘制，不改 frameGeometry、ColumnStore、viewport、Spring、停放状态或输入。
+- BorderOutline 经本轮实机反馈从 2 改为 4 logical px、`#7FC8FF`、alpha=1；半径自动兼容现有 Rounded Corners active Size（本机 12）或原生 windowContainer radius，支持 CornerRadius 手动覆盖。外扩 4px 纳入 WindowItem boundingRect，创建、更新、移除使用 Item 的局部 damage。原文 2px 直角为初始方案；当前样式与待验收边界见 [样式调整记录](../../test/FOCUS_RING_STYLE_RESULTS.md)。
 - 该场景子项和窗口一起进入已有 native viewport clip / Script Effect 绘制链，不另取 animation clock，也不每帧传位置。是否满足 Wide 非等比缩放时固定粗细，仍需后续验证；不能凭静态测试宣称动态验收通过。
 - 暂时只读现有 Bridge protocol 2 当前受管 columns，native 按真实 activeWindow 选择唯一 owner。初始 GetState 回复不会覆盖更新的 StateChanged；Bridge 消失即隐藏，重新出现重新读取。正式 Phase 2 改为独立 JS eligibility 通道，解除 POC 对 Dock snapshot 的依赖。
 - 全屏、非当前桌面 / 活动、非主输出、非成员、最小化、透明停放、窗口关闭时隐藏。QPointer 与父项销毁连接清理场景子项；隐藏 Ring 时不阻止 direct scanout。
-- 元数据默认关闭，当前未安装、未启用。install.sh 和 cc-niri 控制器尚未接入新 POC；正式生命周期与 immutable 安装在配套部署前补齐。
-- 下一步先做 Static Native POC 实机验证，再接入模块化资格控制器，随后验收 Spring / retarget、Wide/Maximize、viewport clipping 和主屏缩放。双屏 / mixed DPI 实机验证按用户主屏范围暂缓。
+- 元数据默认关闭；本轮已补齐 immutable 安装与 install.sh / cc-niri 启停、卸载清理，通过 `cc-niri focus-ring on/off/status` 独立控制，start / stop / restart 保留用户 opt-in。已在内屏启用，颜色 / 圆角 / 全屏 / 独立开关静态验收通过，见 [实机记录](../../test/FOCUS_RING_PHASE1_LIVE_RESULTS.md)。
+- Static Native POC 实机验证已通过；下一步接入模块化资格控制器，随后验收 Spring / retarget、Wide/Maximize、viewport clipping 和主屏缩放。双屏 / mixed DPI 实机验证按用户主屏范围暂缓。

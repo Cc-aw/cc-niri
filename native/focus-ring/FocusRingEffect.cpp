@@ -3,6 +3,7 @@
 #include "core/output.h"
 #include "effect/effecthandler.h"
 #include "scene/windowitem.h"
+#include "scene/scene.h"
 #include "virtualdesktops.h"
 #include "window.h"
 #include <QDBusConnection>
@@ -13,6 +14,10 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLoggingCategory>
+#include <KConfigGroup>
+#include <KSharedConfig>
+#include <algorithm>
+#include <cmath>
 
 Q_LOGGING_CATEGORY(CC_NIRI_FOCUS_RING, "cc.niri.focus.ring")
 namespace KWin {
@@ -49,13 +54,29 @@ CcNiriFocusRingEffect::CcNiriFocusRingEffect() {
         ++m_contextRevision; m_context.clear(); clearRing();
         if (!owner.isEmpty()) requestContext();
     });
+    reconfigure(ReconfigureAll);
     requestContext();
-    qCInfo(CC_NIRI_FOCUS_RING) << "[FOCUS_RING] READY static scene-item POC";
+    qCInfo(CC_NIRI_FOCUS_RING) << "[FOCUS_RING] READY isolated post-window border";
 }
 CcNiriFocusRingEffect::~CcNiriFocusRingEffect() {
     ++m_contextRevision;
     clearRing();
     if (m_endpointRegistered) QDBusConnection::sessionBus().unregisterObject(QStringLiteral("/ccNiriFocusRing"));
+}
+void CcNiriFocusRingEffect::reconfigure(ReconfigureFlags) {
+    const auto config = KSharedConfig::openConfig(QStringLiteral("kwinrc"), KConfig::NoGlobals);
+    config->reparseConfiguration();
+    const qreal overrideRadius = KConfigGroup(config, QStringLiteral("Effect-cc-niri-focus-ring"))
+        .readEntry("CornerRadius", -1.0);
+    m_configuredRadius = std::isfinite(overrideRadius) && overrideRadius >= 0 ? std::min(overrideRadius, 128.0) : -1;
+    // The external shader does not publish its radius on WindowItem. Read its
+    // active setting once on effect load/reconfigure; do not poll per frame.
+    m_roundCornersRadius = 0;
+    if (effects->loadedEffects().contains(QStringLiteral("kwin4_effect_shapecorners"))) {
+        const qreal radius = KConfigGroup(config, QStringLiteral("Round-Corners")).readEntry("Size", 12.0);
+        if (std::isfinite(radius)) m_roundCornersRadius = std::clamp(radius, 0.0, 128.0);
+    }
+    refresh();
 }
 void CcNiriFocusRingEffect::requestContext() {
     const quint64 revision = ++m_contextRevision;
@@ -119,7 +140,12 @@ void CcNiriFocusRingEffect::refresh() {
     if (!eligible(active)) { clearRing(); return; }
     if (m_owner != active) clearRing();
     auto *item = active->windowItem();
-    if (!m_ring.attach(item, item->windowContainer(), active->frameGeometry().size())) { clearRing(); return; }
+    BorderRadius radius = item->windowContainer()->borderRadius();
+    if (m_configuredRadius >= 0 || m_roundCornersRadius > 0) {
+        const qreal limit = std::min(active->frameGeometry().width(), active->frameGeometry().height()) / 2;
+        radius = BorderRadius(std::min(m_configuredRadius >= 0 ? m_configuredRadius : m_roundCornersRadius, limit));
+    }
+    if (!m_ring.attach(item, item->windowContainer(), active->frameGeometry().size(), radius)) { clearRing(); return; }
     if (!m_owner) qCInfo(CC_NIRI_FOCUS_RING) << "[FOCUS_RING] ARM" << windowId(active);
     m_owner = active;
 }
@@ -127,14 +153,31 @@ void CcNiriFocusRingEffect::clearRing() {
     if (m_owner) qCInfo(CC_NIRI_FOCUS_RING) << "[FOCUS_RING] CLEAR" << windowId(m_owner.data());
     m_ring.clear(); m_owner = nullptr;
 }
+int CcNiriFocusRingEffect::requestedEffectChainPosition() const { return 96; }
+void CcNiriFocusRingEffect::paintWindow(const RenderTarget &target, const RenderViewport &viewport,
+        EffectWindow *window, int mask, const Region &region, WindowPaintData &data) {
+    // Native viewport clip (95) has already applied Spring translation and
+    // clipping. Finish this window's effects, then draw only its ring, before
+    // KWin paints any higher window. This callback is not in drawWindow, so an
+    // OffscreenEffect's recursive capture cannot include our colored pixels.
+    const WindowPaintData ringData(data);
+    effects->paintWindow(target, viewport, window, mask, region, data);
+    if (m_owner != window || !eligible(window)) return;
+    auto *scene = window->windowItem()->scene();
+    if (scene && m_ring.paint(scene->renderer(), target, viewport, mask, region, ringData)) ++m_drawCount;
+}
 bool CcNiriFocusRingEffect::isActive() const { return m_ring.attached() && eligible(m_owner.data()); }
 bool CcNiriFocusRingEffect::blocksDirectScanout() const { return isActive(); }
 QString CcNiriFocusRingEffect::GetFocusRingStatus() const {
     return QString::fromUtf8(QJsonDocument(QJsonObject{
-        {QStringLiteral("phase"), QStringLiteral("static-scene-item-poc")},
+        {QStringLiteral("phase"), QStringLiteral("static-isolated-border-poc")},
+        {QStringLiteral("renderer"), QStringLiteral("post-window-native-item")},
+        {QStringLiteral("drawCount"), double(m_drawCount)},
+        {QStringLiteral("windowOpacity"), m_owner ? m_owner->opacity() : 0.0},
         {QStringLiteral("active"), isActive()},
         {QStringLiteral("windowUuid"), m_owner ? windowId(m_owner.data()) : QString()},
         {QStringLiteral("targetOutput"), m_context.output}, {QStringLiteral("workspaceId"), m_context.workspace},
+        {QStringLiteral("cornerRadius"), m_ring.attached() ? m_ring.border()->outline().radius().topLeft() : 0.0},
         {QStringLiteral("width"), FocusRingItem::Width}, {QStringLiteral("color"), QStringLiteral("#7FC8FF")}
     }).toJson(QJsonDocument::Compact));
 }

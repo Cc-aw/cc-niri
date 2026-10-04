@@ -104,6 +104,8 @@ else
     echo "Removed. Log out and back in to finish unloading the script." >&2
 fi
 
+kwriteconfig6 --file kwinrc --group CCNiriFocusRing --key EnabledByUser --delete
+rm -f -- "${HOME}/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-focus-ring.so"
 rm -f -- "${NATIVE_CLIP_EFFECT_PATH}"
 rm -f -- "${HOME}/.local/bin/cc-niri"
 

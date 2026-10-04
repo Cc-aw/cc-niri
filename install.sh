@@ -8,6 +8,8 @@ BRIDGE_DIR="${SCRIPT_DIR}/bridge"
 BRIDGE_BUILD_DIR="${SCRIPT_DIR}/build/bridge"
 NATIVE_CLIP_DIR="${SCRIPT_DIR}/native/viewport-clip"
 NATIVE_CLIP_BUILD_DIR="${SCRIPT_DIR}/build/native-viewport-clip"
+NATIVE_RING_DIR="${SCRIPT_DIR}/native/focus-ring"
+NATIVE_RING_BUILD_DIR="${SCRIPT_DIR}/build/native-focus-ring"
 PLASMOID_DIR="${SCRIPT_DIR}/plasmoid/com.cc.scrolltasks"
 PLASMOID_BUILD_DIR="${SCRIPT_DIR}/build/plasmoid"
 PLUGIN_ID="cc-niri-maximize"
@@ -53,6 +55,12 @@ cmake -S "${NATIVE_CLIP_DIR}" -B "${NATIVE_CLIP_BUILD_DIR}" \
     -DKDE_INSTALL_PLUGINDIR=lib64/qt6/plugins
 cmake --build "${NATIVE_CLIP_BUILD_DIR}"
 
+cmake -S "${NATIVE_RING_DIR}" -B "${NATIVE_RING_BUILD_DIR}" \
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+    -DCMAKE_INSTALL_PREFIX="${HOME}/.local" \
+    -DKDE_INSTALL_PLUGINDIR=lib64/qt6/plugins
+cmake --build "${NATIVE_RING_BUILD_DIR}"
+
 cmake -S "${BRIDGE_DIR}" -B "${BRIDGE_BUILD_DIR}" \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DCMAKE_INSTALL_PREFIX="${HOME}/.local"
@@ -69,6 +77,8 @@ cmake --build "${PLASMOID_BUILD_DIR}"
 "${SCRIPT_DIR}/cc-niri" stop
 python3 "${SCRIPT_DIR}/tools/install-native-clip.py" \
     "${NATIVE_CLIP_BUILD_DIR}" "${HOME}/.local"
+python3 "${SCRIPT_DIR}/tools/install-native-clip.py" \
+    "${NATIVE_RING_BUILD_DIR}" "${HOME}/.local" cc-niri-focus-ring
 cmake --install "${BRIDGE_BUILD_DIR}"
 cmake --install "${PLASMOID_BUILD_DIR}"
 install -Dm755 "${SCRIPT_DIR}/cc-niri" "${HOME}/.local/bin/cc-niri"
@@ -137,9 +147,8 @@ kwriteconfig6 --file kwinrc --group Plugins \
 kwriteconfig6 --file kwinrc --group Plugins --key "${PLUGIN_ID}Enabled" --type bool true
 kwriteconfig6 --file kwinrc --group Plugins --key "${EFFECT_ID}Enabled" --type bool true
 kwriteconfig6 --file kwinrc --group Plugins --key "${NATIVE_CLIP_EFFECT_ID}Enabled" --type bool true
-# Focus feedback is deliberately limited to TaskManager's native per-window
-# IsActive role. Keep the abandoned custom ring and the global Dim Inactive
-# effect disabled; KWin 6.7.5 cannot exclude the secondary output from dimming.
+# Keep the abandoned Script Effect ring and global dimming disabled.
+# The new native POC is installed but remains opt-in via cc-niri focus-ring on.
 kwriteconfig6 --file kwinrc --group Plugins \
     --key "${FOCUS_RING_EFFECT_ID}Enabled" --type bool false
 kwriteconfig6 --file kwinrc --group Plugins \

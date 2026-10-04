@@ -14,6 +14,10 @@ class CcNiriFocusRingEffect : public Effect {
 public:
     CcNiriFocusRingEffect();
     ~CcNiriFocusRingEffect() override;
+    void reconfigure(ReconfigureFlags flags) override;
+    int requestedEffectChainPosition() const override;
+    void paintWindow(const RenderTarget &target, const RenderViewport &viewport, EffectWindow *window,
+        int mask, const Region &region, WindowPaintData &data) override;
     bool isActive() const override;
     bool blocksDirectScanout() const override;
 public Q_SLOTS:
@@ -33,5 +37,8 @@ private:
     QSet<QString> m_closedIds;
     quint64 m_contextRevision = 0;
     bool m_endpointRegistered = false;
+    qreal m_configuredRadius = -1;
+    qreal m_roundCornersRadius = 0;
+    quint64 m_drawCount = 0;
 };
 }

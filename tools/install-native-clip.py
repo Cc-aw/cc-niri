@@ -13,20 +13,22 @@ import sys
 import tempfile
 
 
-def install_native_clip(build_dir, prefix):
+def install_native_effect(build_dir, prefix, effect_id):
+    if effect_id not in ("cc-niri-viewport-clip", "cc-niri-focus-ring"):
+        raise ValueError("unsupported native effect ID")
     build_dir = Path(build_dir).resolve()
     prefix = Path(prefix).absolute()
     with tempfile.TemporaryDirectory(prefix="cc-niri-native-install-") as staging:
         environment = dict(os.environ, DESTDIR=staging)
         subprocess.run(["cmake", "--install", str(build_dir)], env=environment, check=True)
         paths = [Path(line) for line in (build_dir / "install_manifest.txt").read_text().splitlines()
-                 if Path(line).name == "cc-niri-viewport-clip.so"]
+                 if Path(line).name == effect_id + ".so"]
         if len(paths) != 1 or not paths[0].is_absolute() or not paths[0].is_relative_to(prefix):
             raise RuntimeError("native plugin manifest must contain one path inside the install prefix")
         discovery = paths[0]
         staged = Path(staging) / discovery.relative_to("/")
         digest = hashlib.sha256(staged.read_bytes()).hexdigest()
-        canonical = prefix / "lib/cc-niri/viewport-clip" / digest / discovery.name
+        canonical = prefix / "lib/cc-niri" / effect_id.removeprefix("cc-niri-") / digest / discovery.name
         canonical.parent.mkdir(parents=True, exist_ok=True)
         if canonical.exists():
             if hashlib.sha256(canonical.read_bytes()).hexdigest() != digest:
@@ -43,11 +45,15 @@ def install_native_clip(build_dir, prefix):
             os.replace(link, discovery)
         finally:
             link.unlink(missing_ok=True)
-        print("Native viewport clip canonical version:", canonical)
+        print("Native", effect_id, "canonical version:", canonical)
         return canonical
 
 
+def install_native_clip(build_dir, prefix):
+    return install_native_effect(build_dir, prefix, "cc-niri-viewport-clip")
+
+
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        raise SystemExit("Usage: install-native-clip.py BUILD_DIR INSTALL_PREFIX")
-    install_native_clip(sys.argv[1], sys.argv[2])
+    if len(sys.argv) not in (3, 4):
+        raise SystemExit("Usage: install-native-clip.py BUILD_DIR INSTALL_PREFIX [EFFECT_ID]")
+    install_native_effect(sys.argv[1], sys.argv[2], sys.argv[3] if len(sys.argv) == 4 else "cc-niri-viewport-clip")

@@ -22,9 +22,10 @@ if (command === 'gdbus') {
  else if (method.endsWith('.RequestEmergencyRestore')) console.log('(false,)');
  else if (method.endsWith('.unloadScript')) { state.loaded = false; save(); console.log('(true,)'); }
  else if (method.endsWith('.loadScript')) { state.loaded = true; save(); console.log('(42,)'); }
- else if (method.endsWith('.loadEffect') || method.endsWith('.isEffectLoaded')) console.log('(true,)');
+ else if (method.endsWith('.isEffectLoaded')) console.log(last === 'cc-niri-focus-ring' ? '(false,)' : '(true,)');
+ else if (method.endsWith('.loadEffect')) console.log(last === 'cc-niri-focus-ring' && process.env.RING_LOAD_FAIL ? '(false,)' : '(true,)');
  else console.log('()');
-} else if (command === 'kreadconfig6') console.log('false');
+} else if (command === 'kreadconfig6') console.log(args.includes('CCNiriFocusRing') && process.env.RING_ENABLED ? 'true' : 'false');
 else if (command === 'systemctl' && args.includes('is-active')) console.log('active');
 `;
 for (const command of ["gdbus", "kwriteconfig6", "kreadconfig6", "systemctl", "sleep"]) {
@@ -32,11 +33,13 @@ for (const command of ["gdbus", "kwriteconfig6", "kreadconfig6", "systemctl", "s
 }
 const installed = path.join(temp, "data/kwin/scripts/cc-niri-maximize/contents/code/main.js");
 fs.mkdirSync(path.dirname(installed), { recursive: true }); fs.writeFileSync(installed, "");
+const ringPath = path.join(temp, "home/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-focus-ring.so");
+fs.mkdirSync(path.dirname(ringPath), { recursive: true }); fs.writeFileSync(ringPath, "");
 const log = path.join(temp, "log"); const stateFile = path.join(temp, "state");
 function run(action, loaded, extra = {}) {
     fs.writeFileSync(log, ""); fs.writeFileSync(stateFile, JSON.stringify({ loaded }));
-    const result = spawnSync("bash", [path.join(root, "cc-niri"), action], { encoding: "utf8",
-        env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, XDG_DATA_HOME: path.join(temp, "data"),
+    const result = spawnSync("bash", [path.join(root, "cc-niri"), ...(Array.isArray(action) ? action : [action])], { encoding: "utf8",
+        env: { ...process.env, HOME: path.join(temp, "home"), PATH: `${bin}:${process.env.PATH}`, XDG_DATA_HOME: path.join(temp, "data"),
             CONTROL_LOG: log, CONTROL_STATE: stateFile, ...extra } });
     const calls = fs.readFileSync(log, "utf8").trim().split("\n").filter(Boolean).map(line => JSON.parse(line));
     return { ...result, calls, methods: calls.filter(c => c[0] === "gdbus").map(c => c[c.indexOf("--method") + 1]) };
@@ -57,11 +60,32 @@ try {
     const effectLoads = result.calls.filter(c => c.includes("org.kde.kwin.Effects.loadEffect")).map(c => c.at(-1));
     assert.deepEqual(effectLoads, ["cc-niri-viewport-clip", "cc-niri-maximize-scroll-transition"]);
     assert.ok(result.methods.indexOf("org.kde.kwin.Effects.loadEffect") < result.methods.indexOf("org.kde.kwin.Scripting.loadScript"));
-    result = run("start", true); assert.equal(result.status, 0); assert.equal(result.calls.length, 1);
+    result = run("start", true); assert.equal(result.status, 0); assert.ok(!result.methods.some(m => m.endsWith(".loadEffect")));
     result = run("restart", true); assert.equal(result.status, 0, result.stderr);
     assert.ok(result.methods.indexOf("org.kde.kwin.Scripting.unloadScript") < result.methods.indexOf("org.kde.kwin.Scripting.loadScript"));
     result = run("status", true); assert.equal(result.status, 0); assert.match(result.stdout, /Script loaded: true/);
     result = run("invalid", true); assert.equal(result.status, 2); assert.equal(result.calls.length, 0);
+    result = run("focus-ring", true); assert.equal(result.status, 2, "missing subcommand fails before mutation");
+    const ring = (action, loaded = true, extra = {}) => run(["focus-ring", action], loaded, extra);
+    result = ring("on"); assert.equal(result.status, 0, result.stderr);
+    assert.ok(result.calls.some(c => c.includes("org.kde.kwin.Effects.loadEffect") && c.at(-1) === "cc-niri-focus-ring"));
+    assert.ok(!result.calls.some(c => c[0] === "systemctl" || c.includes("org.kde.kwin.Scripting.unloadScript")), "ring toggles leave layout and Bridge running");
+    result = ring("on", false); assert.equal(result.status, 1);
+    assert.ok(!result.calls.some(c => c[0] === "kwriteconfig6"));
+    result = ring("on", true, { RING_LOAD_FAIL: "1" }); assert.equal(result.status, 1);
+    assert.ok(!result.calls.some(c => c[0] === "kwriteconfig6"), "failed load does not persist opt-in");
+    fs.unlinkSync(ringPath); result = ring("on"); assert.equal(result.status, 1);
+    assert.ok(!result.calls.some(c => c[0] === "kwriteconfig6")); fs.writeFileSync(ringPath, "");
+    result = ring("off"); assert.equal(result.status, 0);
+    assert.ok(result.calls.some(c => c.includes("org.kde.kwin.Effects.unloadEffect") && c.at(-1) === "cc-niri-focus-ring"));
+    assert.ok(!result.calls.some(c => c[0] === "systemctl"));
+    result = run("restart", true, { RING_ENABLED: "1" }); assert.equal(result.status, 0, result.stderr);
+    const ringUnload = result.calls.findIndex(c => c.includes("org.kde.kwin.Effects.unloadEffect") && c.at(-1) === "cc-niri-focus-ring");
+    const scriptUnload = result.calls.findIndex(c => c.includes("org.kde.kwin.Scripting.unloadScript"));
+    const scriptRun = result.calls.findIndex(c => c.includes("org.kde.kwin.Script.run"));
+    const ringLoad = result.calls.findIndex(c => c.includes("org.kde.kwin.Effects.loadEffect") && c.at(-1) === "cc-niri-focus-ring");
+    assert.ok(ringUnload < scriptUnload && scriptRun < ringLoad, "restart clears scene node before script unload and restores ring after layout starts");
+    assert.ok(!result.calls.some(c => c[0] === "kwriteconfig6" && c.includes("EnabledByUser")), "stop/restart preserves opt-in");
     const installer = fs.readFileSync(path.join(root, "install.sh"), "utf8");
     assert.ok(installer.indexOf('"${SCRIPT_DIR}/cc-niri" stop') < installer.indexOf('cmake --install'));
     assert.ok(installer.includes('install -Dm755 "${SCRIPT_DIR}/cc-niri" "${HOME}/.local/bin/cc-niri"'));

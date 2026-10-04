@@ -4,11 +4,14 @@ set -euo pipefail
 PLUGIN_ID=cc-niri-maximize
 EFFECT_ID=cc-niri-maximize-scroll-transition
 CLIP_ID=cc-niri-viewport-clip
+RING_ID=cc-niri-focus-ring
+RING_GROUP=CCNiriFocusRing
+RING_PATH="${HOME}/.local/lib64/qt6/plugins/kwin/effects/plugins/${RING_ID}.so"
 SERVICE=cc-scroll-dock-bridge.service
 COMPAT_GROUP=CCNiriCompatibility
 INSTALLED_MAIN="${XDG_DATA_HOME:-${HOME}/.local/share}/kwin/scripts/${PLUGIN_ID}/contents/code/main.js"
 
-usage() { echo 'Usage: cc-niri {start|stop|restart|status|help}'; }
+usage() { echo 'Usage: cc-niri {start|stop|restart|status|help} | focus-ring {on|off|status}'; }
 fail() { echo "cc-niri: $*" >&2; exit 1; }
 kwin() { local path="$1" method="$2"; shift 2; gdbus call --session --dest org.kde.KWin --object-path "$path" --method "$method" "$@"; }
 script_loaded() {
@@ -57,9 +60,44 @@ magiclamp MagicLampWasEnabled
 EFFECTS
 }
 
+ring_status() {
+    echo "Focus Ring preference: $(kreadconfig6 --file kwinrc --group "$RING_GROUP" --key EnabledByUser --default false)"
+    echo "Focus Ring loaded: $(kwin /Effects org.kde.kwin.Effects.isEffectLoaded "$RING_ID")"
+}
+
+load_ring() {
+    [[ -f "$RING_PATH" ]] || fail 'Focus Ring is not installed. Run ./install.sh first.'
+    local reply
+    reply="$(kwin /Effects org.kde.kwin.Effects.isEffectLoaded "$RING_ID")"
+    if [[ "$reply" != '(true,)' ]]; then
+        reply="$(kwin /Effects org.kde.kwin.Effects.loadEffect "$RING_ID")"
+        [[ "$reply" == '(true,)' ]] || fail 'Unable to load Focus Ring; other components remain running.'
+    fi
+    enable_plugin "$RING_ID" true
+}
+
+focus_ring() {
+    case "$1" in
+        on)
+            script_loaded || fail 'Start cc-niri before enabling Focus Ring.'
+            load_ring
+            kwriteconfig6 --file kwinrc --group "$RING_GROUP" --key EnabledByUser --type bool true
+            echo 'Focus Ring enabled (static POC).'
+            ;;
+        off)
+            enable_plugin "$RING_ID" false
+            kwin /Effects org.kde.kwin.Effects.unloadEffect "$RING_ID" >/dev/null
+            kwriteconfig6 --file kwinrc --group "$RING_GROUP" --key EnabledByUser --type bool false
+            echo 'Focus Ring disabled; cc-niri continues running.'
+            ;;
+        status) ring_status ;;
+    esac
+}
+
 start_niri() {
     [[ -f "$INSTALLED_MAIN" ]] || fail 'Script is not installed. Run ./install.sh in the repository first.'
     if script_loaded; then
+        if [[ "$(kreadconfig6 --file kwinrc --group "$RING_GROUP" --key EnabledByUser --default false)" == true ]]; then load_ring; fi
         echo 'cc-niri is already loaded. Use cc-niri restart to reload it.'
         return
     fi
@@ -86,6 +124,7 @@ start_niri() {
     kwin "/Scripting/Script${script_id}" org.kde.kwin.Script.run >/dev/null
     enable_plugin "$PLUGIN_ID" true
     script_loaded || fail 'KWin did not keep the script loaded.'
+    if [[ "$(kreadconfig6 --file kwinrc --group "$RING_GROUP" --key EnabledByUser --default false)" == true ]]; then load_ring; fi
     echo 'cc-niri started. Meta+J: down; Meta+K: up.'
 }
 
@@ -94,6 +133,8 @@ stop_niri() {
     enable_plugin "$PLUGIN_ID" false
     enable_plugin "$EFFECT_ID" false
     enable_plugin "$CLIP_ID" false
+    enable_plugin "$RING_ID" false
+    kwin /Effects org.kde.kwin.Effects.unloadEffect "$RING_ID" >/dev/null
     if script_loaded; then
         [[ "$(kwin /Scripting org.kde.kwin.Scripting.unloadScript "$PLUGIN_ID")" == '(true,)' ]] || fail 'Unable to unload script.'
     fi
@@ -114,11 +155,13 @@ status_niri() {
         reply="$(kwin /Effects org.kde.kwin.Effects.isEffectLoaded "$effect")"
         echo "$effect: $reply"
     done
+    ring_status
     echo "Bridge: $(systemctl --user is-active "$SERVICE" || true)"
 }
 
 case "${1:-help}" in
     help|-h|--help) usage; exit 0 ;;
+    focus-ring) [[ $# == 2 && "$2" =~ ^(on|off|status)$ ]] || { usage >&2; exit 2; } ;;
     start|stop|restart|status) [[ $# == 1 ]] || { usage >&2; exit 2; } ;;
     *) usage >&2; exit 2 ;;
 esac
@@ -130,4 +173,5 @@ case "$1" in
     stop) stop_niri ;;
     restart) stop_niri; start_niri ;;
     status) status_niri ;;
+    focus-ring) focus_ring "$2" ;;
 esac

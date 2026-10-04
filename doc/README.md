@@ -14,10 +14,10 @@
 
 | 目标 | 设计与起点 |
 | --- | --- |
-| [focus_ring](todo/cc-niri_Focus_Ring_实现设计.md) | 新的主屏原生 Focus Ring；[Phase 1 Static Native POC](../test/FOCUS_RING_PHASE1_RESULTS.md) 已实现并通过自动检查，尚未部署。先做静态实机验证，再接入独立归属通道和动态验收。历史 Phase 9.5 的实现仅作背景。 |
+| [focus_ring](todo/cc-niri_Focus_Ring_实现设计.md) | 新的主屏原生 Focus Ring；[Phase 1 Static Native POC](../test/FOCUS_RING_PHASE1_RESULTS.md) 已实现并通过自动检查，[已部署并通过静态实机验收](../test/FOCUS_RING_PHASE1_LIVE_RESULTS.md)。下一步接入独立归属通道，再做动态验收。历史 Phase 9.5 的实现仅作背景。 |
 | [viewoffset_spring](todo/cc-niri_niri_viewoffset_spring_implementation.md) | 普通 H/L 使用共享 ViewOffset + Spring；[Phase 1 数学与状态](../test/VIEWOFFSET_SPRING_PHASE1_RESULTS.md)、[Phase 2 SCROLL plan](../test/VIEWOFFSET_SPRING_PHASE2_RESULTS.md)、[Phase 3 continuing 投影](../test/VIEWOFFSET_SPRING_PHASE3_RESULTS.md)、[Phase 4 incoming 投影](../test/VIEWOFFSET_SPRING_PHASE4_RESULTS.md)、[Phase 5 outgoing 延迟停放](../test/VIEWOFFSET_SPRING_PHASE5_RESULTS.md)、[Phase 6 旧 SCROLL 退出](../test/VIEWOFFSET_SPRING_PHASE6_RESULTS.md)、[Phase 7 连续 retarget](../test/VIEWOFFSET_SPRING_PHASE7_RESULTS.md)、[Phase 8 中途反向](../test/VIEWOFFSET_SPRING_PHASE8_RESULTS.md) 已实现；主屏核心代码阶段完成，已配套部署并通过本轮内屏验收。第一版不改 Wide 尺寸动画或 J/K 切换。 |
 
-两个目标分别模块化实施与验收。Spring 已完成数学、协议、原生 continuing/incoming/outgoing 接入、旧普通 SCROLL 动画退出、连续 retarget 与中途反向；第六至第八阶段已配套部署，[自动实机检查](../test/VIEWOFFSET_SPRING_PHASE8_LIVE_RESULTS.md)及本轮内屏人工验收通过：快速 H/L 连续且间距稳定、滚动中 J/K 清理正常、Wide 工作区状态保持。第四、第五阶段已配套部署，[自动实机检查](../test/VIEWOFFSET_SPRING_PHASE5_LIVE_RESULTS.md)通过，本轮内屏人工验收通过：慢速 H/L 间距稳定且连续滑出、滚动中 J/K 清理正常，Wide J/K 状态保持。第三阶段已部署并完成一轮[内屏验收](../test/VIEWOFFSET_SPRING_PHASE3_LIVE_RESULTS.md)；之前的滚动间距变化在第四、第五阶段慢速 H/L 人工验收中已消失。Focus Ring 第一阶段静态原生 POC 已实现，尚未部署和实机验收。
+两个目标分别模块化实施与验收。Spring 已完成数学、协议、原生 continuing/incoming/outgoing 接入、旧普通 SCROLL 动画退出、连续 retarget 与中途反向；第六至第八阶段已配套部署，[自动实机检查](../test/VIEWOFFSET_SPRING_PHASE8_LIVE_RESULTS.md)及本轮内屏人工验收通过：快速 H/L 连续且间距稳定、滚动中 J/K 清理正常、Wide 工作区状态保持。第四、第五阶段已配套部署，[自动实机检查](../test/VIEWOFFSET_SPRING_PHASE5_LIVE_RESULTS.md)通过，本轮内屏人工验收通过：慢速 H/L 间距稳定且连续滑出、滚动中 J/K 清理正常，Wide J/K 状态保持。第三阶段已部署并完成一轮[内屏验收](../test/VIEWOFFSET_SPRING_PHASE3_LIVE_RESULTS.md)；之前的滚动间距变化在第四、第五阶段慢速 H/L 人工验收中已消失。Focus Ring 第一阶段静态原生 POC 已部署并启用，加载 / 卸载检查通过；用户确认单一 owner，已按反馈[加粗并匹配圆角](../test/FOCUS_RING_STYLE_RESULTS.md)，调整后的样式、全屏 / 关闭 / 点击已由用户验收通过；随后发现跨应用色差，已部署[独立绘制修复](../test/FOCUS_RING_COLOR_RESULTS.md)，颜色和圆角已由用户确认正常，独立开关及全屏复验也通过；静态 Phase 1 实机验收完成。
 
 ## 已实施
 
