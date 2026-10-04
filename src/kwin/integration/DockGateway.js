@@ -88,6 +88,11 @@ class DockGateway {
             "CancelScrollPlan", JSON.stringify({ sessionId: this.sessionIdValue, epoch }), callback);
     }
 
+    scrollMotionStatus(callback) {
+        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1",
+            "GetScrollMotionStatus", callback);
+    }
+
     reportMotionParked(completion, callback) {
         const envelope = Object.assign({}, completion, {
             protocol: this.protocol,

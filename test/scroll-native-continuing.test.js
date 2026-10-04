@@ -49,3 +49,15 @@ const staleIncoming = {screen: output, geometry: right,
 effect.geometryChanged(staleIncoming, parking);
 assert.equal(starts.at(-1).role, "incoming", "wrong target falls back to Script incoming");
 console.log("PASS native incoming bypass preserves outgoing and fallback");
+
+const ownedOutgoing = {screen: output, geometry: parking,
+    data: role => role === 1005 ? {...owner, role: "outgoing"} : null};
+const beforeOwnedOutgoing = starts.length;
+effect.geometryChanged(ownedOutgoing, owner);
+assert.equal(starts.length, beforeOwnedOutgoing, "native final parking starts no legacy outgoing animation");
+assert.equal(cancellations.at(-1), ownedOutgoing);
+const staleOutgoing = {screen: output, geometry: parking,
+    data: role => role === 1005 ? {...right, role: "outgoing"} : null};
+effect.geometryChanged(staleOutgoing, owner);
+assert.equal(starts.at(-1).role, "outgoing", "unrelated outgoing marker preserves fallback");
+console.log("PASS native outgoing finalizer suppresses duplicate animation only for owned frame");

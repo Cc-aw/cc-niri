@@ -39,6 +39,7 @@ public:
 public Q_SLOTS:
     Q_SCRIPTABLE bool ArmScrollPlan(const QString &json);
     Q_SCRIPTABLE void CancelScrollPlan(const QString &json);
+    Q_SCRIPTABLE QString GetScrollMotionStatus() const;
 
 private:
     static constexpr int ScrollOwnershipDataRole = 1005;

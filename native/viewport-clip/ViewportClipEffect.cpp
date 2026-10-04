@@ -264,8 +264,7 @@ bool CcNiriViewportClipEffect::ArmScrollPlan(const QString &json)
     const auto previousTargets = m_scrollRuntime.targets();
     for (const auto &value : plan.value(QStringLiteral("entries")).toArray()) {
         const auto entry = value.toObject();
-        if (entry.value(QStringLiteral("oldPlacement")) != QJsonValue(QStringLiteral("visible"))
-            || entry.value(QStringLiteral("newPlacement")) != QJsonValue(QStringLiteral("visible"))) continue;
+        if (entry.value(QStringLiteral("oldPlacement")) != QJsonValue(QStringLiteral("visible"))) continue;
         const auto id = entry.value(QStringLiteral("windowId")).toString();
         const QRectF oldRect(viewport.value(QStringLiteral("x")).toDouble() + entry.value(QStringLiteral("logicalX")).toDouble()
             - plan.value(QStringLiteral("oldScrollOffsetX")).toDouble(), viewport.value(QStringLiteral("y")).toDouble(),
@@ -283,14 +282,20 @@ bool CcNiriViewportClipEffect::ArmScrollPlan(const QString &json)
     if (!m_scrollRuntime.arm(plan, motionNow())) return false;
     updateScrollOwnership();
     effects->addRepaintFull();
-    int incoming = 0;
+    int incoming = 0, outgoing = 0;
     const auto targets = m_scrollRuntime.targets();
     for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
         if (m_scrollRuntime.role(it.key()) == QStringLiteral("incoming")) ++incoming;
+        if (m_scrollRuntime.role(it.key()) == QStringLiteral("outgoing")) ++outgoing;
     }
-    qCInfo(CC_NIRI_VIEWPORT_CLIP) << "[SCROLL_PLAN_NATIVE] ARM continuing=" << targets.size() - incoming
-        << "incoming=" << incoming;
+    qCInfo(CC_NIRI_VIEWPORT_CLIP) << "[SCROLL_PLAN_NATIVE] ARM continuing=" << targets.size() - incoming - outgoing
+        << "incoming=" << incoming << "outgoing=" << outgoing;
     return true;
+}
+
+QString CcNiriViewportClipEffect::GetScrollMotionStatus() const
+{
+    return QString::fromUtf8(QJsonDocument(m_scrollRuntime.status()).toJson(QJsonDocument::Compact));
 }
 
 void CcNiriViewportClipEffect::CancelScrollPlan(const QString &json)
@@ -342,7 +347,7 @@ void CcNiriViewportClipEffect::prePaintWindow(RenderView *view, EffectWindow *wi
 void CcNiriViewportClipEffect::postPaintScreen()
 {
     effects->postPaintScreen();
-    if (m_scrollRuntime.active()) effects->addRepaintFull();
+    if (m_scrollRuntime.active() && !m_scrollRuntime.completed()) effects->addRepaintFull();
 }
 
 void CcNiriViewportClipEffect::onMotionParked(const QString &json)

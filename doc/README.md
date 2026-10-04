@@ -1,6 +1,6 @@
 # 设计文档索引
 
-按当前源码、Git 实施记录和验收结果整理，更新于 2026-10-02。
+按当前源码、Git 实施记录和验收结果整理，更新于 2026-10-04。
 
 旧 `docx/` 的 8 份 Markdown 已核对正文与对应设计一致，统一合并到下列 `done/`、`todo/`；重复副本及旧目录已移除。
 
@@ -15,9 +15,9 @@
 | 目标 | 设计与起点 |
 | --- | --- |
 | [focus_ring](todo/cc-niri_Focus_Ring_实现设计.md) | 新的主屏原生 Focus Ring；从 Static Native POC、归属判断开始，再接入视觉变换与 retarget。历史 Phase 9.5 的实现仅作背景。 |
-| [viewoffset_spring](todo/cc-niri_niri_viewoffset_spring_implementation.md) | 普通 H/L 使用共享 ViewOffset + Spring；[Phase 1 数学与状态](../test/VIEWOFFSET_SPRING_PHASE1_RESULTS.md)、[Phase 2 SCROLL plan](../test/VIEWOFFSET_SPRING_PHASE2_RESULTS.md)、[Phase 3 continuing 投影](../test/VIEWOFFSET_SPRING_PHASE3_RESULTS.md)、[Phase 4 incoming 投影](../test/VIEWOFFSET_SPRING_PHASE4_RESULTS.md) 已实现；下一阶段处理 outgoing deferred park。第一版不改 Wide 尺寸动画或 J/K 切换。 |
+| [viewoffset_spring](todo/cc-niri_niri_viewoffset_spring_implementation.md) | 普通 H/L 使用共享 ViewOffset + Spring；[Phase 1 数学与状态](../test/VIEWOFFSET_SPRING_PHASE1_RESULTS.md)、[Phase 2 SCROLL plan](../test/VIEWOFFSET_SPRING_PHASE2_RESULTS.md)、[Phase 3 continuing 投影](../test/VIEWOFFSET_SPRING_PHASE3_RESULTS.md)、[Phase 4 incoming 投影](../test/VIEWOFFSET_SPRING_PHASE4_RESULTS.md)、[Phase 5 outgoing 延迟停放](../test/VIEWOFFSET_SPRING_PHASE5_RESULTS.md) 已实现；下一阶段关闭原生接管后的旧 SCROLL motion 路径。第一版不改 Wide 尺寸动画或 J/K 切换。 |
 
-两个目标分别模块化实施与验收。Spring 已完成数学、协议与原生 continuing/incoming 接入；第四阶段尚未部署。第三阶段已部署并完成一轮[内屏验收](../test/VIEWOFFSET_SPRING_PHASE3_LIVE_RESULTS.md)；滚动中间距变化待 incoming/outgoing 统一曲线解决。Focus Ring 尚未开始。
+两个目标分别模块化实施与验收。Spring 已完成数学、协议与原生 continuing/incoming/outgoing 接入；第四、第五阶段尚未部署。第三阶段已部署并完成一轮[内屏验收](../test/VIEWOFFSET_SPRING_PHASE3_LIVE_RESULTS.md)；滚动中间距变化待 incoming/outgoing 统一曲线解决。Focus Ring 尚未开始。
 
 ## 已实施
 

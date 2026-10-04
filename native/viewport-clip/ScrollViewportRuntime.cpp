@@ -2,7 +2,12 @@
 #include "ScrollViewportRuntime.h"
 #include <cmath>
 namespace CcNiri {
-void ScrollViewportRuntime::clear() { m_columns.clear(); m_roles.clear(); m_motion.snap(m_motion.target()); }
+void ScrollViewportRuntime::clear() { m_columns.clear(); m_visualTargets.clear(); m_roles.clear(); m_completed = false; m_motion.snap(m_motion.target()); }
+QJsonObject ScrollViewportRuntime::status() const {
+    return {{QStringLiteral("sessionId"), m_session}, {QStringLiteral("workspaceId"), m_workspace},
+        {QStringLiteral("targetOutput"), m_output}, {QStringLiteral("epoch"), static_cast<qint64>(m_motion.epoch())},
+        {QStringLiteral("completed"), m_completed}, {QStringLiteral("active"), active()}};
+}
 bool ScrollViewportRuntime::updateContext(const QJsonObject &state) {
     const auto session = state.value(QStringLiteral("sessionId")).toString();
     const auto workspace = state.value(QStringLiteral("workspaceId")).toString();
@@ -24,6 +29,7 @@ bool ScrollViewportRuntime::arm(const QJsonObject &plan, ViewportMotion::TimePoi
     if (disposition == ScrollPlanDisposition::Rejected) return false;
     if (disposition == ScrollPlanDisposition::Duplicate) return active();
     QHash<QString, QRectF> columns;
+    QHash<QString, QRectF> visualTargets;
     QHash<QString, QString> roles;
     const auto viewport = plan.value(QStringLiteral("viewport")).toObject();
     const QRectF rect(viewport.value(QStringLiteral("x")).toDouble(), viewport.value(QStringLiteral("y")).toDouble(),
@@ -31,13 +37,17 @@ bool ScrollViewportRuntime::arm(const QJsonObject &plan, ViewportMotion::TimePoi
     const double target = plan.value(QStringLiteral("newScrollOffsetX")).toDouble();
     for (const auto &value : plan.value(QStringLiteral("entries")).toArray()) {
         const auto entry = value.toObject();
-        if (entry.value(QStringLiteral("newPlacement")) != QJsonValue(QStringLiteral("visible"))) continue;
+        const bool outgoing = entry.value(QStringLiteral("newPlacement")) == QJsonValue(QStringLiteral("parked"))
+            && entry.value(QStringLiteral("oldPlacement")) == QJsonValue(QStringLiteral("visible"));
+        if (!outgoing && entry.value(QStringLiteral("newPlacement")) != QJsonValue(QStringLiteral("visible"))) continue;
         const auto id = entry.value(QStringLiteral("windowId")).toString();
-        roles.insert(id, entry.value(QStringLiteral("oldPlacement")) == QJsonValue(QStringLiteral("parked"))
+        roles.insert(id, outgoing ? QStringLiteral("outgoing") : entry.value(QStringLiteral("oldPlacement")) == QJsonValue(QStringLiteral("parked"))
             ? QStringLiteral("incoming") : QStringLiteral("continuing"));
         columns.insert(id,
-            QRectF(rect.x() + entry.value(QStringLiteral("logicalX")).toDouble() - target, rect.y(),
+            QRectF(rect.x() + entry.value(QStringLiteral("logicalX")).toDouble() - (outgoing ? plan.value(QStringLiteral("oldScrollOffsetX")).toDouble() : target), rect.y(),
                    entry.value(QStringLiteral("pixelWidth")).toDouble(), rect.height()));
+        visualTargets.insert(id, QRectF(rect.x() + entry.value(QStringLiteral("logicalX")).toDouble() - target, rect.y(),
+            entry.value(QStringLiteral("pixelWidth")).toDouble(), rect.height()));
     }
     // All newly visible columns, including non-overlapping jumps, share the offset.
     if (columns.isEmpty()) { clear(); return false; }
@@ -47,7 +57,7 @@ bool ScrollViewportRuntime::arm(const QJsonObject &plan, ViewportMotion::TimePoi
     const bool started = continuing ? m_motion.start(m_frameOffset, target, epoch, now)
         : m_motion.start(plan.value(QStringLiteral("oldScrollOffsetX")).toDouble(), target, epoch, now);
     if (!started) return false;
-    m_columns = columns; m_roles = roles; m_viewport = rect; m_frameOffset = m_motion.current(now);
+    m_columns = columns; m_visualTargets = visualTargets; m_roles = roles; m_viewport = rect; m_frameOffset = m_motion.current(now); m_completed = false;
     return true;
 }
 void ScrollViewportRuntime::cancel(const QString &session, qint64 epoch) {
@@ -57,8 +67,13 @@ void ScrollViewportRuntime::cancel(const QString &session, qint64 epoch) {
 }
 bool ScrollViewportRuntime::advance(ViewportMotion::TimePoint now) {
     if (!active()) return false;
+    if (m_completed) return true;
     m_frameOffset = m_motion.current(now);
-    if (m_motion.isDone(now)) { m_motion.finish(m_motion.epoch(), now); clear(); return false; }
+    if (m_motion.isDone(now)) {
+        m_motion.finish(m_motion.epoch(), now); m_frameOffset = m_motion.target();
+        // Hold outgoing outside the viewport until JS parks it and disarms.
+        m_completed = true;
+    }
     return true;
 }
 std::optional<ScrollProjection> ScrollViewportRuntime::projection(const QString &id, const QRectF &geometry) const {
@@ -69,6 +84,7 @@ std::optional<ScrollProjection> ScrollViewportRuntime::projection(const QString 
     // Resizes and unrelated layout changes also never inherit scroll ownership.
     if (std::abs(geometry.x() - target.x()) > 0.5 || std::abs(geometry.y() - target.y()) > 0.5
         || std::abs(geometry.width() - target.width()) > 0.5 || std::abs(geometry.height() - target.height()) > 0.5) return std::nullopt;
-    return ScrollProjection{m_motion.target() - m_frameOffset, m_viewport};
+    // Logical projected target is independent of the physical outgoing frame.
+    return ScrollProjection{m_visualTargets.value(id).x() - geometry.x() + m_motion.target() - m_frameOffset, m_viewport};
 }
 }

@@ -10,6 +10,7 @@ class ScrollPlanCommitGate {
         }
     }
     cancel() {
+        if (this.cancelDeferred) this.cancelDeferred();
         const pending = this.pending;
         this.pending = null;
         if (pending) { this.clearTimer(pending.timer); this.abort(pending.plan.epoch); }

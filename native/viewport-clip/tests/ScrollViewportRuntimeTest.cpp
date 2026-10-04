@@ -35,9 +35,11 @@ int main() {
     check(!runtime.arm(first, 0ns), "no authority");
     check(runtime.updateContext(state()), "context");
     check(runtime.arm(first, 0ns), "arm");
-    check(runtime.targets().size() == 2, "continuing and incoming");
+    check(runtime.targets().size() == 3, "continuing incoming and outgoing");
     const auto rect = runtime.targets().value(QStringLiteral("1"));
-    check(!runtime.projection(QStringLiteral("0"), rect), "outgoing excluded");
+    const auto outgoingRect = runtime.targets().value(QStringLiteral("0"));
+    check(runtime.role(QStringLiteral("0")) == QStringLiteral("outgoing"), "outgoing ownership role");
+    check(runtime.projection(QStringLiteral("0"), outgoingRect)->translationX == 0, "outgoing first frame retained");
     const auto incomingRect = runtime.targets().value(QStringLiteral("2"));
     check(runtime.role(QStringLiteral("2")) == QStringLiteral("incoming"), "incoming ownership role");
     check(runtime.role(QStringLiteral("1")) == QStringLiteral("continuing"), "continuing ownership role");
@@ -63,13 +65,21 @@ int main() {
     runtime.cancel(QStringLiteral("s"), 2); check(!runtime.active(), "cancel clears");
     check(!runtime.arm(plan(2, 1260.25, 0), 150ms), "late cancelled arm blocked");
     check(runtime.arm(plan(3, 0, 1260.25), 150ms), "new epoch after cancel");
-    check(!runtime.advance(4s) && !runtime.active(), "settles and clears ownership");
+    check(runtime.advance(4s) && runtime.completed(), "settles and holds until parking ACK");
+    check(runtime.status().value(QStringLiteral("epoch")).toInteger() == 3
+        && runtime.status().value(QStringLiteral("completed")).toBool(), "scoped completion status");
+    const auto heldRect = runtime.targets().value(QStringLiteral("0"));
+    const auto heldProjection = runtime.projection(QStringLiteral("0"), heldRect);
+    check(heldRect.right() + heldProjection->translationX <= heldProjection->viewport.left(), "completed outgoing stays outside viewport");
+    runtime.cancel(QStringLiteral("s"), 3);
+    check(!runtime.active() && !runtime.completed(), "parking ACK clears projection and completion");
     check(!runtime.arm(plan(3, 0, 1260.25), 4s), "settled duplicate cannot resurrect");
     check(runtime.arm(plan(4, 0, 1260.25), 4s), "new epoch");
     runtime.updateContext(state(QStringLiteral("s"), QStringLiteral("b")));
     check(!runtime.active() && !runtime.arm(plan(5, 0, 1260.25), 4s), "workspace barrier");
     runtime.updateContext(state()); check(runtime.arm(plan(6, 0, 1260.25), 4s), "return workspace");
     runtime.remove(QStringLiteral("1")); check(runtime.active(), "incoming survives continuing close");
+    runtime.remove(QStringLiteral("0"));
     runtime.remove(QStringLiteral("2")); check(!runtime.active() && runtime.role(QStringLiteral("2")).isEmpty(), "close last window clears role");
     runtime.updateContext({}); check(!runtime.arm(plan(7, 0, 1260.25), 4s), "invalid context clears authority");
     runtime.updateContext(state()); check(runtime.arm(first, 0ns), "reload resets motion epoch and clock");
@@ -88,7 +98,7 @@ int main() {
             {QStringLiteral("newPlacement"), i > 0 ? QStringLiteral("visible") : QStringLiteral("parked")}});
     }
     wider.insert(QStringLiteral("entries"), wideEntries);
-    check(shared.arm(wider, 0ns) && shared.targets().size() == 3, "multi-column shared viewport");
+    check(shared.arm(wider, 0ns) && shared.targets().size() == 4, "multi-column shared viewport");
     shared.advance(100ms);
     const auto targets = shared.targets();
     check(shared.projection(QStringLiteral("1"), targets.value(QStringLiteral("1")))->translationX
@@ -113,6 +123,14 @@ int main() {
             const double gap = newTargets.value(rightId).x() + right->translationX
                 - newTargets.value(leftId).right() - left->translationX;
             check(std::abs(gap - 8) < 1e-8, "fixed gap throughout spring in either direction");
+            const auto outgoingId = reverse ? QStringLiteral("2") : QStringLiteral("0");
+            const auto outgoingFrame = newTargets.value(outgoingId);
+            const auto outgoingProjection = attached.projection(outgoingId, outgoingFrame);
+            check(outgoingProjection.has_value(), "outgoing remains drawable throughout spring");
+            const double outgoingGap = reverse
+                ? outgoingFrame.x() + outgoingProjection->translationX - newTargets.value(rightId).right() - right->translationX
+                : newTargets.value(leftId).x() + left->translationX - outgoingFrame.right() - outgoingProjection->translationX;
+            check(std::abs(outgoingGap - 8) < 1e-8, "outgoing and continuing share fixed gap");
         }
         attached.cancel(QStringLiteral("s"), 1);
         check(!attached.active() && attached.role(leftId).isEmpty(), "cancel clears all incoming roles");

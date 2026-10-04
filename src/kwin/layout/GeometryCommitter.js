@@ -41,6 +41,7 @@ class GeometryCommitter {
             ? plan.windows.find(item => item.column === plan.wideExitColumn)
             : null;
         const heldIncoming = [];
+        const pendingPark = [];
         if (plan.viewportMotion) {
             const motion = plan.viewportMotion;
             this.debug(`[MOTION_TX] BEGIN epoch=${plan.epoch}` +
@@ -57,6 +58,11 @@ class GeometryCommitter {
         }
         plan.commitOrder.forEach(item => {
             const column = item.column;
+            if (options.nativeScroll && item.transitionRole === "outgoing") {
+                this.rememberVisibleGeometry(column.window, this.rectCopy(column.window.frameGeometry));
+                pendingPark.push(item);
+                return;
+            }
             if (wideExitTarget && item.placement === "visible" &&
                     column !== plan.wideExitColumn &&
                     !this.sameRectNear(
@@ -131,7 +137,7 @@ class GeometryCommitter {
         if (transaction) {
             this.debug(`[MOTION_TX] COMPLETE id=${transaction.id}`);
         }
-        return { heldIncoming };
+        return { heldIncoming, pendingPark };
     }
 }
 

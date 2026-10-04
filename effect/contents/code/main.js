@@ -1435,6 +1435,12 @@ class CCNiriScrollTransition {
 
         const nativeIncoming = typeof window.data === "function"
             ? window.data(CC_NIRI_SCROLL_OWNERSHIP_ROLE) : null;
+        if (nativeIncoming && nativeIncoming.role === "outgoing" &&
+                rectNear(nativeIncoming, oldGeometry, 0.5) && parked(newGeometry, screenRect)) {
+            this.takeNativeScrollOwnership(window);
+            this.debug("[SCROLL_NATIVE] outgoing-finalize");
+            return;
+        }
         if (nativeIncoming && nativeIncoming.role === "incoming" &&
                 rectNear(nativeIncoming, newGeometry, 0.5) &&
                 parked(oldGeometry, screenRect) && visibleSlot(newGeometry, screenRect)) {
