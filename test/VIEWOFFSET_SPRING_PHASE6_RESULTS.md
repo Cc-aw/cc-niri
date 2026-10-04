@@ -1,6 +1,6 @@
 # ViewOffset Spring Phase 6：普通 SCROLL 旧动画退出
 
-日期：2026-10-04。实现和自动检查完成，尚未部署；当前实机仍运行通过内屏验收的第四、第五阶段。
+日期：2026-10-04。实现和自动检查完成；现已与第六至第八阶段配套部署，[自动实机检查](VIEWOFFSET_SPRING_PHASE8_LIVE_RESULTS.md)通过，本轮内屏人工验收通过（快速 H/L、滚动中 J/K 与 Wide 状态保持）。
 
 ## 改动
 
@@ -28,4 +28,4 @@
 本阶段需要配套升级 Script Effect 与 native effect，再做内屏 H/L、J/K 清理和 Wide 回归验收。
 旧 native 不具有 role 1006，因此仅升级 Script Effect 会保留旧 fallback，不能作为第六阶段原生接管的验收结果。
 
-核心还剩 Phase 7 连续 retarget 和 Phase 8 中途反向。Mixed DPI / 双屏 Phase 9 按主屏需求暂缓。
+后续 Phase 7 连续 retarget 和 Phase 8 中途反向均已实现，并完成本轮主屏验收。Mixed DPI / 双屏 Phase 9 按主屏需求暂缓。
