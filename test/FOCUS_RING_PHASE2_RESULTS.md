@@ -1,6 +1,6 @@
 # Focus Ring Phase 2：独立资格与归属管理
 
-日期：2026-10-04。代码和自动验证完成；本阶段已在主屏配套部署并启用，自动加载 / 独立开关检查通过，人工验收进行中。
+日期：2026-10-04。代码和自动验证完成；本阶段已在主屏配套部署并启用，自动加载 / 独立开关检查及三轮人工实机验收全部通过。用户随后要求边框从 4px 调整为 3px，已完成构建、原生检查并单独部署。
 
 ## 实现
 
@@ -14,7 +14,7 @@
 - 开启 / 重新加载 effect 时，Native 调用已有 KGlobalAccel 机制中的专用空快捷键 `CCScrollPublishFocusRingState` 请求当前资格；Script 即使上一条发送发生在 effect 关闭期间，也会强制重发。没有 timer、polling 或每帧 DBus。
 - stop / emergency restore 发布新 revision 的禁用空名单并断开自己的信号连接。关闭窗口先排除，再在 ColumnStore 移除后释放闭窗 wrapper；未挂载工作区的闭窗不保留 wrapper。Native 卸载清空 Item / endpoint。
 - 同 session 的旧 revision / 同 revision 冲突不覆盖当前资格；旧 Script session 进入有界 tombstone 集合，不能覆盖新 session。非法输入关闭资格但保留 revision，不能用旧消息重新启用。
-- 原生绘制路线、4px 浅蓝色、圆角兼容保持 Phase 1；额外在 Native 资格检查里直接拒绝 transient / utility / toolbar，避免等待 Script 消息时误画辅助窗口。
+- 资格阶段实现时原生绘制路线、4px 浅蓝色、圆角兼容保持 Phase 1（验收后 3px 调整见末节）；额外在 Native 资格检查里直接拒绝 transient / utility / toolbar，避免等待 Script 消息时误画辅助窗口。
 
 ## 自动验证
 
@@ -56,6 +56,18 @@
 - 第一轮通过：用户在点击切换两个受管窗口及快速 Meta+H / L 后反馈“这次正常”，确认边框只跟随当前焦点、旧窗口无残留，颜色和圆角正常。
 - 第一轮后只读诊断：仍为 `independent-eligibility`，独立资格 generation=37、eligibleCount=2；drawCount 已增至 2252，KWin PID 仍为 2088。读取时 owner 为空，不将快照视作某个窗口的焦点匹配证明。
 - 第二轮通过：用户反馈“全部正常”，确认 Meta+Shift+Return 浮动 / 恢复受管、F11 全屏 / 退出以及 J/K 工作区往返时，边框正确隐藏与恢复，旧工作区无残留。第二轮后 KWin PID 仍为 2088，独立资格 generation=45、eligibleCount=2。
-- 最后一轮已邀请测试：边框 off 期间切换焦点并改变浮动资格，on 后检查最新资格及恢复受管；打开、聚焦、关闭临时受管窗口检查清理。该轮待用户反馈，不提前标记通过。
+- 最后一轮通过：用户反馈“全部正常”，确认边框 off 期间改变焦点 / 浮动资格后，on 使用最新资格；浮动窗口无边框、恢复受管后出现；临时受管窗口关闭后边框无残留并转到新的当前受管窗口。
 
-本阶段人工验收尚未全部完成。后续 Phase 3 验证视觉 transform 与 Spring / viewport clip，Phase 4 连续 retarget，Phase 5 Wide / Maximize 与非等比缩放粗细，Phase 6 主屏缩放；双屏实机仍按用户范围暂缓。
+Phase 2 三轮人工实机验收全部完成，独立资格与归属管理通过。后续 Phase 3 验证视觉 transform 与 Spring / viewport clip，Phase 4 连续 retarget，Phase 5 Wide / Maximize 与非等比缩放粗细，Phase 6 主屏缩放；双屏实机仍按用户范围暂缓。
+
+## 验收后的 3px 样式调整
+
+用户在确认最后一轮“全部正常”后要求边框变小为 3px。仅将 FocusRingItem::Width 从 4.0 改为 3.0，并更新已有场景几何检查：932×960 窗口外扩到 (-3,-3,938,966)，1348 宽边框 bounds 为 1354。浅蓝颜色、圆角兼容、资格协议及绘制路线沿用本轮已验收实现。构建和单独部署已完成：
+
+- `cmake --build build/native-focus-ring` 与该目录 5 项 CTest 全部通过。日志 `/tmp/cc-niri-focus-ring-3px-gate.log`。
+- 仅通过 `cc-niri focus-ring off/on` 更新原生 Ring；新 immutable canonical 为 `~/.local/lib/cc-niri/focus-ring/f4247a8124c3004669e8970726e494260c9238e8e2fa5c9abbe26f3bca860bd2/cc-niri-focus-ring.so`。
+- 部署后诊断 width=3、color=#7FC8FF、phase=independent-eligibility，收到当前独立资格（generation=127、eligibleCount=2）。
+- KWin PID 仍为 2088；布局 Script、动画 Effect、Viewport Clip 文件 hash 未变，布局 / 动画 / Clip / Bridge 继续运行。卸载和加载日志没有新增异常。
+- 备份与审计：`/tmp/cc-niri-focus-ring-3px-backup-20261004-w2k9e18a`，包含旧库路径、kwinrc、命令记录、部署结果和 KWin 日志；失败恢复逻辑见 `/tmp/cc-niri-focus-ring-3px-deploy.py`。
+
+Phase 2 人工验收结果对应调整前的 4px 版本；本次 3px 已由场景测试与部署诊断确认，用户尚未单独反馈新线宽外观。

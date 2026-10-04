@@ -24,17 +24,17 @@ int main(int argc, char **argv) {
     check(border->colorDescription() == ColorDescription::sRGB, "border has its own sRGB color source");
     check(ring.paintRoot()->position() == framePosition, "isolated root retains window transform origin");
     check(border->innerRect() == RectF(0, 0, 932, 960), "inner bounds are window local frame");
-    check(border->outline().thickness() == 4 && border->outline().color() == QColor(QStringLiteral("#7FC8FF"))
-        && border->outline().radius().isNull(), "solid blue 4 logical px with square corners");
-    check(window.boundingRect() == RectF(-4, -4, 940, 968), "outer 4px participates in scene damage bounds");
+    check(border->outline().thickness() == 3 && border->outline().color() == QColor(QStringLiteral("#7FC8FF"))
+        && border->outline().radius().isNull(), "solid blue 3 logical px with square corners");
+    check(window.boundingRect() == RectF(-3, -3, 938, 966), "outer 3px participates in scene damage bounds");
     check(window.position() == framePosition && window.size() == frameSize, "no change to window position or size");
     check(window.sortedChildItems().indexOf(ring.damageItem()) < window.sortedChildItems().indexOf(&content), "damage marker keeps content ordering");
     check(border->quads().count() > 0, "real compositor geometry exists");
     check(ring.attach(&window, &content, frameSize) && ring.border() == border, "same owner does not allocate again");
     const BorderRadius rounded(12);
     check(ring.attach(&window, &content, frameSize, rounded) && ring.border() == border, "rounded style reuses the owner node");
-    check(border->outline().radius() == rounded && border->outline().thickness() == 4, "12px inner radius matches rounded windows");
-    check(window.boundingRect() == RectF(-4, -4, 940, 968), "roundness preserves external damage bounds");
+    check(border->outline().radius() == rounded && border->outline().thickness() == 3, "12px inner radius matches rounded windows");
+    check(window.boundingRect() == RectF(-3, -3, 938, 966), "roundness preserves external damage bounds");
     check(border->quads().count() == 8, "four corner arcs and four edge strips");
     check(window.position() == framePosition && window.size() == frameSize, "rounded style never modifies frame geometry");
     check(ring.attach(&window, &content, frameSize, BorderRadius(0, 12, 12, 0)) &&
@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
     for (int i = 0; i < 10; ++i) QCoreApplication::processEvents();
     check(boundsChanges == stable, "static item schedules no persistent geometry updates");
     check(ring.attach(&window, &content, QSizeF(1348, 960)), "resize border in local coordinates");
-    check(window.size() == frameSize && window.boundingRect().width() == 1356, "resize affects only ring bounds");
+    check(window.size() == frameSize && window.boundingRect().width() == 1354, "resize affects only ring bounds");
     ring.clear();check(!ring.attached() && window.boundingRect() == RectF(0, 0, 932, 960), "removal restores scene bounds");
     for (int i = 0; i < 40; ++i) {
         check(ring.attach(&window, &content, frameSize), "repeated attach");

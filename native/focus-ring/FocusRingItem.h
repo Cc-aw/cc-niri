@@ -24,7 +24,7 @@ public:
     Item *damageItem() const { return m_damage.data(); }
     Item *paintRoot() const { return m_paintRoot.data(); }
     OutlinedBorderItem *border() const { return m_border.data(); }
-    static constexpr qreal Width = 4.0;
+    static constexpr qreal Width = 3.0;
 private:
     QPointer<Item> m_parent;
     QPointer<OutlinedBorderItem> m_border;
