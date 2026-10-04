@@ -43,6 +43,7 @@ public Q_SLOTS:
 
 private:
     static constexpr int ScrollOwnershipDataRole = 1005;
+    static constexpr int ScrollMotionCapabilityDataRole = 1006;
     static constexpr int ViewportClipDataRole = 1001;
     static constexpr int CapabilityDataRole = 1002;
     static constexpr int MotionPlanDataRole = 1003;

@@ -20,9 +20,11 @@ for (const [script, role] of [
     ["CC_NIRI_VIEWPORT_CLIP_CAPABILITY_ROLE", "CapabilityDataRole"],
     ["CC_NIRI_MOTION_PLAN_ROLE", "MotionPlanDataRole"],
     ["CC_NIRI_MOTION_COMPLETE_ROLE", "MotionCompleteDataRole"],
+    ["CC_NIRI_SCROLL_OWNERSHIP_ROLE", "ScrollOwnershipDataRole"],
+    ["CC_NIRI_SCROLL_MOTION_CAPABILITY_ROLE", "ScrollMotionCapabilityDataRole"],
 ]) {
-    const scriptValue = Number(scriptRoles.match(new RegExp(`${script} = (\\d+)`))[1]);
-    const nativeValue = Number(header.match(new RegExp(`${role} = (\\d+)`))[1]);
+    const scriptValue = Number(scriptRoles.match(new RegExp(`\\b${script} = (\\d+)`))[1]);
+    const nativeValue = Number(header.match(new RegExp(`\\b${role} = (\\d+)`))[1]);
     assert.equal(scriptValue, nativeValue, `${script} matches ${role}`);
 }
 assert.match(source, /advertiseCapability\(window, true\)/);

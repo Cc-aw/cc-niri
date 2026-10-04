@@ -320,7 +320,13 @@ void CcNiriViewportClipEffect::updateScrollOwnership()
             continue;
         }
         const auto rect = targets.value(id);
-        const QVariantMap marker{{QStringLiteral("x"), rect.x()}, {QStringLiteral("y"), rect.y()},
+        const auto status = m_scrollRuntime.status();
+        const QVariantMap marker{{QStringLiteral("protocol"), 2}, {QStringLiteral("type"), QStringLiteral("SCROLL")},
+            {QStringLiteral("sessionId"), status.value(QStringLiteral("sessionId")).toString()},
+            {QStringLiteral("workspaceId"), status.value(QStringLiteral("workspaceId")).toString()},
+            {QStringLiteral("targetOutput"), status.value(QStringLiteral("targetOutput")).toString()},
+            {QStringLiteral("epoch"), status.value(QStringLiteral("epoch")).toInteger()},
+            {QStringLiteral("x"), rect.x()}, {QStringLiteral("y"), rect.y()},
             {QStringLiteral("width"), rect.width()}, {QStringLiteral("height"), rect.height()},
             {QStringLiteral("role"), m_scrollRuntime.role(id)}};
         if (window->data(ScrollOwnershipDataRole).toMap() != marker) window->setData(ScrollOwnershipDataRole, marker);
@@ -389,6 +395,8 @@ void CcNiriViewportClipEffect::forwardMotionCompletion(EffectWindow *window)
 void CcNiriViewportClipEffect::advertiseCapability(EffectWindow *window, bool available)
 {
     window->setData(CapabilityDataRole, available ? QVariant(true) : QVariant());
+    // Clip support alone does not promise native Spring ownership.
+    window->setData(ScrollMotionCapabilityDataRole, available && m_scrollEndpointRegistered ? QVariant(true) : QVariant());
 }
 
 bool CcNiriViewportClipEffect::isActive() const

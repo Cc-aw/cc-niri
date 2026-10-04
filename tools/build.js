@@ -76,6 +76,7 @@ const targets = [
             "src/effect/MotionController.js",
             "src/effect/WorkspaceEffectGuard.js",
             "src/effect/MotionClassifier.js",
+            "src/effect/NativeScrollOwnership.js",
             "src/effect/WideMotionGeometry.js",
         ],
         beginMarker: "/* BEGIN GENERATED EFFECT MODULES */",

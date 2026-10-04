@@ -89,6 +89,7 @@ const CC_NIRI_VIEWPORT_CLIP_CAPABILITY_ROLE = 1002;
 const CC_NIRI_MOTION_PLAN_ROLE = 1003;
 const CC_NIRI_MOTION_COMPLETE_ROLE = 1004;
 const CC_NIRI_SCROLL_OWNERSHIP_ROLE = 1005;
+const CC_NIRI_SCROLL_MOTION_CAPABILITY_ROLE = 1006;
 
 const MotionTokens = Object.freeze({
     microPressMs: 90,
@@ -939,6 +940,36 @@ function viewportFromSlot(rect, slot, innerGap) {
     };
 }
 
+// Generated from src/effect/NativeScrollOwnership.js
+// A loaded clip effect or a capability alone cannot suppress fallback. Native
+// ACK installs a typed, scoped marker before the corresponding geometry batch.
+function readNativeScrollMarker(window) {
+    if (!window || window.onCurrentDesktop === false || typeof window.data !== "function" ||
+            window.data(CC_NIRI_SCROLL_MOTION_CAPABILITY_ROLE) !== true) return null;
+    const marker = window.data(CC_NIRI_SCROLL_OWNERSHIP_ROLE);
+    if (!marker || marker.protocol !== 2 || marker.type !== "SCROLL" ||
+            !Number.isSafeInteger(marker.epoch) || marker.epoch < 0 ||
+            typeof marker.sessionId !== "string" || !marker.sessionId ||
+            typeof marker.workspaceId !== "string" || !marker.workspaceId ||
+            !window.screen || marker.targetOutput !== window.screen.name ||
+            !["continuing", "incoming", "outgoing"].includes(marker.role) ||
+            ![marker.x, marker.y, marker.width, marker.height].every(Number.isFinite) ||
+            marker.width <= 0 || marker.height <= 0) return null;
+    return marker;
+}
+
+function nativeScrollGeometryRole(window, oldGeometry, newGeometry, screenRect) {
+    const marker = readNativeScrollMarker(window);
+    if (!marker || !sameSize(oldGeometry, newGeometry)) return null;
+    if (marker.role === "outgoing") {
+        return rectNear(marker, oldGeometry, 0.5) && visibleSlot(oldGeometry, screenRect) &&
+            parked(newGeometry, screenRect) ? "outgoing-finalize" : null;
+    }
+    if (!rectNear(marker, newGeometry, 0.5) || !visibleSlot(newGeometry, screenRect)) return null;
+    if (marker.role === "incoming") return parked(oldGeometry, screenRect) ? "incoming" : null;
+    return visibleSlot(oldGeometry, screenRect) ? "continuing" : null;
+}
+
 // Generated from src/effect/WideMotionGeometry.js
 function wideNeighborStart(wideRect, neighborWidth, side, gap) {
     return side === "left"
@@ -1060,7 +1091,7 @@ class CCNiriScrollTransition {
             }
         });
         if (effects.windowDataChanged) effects.windowDataChanged.connect((window, role) => {
-            if (role === CC_NIRI_SCROLL_OWNERSHIP_ROLE && window.data(role)) this.takeNativeScrollOwnership(window);
+            if (role === CC_NIRI_SCROLL_OWNERSHIP_ROLE && readNativeScrollMarker(window)) this.takeNativeScrollOwnership(window);
         });
         effects.windowAdded.connect(this.manage.bind(this));
         effects.windowClosed.connect(window => {
@@ -1089,6 +1120,9 @@ class CCNiriScrollTransition {
     }
 
     takeNativeScrollOwnership(window) {
+        // A native SCROLL does not seed an old transaction for entry/exit.
+        this.motionTransaction.clear();
+        this.pendingWideExit = null;
         this.motion.cancel(window);
         this.parkingGrabber.release(window, "native-scroll");
         this.releaseWideIsolation(window, "native-scroll");
@@ -1300,6 +1334,12 @@ class CCNiriScrollTransition {
         }
         const screenRect = window.screen.geometry;
         const newGeometry = window.geometry;
+        const nativeRole = nativeScrollGeometryRole(window, oldGeometry, newGeometry, screenRect);
+        if (nativeRole) {
+            this.takeNativeScrollOwnership(window);
+            this.debug(`[SCROLL_NATIVE] ${nativeRole}`);
+            return;
+        }
         const motionTime = Date.now();
         const explicitPlan = this.readMotionPlan(window, oldGeometry,
             newGeometry, screenRect);
@@ -1433,21 +1473,6 @@ class CCNiriScrollTransition {
             return;
         }
 
-        const nativeIncoming = typeof window.data === "function"
-            ? window.data(CC_NIRI_SCROLL_OWNERSHIP_ROLE) : null;
-        if (nativeIncoming && nativeIncoming.role === "outgoing" &&
-                rectNear(nativeIncoming, oldGeometry, 0.5) && parked(newGeometry, screenRect)) {
-            this.takeNativeScrollOwnership(window);
-            this.debug("[SCROLL_NATIVE] outgoing-finalize");
-            return;
-        }
-        if (nativeIncoming && nativeIncoming.role === "incoming" &&
-                rectNear(nativeIncoming, newGeometry, 0.5) &&
-                parked(oldGeometry, screenRect) && visibleSlot(newGeometry, screenRect)) {
-            this.takeNativeScrollOwnership(window);
-            this.debug("[SCROLL_NATIVE] incoming");
-            return;
-        }
         if (!sameSize(oldGeometry, newGeometry)) return;
         const oldSlot = visibleSlot(oldGeometry, screenRect);
         const newSlot = visibleSlot(newGeometry, screenRect);
@@ -1488,13 +1513,6 @@ class CCNiriScrollTransition {
                 ` viewport=${transaction.viewport.x},${transaction.viewport.y}` +
                 ` ${transaction.viewport.width}x${transaction.viewport.height}`);
             this.debug(`[MOTION_TX] ROLE id=${transaction.id} role=continuing`);
-            const nativeOwner = typeof window.data === "function"
-                ? window.data(CC_NIRI_SCROLL_OWNERSHIP_ROLE) : null;
-            if (nativeOwner && rectNear(nativeOwner, newGeometry, 0.5)) {
-                this.motion.cancel(window);
-                this.debug(`[SCROLL_NATIVE] continuing epoch=${transaction.layoutEpoch}`);
-                return;
-            }
             animations = [{
                 type: Effect.Translation,
                 from: { value1: transaction.deltaX, value2: 0 },
