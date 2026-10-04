@@ -1,8 +1,9 @@
 "use strict";
 
 class ColumnStore {
-    constructor(state) {
+    constructor(state, onMembershipChanged = () => {}) {
         this.state = state;
+        this.onMembershipChanged = onMembershipChanged;
     }
 
     indexOf(column) {
@@ -12,6 +13,7 @@ class ColumnStore {
     clear() {
         this.state.columns = [];
         this.state.focusedColumnIndex = -1;
+        this.onMembershipChanged();
     }
 
     indexOfWindow(window) {
@@ -66,6 +68,7 @@ class ColumnStore {
             this.state.columns.length
         ));
         this.state.columns.splice(index, 0, column);
+        this.onMembershipChanged();
         return column;
     }
 
@@ -90,6 +93,7 @@ class ColumnStore {
                 ? preservedIndex
                 : Math.min(index, this.state.columns.length - 1);
         }
+        this.onMembershipChanged();
         return { column, index, wasFocused };
     }
 

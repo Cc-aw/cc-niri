@@ -49,6 +49,12 @@ function createShortcutCatalog(actions) {
             handler: actions.toggleFloating,
         },
         {
+            name: "CCScrollPublishFocusRingState",
+            description: "CC Scroll: Publish Focus Ring Eligibility",
+            defaultSequence: "",
+            handler: actions.publishFocusRingState,
+        },
+        {
             name: "CCScrollPublishDockState",
             description: "CC Scroll: Publish Dock State",
             defaultSequence: "",

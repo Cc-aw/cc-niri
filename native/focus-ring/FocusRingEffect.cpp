@@ -8,9 +8,7 @@
 #include "window.h"
 #include <QDBusConnection>
 #include <QDBusMessage>
-#include <QDBusPendingCallWatcher>
-#include <QDBusPendingReply>
-#include <QDBusServiceWatcher>
+#include <QDBusPendingCall>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLoggingCategory>
@@ -46,20 +44,11 @@ CcNiriFocusRingEffect::CcNiriFocusRingEffect() {
     connect(effects, &EffectsHandler::showingDesktopChanged, this, [this](bool) { refresh(); });
     connect(effects, &EffectsHandler::screenLockingChanged, this, [this](bool) { refresh(); });
     connect(effects, &EffectsHandler::hasActiveFullScreenEffectChanged, this, [this] { refresh(); });
-    QDBusConnection::sessionBus().connect(QStringLiteral("org.cc.ScrollDockBridge"), QStringLiteral("/ScrollDock"),
-        QStringLiteral("org.cc.ScrollDockBridge1"), QStringLiteral("StateChanged"), this, SLOT(onDockStateChanged(QString)));
-    auto *watcher = new QDBusServiceWatcher(QStringLiteral("org.cc.ScrollDockBridge"), QDBusConnection::sessionBus(),
-        QDBusServiceWatcher::WatchForOwnerChange, this);
-    connect(watcher, &QDBusServiceWatcher::serviceOwnerChanged, this, [this](const QString &, const QString &, const QString &owner) {
-        ++m_contextRevision; m_context.clear(); clearRing();
-        if (!owner.isEmpty()) requestContext();
-    });
     reconfigure(ReconfigureAll);
-    requestContext();
+    requestEligibility();
     qCInfo(CC_NIRI_FOCUS_RING) << "[FOCUS_RING] READY isolated post-window border";
 }
 CcNiriFocusRingEffect::~CcNiriFocusRingEffect() {
-    ++m_contextRevision;
     clearRing();
     if (m_endpointRegistered) QDBusConnection::sessionBus().unregisterObject(QStringLiteral("/ccNiriFocusRing"));
 }
@@ -78,25 +67,20 @@ void CcNiriFocusRingEffect::reconfigure(ReconfigureFlags) {
     }
     refresh();
 }
-void CcNiriFocusRingEffect::requestContext() {
-    const quint64 revision = ++m_contextRevision;
-    const auto request = QDBusMessage::createMethodCall(QStringLiteral("org.cc.ScrollDockBridge"), QStringLiteral("/ScrollDock"),
-        QStringLiteral("org.cc.ScrollDockBridge1"), QStringLiteral("GetState"));
-    auto *watcher = new QDBusPendingCallWatcher(QDBusConnection::sessionBus().asyncCall(request), this);
-    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, watcher, revision] {
-        const QDBusPendingReply<QString> reply = *watcher;
-        if (revision == m_contextRevision) {
-            if (!reply.isError()) onDockStateChanged(reply.value());
-            else { m_context.clear(); clearRing(); }
-        }
-        watcher->deleteLater();
-    });
+void CcNiriFocusRingEffect::requestEligibility() {
+    // The dedicated no-key shortcut answers after effect load/on with current
+    // script membership. There is no Dock cache, polling or late GetState reply.
+    auto request = QDBusMessage::createMethodCall(QStringLiteral("org.kde.kglobalaccel"),
+        QStringLiteral("/component/kwin"), QStringLiteral("org.kde.kglobalaccel.Component"),
+        QStringLiteral("invokeShortcut"));
+    request << QStringLiteral("CCScrollPublishFocusRingState");
+    QDBusConnection::sessionBus().asyncCall(request);
 }
-void CcNiriFocusRingEffect::onDockStateChanged(const QString &json) {
-    ++m_contextRevision;
-    m_context.update(json);
+bool CcNiriFocusRingEffect::PublishEligibility(const QString &json) {
+    const bool accepted = m_context.update(json);
     m_closedIds.intersect(m_context.windows);
     refresh();
+    return accepted;
 }
 void CcNiriFocusRingEffect::watchWindow(EffectWindow *window) {
     if (!window || m_watched.contains(window)) return;
@@ -121,7 +105,8 @@ bool CcNiriFocusRingEffect::eligible(EffectWindow *window) const {
     const auto *output = window->screen();
     const auto *desktop = output ? effects->currentDesktop(window->screen()) : nullptr;
     if (!output || !desktop || !window->windowItem() || !window->window()
-        || window->window()->skipTaskbar() || window->isDialog() || window->isModal()
+        || window->window()->skipTaskbar() || window->window()->isTransient()
+        || window->isUtility() || window->isToolbar() || window->isDialog() || window->isModal()
         || window->isPopupWindow() || window->isSpecialWindow()) return false;
     CcNiri::FocusRingCandidate candidate;
     candidate.id = windowId(window); candidate.output = output->name(); candidate.workspace = desktop->id();
@@ -170,7 +155,12 @@ bool CcNiriFocusRingEffect::isActive() const { return m_ring.attached() && eligi
 bool CcNiriFocusRingEffect::blocksDirectScanout() const { return isActive(); }
 QString CcNiriFocusRingEffect::GetFocusRingStatus() const {
     return QString::fromUtf8(QJsonDocument(QJsonObject{
-        {QStringLiteral("phase"), QStringLiteral("static-isolated-border-poc")},
+        {QStringLiteral("phase"), QStringLiteral("independent-eligibility")},
+        {QStringLiteral("eligibilitySource"), QStringLiteral("layout-script")},
+        {QStringLiteral("eligibilityEnabled"), m_context.enabled},
+        {QStringLiteral("sessionId"), m_context.session},
+        {QStringLiteral("generation"), double(m_context.generation)},
+        {QStringLiteral("eligibleCount"), m_context.windows.size()},
         {QStringLiteral("renderer"), QStringLiteral("post-window-native-item")},
         {QStringLiteral("drawCount"), double(m_drawCount)},
         {QStringLiteral("windowOpacity"), m_owner ? m_owner->opacity() : 0.0},

@@ -18,6 +18,13 @@ set_property(TARGET cc-niri-focus-ring APPEND PROPERTY AUTOMOC_MACRO_NAMES KWIN_
 target_link_libraries(cc-niri-focus-ring PRIVATE Qt6::Core Qt6::DBus Qt6::Gui KF6::CoreAddons KF6::ConfigCore KWin::kwin)
 include(CTest)
 if(BUILD_TESTING)
+    find_package(Qt6 6.6 REQUIRED COMPONENTS Qml)
+    add_executable(cc-niri-focus-ring-controller-tests tests/FocusRingControllerTest.cpp FocusRingContext.cpp)
+    target_link_libraries(cc-niri-focus-ring-controller-tests PRIVATE Qt6::Core Qt6::Qml)
+    add_test(NAME focus-ring-controller-qobject COMMAND cc-niri-focus-ring-controller-tests
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../src/kwin/policy/WindowPolicy.js"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../src/kwin/workspace/WorkspaceMembership.js"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../src/kwin/visual/FocusRingController.js")
     add_executable(cc-niri-focus-ring-context-tests tests/FocusRingContextTest.cpp FocusRingContext.cpp)
     set_target_properties(cc-niri-focus-ring-context-tests PROPERTIES AUTOMOC OFF)
     target_link_libraries(cc-niri-focus-ring-context-tests PRIVATE Qt6::Core)

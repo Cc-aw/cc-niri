@@ -12,8 +12,8 @@ struct FocusRingCandidate {
     double opacity = 0;
 };
 
-// Read-only Bridge membership adapter for the static POC. It carries no
-// geometry or animation state; production JS ownership is a later phase.
+// Independent JS eligibility authority. Native focus and visibility still
+// choose the unique owner. No Dock, layout geometry or animation state.
 class FocusRingContext {
 public:
     bool update(const QString &json);
@@ -21,6 +21,8 @@ public:
     bool permits(const FocusRingCandidate &candidate) const;
     QString session, workspace, output;
     qint64 generation = -1;
+    bool enabled = false;
+    QSet<QString> retiredSessions;
     QSet<QString> windows;
 };
 }

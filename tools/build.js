@@ -53,6 +53,7 @@ const targets = [
             "src/kwin/lifecycle/OutputController.js",
             "src/kwin/lifecycle/FullscreenController.js",
             "src/kwin/integration/DockGateway.js",
+            "src/kwin/visual/FocusRingController.js",
             "src/kwin/presentation/PresentationController.js",
             "src/kwin/presentation/ContextualViewport.js",
             "src/kwin/presentation/ContextualWideCoordinator.js",

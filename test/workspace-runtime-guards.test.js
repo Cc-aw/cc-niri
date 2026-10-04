@@ -98,6 +98,7 @@ appState.viewport = { mode: "pair", wideColumnId: null };
 const parking = new ParkingManager({ stateFor, getState: window => states.get(window),
     refreshSafeArea: () => {}, getSafeRect: () => appState.safeRect, debug: () => {} });
 Object.assign(context, {
+    focusRingController: { publish: () => {} },
     contextualWideCoordinator: { cancelForWindow: () => {} },
     columnIndexForWindow: () => 0, cancelPendingDockScroll: () => {},
     releaseParkingOwnership: (window, reason, accessible, index) => parking.release(window, reason, accessible, index),

@@ -15,12 +15,13 @@ const actions = {
     moveLeft: () => calls.push("moveLeft"),
     moveRight: () => calls.push("moveRight"),
     toggleFloating: () => calls.push("toggleFloating"),
+    publishFocusRingState: () => calls.push("publishFocusRingState"),
     publishDockState: () => calls.push("publishDockState"),
     applyDockCommand: () => calls.push("applyDockCommand"),
     emergencyRestore: () => calls.push("emergencyRestore"),
 };
 const catalog = createShortcutCatalog(actions);
-assert.equal(catalog.length, 12);
+assert.equal(catalog.length, 13);
 assert.deepEqual(catalog.map(item => item.defaultSequence), [
     "Meta+K", "Meta+J",
     "Meta+H",
@@ -31,13 +32,14 @@ assert.deepEqual(catalog.map(item => item.defaultSequence), [
     "Meta+Shift+Return",
     "Meta+Shift+Enter",
     "",
+    "",
     "Meta+Ctrl+Alt+Shift+F11",
     "Meta+Ctrl+Alt+Shift+F12",
 ]);
 catalog.forEach(item => item.handler());
 assert.deepEqual(calls, [
     "workspacePrevious", "workspaceNext", "focusPrevious", "focusNext", "toggleWide", "moveLeft", "moveRight",
-    "toggleFloating", "toggleFloating", "publishDockState",
+    "toggleFloating", "toggleFloating", "publishFocusRingState", "publishDockState",
     "applyDockCommand", "emergencyRestore",
 ]);
 
