@@ -113,6 +113,19 @@ int main(int argc, char **argv)
     CHECK(bridge.PublishMotionPlan(json(next)));
     CHECK(observer.updateContext(state));
     CHECK(observer.observe(next) == CcNiri::ScrollPlanDisposition::Accepted);
+    auto returning = next;
+    returning["epoch"] = 15; returning["newScrollOffsetX"] = 0;
+    returning["entries"] = QJsonArray{entry("a", 1, 0, "visible", "visible"), entry("b", 2, 1260, "visible", "visible")};
+    rejected(returning); // Equal offsets require an explicit native return plan.
+    returning["retargetOnly"] = true;
+    CHECK(bridge.PublishMotionPlan(json(returning)));
+    const int returnSignals = emitted;
+    CHECK(bridge.PublishMotionPlan(json(returning)) && emitted == returnSignals);
+    CHECK(observer.observe(returning) == CcNiri::ScrollPlanDisposition::Accepted);
+    auto malformedReturn = returning; malformedReturn["epoch"] = 16; malformedReturn["retargetOnly"] = "true"; rejected(malformedReturn);
+    malformedReturn = next; malformedReturn["epoch"] = 16; malformedReturn["retargetOnly"] = true; rejected(malformedReturn);
+    malformedReturn = returning; malformedReturn["epoch"] = 16; malformedReturn["retargetOnly"] = false; rejected(malformedReturn);
+    CHECK(observer.observe(next) == CcNiri::ScrollPlanDisposition::Rejected);
     state["generation"] = 0;
     CHECK(!observer.updateContext(state));
     state["generation"] = 2; state["sessionId"] = "reload";

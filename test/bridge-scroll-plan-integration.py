@@ -105,7 +105,20 @@ with tempfile.TemporaryDirectory(prefix="cc-niri-scroll-") as directory:
         changed["sessionId"] = "reloaded"
         changed["epoch"] = 0
         assert call("PublishMotionPlan", changed)
-        print("PASS isolated SCROLL DBus payload, FIFO authority, duplicate, workspace and restart checks")
+        returning = copy.deepcopy(changed)
+        returning.update(epoch=1, oldScrollOffsetX=0.0, newScrollOffsetX=0.0, retargetOnly=True)
+        returning["entries"] = [dict(windowId="a", columnId=1, logicalX=0, pixelWidth=1252, oldPlacement="visible", newPlacement="visible"),
+                                dict(windowId="b", columnId=2, logicalX=1260, pixelWidth=1252, oldPlacement="visible", newPlacement="visible")]
+        implicit = copy.deepcopy(returning)
+        del implicit["retargetOnly"]
+        assert not call("PublishMotionPlan", implicit), "implicit zero-offset plan accepted"
+        assert call("PublishMotionPlan", returning)
+        drain(lambda: ("MotionPlanChanged", returning) in events)
+        assert call("PublishMotionPlan", returning), "return plan not idempotent"
+        forged = copy.deepcopy(returning)
+        forged.update(epoch=2, retargetOnly="true")
+        assert not call("PublishMotionPlan", forged), "untyped return flag accepted"
+        print("PASS isolated SCROLL DBus payload, FIFO authority, duplicate, workspace, restart and explicit return")
     finally:
         if server is not None:
             stop()

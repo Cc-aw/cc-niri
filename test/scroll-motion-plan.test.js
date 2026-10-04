@@ -1,7 +1,7 @@
 "use strict";
 const assert = require("node:assert/strict");
 const { computeLayoutPlan } = require("../src/kwin/layout/LayoutEngine");
-const { createViewportScrollPlan } = require("../src/kwin/layout/ScrollMotionPlan");
+const { createViewportScrollPlan, prepareViewportReturnPlan } = require("../src/kwin/layout/ScrollMotionPlan");
 const { createRuntime } = require("./helpers/workspace-runtime");
 const columns = [0, 1, 2, 3].map(index => ({ id: index + 1,
     logicalX: index * 1260.25, pixelWidth: 1252.25,
@@ -71,3 +71,11 @@ missing.shortcuts.get("CCScrollFocusNextColumn")();
 missing.shortcuts.get("CCScrollFocusNextColumn")();
 assert.equal(missing.workspace.activeWindow, missing.a[2], "synchronous IPC error does not block H/L");
 assert.ok(missing.logs.some(line => /SCROLL_PLAN.*native fallback/.test(line)));
+
+const staticPlan=computeLayoutPlan({reason:"focus-previous",epoch:90,columns,safeRect:{x:24,y:50,width:2512.5,height:1320},innerGap:8,parkingBaseX:-99999,scrollOffsetX:0});
+const returning=prepareViewportReturnPlan(staticPlan,0,{x:24,y:50,width:2512.5,height:1320});
+assert.equal(staticPlan.scrollTransaction,null,"return preparation never mutates original layout");
+assert.equal(returning.scrollTransaction.retargetOnly,true);assert.equal(returning.scrollTransaction.entries.length,2);
+assert.ok(returning.scrollTransaction.entries.every(e=>e.oldPlacement==="visible"&&e.newPlacement==="visible"));
+assert.equal(createViewportScrollPlan(returning.scrollTransaction,context).retargetOnly,true);
+assert.equal(prepareViewportReturnPlan(layout,0,{}),layout,"ordinary offset changes keep existing SCROLL transaction");

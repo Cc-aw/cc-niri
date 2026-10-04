@@ -35,7 +35,11 @@ inline bool validViewportScrollPlan(const QJsonObject &plan)
     for (const auto &key : {QStringLiteral("oldScrollOffsetX"), QStringLiteral("newScrollOffsetX")}) {
         if (!scrollPlanNumber(plan.value(key)) || plan.value(key).toDouble() < 0.0) return false;
     }
-    if (plan.value(QStringLiteral("oldScrollOffsetX")) == plan.value(QStringLiteral("newScrollOffsetX"))) return false;
+    const bool sameTarget = plan.value(QStringLiteral("oldScrollOffsetX")) == plan.value(QStringLiteral("newScrollOffsetX"));
+    // Returning to the committed target can still reverse an armed, uncommitted
+    // Spring. Equal logical offsets are allowed only for this explicit form.
+    if (plan.contains(QStringLiteral("retargetOnly")) && !plan.value(QStringLiteral("retargetOnly")).isBool()) return false;
+    if (sameTarget != (plan.value(QStringLiteral("retargetOnly")) == QJsonValue(true))) return false;
     if (!plan.value(QStringLiteral("viewport")).isObject() || !plan.value(QStringLiteral("entries")).isArray()) return false;
     const auto viewport = plan.value(QStringLiteral("viewport")).toObject();
     for (const auto &key : {QStringLiteral("x"), QStringLiteral("y"), QStringLiteral("width"), QStringLiteral("height")}) {

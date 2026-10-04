@@ -188,5 +188,84 @@ int main() {
     QHash<QString, QRectF> sourceMap{{QStringLiteral("1"), source}};
     check(uncommitted.arm(plan(2, 0, 2520.5), 43ms, sourceMap), "supersede uncommitted geometry");
     check(std::abs(source.x() + uncommitted.projection(QStringLiteral("1"), source)->translationX - paintedX) < 1e-8, "uncommitted sample continuity");
+    // Mid-flight reversals preserve every painted position and restart with v0=0.
+    ScrollViewportRuntime reversing; reversing.updateContext(state());
+    check(reversing.arm(plan(1, 0, 1260.25), 0ns), "reverse initial arm");
+    reversing.advance(60ms);
+    auto reverseFrames = reversing.targets();
+    QHash<QString, double> reversePainted;
+    for (auto it = reverseFrames.cbegin(); it != reverseFrames.cend(); ++it)
+        reversePainted.insert(it.key(), it.value().x() + reversing.projection(it.key(), it.value())->translationX);
+    const double reverseFrom = -1920.5 + 1260.25 - reversePainted.value(QStringLiteral("1"));
+    check(reversing.arm(plan(2, 1260.25, 0), 63ms, reverseFrames), "L then H retarget");
+    check(reversing.role(QStringLiteral("0")) == QStringLiteral("incoming"), "old outgoing re-enters");
+    check(reversing.role(QStringLiteral("2")) == QStringLiteral("outgoing"), "old incoming retires");
+    for (auto it = reversePainted.cbegin(); it != reversePainted.cend(); ++it) {
+        auto targetFrame = reversing.targets().value(it.key());
+        auto before = reversing.projection(it.key(), reverseFrames.value(it.key()));
+        auto after = reversing.projection(it.key(), targetFrame);
+        check(before && after, "reversal source and target ownership");
+        check(std::abs(reverseFrames.value(it.key()).x() + before->translationX - it.value()) < 1e-8, "reverse before ACK continuous");
+        check(std::abs(targetFrame.x() + after->translationX - it.value()) < 1e-8, "reverse after ACK continuous");
+    }
+    reversing.advance(73ms);
+    const auto reverseTarget = reversing.targets().value(QStringLiteral("1"));
+    const double reverseOffset = -1920.5 + 1260.25 - reverseTarget.x() - reversing.projection(QStringLiteral("1"), reverseTarget)->translationX;
+    check(std::abs(reverseOffset - Spring(reverseFrom, 0, 0).sample(10ms).position) < 1e-8, "reverse resets velocity to zero");
+    // Alternating targets transfer incoming/outgoing until the last completion.
+    for (int epoch = 3; epoch <= 9; ++epoch) {
+        reversing.advance(epoch * 60ms);
+        const auto frames = reversing.targets();
+        QHash<QString, double> painted;
+        for (auto it = frames.cbegin(); it != frames.cend(); ++it)
+            painted.insert(it.key(), it.value().x() + reversing.projection(it.key(), it.value())->translationX);
+        const double from = epoch % 2 ? 0 : 1260.25;
+        const double to = epoch % 2 ? 1260.25 : 0;
+        check(reversing.arm(plan(epoch, from, to), epoch * 60ms + 3ms, frames), "alternating direction arm");
+        reversing.cancel(QStringLiteral("s"), epoch - 1);
+        for (auto it = painted.cbegin(); it != painted.cend(); ++it) {
+            const auto frame = reversing.targets().value(it.key());
+            check(std::abs(frame.x() + reversing.projection(it.key(), frame)->translationX - it.value()) < 1e-8, "alternating position continuity");
+        }
+        const auto framesNow = reversing.targets();
+        for (int i = 0; i < 2; ++i) {
+            const auto l = framesNow.value(QString::number(i)), r = framesNow.value(QString::number(i + 1));
+            check(std::abs(r.x() + reversing.projection(QString::number(i + 1), r)->translationX
+                - l.right() - reversing.projection(QString::number(i), l)->translationX - 8) < 1e-8, "alternating fixed gap");
+        }
+        check(reversing.status().value(QStringLiteral("epoch")).toInteger() == epoch && !reversing.completed(), "only latest reversal owns completion");
+    }
+    reversing.advance(4s); check(reversing.completed(), "latest reversal settles");
+    reversing.cancel(QStringLiteral("s"), 8); check(reversing.active(), "old completion cannot clear settled latest epoch");
+    reversing.cancel(QStringLiteral("s"), 9); check(!reversing.active(), "latest completion clears reversal");
+
+    // Equal logical offsets can reverse an armed but uncommitted target.
+    ScrollViewportRuntime returning; returning.updateContext(state());
+    check(returning.arm(plan(1, 0, 1260.25), 0ns), "return initial arm");
+    returning.advance(60ms); auto realFrames = returning.sourceFrames();
+    const auto original = realFrames.value(QStringLiteral("1"));
+    const double originalPaint = original.x() + returning.projection(QStringLiteral("1"), original)->translationX;
+    auto returnPlan = plan(2, 0, 0);
+    check(!returning.arm(returnPlan, 63ms, realFrames), "implicit equal offset forbidden");
+    returnPlan.insert(QStringLiteral("retargetOnly"), true);
+    check(returning.arm(returnPlan, 63ms, realFrames), "explicit return plan accepted");
+    const auto finalFrame = returning.targets().value(QStringLiteral("1"));
+    check(std::abs(finalFrame.x() + returning.projection(QStringLiteral("1"), finalFrame)->translationX - originalPaint) < 1e-8, "equal-offset return does not snap");
+    check(returning.targets().size() == 2, "uncommitted hidden incoming never retained as drawable outgoing");
+    returning.cancel(QStringLiteral("s"), 1); check(returning.active(), "old uncommitted arm cannot cancel return");
+    returning.advance(4s); check(returning.completed(), "return completes");
+    returning.cancel(QStringLiteral("s"), 2); check(!returning.active(), "return cleared");
+    ScrollViewportRuntime coldReturn; coldReturn.updateContext(state());
+    check(coldReturn.arm(returnPlan, 0ns) && coldReturn.advance(0ns) && coldReturn.completed(), "return before first native arm is an immediate static completion");
+    ScrollViewportRuntime boundary; boundary.updateContext(state());
+    check(boundary.arm(plan(1, 0, 1260.25), 0ns), "completion boundary first arm");
+    boundary.advance(4s); check(boundary.completed(), "old segment already settled");
+    const auto settled = boundary.targets();
+    check(boundary.arm(plan(2, 1260.25, 0), 4s + 3ms, settled), "reverse takes over settled pending segment");
+    boundary.cancel(QStringLiteral("s"), 1);
+    check(boundary.active() && !boundary.completed(), "old completion cannot cancel boundary reversal");
+    const auto b1 = boundary.targets().value(QStringLiteral("1"));
+    check(std::abs(b1.x() + boundary.projection(QStringLiteral("1"), b1)->translationX
+        - settled.value(QStringLiteral("1")).x()) < 1e-8, "completion boundary position continuity");
     std::cout << "PASS native scroll projection ownership and lifecycle with incoming fixed gap" << std::endl;
 }
