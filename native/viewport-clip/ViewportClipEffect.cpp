@@ -303,9 +303,18 @@ bool CcNiriViewportClipEffect::ArmScrollPlan(const QString &json)
     return true;
 }
 
+bool CcNiriViewportClipEffect::WorkspaceTransitionActive() const
+{
+    // Slide clears this flag only after its Spring has settled. Removing a
+    // desktop while it is active forces finishedSwitching() prematurely.
+    // Other compositor fullscreen effects also protect topology changes.
+    return effects->hasActiveFullScreenEffect();
+}
+
 QString CcNiriViewportClipEffect::GetScrollMotionStatus() const
 {
     auto status = m_scrollRuntime.status();
+    status.insert(QStringLiteral("workspaceRemovalGate"), QStringLiteral("compositor-idle"));
     status.insert(QStringLiteral("paintClip"), QStringLiteral("viewport-with-decoration-outsets"));
     return QString::fromUtf8(QJsonDocument(status).toJson(QJsonDocument::Compact));
 }

@@ -31,6 +31,15 @@ class ContextualWideCoordinator {
         this.pendingExit = null;
     }
 
+    adoptRestoredViewport() {
+        // Workspace hydration restores an existing presentation, rather than
+        // entering Wide from this coordinator's previous workspace Pair.
+        // Retaining that workspace's neighbor would expose it until a second
+        // Pair-to-Wide completion, even though the restored owner is already Wide.
+        this.cancel();
+        this.lastCommittedViewport = Object.assign({}, this.appState.viewport);
+    }
+
     cancelExit() {
         this.clearPendingTimer(this.pendingExit);
         this.pendingExit = null;

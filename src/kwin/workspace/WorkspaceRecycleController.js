@@ -10,15 +10,51 @@ class WorkspaceRecycleController {
         this.confirmedIds = [];
         this.failedTopology = null;
         this.stopped = false;
+        this.transitionCheck = null;
+        this.transitionAttempts = 0;
     }
 
-    request() {
-        if (!this.enabled || this.stopped || !this.isReady() || this.timer) return false;
+    request(retry = false) {
+        if (!this.enabled || this.stopped || !this.isReady() || this.timer || this.transitionCheck) return false;
+        if (!retry) this.transitionAttempts = 0;
         // The timer retains only this controller; no Window/Desktop QObjects.
         this.timer = this.setTimer(() => {
             this.timer = null;
             this.reconcile();
         }, 200);
+        return true;
+    }
+
+    onDesktopChanged() {
+        // Reject a reply from an earlier switch even if J/K returned to the
+        // same desktop UUID. Never keep a Desktop QObject across this barrier.
+        if (this.transitionCheck) this.clearTimer(this.transitionCheck.timer);
+        this.transitionCheck = null;
+        this.transitionAttempts = 0;
+    }
+
+    awaitTransitionIdle() {
+        if (this.transitionCheck || this.transitionAttempts >= 60) return false;
+        const check = { timer: null };
+        this.transitionCheck = check;
+        ++this.transitionAttempts;
+        const finish = active => {
+            if (this.stopped || this.transitionCheck !== check) return;
+            this.clearTimer(check.timer);
+            this.transitionCheck = null;
+            if (active === false) {
+                // Recompute occupancy, current desktops and candidate now;
+                // nothing selected before the asynchronous reply is trusted.
+                this.reconcile(true);
+            } else if (this.transitionAttempts < 60) {
+                this.request(true);
+            }
+        };
+        check.timer = this.setTimer(() => finish(null), 1000);
+        try {
+            if (typeof this.transitionStatus !== "function") { finish(null); return false; }
+            this.transitionStatus(finish);
+        } catch (_error) { finish(null); }
         return true;
     }
 
@@ -28,7 +64,7 @@ class WorkspaceRecycleController {
         this.warn(`[cc-workspace] recycle unavailable: ${reason}`);
     }
 
-    reconcile() {
+    reconcile(compositorIdle = false) {
         if (!this.enabled || this.stopped) return false;
         let ids = this.getDesktopIds();
         if (!ids.length || ids.some(id => typeof id !== "string" || !id)) return false;
@@ -67,6 +103,7 @@ class WorkspaceRecycleController {
         // creation and recycling cannot alternate deleting/creating the tail.
         const id = ids.slice(0, -1).find(value => !protectedIds.includes(value) && !owners.has(value));
         if (!id) return false;
+        if (!compositorIdle) return this.awaitTransitionIdle();
         if (typeof this.removeDesktop !== "function") {
             this.fail(key, "removeDesktop API missing");
             return false;
@@ -92,6 +129,7 @@ class WorkspaceRecycleController {
 
     stop() {
         this.stopped = true;
+        this.onDesktopChanged();
         if (this.timer) this.clearTimer(this.timer);
         this.timer = null;
         this.pendingId = null;

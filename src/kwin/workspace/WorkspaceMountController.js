@@ -134,12 +134,14 @@ class WorkspaceMountController {
         // Snapshots store UUIDs, while newly mounted Columns receive fresh IDs.
         // Restore the saved viewport only when KDE still focuses that Wide owner.
         const savedViewport = snapshot && snapshot.viewport;
+        let restoredViewport = { mode: "pair", wideColumnId: null };
         if (focused && focused.persistentWide && !focused.window.fullScreen &&
                 savedViewport && ["wide", "wide-focus"].includes(savedViewport.mode) &&
                 savedViewport.wideUuid === this.normalizeUuid(focused.window.internalId) &&
                 snapshot.presentation.mode !== "maximized") {
-            this.restoreViewport({ mode: "wide-focus", wideColumnId: focused.id });
+            restoredViewport = { mode: "wide-focus", wideColumnId: focused.id };
         }
+        this.restoreViewport(restoredViewport);
         this.relayout("workspace-mount");
     }
 

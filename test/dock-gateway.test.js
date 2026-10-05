@@ -182,3 +182,11 @@ console.log("PASS DockGateway owns session, generation, schema, and transport");
     assert.equal(gateway.commandEnvelope({ commandId: "w5", type: "set-column-order" }).protocol, 1,
         "workspace state schema upgrade must preserve the Dock command protocol");
 }
+
+{
+    const { gateway, invocations } = fixture();
+    const callback = () => {};
+    gateway.workspaceTransitionStatus(callback);
+    assert.deepEqual(invocations[0], ["org.kde.KWin", "/ccNiriViewportMotion",
+        "org.cc.NiriViewportMotion1", "WorkspaceTransitionActive", callback]);
+}

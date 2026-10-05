@@ -93,6 +93,11 @@ class DockGateway {
             "GetScrollMotionStatus", callback);
     }
 
+    workspaceTransitionStatus(callback) {
+        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1",
+            "WorkspaceTransitionActive", callback);
+    }
+
     reportMotionParked(completion, callback) {
         const envelope = Object.assign({}, completion, {
             protocol: this.protocol,

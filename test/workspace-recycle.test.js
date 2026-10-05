@@ -7,6 +7,7 @@ function fixture(options = {}) {
     let ids = ["A", "B", "C", "D"], windows = [], protectedIds = ["A"], ready = true;
     const timers = new Set(), removed = [], confirmed = [], warnings = [];
     const controller = new WorkspaceRecycleController({
+        transitionStatus: callback => callback(false),
         enabled: true, isReady: () => ready, getDesktopIds: () => ids.slice(),
         getProtectedIds: () => protectedIds, getWindows: () => windows,
         occupancy: new WorkspaceOccupancy({ membership: new WorkspaceMembership() }),
@@ -101,5 +102,33 @@ for (const removeDesktop of [null, () => {}, () => { throw new Error("native err
     const f = fixture({ onRemoved: () => { throw new Error("save failed"); }, onFailure: () => { recovered = true; } });
     f.controller.request(); f.drain(); assert.equal(recovered, true); assert.equal(f.controller.stopped, true);
     assert.deepEqual(f.removed, ["B"], "cleanup failure stops further removal");
+}
+{
+    const replies = [];
+    const f = fixture({ transitionStatus: callback => replies.push(callback) });
+    f.controller.request(); f.flush();
+    assert.deepEqual(f.removed, [], "a candidate is not removed before compositor reply");
+    f.controller.request(); assert.equal(replies.length, 1, "only one status request is in flight");
+    f.controller.onDesktopChanged(); f.protect(["C"]); f.controller.request(); f.flush();
+    replies[0](false); assert.deepEqual(f.removed, [], "old idle reply from previous switch is rejected");
+    f.setWindows([f.window("A"),f.window("B")]); replies[1](false);
+    assert.deepEqual(f.removed, [], "new current desktop and new occupancy are rechecked after idle reply");
+    f.controller.request(); f.flush(); f.controller.stop();
+    replies.at(-1)(false); assert.deepEqual(f.removed, [], "late idle reply after stop does not remove desktops");
+}
+{
+    const f = fixture({ transitionStatus: () => {} });
+    f.controller.request();
+    for (let pass = 0; f.timers.size && pass < 150; ++pass) f.flush();
+    assert.deepEqual(f.removed, [], "missing endpoint/timeouts never imply compositor idle");
+    assert.equal(f.timers.size, 0, "status retries and timeout watchdog are bounded");
+}
+{
+    let active = true;
+    const f = fixture({ transitionStatus: callback => callback(active) });
+    f.controller.request(); for (let pass=0;pass<4;++pass) f.flush();
+    assert.deepEqual(f.removed, [], "longer slide does not use the old 200ms deadline");
+    f.setWindows([f.window("B")]); active=false; f.drain();
+    assert.deepEqual(f.removed, ["C"], "idle completion rereads membership before removing an empty desktop");
 }
 console.log("PASS workspace recycling: opt-in, empty/current/tail policy, all windows, Qt membership, live recheck and removal confirmation");

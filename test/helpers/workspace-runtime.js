@@ -28,6 +28,8 @@ const nativeAcks = [];
 const nativeCancels = [];
 const cancelAcks = [];
 const scrollStatusAcks = [];
+const workspaceTransitionAcks = [];
+let workspaceTransitionActive = false;
 let pendingCommand = "";
 const timers = [];
 const shortcuts = new Map();
@@ -102,6 +104,10 @@ const context = vm.createContext({ workspace, QTimer: Timer,
         else if (method === "PublishState") { published.push(JSON.parse(args[0])); callback(true); }
         else if (method === "PublishMotionPlan") { motionPlans.push(JSON.parse(args[0])); motionPublishWrites.push(geometryWrites); motionAcks.push(callback); if (motionPlans.at(-1).type === "SCROLL" && !config.HoldScrollAck) callback(true); }
         else if (method === "ArmScrollPlan") { nativeArms.push(JSON.parse(args[0])); nativeAcks.push(callback); if (!config.HoldNativeAck) callback(true); }
+        else if (method === "WorkspaceTransitionActive") {
+            workspaceTransitionAcks.push(callback);
+            if (!config.HoldWorkspaceTransitionAck) callback(workspaceTransitionActive);
+        }
         else if (method === "GetScrollMotionStatus") { scrollStatusAcks.push(callback); }
         else if (method === "CancelScrollPlan") { nativeCancels.push(JSON.parse(args[0])); cancelAcks.push(callback); if (!config.HoldCancelAck) callback(); }
         else if (method === "RequestDeferredCommand") { deferred.push(JSON.parse(args[0])); callback(true); }
@@ -123,6 +129,8 @@ function nativeSwitch(index, active) {
         "native desktop changes issue one relayout, including empty workspaces");
 }
 return { evaluate, state, ids, nativeSwitch, desktops, desktopCreates, desktopRemoves, desktopRows, output, workspace, a, b, published, motionAcks, motionPlans, motionPublishWrites, nativeArms, nativeAcks, nativeCancels, cancelAcks, scrollStatusAcks, timers, shortcuts, logs,
+    workspaceTransitionAcks,
+    setWorkspaceTransitionActive(value) { workspaceTransitionActive = value; },
     move(window, ids) { window.desktops = ids.map(id => desktops.find(d => d.id === id)); window.onAllDesktops = !ids.length; window.desktopsChanged.emit(); },
     add(uuid, index, properties = {}) { const window = Object.assign(windowFor(uuid, desktops[index]), properties); windows.push(window); workspace.windowAdded.emit(window); return window; },
     close(window) { windows = windows.filter(w => w !== window); window.closed.emit(); },

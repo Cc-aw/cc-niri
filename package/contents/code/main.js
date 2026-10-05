@@ -614,12 +614,14 @@ class WorkspaceMountController {
         // Snapshots store UUIDs, while newly mounted Columns receive fresh IDs.
         // Restore the saved viewport only when KDE still focuses that Wide owner.
         const savedViewport = snapshot && snapshot.viewport;
+        let restoredViewport = { mode: "pair", wideColumnId: null };
         if (focused && focused.persistentWide && !focused.window.fullScreen &&
                 savedViewport && ["wide", "wide-focus"].includes(savedViewport.mode) &&
                 savedViewport.wideUuid === this.normalizeUuid(focused.window.internalId) &&
                 snapshot.presentation.mode !== "maximized") {
-            this.restoreViewport({ mode: "wide-focus", wideColumnId: focused.id });
+            restoredViewport = { mode: "wide-focus", wideColumnId: focused.id };
         }
+        this.restoreViewport(restoredViewport);
         this.relayout("workspace-mount");
     }
 
@@ -1054,15 +1056,51 @@ class WorkspaceRecycleController {
         this.confirmedIds = [];
         this.failedTopology = null;
         this.stopped = false;
+        this.transitionCheck = null;
+        this.transitionAttempts = 0;
     }
 
-    request() {
-        if (!this.enabled || this.stopped || !this.isReady() || this.timer) return false;
+    request(retry = false) {
+        if (!this.enabled || this.stopped || !this.isReady() || this.timer || this.transitionCheck) return false;
+        if (!retry) this.transitionAttempts = 0;
         // The timer retains only this controller; no Window/Desktop QObjects.
         this.timer = this.setTimer(() => {
             this.timer = null;
             this.reconcile();
         }, 200);
+        return true;
+    }
+
+    onDesktopChanged() {
+        // Reject a reply from an earlier switch even if J/K returned to the
+        // same desktop UUID. Never keep a Desktop QObject across this barrier.
+        if (this.transitionCheck) this.clearTimer(this.transitionCheck.timer);
+        this.transitionCheck = null;
+        this.transitionAttempts = 0;
+    }
+
+    awaitTransitionIdle() {
+        if (this.transitionCheck || this.transitionAttempts >= 60) return false;
+        const check = { timer: null };
+        this.transitionCheck = check;
+        ++this.transitionAttempts;
+        const finish = active => {
+            if (this.stopped || this.transitionCheck !== check) return;
+            this.clearTimer(check.timer);
+            this.transitionCheck = null;
+            if (active === false) {
+                // Recompute occupancy, current desktops and candidate now;
+                // nothing selected before the asynchronous reply is trusted.
+                this.reconcile(true);
+            } else if (this.transitionAttempts < 60) {
+                this.request(true);
+            }
+        };
+        check.timer = this.setTimer(() => finish(null), 1000);
+        try {
+            if (typeof this.transitionStatus !== "function") { finish(null); return false; }
+            this.transitionStatus(finish);
+        } catch (_error) { finish(null); }
         return true;
     }
 
@@ -1072,7 +1110,7 @@ class WorkspaceRecycleController {
         this.warn(`[cc-workspace] recycle unavailable: ${reason}`);
     }
 
-    reconcile() {
+    reconcile(compositorIdle = false) {
         if (!this.enabled || this.stopped) return false;
         let ids = this.getDesktopIds();
         if (!ids.length || ids.some(id => typeof id !== "string" || !id)) return false;
@@ -1111,6 +1149,7 @@ class WorkspaceRecycleController {
         // creation and recycling cannot alternate deleting/creating the tail.
         const id = ids.slice(0, -1).find(value => !protectedIds.includes(value) && !owners.has(value));
         if (!id) return false;
+        if (!compositorIdle) return this.awaitTransitionIdle();
         if (typeof this.removeDesktop !== "function") {
             this.fail(key, "removeDesktop API missing");
             return false;
@@ -1136,6 +1175,7 @@ class WorkspaceRecycleController {
 
     stop() {
         this.stopped = true;
+        this.onDesktopChanged();
         if (this.timer) this.clearTimer(this.timer);
         this.timer = null;
         this.pendingId = null;
@@ -3599,6 +3639,11 @@ class DockGateway {
             "GetScrollMotionStatus", callback);
     }
 
+    workspaceTransitionStatus(callback) {
+        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1",
+            "WorkspaceTransitionActive", callback);
+    }
+
     reportMotionParked(completion, callback) {
         const envelope = Object.assign({}, completion, {
             protocol: this.protocol,
@@ -4153,6 +4198,15 @@ class ContextualWideCoordinator {
         this.releasePark();
         this.clearPendingTimer(this.pendingExit);
         this.pendingExit = null;
+    }
+
+    adoptRestoredViewport() {
+        // Workspace hydration restores an existing presentation, rather than
+        // entering Wide from this coordinator's previous workspace Pair.
+        // Retaining that workspace's neighbor would expose it until a second
+        // Pair-to-Wide completion, even though the restored owner is already Wide.
+        this.cancel();
+        this.lastCommittedViewport = Object.assign({}, this.appState.viewport);
     }
 
     cancelExit() {
@@ -5147,7 +5201,10 @@ workspaceMountController = new WorkspaceMountController({
         contextualWideCoordinator.cancel();
     },
     resetPresentation: clearPresentationState,
-    restoreViewport: snapshot => contextualViewport.restore(snapshot),
+    restoreViewport: snapshot => {
+        contextualViewport.restore(snapshot);
+        contextualWideCoordinator.adoptRestoredViewport();
+    },
     recomputeLayout: recomputeLogicalLayout,
     boundOffset: offset => boundScrollOffset(offset, stripWidth(),
         mainScreenState.safeRect ? mainScreenState.safeRect.width : 0),
@@ -5234,6 +5291,7 @@ dynamicWorkspaceController = new DynamicWorkspaceController({
 });
 workspaceRecycleController = new WorkspaceRecycleController({
     enabled: runtimeConfig.dynamicTrailingWorkspace && runtimeConfig.autoRecycleWorkspaces,
+    transitionStatus: callback => dockGateway.workspaceTransitionStatus(callback),
     isReady: () => scrollLayoutInitialized && workspaceMountController.canUseActiveWorkspace() &&
         !workspaceTransferController.isProcessing() && dynamicWorkspaceController.pendingTopology === null,
     getDesktopIds: () => virtualDesktopTopology.ordered().map(desktop => virtualDesktopTopology.id(desktop)),
@@ -6639,11 +6697,13 @@ const app = new CCNiri({
         },
         onWindowActivated: onWindowActivatedForScrollLayout,
         onCurrentDesktopChanged: (previous, current, output) => {
+            workspaceRecycleController.onDesktopChanged();
             workspaceSwitchController.onDesktopChanged(previous, current, output);
             dynamicWorkspaceController.request();
             workspaceRecycleController.request();
         },
         onDesktopsChanged: () => {
+            workspaceRecycleController.onDesktopChanged();
             workspaceSwitchController.onTopologyChanged();
             dynamicWorkspaceController.request();
             workspaceRecycleController.request();

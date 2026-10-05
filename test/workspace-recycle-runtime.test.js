@@ -58,4 +58,18 @@ function invariant(r) {
     r.evaluate("emergencyRestoreAllWindows('recycle-stop')"); r.drain();
     assert.equal(r.evaluate("workspaceRecycleController.stopped"), true); assert.deepEqual(r.desktopRemoves, []);
 }
+{
+    const r = setup({ DynamicTrailingWorkspace: true, AutoRecycleWorkspaces: true }); r.drain();
+    const tail = r.add("closed-before-slide", 2); r.drain();
+    r.nativeSwitch(2, tail); r.close(tail); r.drain();
+    r.setWorkspaceTransitionActive(true);
+    r.nativeSwitch(0, r.a[0]);
+    for (let pass = 0; pass < 5; ++pass) {
+        r.timers.filter(timer => timer.running).forEach(timer => { timer.running = false; timer.timeout.emit(); });
+    }
+    assert.ok(r.desktops.some(d => d.id === "C"), "empty source desktop survives the entire compositor slide");
+    r.setWorkspaceTransitionActive(false);
+    r.drain();
+    assert.equal(r.desktops.some(d => d.id === "C"), false, "idle compositor allows live-checked reclamation"); invariant(r);
+}
 console.log("PASS production recycling: W8 coordination, membership/close/current signals, UUID snapshots, grid and emergency stop");
