@@ -1,5 +1,7 @@
 # cc-niri Focus Ring 实现设计
 
+> **归档状态（2026-10-05）：** Phase 1–6 内屏范围已完成、部署并由用户验收。用户决定结束本轮开发并合并到 main；双屏与额外 Phase 7 提案不属于本轮完成范围。原设计正文和初始清单保留供参考，实际实现与验收以阶段记录为准。
+
 > **实施状态（2026-10-05）：** Phase 1 Static Native POC 已部署并通过静态实机验收：4px、圆角兼容及跨应用颜色一致。Phase 2 新增独立 JS FocusRingController 与 Script → Native eligibility 通道，完整自动门禁、配套部署及三轮人工实机验收全部通过。验收后按用户要求将线宽调整为 3px，已通过原生检查并部署，见 Phase 2 记录。静态原生边框使用独立 OutlinedBorderItem 绘制树；Phase 5 的尺寸动画描边使用同树下的独立 Stroke Item。见 [Phase 2 记录](../../test/FOCUS_RING_PHASE2_RESULTS.md)；Phase 3 同帧 Visual Transform 已实现并通过自动验证，已单独部署并通过两轮主屏实机验收，见 [Phase 3 记录](../../test/FOCUS_RING_PHASE3_RESULTS.md)；Phase 4 Retarget 已完成主屏实机验收。Phase 5 Presentation 已实现并通过自动检查，已独立部署并开启，用户已确认 Phase 5 完成；Phase 6 内屏像素对齐已实现、自动验证通过并独立部署，用户确认功能正常，内屏实机验收通过，Phase 6 内屏范围完成，见 [Phase 6 记录](../../test/FOCUS_RING_PHASE6_RESULTS.md)。
 > 文档基线需与已完成 W0–W9 的当前 main 核对；原设计正文保留。阅读入口见 [文档索引](../README.md)。
 

@@ -13,7 +13,7 @@
 - **连续动画**：支持快速输入与反向 retarget，使用原生 viewport clip 限制绘制范围。当前运行路径仍使用 OutCubic。
 - **工作区 W0–W9**：J/K 纵向切换、各工作区布局快照、窗口迁移，以及可选的末尾空工作区追加和空工作区回收。当前主屏范围已部署并验收。
 
-下一阶段先实现 **共享 ViewOffset + Spring**，再实现新的 **原生 Focus Ring**。Spring 已完成纯数学与状态阶段，尚未接入 H/L；新 Focus Ring 尚未开始，均未部署。旧自定义 Focus Ring 已撤除，当前由 Dock 显示活跃窗口。
+**共享 ViewOffset + Spring** 已接入普通 H/L 滚动并通过本轮内屏验收；新的 **原生 Focus Ring** 已完成 Phase 1–6、部署并通过内屏验收，当前活动受管窗口显示 3px 浅蓝边框。设计已[归档](doc/done/cc-niri_Focus_Ring_实现设计.md)，双屏扩展留待以后。
 
 多窗口 Column、Overview 和副屏滚动列尚未实现；完整日常交互验收仍有待完成项，见 [稳定版验收](test/V3_DAILY_ACCEPTANCE.md)。
 

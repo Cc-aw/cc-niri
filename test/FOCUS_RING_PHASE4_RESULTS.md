@@ -2,7 +2,7 @@
 
 日期：2026-10-05。实现与自动验证完成；本阶段新库已独立部署并启用，自动加载 / off-on 与运行健康检查通过，三轮主屏人工实机验收全部通过。Phase 4 完成。
 
-依据：[实施计划](../doc/todo/cc-niri_Focus_Ring_Phase4_Retarget_实施计划.md)与 [Focus Ring 设计第 37 节](../doc/todo/cc-niri_Focus_Ring_实现设计.md#phase-4--retarget)。
+依据：[实施计划](../doc/done/cc-niri_Focus_Ring_Phase4_Retarget_实施计划.md)与 [Focus Ring 设计第 37 节](../doc/done/cc-niri_Focus_Ring_实现设计.md#phase-4--retarget)。
 
 ## 实现与发现
 

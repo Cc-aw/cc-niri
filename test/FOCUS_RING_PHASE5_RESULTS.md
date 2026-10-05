@@ -2,7 +2,7 @@
 
 日期：2026-10-05。实现与自动验证完成，新库已独立部署并开启，加载 / off-on 与运行健康检查通过；用户于 2026-10-05 确认 Phase 5 已完成。
 
-依据：[Focus Ring 设计第 37 节](../doc/todo/cc-niri_Focus_Ring_实现设计.md#phase-5--presentation)。本阶段仅主屏；双屏不是前置条件。
+依据：[Focus Ring 设计第 37 节](../doc/done/cc-niri_Focus_Ring_实现设计.md#phase-5--presentation)。本阶段仅主屏；双屏不是前置条件。
 
 ## 实现
 

@@ -8,13 +8,13 @@
 - `todo/`：仍有未实现内容的设计，以及未采用的旧提案。部分完成文档列出完成边界，后续开发只处理剩余内容。
 - 验收结果保留在 [`test/`](../test/)，源码职责以当前实现和仓库 [README](../README.md) 为准。
 
-## 下一阶段目标
+## 本轮专项目标与结果
 
 2026-10-01 用户明确指定以下两个目标，并确认先实现 ViewOffset Spring，再实现 Focus Ring；优先于 Quickshell 后续视觉升级：
 
 | 目标 | 设计与起点 |
 | --- | --- |
-| [focus_ring](todo/cc-niri_Focus_Ring_实现设计.md) | 新的主屏原生 Focus Ring；[Phase 1 Static Native POC](../test/FOCUS_RING_PHASE1_RESULTS.md) 已实现并通过自动检查，[已部署并通过静态实机验收](../test/FOCUS_RING_PHASE1_LIVE_RESULTS.md)。[Phase 2 独立资格与归属](../test/FOCUS_RING_PHASE2_RESULTS.md) 已实现、配套部署并通过三轮人工实机验收；验收后按用户要求改为 3px 并部署；[Phase 3 同帧 Visual Transform](../test/FOCUS_RING_PHASE3_RESULTS.md) 已实现并通过自动验证，已单独部署并通过两轮主屏实机验收。2026-10-05 四侧外沿描边裁剪与启动圆角修复已部署并通过本轮主屏实机验收，见 [修复记录](../test/FOCUS_RING_CLIP_CORNER_RESULTS.md)。[Phase 4 Retarget](../test/FOCUS_RING_PHASE4_RESULTS.md) 已完成实现与自动验证，已独立部署并通过自动加载 / 开关检查，三轮主屏人工验收全部通过，[Phase 5 Presentation](../test/FOCUS_RING_PHASE5_RESULTS.md) 已实现并通过自动检查，已独立部署并开启，用户已确认 Phase 5 完成；[Phase 6 内屏像素对齐](../test/FOCUS_RING_PHASE6_RESULTS.md) 已实现、自动验证通过并独立部署，用户确认功能正常，内屏实机验收通过，Phase 6 内屏范围完成；双屏开发不属于本阶段。历史 Phase 9.5 的实现仅作背景。 |
+| [focus_ring](done/cc-niri_Focus_Ring_实现设计.md) | 新的主屏原生 Focus Ring；[Phase 1 Static Native POC](../test/FOCUS_RING_PHASE1_RESULTS.md) 已实现并通过自动检查，[已部署并通过静态实机验收](../test/FOCUS_RING_PHASE1_LIVE_RESULTS.md)。[Phase 2 独立资格与归属](../test/FOCUS_RING_PHASE2_RESULTS.md) 已实现、配套部署并通过三轮人工实机验收；验收后按用户要求改为 3px 并部署；[Phase 3 同帧 Visual Transform](../test/FOCUS_RING_PHASE3_RESULTS.md) 已实现并通过自动验证，已单独部署并通过两轮主屏实机验收。2026-10-05 四侧外沿描边裁剪与启动圆角修复已部署并通过本轮主屏实机验收，见 [修复记录](../test/FOCUS_RING_CLIP_CORNER_RESULTS.md)。[Phase 4 Retarget](../test/FOCUS_RING_PHASE4_RESULTS.md) 已完成实现与自动验证，已独立部署并通过自动加载 / 开关检查，三轮主屏人工验收全部通过，[Phase 5 Presentation](../test/FOCUS_RING_PHASE5_RESULTS.md) 已实现并通过自动检查，已独立部署并开启，用户已确认 Phase 5 完成；[Phase 6 内屏像素对齐](../test/FOCUS_RING_PHASE6_RESULTS.md) 已实现、自动验证通过并独立部署，用户确认功能正常，内屏实机验收通过，Phase 6 内屏范围完成；双屏开发不属于本阶段。历史 Phase 9.5 的实现仅作背景。 |
 | [viewoffset_spring](todo/cc-niri_niri_viewoffset_spring_implementation.md) | 普通 H/L 使用共享 ViewOffset + Spring；[Phase 1 数学与状态](../test/VIEWOFFSET_SPRING_PHASE1_RESULTS.md)、[Phase 2 SCROLL plan](../test/VIEWOFFSET_SPRING_PHASE2_RESULTS.md)、[Phase 3 continuing 投影](../test/VIEWOFFSET_SPRING_PHASE3_RESULTS.md)、[Phase 4 incoming 投影](../test/VIEWOFFSET_SPRING_PHASE4_RESULTS.md)、[Phase 5 outgoing 延迟停放](../test/VIEWOFFSET_SPRING_PHASE5_RESULTS.md)、[Phase 6 旧 SCROLL 退出](../test/VIEWOFFSET_SPRING_PHASE6_RESULTS.md)、[Phase 7 连续 retarget](../test/VIEWOFFSET_SPRING_PHASE7_RESULTS.md)、[Phase 8 中途反向](../test/VIEWOFFSET_SPRING_PHASE8_RESULTS.md) 已实现；主屏核心代码阶段完成，已配套部署并通过本轮内屏验收。第一版不改 Wide 尺寸动画或 J/K 切换。 |
 
 两个目标分别模块化实施与验收。Spring 已完成数学、协议、原生 continuing/incoming/outgoing 接入、旧普通 SCROLL 动画退出、连续 retarget 与中途反向；第六至第八阶段已配套部署，[自动实机检查](../test/VIEWOFFSET_SPRING_PHASE8_LIVE_RESULTS.md)及本轮内屏人工验收通过：快速 H/L 连续且间距稳定、滚动中 J/K 清理正常、Wide 工作区状态保持。第四、第五阶段已配套部署，[自动实机检查](../test/VIEWOFFSET_SPRING_PHASE5_LIVE_RESULTS.md)通过，本轮内屏人工验收通过：慢速 H/L 间距稳定且连续滑出、滚动中 J/K 清理正常，Wide J/K 状态保持。第三阶段已部署并完成一轮[内屏验收](../test/VIEWOFFSET_SPRING_PHASE3_LIVE_RESULTS.md)；之前的滚动间距变化在第四、第五阶段慢速 H/L 人工验收中已消失。Focus Ring 第一阶段静态原生 POC 已部署并启用，加载 / 卸载检查通过；用户确认单一 owner，已按反馈[加粗并匹配圆角](../test/FOCUS_RING_STYLE_RESULTS.md)，调整后的样式、全屏 / 关闭 / 点击已由用户验收通过；随后发现跨应用色差，已部署[独立绘制修复](../test/FOCUS_RING_COLOR_RESULTS.md)，颜色和圆角已由用户确认正常，独立开关及全屏复验也通过；静态 Phase 1 实机验收完成。Phase 2 已新增独立 FocusRingController 与 Script → Native 资格通道，完整自动门禁通过；[配套部署与实机验收](../test/FOCUS_RING_PHASE2_RESULTS.md)通过，三轮人工验收全部完成。部署前另修复了 [Wide → Pair 邻窗偶发不可见](../test/WIDE_NEIGHBOR_RACE_RESULTS.md)：邻窗不再依赖几何变化才能退出旧透明 hold，自动回归通过，已单独部署动画脚本，用户确认原缺窗问题已修复，实机验收通过；Focus Ring Phase 2 已配套部署并通过验收，随后按用户要求将边框调整为 3px 并部署。Phase 3 新增独立绘制帧快照，同步既有 Spring 变换、原生透明度和裁剪，85 个 JS 回归与 6 项 Ring 原生检查通过，[已单独部署并通过两轮主屏实机验收](../test/FOCUS_RING_PHASE3_RESULTS.md)：慢速 H/L 贴合与裁剪正常、滚动中 J/K 清理正常、独立开关恢复正常。
@@ -23,6 +23,7 @@
 
 | 文档 | 状态 / 依据 |
 | --- | --- |
+| [Focus Ring](done/cc-niri_Focus_Ring_实现设计.md) | Phase 1–6 内屏范围已完成、部署并通过用户验收，见 [Phase 6 记录](../test/FOCUS_RING_PHASE6_RESULTS.md)；Phase 4 / 6 计划同步归档。额外 [Phase 7 提案](done/cc-niri_Focus_Ring_Phase7_收尾加固_实施计划.md) 取消实施，仅保留历史记录。双屏不属于本轮范围。 |
 | [V1 Safe Area](done/cc-niri-maximize_Codex_Implementation_Spec.md) | 已实现；早期最大化方案，当前由 V3 列布局接续。 |
 | [V2 Safe Area / Quick Tile](done/cc-niri-maximize_V2_SafeArea_QuickTile_InnerGap_Codex_Spec.md) | 已实现；主屏 Safe Area 与 gap 基础。 |
 | [V3 Scrollable Columns](done/cc-niri-maximize_V3_Scrollable_Columns_Codex_Spec.md) | 已实现当前单窗口 Column 范围；Multi-window Column、Overview 等扩展不属于已完成范围。 |
@@ -48,6 +49,6 @@
 ## 阅读顺序
 
 当前 Workspace 行为优先阅读 `done/` 中的 Workspace 架构与 W9 验收记录。
-下一轮优先阅读 `todo/` 中的新 Focus Ring 与 ViewOffset Spring 两份设计。
+Focus Ring 本轮开发已完成，优先阅读 `done/` 中的设计与 Phase 6 验收记录；额外 Phase 7 提案已取消实施。ViewOffset Spring 当前实现依据仍见其设计与阶段验收记录。
 Quickshell V2–V11 暂列后续，Clavis 旧文档作为背景参考。
 Partial Viewport 旧提案已被 Contextual Wide 取代，重新采用需要新的明确需求。
