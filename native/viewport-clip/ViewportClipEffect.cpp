@@ -1,12 +1,14 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "ViewportClipEffect.h"
+#include "../common/ViewportPaintClip.h"
 
 #include "core/renderviewport.h"
 #include "core/output.h"
 #include "virtualdesktops.h"
 #include "effect/effecthandler.h"
 #include "effect/effectwindow.h"
+#include "scene/windowitem.h"
 
 #include <QLoggingCategory>
 #include <QDBusConnection>
@@ -303,7 +305,9 @@ bool CcNiriViewportClipEffect::ArmScrollPlan(const QString &json)
 
 QString CcNiriViewportClipEffect::GetScrollMotionStatus() const
 {
-    return QString::fromUtf8(QJsonDocument(m_scrollRuntime.status()).toJson(QJsonDocument::Compact));
+    auto status = m_scrollRuntime.status();
+    status.insert(QStringLiteral("paintClip"), QStringLiteral("viewport-with-decoration-outsets"));
+    return QString::fromUtf8(QJsonDocument(status).toJson(QJsonDocument::Compact));
 }
 
 void CcNiriViewportClipEffect::CancelScrollPlan(const QString &json)
@@ -470,8 +474,8 @@ void CcNiriViewportClipEffect::paintWindow(const RenderTarget &renderTarget,
     if (projection) {
         data.setXTranslation(data.xTranslation() + projection->translationX);
         const auto &rect = projection->viewport;
-        Region clipped = deviceRegion;
-        clipped &= viewport.mapToDeviceCoordinates(RectF(rect.x(), rect.y(), rect.width(), rect.height())).rounded();
+        const Region clipped = viewportPaintClip(window->windowItem(), viewport,
+            RectF(rect.x(), rect.y(), rect.width(), rect.height()), deviceRegion);
         effects->paintWindow(renderTarget, viewport, window, mask | PAINT_WINDOW_TRANSFORMED, clipped, data);
         return;
     }
@@ -505,8 +509,7 @@ void CcNiriViewportClipEffect::paintWindow(const RenderTarget &renderTarget,
             << "device=" << deviceClip;
     }
 
-    Region clipped = deviceRegion;
-    clipped &= deviceClip;
+    const Region clipped = viewportPaintClip(window->windowItem(), viewport, logicalClip, deviceRegion);
     effects->paintWindow(renderTarget, viewport, window, mask, clipped, data);
     const QVariantMap motion = window->data(MotionPlanDataRole).toMap();
     if (marker.value(QStringLiteral("role")).toString() ==

@@ -32,7 +32,8 @@ assert.match(source, /advertiseCapability\(window, false\)/);
 assert.match(source, /setData\(CapabilityDataRole/);
 assert.match(source, /\[VIEWPORT_CLIP_NATIVE\] READY/);
 assert.match(source, /viewport\.mapToDeviceCoordinates\(logicalClip\)\.rounded\(\)/);
-assert.match(source, /clipped &= deviceClip/);
+assert.equal((source.match(/viewportPaintClip\(window->windowItem\(\), viewport/g) || []).length, 2,
+    "Spring and legacy viewport clipping share decoration-aware device clipping");
 assert.match(source, /blocksDirectScanout\(\) const/);
 assert.match(source, /\[VIEWPORT_CLIP_NATIVE\] MAP/);
 assert.match(source, /MotionPlanChanged/);

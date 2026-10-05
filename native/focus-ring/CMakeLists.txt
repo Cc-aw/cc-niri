@@ -12,13 +12,16 @@ find_package(Qt6 6.6 REQUIRED COMPONENTS Core DBus Gui Quick Widgets)
 find_package(KF6 6.0 REQUIRED COMPONENTS CoreAddons Config)
 find_package(KWin 6.7 REQUIRED COMPONENTS kwineffects)
 kcoreaddons_add_plugin(cc-niri-focus-ring
-    SOURCES main.cpp FocusRingEffect.cpp FocusRingEffect.h FocusRingItem.cpp FocusRingItem.h FocusRingPaintFrame.cpp FocusRingPaintFrame.h FocusRingContext.cpp FocusRingContext.h
+    SOURCES main.cpp FocusRingEffect.cpp FocusRingEffect.h FocusRingItem.cpp FocusRingItem.h FocusRingPaintFrame.cpp FocusRingPaintFrame.h FocusRingContext.cpp FocusRingContext.h FocusRingCornerStyle.cpp FocusRingCornerStyle.h
     INSTALL_NAMESPACE "kwin/effects/plugins")
 set_property(TARGET cc-niri-focus-ring APPEND PROPERTY AUTOMOC_MACRO_NAMES KWIN_EFFECT_FACTORY_SUPPORTED)
 target_link_libraries(cc-niri-focus-ring PRIVATE Qt6::Core Qt6::DBus Qt6::Gui KF6::CoreAddons KF6::ConfigCore KWin::kwin)
 include(CTest)
 if(BUILD_TESTING)
     find_package(Qt6 6.6 REQUIRED COMPONENTS Qml)
+    add_executable(cc-niri-focus-ring-corner-style-tests tests/FocusRingCornerStyleTest.cpp FocusRingCornerStyle.cpp FocusRingCornerStyle.h)
+    target_link_libraries(cc-niri-focus-ring-corner-style-tests PRIVATE Qt6::Core Qt6::Gui KF6::ConfigCore KWin::kwin)
+    add_test(NAME focus-ring-corner-style-lifecycle COMMAND cc-niri-focus-ring-corner-style-tests)
     add_executable(cc-niri-focus-ring-controller-tests tests/FocusRingControllerTest.cpp FocusRingContext.cpp)
     target_link_libraries(cc-niri-focus-ring-controller-tests PRIVATE Qt6::Core Qt6::Qml)
     add_test(NAME focus-ring-controller-qobject COMMAND cc-niri-focus-ring-controller-tests
@@ -35,6 +38,10 @@ if(BUILD_TESTING)
     add_executable(cc-niri-focus-ring-paint-tests tests/FocusRingPaintTest.cpp FocusRingItem.cpp FocusRingItem.h FocusRingPaintFrame.cpp)
     target_link_libraries(cc-niri-focus-ring-paint-tests PRIVATE Qt6::Core Qt6::Gui KWin::kwin)
     add_test(NAME focus-ring-isolated-paint COMMAND cc-niri-focus-ring-paint-tests)
+    add_executable(cc-niri-focus-ring-viewport-clip-tests tests/FocusRingViewportClipTest.cpp
+        FocusRingItem.cpp FocusRingItem.h FocusRingPaintFrame.cpp)
+    target_link_libraries(cc-niri-focus-ring-viewport-clip-tests PRIVATE Qt6::Core Qt6::Gui KWin::kwin)
+    add_test(NAME focus-ring-viewport-decoration-clip COMMAND cc-niri-focus-ring-viewport-clip-tests)
     # Test-only composition with production Spring; the Ring plugin has no
     # motion/clock dependency and never reads scroll state itself.
     add_executable(cc-niri-focus-ring-visual-transform-tests tests/FocusRingVisualTransformTest.cpp

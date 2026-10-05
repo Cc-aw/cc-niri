@@ -4,6 +4,7 @@
 #include <QPointer>
 #include <QSizeF>
 #include "scene/outlinedborderitem.h"
+#include "../common/ViewportPaintClip.h"
 
 namespace KWin {
 class ItemRenderer;
@@ -26,6 +27,7 @@ public:
     OutlinedBorderItem *border() const { return m_border.data(); }
     static constexpr qreal Width = 3.0;
 private:
+    ViewportDecorationPadding m_clipPadding;
     QPointer<Item> m_parent;
     QPointer<OutlinedBorderItem> m_border;
     QPointer<Item> m_damage;

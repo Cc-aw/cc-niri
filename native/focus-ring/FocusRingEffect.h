@@ -4,6 +4,7 @@
 #include "effect/effectwindow.h"
 #include "FocusRingContext.h"
 #include "FocusRingItem.h"
+#include "FocusRingCornerStyle.h"
 #include <QPointer>
 #include <QSet>
 
@@ -16,6 +17,7 @@ public:
     ~CcNiriFocusRingEffect() override;
     void reconfigure(ReconfigureFlags flags) override;
     int requestedEffectChainPosition() const override;
+    void prePaintScreen(ScreenPrePaintData &data) override;
     void paintWindow(const RenderTarget &target, const RenderViewport &viewport, EffectWindow *window,
         int mask, const Region &region, WindowPaintData &data) override;
     bool isActive() const override;
@@ -35,8 +37,7 @@ private:
     QSet<EffectWindow *> m_watched;
     QSet<QString> m_closedIds;
     bool m_endpointRegistered = false;
-    qreal m_configuredRadius = -1;
-    qreal m_roundCornersRadius = 0;
+    FocusRingCornerStyle m_cornerStyle;
     quint64 m_drawCount = 0;
 };
 }

@@ -3,6 +3,8 @@
 > **实施状态（2026-10-04）：** Phase 1 Static Native POC 已部署并通过静态实机验收：4px、圆角兼容及跨应用颜色一致。Phase 2 新增独立 JS FocusRingController 与 Script → Native eligibility 通道，完整自动门禁、配套部署及三轮人工实机验收全部通过。验收后按用户要求将线宽调整为 3px，已通过原生检查并部署，见 Phase 2 记录。当前原生边框仍使用独立 OutlinedBorderItem 绘制树。见 [Phase 2 记录](../../test/FOCUS_RING_PHASE2_RESULTS.md)；Phase 3 同帧 Visual Transform 已实现并通过自动验证，已单独部署并通过两轮主屏实机验收，见 [Phase 3 记录](../../test/FOCUS_RING_PHASE3_RESULTS.md)；retarget、Presentation 与主屏缩放留给后续阶段。
 > 文档基线需与已完成 W0–W9 的当前 main 核对；原设计正文保留。阅读入口见 [文档索引](../README.md)。
 
+> **2026-10-05 修复：** 按用户反馈修复滚动时四侧外沿描边被内容 viewport 裁掉，以及圆角插件晚加载后半径仍缓存为 0。85 项 JS、8 项 Ring 和 4 项 Clip 原生检查通过；四方向裁剪余量版本已部署，用户确认“现在正常”，本次主屏修复验收通过，见 [修复记录](../../test/FOCUS_RING_CLIP_CORNER_RESULTS.md)。下一步 Phase 4 Retarget 的 [实施计划](cc-niri_Focus_Ring_Phase4_Retarget_实施计划.md) 已准备，尚未实施或验收。
+
 > 目标：为 cc-niri 实现类似 niri 的“当前窗口光圈 / Focus Ring”，用于在无常驻 Dock 的工作流中明确当前输入焦点。  
 > 设计原则：**逻辑层只决定谁拥有光圈，渲染层决定光圈这一帧画在哪里。**  
 > 适用项目：`Cc-aw/cc-niri`  
@@ -1553,6 +1555,8 @@ ring 单独 easing
 ---
 
 ## Phase 4 — Retarget
+
+2026-10-05 已对照当前生产 Spring 与同帧绘制基线准备 [实施计划](cc-niri_Focus_Ring_Phase4_Retarget_实施计划.md)，尚未开始本阶段实现或专门实机验收。
 
 测试：
 

@@ -56,7 +56,8 @@ int main(int argc, char **argv) {
                 WindowPaintData data; data.setXTranslation(projection->translationX); data.setOpacity(0.75);
                 data.setBrightness(0.25); data.setSaturation(0.1);
                 const int mask = Effect::PAINT_WINDOW_TRANSFORMED | Effect::PAINT_WINDOW_TRANSLUCENT;
-                Region deviceRegion(viewport.mapToDeviceCoordinates(RectF(projection->viewport)).rounded());
+                Region deviceRegion = viewportPaintClip(&window, viewport,
+                    RectF(projection->viewport), Region::infinite());
                 const auto frame = FocusRingPaintFrame::capture(&window, mask, deviceRegion, data);
                 check(frame.has_value(), "capture Spring paint sample");
                 renderer.renderItem(target, viewport, &window, mask, deviceRegion, data, {}, {});
@@ -73,6 +74,28 @@ int main(int argc, char **argv) {
                 const auto outlineBounds = renderer.sceneMatrix.mapRect(QRectF(-3 * scale, -3 * scale,
                     938 * scale, 966 * scale));
                 const Region visible = Region(RectF(outlineBounds).rounded()) & renderer.lastRegion;
+                // Check the actual horizontal stroke bands, not only whether
+                // some part of the border intersects a clip (side strips alone
+                // would have hidden the original missing top/bottom regression).
+                const auto body = renderer.sceneMatrix.mapRect(QRectF(0, 0, 932 * scale, 960 * scale));
+                const auto strip = viewport.mapToDeviceCoordinates(RectF(projection->viewport)).rounded();
+                const qreal left = std::max(body.left() + 20 * scale, qreal(strip.left()));
+                const qreal right = std::min(body.right() - 20 * scale, qreal(strip.right()));
+                if (right - left > 2) {
+                    const int x = std::floor((left + right) / 2);
+                    check(renderer.lastRegion.contains(QPoint(x, std::floor(body.top() - scale)))
+                        && renderer.lastRegion.contains(QPoint(x, std::ceil(body.bottom() + scale))),
+                        "every visible Spring sample retains top and bottom stroke bands");
+                }
+                const int centerY = std::floor((body.top() + body.bottom()) / 2);
+                if (body.left() >= strip.left() && body.left() < strip.right() - 20 * scale) {
+                    check(renderer.lastRegion.contains(QPoint(std::floor(body.left() - scale), centerY)),
+                        "left stroke remains visible when the active window reaches the left viewport edge");
+                }
+                if (body.right() <= strip.right() && body.right() > strip.left() + 20 * scale) {
+                    check(renderer.lastRegion.contains(QPoint(std::ceil(body.right() + scale) - 1, centerY)),
+                        "right stroke remains visible when the active window reaches the right viewport edge");
+                }
                 if ((runtime.role(it.key()) == QStringLiteral("incoming") && time == 0ms)
                     || (runtime.role(it.key()) == QStringLiteral("outgoing") && runtime.completed())) {
                     check(visible.isEmpty(), "fully offscreen incoming/outgoing border stays clipped");

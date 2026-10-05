@@ -39,6 +39,7 @@ bool FocusRingItem::attach(Item *windowItem, Item *contentItem, const QSizeF &fr
         m_border->setOutline(outline);
     }
     m_damage->setGeometry(outline.inflate(inner));
+    m_clipPadding.attach(windowItem, outline.thickness());
     m_paintRoot->setGeometry(RectF(windowItem->position(), frameSize));
     m_paintRoot->setTransform(windowItem->transform());
     return true;
@@ -56,6 +57,7 @@ bool FocusRingItem::paint(ItemRenderer *renderer, const RenderTarget &target, co
     return true;
 }
 void FocusRingItem::clear() {
+    m_clipPadding.clear();
     disconnect(m_parentDestroyed);
     m_parentDestroyed = {};
     // Destroy visual children before their detached parent.
