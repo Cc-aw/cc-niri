@@ -26,8 +26,8 @@ inline QMatrix4x4 focusRingItemMatrix(Item *item, const WindowPaintData &data, q
 // context. The live compositor still has to validate its final pixels.
 class FocusRingCaptureRenderer : public ItemRenderer {
 public:
-    std::unique_ptr<Texture> createTexture(GraphicsBuffer *, const std::shared_ptr<SyncReleasePoint> &) override { std::cerr << "FAIL border must not create a texture\n"; std::abort(); }
-    std::unique_ptr<Texture> createTexture(const QImage &) override { std::cerr << "FAIL border must not create a texture\n"; std::abort(); }
+    std::unique_ptr<Texture> createTexture(GraphicsBuffer *, const std::shared_ptr<SyncReleasePoint> &) override { std::cerr << "FAIL CPU capture renderer cannot upload textures\n"; std::abort(); }
+    std::unique_ptr<Texture> createTexture(const QImage &) override { std::cerr << "FAIL CPU capture renderer cannot upload textures\n"; std::abort(); }
     std::unique_ptr<NinePatch> createNinePatch(const QImage &) override { return {}; }
     std::unique_ptr<NinePatch> createNinePatch(const QImage &, const QImage &, const QImage &, const QImage &,
         const QImage &, const QImage &, const QImage &, const QImage &) override { return {}; }

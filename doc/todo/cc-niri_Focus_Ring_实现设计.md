@@ -1,9 +1,9 @@
 # cc-niri Focus Ring 实现设计
 
-> **实施状态（2026-10-04）：** Phase 1 Static Native POC 已部署并通过静态实机验收：4px、圆角兼容及跨应用颜色一致。Phase 2 新增独立 JS FocusRingController 与 Script → Native eligibility 通道，完整自动门禁、配套部署及三轮人工实机验收全部通过。验收后按用户要求将线宽调整为 3px，已通过原生检查并部署，见 Phase 2 记录。当前原生边框仍使用独立 OutlinedBorderItem 绘制树。见 [Phase 2 记录](../../test/FOCUS_RING_PHASE2_RESULTS.md)；Phase 3 同帧 Visual Transform 已实现并通过自动验证，已单独部署并通过两轮主屏实机验收，见 [Phase 3 记录](../../test/FOCUS_RING_PHASE3_RESULTS.md)；retarget、Presentation 与主屏缩放留给后续阶段。
+> **实施状态（2026-10-05）：** Phase 1 Static Native POC 已部署并通过静态实机验收：4px、圆角兼容及跨应用颜色一致。Phase 2 新增独立 JS FocusRingController 与 Script → Native eligibility 通道，完整自动门禁、配套部署及三轮人工实机验收全部通过。验收后按用户要求将线宽调整为 3px，已通过原生检查并部署，见 Phase 2 记录。静态原生边框使用独立 OutlinedBorderItem 绘制树；Phase 5 的尺寸动画描边使用同树下的独立 Stroke Item。见 [Phase 2 记录](../../test/FOCUS_RING_PHASE2_RESULTS.md)；Phase 3 同帧 Visual Transform 已实现并通过自动验证，已单独部署并通过两轮主屏实机验收，见 [Phase 3 记录](../../test/FOCUS_RING_PHASE3_RESULTS.md)；Phase 4 Retarget 已完成主屏实机验收。Phase 5 Presentation 已实现并通过自动检查，已独立部署并开启，用户已确认 Phase 5 完成；Phase 6 内屏像素对齐已实现、自动验证通过并独立部署，用户确认功能正常，内屏实机验收通过，Phase 6 内屏范围完成，见 [Phase 6 记录](../../test/FOCUS_RING_PHASE6_RESULTS.md)。
 > 文档基线需与已完成 W0–W9 的当前 main 核对；原设计正文保留。阅读入口见 [文档索引](../README.md)。
 
-> **2026-10-05 修复：** 按用户反馈修复滚动时四侧外沿描边被内容 viewport 裁掉，以及圆角插件晚加载后半径仍缓存为 0。85 项 JS、8 项 Ring 和 4 项 Clip 原生检查通过；四方向裁剪余量版本已部署，用户确认“现在正常”，本次主屏修复验收通过，见 [修复记录](../../test/FOCUS_RING_CLIP_CORNER_RESULTS.md)。下一步 Phase 4 Retarget 的 [实施计划](cc-niri_Focus_Ring_Phase4_Retarget_实施计划.md) 已准备，尚未实施或验收。
+> **2026-10-05 修复：** 按用户反馈修复滚动时四侧外沿描边被内容 viewport 裁掉，以及圆角插件晚加载后半径仍缓存为 0。85 项 JS、8 项 Ring 和 4 项 Clip 原生检查通过；四方向裁剪余量版本已部署，用户确认“现在正常”，本次主屏修复验收通过，见 [修复记录](../../test/FOCUS_RING_CLIP_CORNER_RESULTS.md)。Phase 4 Retarget 已按 [实施计划](cc-niri_Focus_Ring_Phase4_Retarget_实施计划.md) 完成实现与自动验证：新增多段组合回归并修复旧 attachment 快照复活，已独立部署并通过自动加载 / 开关检查，三轮主屏人工验收全部通过，Phase 4 完成，见 [Phase 4 记录](../../test/FOCUS_RING_PHASE4_RESULTS.md)。
 
 > 目标：为 cc-niri 实现类似 niri 的“当前窗口光圈 / Focus Ring”，用于在无常驻 Dock 的工作流中明确当前输入焦点。  
 > 设计原则：**逻辑层只决定谁拥有光圈，渲染层决定光圈这一帧画在哪里。**  
@@ -1556,7 +1556,7 @@ ring 单独 easing
 
 ## Phase 4 — Retarget
 
-2026-10-05 已对照当前生产 Spring 与同帧绘制基线准备 [实施计划](cc-niri_Focus_Ring_Phase4_Retarget_实施计划.md)，尚未开始本阶段实现或专门实机验收。
+2026-10-05 已按 [实施计划](cc-niri_Focus_Ring_Phase4_Retarget_实施计划.md) 完成实现与自动验证，新增 1468 个多段绘制样本并修复同一 owner 离开再返回 / off-on 后旧 attachment 快照复活；9 项 Ring、4 项 Clip 原生检查及 85 项 JS 门禁通过。本阶段新库已独立部署并通过自动加载 / 开关检查，三轮主屏人工验收全部通过，Phase 4 完成，见 [Phase 4 记录](../../test/FOCUS_RING_PHASE4_RESULTS.md)。
 
 测试：
 
@@ -1591,6 +1591,8 @@ Ring
 
 ## Phase 5 — Presentation
 
+> **2026-10-05 实施进度：** 已实现，自动检查通过，已独立部署并开启，用户已确认 Phase 5 完成，见 [Phase 5 记录](../../test/FOCUS_RING_PHASE5_RESULTS.md)。新增独立 `FocusRingStrokeItem`，仅消费本次 paint 捕获的 geometry、outline、Item transform 和 WindowPaintData；原绘制 root 保留窗口同帧矩阵，描边子项抵消正向轴缩放，四边保持设备像素取整后的 3px，圆角保留窗口缩放后的椭圆轮廓。静态及旋转 / 剪切 / 反射继续使用原生 OutlinedBorderItem，没有读取 Presentation 模式或添加动画时钟。当前 Maximize 直接提交尺寸，端点与通用尺寸动画分别验证。
+
 测试：
 
 ```text
@@ -1612,12 +1614,9 @@ FocusRingEffect 不允许添加 Presentation 特殊 case。
 
 ## Phase 6 — HiDPI / Multi-output
 
-测试：
+> **2026-10-05 实施状态：** 按 [Phase 6 实施计划](cc-niri_Focus_Ring_Phase6_HiDPI_实施计划.md) 完成内屏像素对齐实现与自动验证，已独立部署，用户确认功能正常，内屏实机验收通过，Phase 6 内屏范围完成，见 [Phase 6 记录](../../test/FOCUS_RING_PHASE6_RESULTS.md)。修复描边子项逐层取整造成的动画边沿 / 接缝偏移，以及分数缩放下静态内框尺寸误差。用户明确当前只有一个屏幕，双屏、跨输出迁移和 mixed DPI 不纳入本阶段，也不作为完成条件。
 
-```text
-4K @ 150%
-2K @ 100%
-```
+当前测试范围：内屏实际模式与缩放值，验证静态清晰度、滚动、尺寸动画及像素对齐。其他缩放值可使用单输出自动参数验证；不要求改变内屏缩放。原设计中的 4K @ 150% / 2K @ 100% 双屏组合留待后续独立开发。
 
 检查：
 
@@ -1810,6 +1809,8 @@ dialog support
 
 # 44. Definition of Done
 
+> Phase 1–6 内屏范围已完成。用户决定结束本轮开发并归档；额外建议的 [Phase 7 内屏收尾加固](cc-niri_Focus_Ring_Phase7_收尾加固_实施计划.md) 已取消实施，仅保留历史提案。双屏条件不属于当前内屏完成范围。
+
 - [ ] 只有 active main-screen managed window 有 Ring。
 - [ ] Ring 不改变 `frameGeometry`。
 - [ ] Ring 不改变 Column layout。
@@ -1944,4 +1945,4 @@ Focus Ring 跟 KWin 的最终 visual transform 走。
 - Phase 1 已部署版本只读 Bridge protocol 2；Phase 2 源码已解除该依赖，新增 `src/kwin/visual/FocusRingController.js`，直接向 `org.kde.KWin /ccNiriFocusRing org.cc.NiriFocusRing1.PublishEligibility` 发布独立资格集合。Native 按真实 activeWindow 选择唯一 owner，启用时通过专用空快捷键请求重发。旧 / 乱序、禁用与 retired session 均受协议检查；没有 role 1007、轮询或 per-frame DBus。
 - 全屏、非当前桌面 / 活动、非主输出、非成员、最小化、透明停放、窗口关闭时隐藏。QPointer 与父项销毁连接清理场景子项；隐藏 Ring 时不阻止 direct scanout。
 - 元数据默认关闭；本轮已补齐 immutable 安装与 install.sh / cc-niri 启停、卸载清理，通过 `cc-niri focus-ring on/off/status` 独立控制，start / stop / restart 保留用户 opt-in。已在内屏启用，颜色 / 圆角 / 全屏 / 独立开关静态验收通过，见 [实机记录](../../test/FOCUS_RING_PHASE1_LIVE_RESULTS.md)。
-- Static Native POC 实机验证已通过；Phase 2 模块化资格控制器已实现、配套部署并通过实机验收。Phase 3 同帧绘制已实现并通过自动验证，已单独部署，Spring / viewport clip 与工作区清理实机验收通过；随后进入 retarget、Wide/Maximize 和主屏缩放。双屏 / mixed DPI 实机验证按用户主屏范围暂缓。
+- Static Native POC 实机验证已通过；Phase 2 模块化资格控制器已实现、配套部署并通过实机验收。Phase 3 同帧绘制已实现并通过自动验证，已单独部署，Spring / viewport clip 与工作区清理实机验收通过；Phase 4 retarget 已实现并通过自动验证，已独立部署并通过自动加载 / 开关检查，三轮主屏人工验收全部通过；Phase 5 Presentation 已由用户确认完成；Phase 6 内屏像素对齐已实现、自动验证通过并独立部署，用户确认功能正常，内屏实机验收通过，Phase 6 内屏范围完成。双屏 / mixed DPI 留待后续独立开发。

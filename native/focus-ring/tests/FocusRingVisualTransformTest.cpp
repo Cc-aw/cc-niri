@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
                 const int mask = Effect::PAINT_WINDOW_TRANSFORMED | Effect::PAINT_WINDOW_TRANSLUCENT;
                 Region deviceRegion = viewportPaintClip(&window, viewport,
                     RectF(projection->viewport), Region::infinite());
-                const auto frame = FocusRingPaintFrame::capture(&window, mask, deviceRegion, data);
+                const auto frame = ring.capture(mask, deviceRegion, data);
                 check(frame.has_value(), "capture Spring paint sample");
                 renderer.renderItem(target, viewport, &window, mask, deviceRegion, data, {}, {});
                 const auto expectedMatrix = renderer.sceneMatrix;
@@ -107,7 +107,7 @@ int main(int argc, char **argv) {
                     const auto beforeCommit = runtime.projection(it.key(), source);
                     check(beforeCommit.has_value(), "known pre-commit source");
                     window.setGeometry(RectF(source)); data.setXTranslation(beforeCommit->translationX);
-                    const auto preCommitFrame = FocusRingPaintFrame::capture(&window, mask, deviceRegion, data);
+                    const auto preCommitFrame = ring.capture(mask, deviceRegion, data);
                     renderer.renderItem(target, viewport, &window, mask, deviceRegion, data, {}, {});
                     const auto sourceMatrix = renderer.sceneMatrix;
                     window.setGeometry(RectF(it.value())); data.setXTranslation(projection->translationX);
@@ -134,7 +134,7 @@ int main(int argc, char **argv) {
         Item content(&stationary); content.setSize(stationary.size()); FocusRingItem ring;
         check(ring.attach(&stationary, &content, stationary.size()), "stationary owner after cancellation");
         WindowPaintData identity;
-        const auto stationaryFrame = FocusRingPaintFrame::capture(&stationary, 0, Region(Rect(0, 0, 3840, 2160)), identity);
+        const auto stationaryFrame = ring.capture(0, Region(Rect(0, 0, 3840, 2160)), identity);
         check(stationaryFrame && ring.paint(&renderer, target, viewport, *stationaryFrame), "static paint after cancellation");
         check(renderer.matrix.isIdentity(), "no previous Spring translation is cached in ring");
     }

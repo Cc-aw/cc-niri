@@ -136,7 +136,7 @@ void CcNiriFocusRingEffect::paintWindow(const RenderTarget &target, const Render
     // KWin paints any higher window. This callback is not in drawWindow, so an
     // OffscreenEffect's recursive capture cannot include our colored pixels.
     const auto frame = m_owner == window && eligible(window)
-        ? FocusRingPaintFrame::capture(window->windowItem(), mask, region, data) : std::nullopt;
+        ? m_ring.capture(mask, region, data) : std::nullopt;
     effects->paintWindow(target, viewport, window, mask, region, data);
     if (!frame || m_owner != window || !eligible(window)) return;
     auto *scene = window->windowItem()->scene();
@@ -146,7 +146,7 @@ bool CcNiriFocusRingEffect::isActive() const { return m_ring.attached() && eligi
 bool CcNiriFocusRingEffect::blocksDirectScanout() const { return isActive(); }
 QString CcNiriFocusRingEffect::GetFocusRingStatus() const {
     return QString::fromUtf8(QJsonDocument(QJsonObject{
-        {QStringLiteral("phase"), QStringLiteral("visual-transform")},
+        {QStringLiteral("phase"), QStringLiteral("hidpi")},
         {QStringLiteral("eligibilitySource"), QStringLiteral("layout-script")},
         {QStringLiteral("eligibilityEnabled"), m_context.enabled},
         {QStringLiteral("sessionId"), m_context.session},
@@ -154,6 +154,9 @@ QString CcNiriFocusRingEffect::GetFocusRingStatus() const {
         {QStringLiteral("eligibleCount"), m_context.windows.size()},
         {QStringLiteral("renderer"), QStringLiteral("post-window-native-item")},
         {QStringLiteral("paintSource"), QStringLiteral("window-paint-pass")},
+        {QStringLiteral("frameLifetime"), QStringLiteral("scene-attachment")},
+        {QStringLiteral("strokeGeometry"), QStringLiteral("paint-frame-fixed-width")},
+        {QStringLiteral("pixelAlignment"), QStringLiteral("native-child-rounding-compensated")},
         {QStringLiteral("drawCount"), double(m_drawCount)},
         {QStringLiteral("windowOpacity"), m_owner ? m_owner->opacity() : 0.0},
         {QStringLiteral("active"), isActive()},

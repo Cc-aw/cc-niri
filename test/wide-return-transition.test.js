@@ -102,6 +102,7 @@ const previousEffect = global.Effect;
 const previousSet = global.set;
 const previousCancel = global.cancel;
 const previousEffects = global.effects;
+const previousNow = Date.now;
 const held = [];
 const cancelled = [];
 let repaints = 0;
@@ -110,6 +111,8 @@ global.set = options => { held.push(options); return [17]; };
 global.cancel = ids => cancelled.push(ids);
 global.effects = { addRepaintFull: () => { repaints += 1; },
     stackingOrder: [{ screen: { name: "DP-1", geometry: { x: 0, y: 0 } } }] };
+// Recovery below is sampled at arm time; CPU load must not advance its clock.
+Date.now = () => 1000;
 try {
     const transition = Object.create(CCNiriScrollTransition.prototype);
     transition.wideIsolationHolds = new Map();
@@ -174,7 +177,7 @@ try {
         Object.assign({}, left, { x: -5000 }));
     assert.equal(recoveredMotion.transaction.type, MotionType.WIDE_TO_PAIR);
     assert.equal(recoveredMotion.role, "incoming");
-    assert.ok(Math.abs(recoveredMotion.options.channels[0].from.value1 + 909) < 20,
+    assert.ok(Math.abs(recoveredMotion.options.channels[0].from.value1 + 909) < 1e-9,
         `recovered translation=${recoveredMotion.options.channels[0].from.value1}`);
     assert.equal(recoveredMotion.options.synchronizeDuration, true);
     assert.equal(recovering.pendingWideExit, null);
@@ -268,5 +271,6 @@ try {
     global.set = previousSet;
     global.cancel = previousCancel;
     global.effects = previousEffects;
+    Date.now = previousNow;
 }
 console.log("PASS Wide/Pair target and neighbor share edge-coupled geometry");

@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
             "windows without a ring retain strict viewport clipping");
         WindowPaintData data; data.setXTranslation(200);
         FocusRingCaptureRenderer renderer;
-        const auto frame = FocusRingPaintFrame::capture(&window, Effect::PAINT_WINDOW_TRANSFORMED, clip, data);
+        const auto frame = ring.capture(Effect::PAINT_WINDOW_TRANSFORMED, clip, data);
         check(frame && ring.paint(&renderer, target, viewport, *frame) && renderer.lastRegion == clip,
             "isolated border receives decoration-aware clip with the window's current transform");
         // A higher window or screen damage may remove side as well as top paint.

@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
     FocusRingItem ring; check(ring.attach(&window, &content, window.size(), BorderRadius(12)), "attach");
     const auto paintRing = [&](ItemRenderer *renderer, const RenderTarget &target, const RenderViewport &viewport,
             int mask, const Region &region, const WindowPaintData &data) {
-        const auto frame = FocusRingPaintFrame::capture(&window, mask, region, data);
+        const auto frame = ring.capture(mask, region, data);
         return frame && ring.paint(renderer, target, viewport, *frame);
     };
     check(ring.damageItem()->quads().isEmpty(), "application capture receives no colored quads");
@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
     check(ring.paintRoot()->position() == window.position() && ring.paintRoot()->transform() == window.transform(), "synchronizes native scene transform");
     // A downstream nested paint can change source properties. The border
     // must retain the exact source sample, without a cached "previous frame".
-    const auto captured = FocusRingPaintFrame::capture(&window, mask, clip, data);
+    const auto captured = ring.capture(mask, clip, data);
     check(captured.has_value(), "capture current source");
     const auto expectedMatrix = focusRingItemMatrix(&window, data, 1.0);
     const auto expectedOpacity = window.opacity() * data.opacity();
@@ -66,19 +66,30 @@ int main(int argc, char **argv) {
     check(!ring.paint(&renderer, target, viewport, *captured) && renderer.calls == beforeStale,
         "old owner's local frame cannot paint onto the new owner");
     check(ring.attach(&window, &content, window.size()), "return owner");
+    check(!ring.paint(&renderer, target, viewport, *captured) && renderer.calls == beforeStale,
+        "returning to the same owner cannot revive a frame from its previous attachment");
+    const auto beforeOff = ring.capture(mask, clip, data);
+    ring.clear();
+    check(!ring.capture(mask, clip, data), "missing attachment cannot create a paint frame");
+    check(ring.attach(&window, &content, window.size()), "re-enable same owner");
+    check(beforeOff && !ring.paint(&renderer, target, viewport, *beforeOff) && renderer.calls == beforeStale,
+        "off/on cannot revive an in-flight frame from the unloaded tree");
     WindowPaintData transparent; transparent.setOpacity(0);
-    check(!FocusRingPaintFrame::capture(&window, mask, clip, transparent), "transparent effect frame draws no border");
+    check(!ring.capture(mask, clip, transparent), "transparent effect frame draws no border");
     window.setOpacity(0);
-    check(!FocusRingPaintFrame::capture(&window, mask, clip, data), "transparent native item draws no border");
+    check(!ring.capture(mask, clip, data), "transparent native item draws no border");
     window.setOpacity(0.9);
     const int calls = renderer.calls;
     check(!paintRing(nullptr, target, viewport, mask, clip, data), "missing renderer skips safely");
     check(!paintRing(&renderer, target, viewport, mask, Region(), data), "empty damage skips");
     ring.clear(); check(!paintRing(&renderer, target, viewport, mask, clip, data) && renderer.calls == calls, "unloaded tree cannot paint");
     auto *destroyed = new Item; destroyed->setSize(window.size());
-    const auto deadFrame = FocusRingPaintFrame::capture(destroyed, mask, clip, data);
+    auto *destroyedContent = new Item(destroyed); destroyedContent->setParent(destroyed);
+    destroyedContent->setSize(destroyed->size());
+    check(ring.attach(destroyed, destroyedContent, destroyed->size()), "attach owner before scene destruction");
+    const auto deadFrame = ring.capture(mask, clip, data);
     delete destroyed;
-    check(deadFrame && !deadFrame->owner() && !ring.paint(&renderer, target, viewport, *deadFrame),
+    check(deadFrame && !deadFrame->owner() && !deadFrame->attachment() && !ring.paint(&renderer, target, viewport, *deadFrame),
         "destroyed source is guarded by QPointer");
     std::cout << "PASS scoped frame, native opacity, stale owner guards; isolated sRGB border, app shadow exclusion, native clip/transform and fade\n";
 }

@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #include "FocusRingItem.h"
 #include "FocusRingPaintFrame.h"
+#include "FocusRingStrokeItem.h"
 #include <QColor>
 #include <cmath>
 #include <algorithm>
@@ -38,21 +39,46 @@ bool FocusRingItem::attach(Item *windowItem, Item *contentItem, const QSizeF &fr
         m_border->setInnerRect(inner);
         m_border->setOutline(outline);
     }
+    m_sourceInner = inner; m_sourceOutline = outline;
     m_damage->setGeometry(outline.inflate(inner));
     m_clipPadding.attach(windowItem, outline.thickness());
     m_paintRoot->setGeometry(RectF(windowItem->position(), frameSize));
     m_paintRoot->setTransform(windowItem->transform());
     return true;
 }
+std::optional<FocusRingPaintFrame> FocusRingItem::capture(int mask, const Region &region, const WindowPaintData &data) const {
+    return FocusRingPaintFrame::capture(m_parent.data(), m_paintRoot.data(), mask, region, data, m_sourceInner, m_sourceOutline);
+}
 bool FocusRingItem::paint(ItemRenderer *renderer, const RenderTarget &target, const RenderViewport &viewport,
         const FocusRingPaintFrame &frame) {
     if (!attached() || !m_parent || frame.owner() != m_parent.data() || !renderer
-        || frame.deviceRegion().isEmpty()) return false;
+        || frame.attachment() != m_paintRoot.data() || frame.deviceRegion().isEmpty()) return false;
     // Preserve the window's state at entry to this paint call, even if nested
-    // downstream work changes the Item or focus before the border is drawn.
+    // downstream work changes the Item. A destroyed/recreated attachment must
+    // reject its old local frame even when focus returns to the same window.
     m_paintRoot->setPosition(frame.position());
     m_paintRoot->setTransform(frame.transform());
     m_paintRoot->setOpacity(frame.itemOpacity());
+    const auto metrics = FocusRingStrokeMetrics::fromFrame(frame, viewport.scale());
+    if (!metrics) return false;
+    if (metrics->compensated) {
+        if (!m_stroke) { m_stroke = new FocusRingStrokeItem(m_paintRoot); m_stroke->setParent(this); }
+        if (!m_stroke->update(*metrics, frame.outline(), m_parent->scene())) return false;
+        m_border->setVisible(false); m_stroke->setVisible(true);
+        const auto &inner = frame.innerRect();
+        m_damage->setGeometry(inner.adjusted(-metrics->thickness / metrics->scaleX, -metrics->thickness / metrics->scaleY,
+            metrics->thickness / metrics->scaleX, metrics->thickness / metrics->scaleY));
+    } else {
+        if (m_stroke) m_stroke->setVisible(false);
+        // Quantize the outer margin before KWin rounds the border's origin
+        // and size. A 3px margin at 150% otherwise rounds -4.5 and +9
+        // independently, shrinking the native inner box by one device pixel.
+        const qreal thickness = metrics->scaleX == 1 && metrics->scaleY == 1
+            ? metrics->thickness : frame.outline().thickness();
+        const BorderOutline outline(thickness, frame.outline().color(), frame.outline().radius());
+        m_border->setInnerRect(frame.innerRect()); m_border->setOutline(outline); m_border->setVisible(true);
+        m_damage->setGeometry(outline.inflate(frame.innerRect()));
+    }
     renderer->renderItem(target, viewport, m_paintRoot, frame.mask(), frame.deviceRegion(), frame.paintData(), {}, {});
     return true;
 }
@@ -61,6 +87,7 @@ void FocusRingItem::clear() {
     disconnect(m_parentDestroyed);
     m_parentDestroyed = {};
     // Destroy visual children before their detached parent.
+    delete m_stroke.data(); m_stroke = nullptr;
     delete m_border.data();
     m_border = nullptr;
     delete m_paintRoot.data();

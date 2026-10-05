@@ -1,6 +1,6 @@
 # Focus Ring Phase 4：Retarget 实施计划
 
-日期：2026-10-05。状态：已准备，尚未开始本阶段实现、部署或专门实机验收。
+日期：2026-10-05。状态：实现与自动验证完成，本阶段新库已部署并通过自动加载 / 开关检查，三轮主屏人工验收全部通过，Phase 4 完成；执行结果见 [Phase 4 记录](../../test/FOCUS_RING_PHASE4_RESULTS.md)。
 
 依据：[Focus Ring 实现设计第 37 节](cc-niri_Focus_Ring_实现设计.md#phase-4--retarget)。本阶段验证快速连续输入和中途反向时，边框始终附着当前 compositor visual window，没有闪烁、跳动、丢失或残留。
 
@@ -16,7 +16,7 @@
 
 | 模块 | 本阶段工作 |
 | --- | --- |
-| `native/focus-ring/tests/FocusRingRetargetTest.cpp`（拟新增） | 组合真实生产 Spring runtime、Ring Item / PaintFrame 与共享 clip，验证连续多段滚动。Spring 只链接进测试，不成为 Ring 插件依赖。 |
+| `native/focus-ring/tests/FocusRingRetargetTest.cpp`（已新增） | 组合真实生产 Spring runtime、Ring Item / PaintFrame 与共享 clip，验证连续多段滚动。Spring 只链接进测试，不成为 Ring 插件依赖。 |
 | `native/focus-ring/tests/FocusRingItemTest.cpp`、`FocusRingPaintTest.cpp` | 扩展实际需要的 owner 切换、关闭和卸载清理回归；先核对已有覆盖，避免重复。 |
 | `native/focus-ring/CMakeLists.txt` | 注册本阶段新增的原生回归。 |
 | `FocusRingEffect` / `FocusRingItem` / `FocusRingPaintFrame` | 只有真实回归暴露缺陷时才修复对应模块；保留每次绘制调用内的快照和单 owner 生命周期。 |
