@@ -314,6 +314,7 @@ bool CcNiriViewportClipEffect::WorkspaceTransitionActive() const
 QString CcNiriViewportClipEffect::GetScrollMotionStatus() const
 {
     auto status = m_scrollRuntime.status();
+    status.insert(QStringLiteral("scrollRuntimeBackend"), CcNiri::scrollRuntimeBackendName());
     status.insert(QStringLiteral("workspaceRemovalGate"), QStringLiteral("compositor-idle"));
     status.insert(QStringLiteral("paintClip"), QStringLiteral("viewport-with-decoration-outsets"));
     return QString::fromUtf8(QJsonDocument(status).toJson(QJsonDocument::Compact));
@@ -341,7 +342,8 @@ void CcNiriViewportClipEffect::updateScrollOwnership()
             continue;
         }
         const auto rect = targets.value(id);
-        const auto status = m_scrollRuntime.status();
+        auto status = m_scrollRuntime.status();
+    status.insert(QStringLiteral("scrollRuntimeBackend"), CcNiri::scrollRuntimeBackendName());
         const QVariantMap marker{{QStringLiteral("protocol"), 2}, {QStringLiteral("type"), QStringLiteral("SCROLL")},
             {QStringLiteral("sessionId"), status.value(QStringLiteral("sessionId")).toString()},
             {QStringLiteral("workspaceId"), status.value(QStringLiteral("workspaceId")).toString()},

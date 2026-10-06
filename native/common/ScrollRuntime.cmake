@@ -1,5 +1,5 @@
 include_guard(GLOBAL)
-set(CC_NIRI_USE_RUST_SCROLL_RUNTIME OFF)
+option(CC_NIRI_USE_RUST_SCROLL_RUNTIME "Use Rust Scroll Runtime in the production Viewport Clip Effect" OFF)
 option(CC_NIRI_TEST_RUST_SCROLL_RUNTIME "Use Rust Scroll Runtime in integration tests only (R3)" OFF)
 message(STATUS "CC-Niri Rust Scroll Runtime backend: ${CC_NIRI_USE_RUST_SCROLL_RUNTIME}")
 message(STATUS "CC-Niri Rust Scroll Runtime tests: ${CC_NIRI_TEST_RUST_SCROLL_RUNTIME}")

@@ -4,7 +4,7 @@
 
 #include "effect/effect.h"
 
-#include "ScrollViewportRuntime.h"
+#include "ScrollViewportRuntimeBackend.h"
 #include <QSet>
 #include <QHash>
 #include <QString>
@@ -61,7 +61,7 @@ private:
     bool resolveScrollPlan(const QJsonObject &plan) const;
     void updateScrollOwnership();
     void clearScrollState();
-    CcNiri::ScrollViewportRuntime m_scrollRuntime;
+    CcNiri::ScrollViewportRuntimeBackend m_scrollRuntime;
     bool m_scrollEndpointRegistered = false;
     void advertiseCapability(EffectWindow *window, bool available);
     void updateWindowMarker(EffectWindow *window);

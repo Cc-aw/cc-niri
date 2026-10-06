@@ -50,6 +50,7 @@ kcoreaddons_add_plugin(cc-niri-viewport-clip
 target_link_libraries(cc-niri-viewport-clip PRIVATE
     cc-niri-rust-core
     cc-niri-viewport-motion
+    cc-niri-scroll-backend
     Qt6::Core
     Qt6::DBus
     KF6::CoreAddons
