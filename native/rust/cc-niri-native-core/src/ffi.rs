@@ -233,3 +233,8 @@ mod tests {
 
 #[path = "ffi_motion.rs"]
 mod motion;
+
+#[path = "ffi_protocol_views.rs"]
+mod protocol_views;
+#[path = "ffi_scroll.rs"]
+mod scroll;

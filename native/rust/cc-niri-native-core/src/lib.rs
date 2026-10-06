@@ -10,3 +10,7 @@ pub fn rust_core_version() -> &'static str {
 pub mod native_protocol;
 pub mod spring;
 pub mod viewport_motion;
+
+#[cfg(test)]
+mod allocation_checks;
+pub mod scroll_runtime;

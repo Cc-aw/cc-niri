@@ -24,6 +24,7 @@ include(CTest)
 add_subdirectory(../rust rust-core)
 include("${CMAKE_CURRENT_LIST_DIR}/../common/SpringBackend.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/../common/ViewportMotionBackend.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/../common/ScrollRuntime.cmake")
 
 # Preserved C++ math/reference plus the selected Spring/Motion adapters.
 add_library(cc-niri-viewport-motion STATIC
@@ -59,7 +60,7 @@ if(BUILD_TESTING)
     add_executable(cc-niri-scroll-viewport-tests tests/ScrollViewportRuntimeTest.cpp ScrollViewportRuntime.cpp)
     set_target_properties(cc-niri-scroll-viewport-tests PROPERTIES AUTOMOC OFF)
     target_include_directories(cc-niri-scroll-viewport-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-    target_link_libraries(cc-niri-scroll-viewport-tests PRIVATE cc-niri-viewport-motion Qt6::Core)
+    target_link_libraries(cc-niri-scroll-viewport-tests PRIVATE cc-niri-viewport-motion cc-niri-scroll-test-backend Qt6::Core)
     add_test(NAME scroll-viewport-runtime COMMAND cc-niri-scroll-viewport-tests)
     add_executable(cc-niri-viewport-motion-tests tests/ViewportMotionTest.cpp)
     set_target_properties(cc-niri-viewport-motion-tests PROPERTIES AUTOMOC OFF)

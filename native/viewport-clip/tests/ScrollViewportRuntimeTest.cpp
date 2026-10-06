@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
-#include "ScrollViewportRuntime.h"
+#include "ScrollRuntimeTestBackend.h"
 #include <iostream>
 #include <cstdlib>
 using namespace CcNiri;
@@ -30,7 +30,7 @@ QJsonObject plan(int epoch, double from, double to) {
             {QStringLiteral("width"), 2512.5}, {QStringLiteral("height"), 1320.25}}}};
 }
 int main() {
-    ScrollViewportRuntime runtime;
+    ScrollRuntimeTestBackend runtime;
     const auto first = plan(1, 0, 1260.25);
     check(!runtime.arm(first, 0ns), "no authority");
     check(runtime.updateContext(state()), "context");
@@ -84,7 +84,7 @@ int main() {
     runtime.updateContext({}); check(!runtime.arm(plan(7, 0, 1260.25), 4s), "invalid context clears authority");
     runtime.updateContext(state()); check(runtime.arm(first, 0ns), "reload resets motion epoch and clock");
     check(runtime.arm(plan(2, 1260.25, 3780.75), 1ms), "nonoverlap incoming projection");
-    ScrollViewportRuntime shared;
+    ScrollRuntimeTestBackend shared;
     shared.updateContext(state());
     auto wider = plan(1, 0, 1260.25);
     auto viewport = wider.value(QStringLiteral("viewport")).toObject();
@@ -105,7 +105,7 @@ int main() {
         == shared.projection(QStringLiteral("2"), targets.value(QStringLiteral("2")))->translationX, "same frame means identical translation");
     // Each production-frame sample must keep adjacent new-visible columns attached.
     for (bool reverse : {false, true}) {
-        ScrollViewportRuntime attached;
+        ScrollRuntimeTestBackend attached;
         attached.updateContext(state());
         check(attached.arm(plan(1, reverse ? 1260.25 : 0, reverse ? 0 : 1260.25), 0ns), "bidirectional incoming arm");
         const auto newTargets = attached.targets();
@@ -138,7 +138,7 @@ int main() {
     // Repeated keys retarget before settling, preserving all painted windows,
     // including outgoing that is absent from both new logical snapshots.
     for (bool reverse : {false, true}) {
-        ScrollViewportRuntime chain; chain.updateContext(state());
+        ScrollRuntimeTestBackend chain; chain.updateContext(state());
         const double step = 1260.25;
         const double initial = reverse ? 3 * step : 0;
         const double direction = reverse ? -step : step;
@@ -181,7 +181,7 @@ int main() {
     }
     // An arm can be superseded before any geometry ACK. The origin is still the
     // last painted sample, rather than the uncommitted logical target.
-    ScrollViewportRuntime uncommitted; uncommitted.updateContext(state());
+    ScrollRuntimeTestBackend uncommitted; uncommitted.updateContext(state());
     check(uncommitted.arm(plan(1, 0, 1260.25), 0ns), "uncommitted arm");
     uncommitted.advance(40ms); const auto source = uncommitted.sourceFrames().value(QStringLiteral("1"));
     const double paintedX = source.x() + uncommitted.projection(QStringLiteral("1"), source)->translationX;
@@ -189,7 +189,7 @@ int main() {
     check(uncommitted.arm(plan(2, 0, 2520.5), 43ms, sourceMap), "supersede uncommitted geometry");
     check(std::abs(source.x() + uncommitted.projection(QStringLiteral("1"), source)->translationX - paintedX) < 1e-8, "uncommitted sample continuity");
     // Mid-flight reversals preserve every painted position and restart with v0=0.
-    ScrollViewportRuntime reversing; reversing.updateContext(state());
+    ScrollRuntimeTestBackend reversing; reversing.updateContext(state());
     check(reversing.arm(plan(1, 0, 1260.25), 0ns), "reverse initial arm");
     reversing.advance(60ms);
     auto reverseFrames = reversing.targets();
@@ -240,7 +240,7 @@ int main() {
     reversing.cancel(QStringLiteral("s"), 9); check(!reversing.active(), "latest completion clears reversal");
 
     // Equal logical offsets can reverse an armed but uncommitted target.
-    ScrollViewportRuntime returning; returning.updateContext(state());
+    ScrollRuntimeTestBackend returning; returning.updateContext(state());
     check(returning.arm(plan(1, 0, 1260.25), 0ns), "return initial arm");
     returning.advance(60ms); auto realFrames = returning.sourceFrames();
     const auto original = realFrames.value(QStringLiteral("1"));
@@ -255,9 +255,9 @@ int main() {
     returning.cancel(QStringLiteral("s"), 1); check(returning.active(), "old uncommitted arm cannot cancel return");
     returning.advance(4s); check(returning.completed(), "return completes");
     returning.cancel(QStringLiteral("s"), 2); check(!returning.active(), "return cleared");
-    ScrollViewportRuntime coldReturn; coldReturn.updateContext(state());
+    ScrollRuntimeTestBackend coldReturn; coldReturn.updateContext(state());
     check(coldReturn.arm(returnPlan, 0ns) && coldReturn.advance(0ns) && coldReturn.completed(), "return before first native arm is an immediate static completion");
-    ScrollViewportRuntime boundary; boundary.updateContext(state());
+    ScrollRuntimeTestBackend boundary; boundary.updateContext(state());
     check(boundary.arm(plan(1, 0, 1260.25), 0ns), "completion boundary first arm");
     boundary.advance(4s); check(boundary.completed(), "old segment already settled");
     const auto settled = boundary.targets();
