@@ -1,5 +1,5 @@
 include_guard(GLOBAL)
-option(CC_NIRI_USE_RUST_SPRING "Use Rust Spring in the existing C++ Motion (migration only)" OFF)
+option(CC_NIRI_USE_RUST_SPRING "Use Rust Spring in the existing C++ Motion (migration only)" ON)
 message(STATUS "CC-Niri Spring backend: Rust=${CC_NIRI_USE_RUST_SPRING}")
 add_library(cc-niri-spring-backend INTERFACE)
 target_compile_definitions(cc-niri-spring-backend INTERFACE

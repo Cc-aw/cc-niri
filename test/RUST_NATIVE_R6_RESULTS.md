@@ -111,3 +111,5 @@ python3 /tmp/cc-niri-r6-live-20261005-5afhd68a/rollback.py
 本阶段收到一般功能正常和第二版工作区离开修复成功的反馈；当前待人工复验主屏独立切换与流畅度。原验收范围为 H/L、连续 / 反向 retarget、J/K workspace switch、Pair/Wide、Ring owner switch / close / fullscreen exit、Ring off/on 与 stop/start；已有帧时间采样不代替完整交互验收。
 
 本阶段没有创建 commit；用户的 Core UX 设计未修改。不切换源码默认 ON，不删除 Legacy C++ Core；R7 的默认 Rust、完整门禁、实机与稳定日常使用条件尚未全部满足。
+
+2026-10-06：用户明确确认“R6验收已经通过”，并要求完成 R7、提交。以上待验收描述保留为历史快照；当前已确认 R6 验收通过，进入 Rust 默认和 Legacy 清理。

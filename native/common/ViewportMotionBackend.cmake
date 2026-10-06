@@ -1,5 +1,5 @@
 include_guard(GLOBAL)
-option(CC_NIRI_USE_RUST_VIEWPORT_MOTION "Use Rust ViewportMotion (includes Rust Spring)" OFF)
+option(CC_NIRI_USE_RUST_VIEWPORT_MOTION "Use Rust ViewportMotion (includes Rust Spring)" ON)
 message(STATUS "CC-Niri Rust ViewportMotion backend: ${CC_NIRI_USE_RUST_VIEWPORT_MOTION}")
 add_library(cc-niri-motion-backend INTERFACE)
 target_compile_definitions(cc-niri-motion-backend INTERFACE

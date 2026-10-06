@@ -1,5 +1,5 @@
 include_guard(GLOBAL)
-option(CC_NIRI_USE_RUST_NATIVE_PROTOCOL "Use shared Rust Scroll observer and Focus Ring eligibility policy" OFF)
+option(CC_NIRI_USE_RUST_NATIVE_PROTOCOL "Use shared Rust Scroll observer and Focus Ring eligibility policy" ON)
 message(STATUS "CC-Niri Rust Native Protocol backend: ${CC_NIRI_USE_RUST_NATIVE_PROTOCOL}")
 add_library(cc-niri-rust-protocol STATIC
     "${CMAKE_CURRENT_LIST_DIR}/../viewport-clip/RustScrollPlanSequence.cpp"

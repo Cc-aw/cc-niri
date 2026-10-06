@@ -1,5 +1,5 @@
 include_guard(GLOBAL)
-option(CC_NIRI_USE_RUST_FOCUS_RING_CORE "Use Rust Focus Ring numeric snapshots and geometry" OFF)
+option(CC_NIRI_USE_RUST_FOCUS_RING_CORE "Use Rust Focus Ring numeric snapshots and geometry" ON)
 message(STATUS "CC-Niri Rust Focus Ring Core backend: ${CC_NIRI_USE_RUST_FOCUS_RING_CORE}")
 add_library(cc-niri-focus-ring-reference STATIC "${CMAKE_CURRENT_LIST_DIR}/../focus-ring/FocusRingCore.cpp")
 set_target_properties(cc-niri-focus-ring-reference PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
