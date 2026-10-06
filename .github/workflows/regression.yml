@@ -24,73 +24,7 @@ jobs:
       image: fedora:44
     strategy:
       matrix:
-        include:
-          - rust-spring: "OFF"
-            rust-motion: "OFF"
-            rust-scroll-test: "OFF"
-            rust-scroll: "OFF"
-            rust-ring: "OFF"
-            rust-protocol: "OFF"
-          - rust-spring: "ON"
-            rust-motion: "OFF"
-            rust-scroll-test: "OFF"
-            rust-scroll: "OFF"
-            rust-ring: "OFF"
-            rust-protocol: "OFF"
-          - rust-spring: "OFF"
-            rust-motion: "ON"
-            rust-scroll-test: "OFF"
-            rust-scroll: "OFF"
-            rust-ring: "OFF"
-            rust-protocol: "OFF"
-          - rust-spring: "ON"
-            rust-motion: "ON"
-            rust-scroll-test: "OFF"
-            rust-scroll: "OFF"
-            rust-ring: "OFF"
-            rust-protocol: "OFF"
-          - rust-spring: "OFF"
-            rust-motion: "OFF"
-            rust-scroll-test: "ON"
-            rust-scroll: "OFF"
-            rust-ring: "OFF"
-            rust-protocol: "OFF"
-          - rust-spring: "OFF"
-            rust-motion: "OFF"
-            rust-scroll-test: "OFF"
-            rust-scroll: "ON"
-            rust-ring: "OFF"
-            rust-protocol: "OFF"
-          - rust-spring: "ON"
-            rust-motion: "ON"
-            rust-scroll-test: "OFF"
-            rust-scroll: "ON"
-            rust-ring: "OFF"
-            rust-protocol: "OFF"
-          - rust-spring: "OFF"
-            rust-motion: "OFF"
-            rust-scroll-test: "OFF"
-            rust-scroll: "OFF"
-            rust-ring: "ON"
-            rust-protocol: "OFF"
-          - rust-spring: "ON"
-            rust-motion: "ON"
-            rust-scroll-test: "OFF"
-            rust-scroll: "ON"
-            rust-ring: "ON"
-            rust-protocol: "OFF"
-          - rust-spring: "OFF"
-            rust-motion: "OFF"
-            rust-scroll-test: "OFF"
-            rust-scroll: "OFF"
-            rust-ring: "OFF"
-            rust-protocol: "ON"
-          - rust-spring: "ON"
-            rust-motion: "ON"
-            rust-scroll-test: "OFF"
-            rust-scroll: "ON"
-            rust-ring: "ON"
-            rust-protocol: "ON"
+        build-type: [Debug, RelWithDebInfo]
     steps:
       - uses: actions/checkout@v4
       - name: Install native build dependencies
@@ -105,19 +39,19 @@ jobs:
             plasma-activities-devel plasma-activities-stats-devel \
             libksysguard-devel plasma-workspace-devel \
             libepoxy-devel libdrm-devel vulkan-loader-devel \
-            nodejs git curl
+            nodejs git curl python3 dbus-daemon glib2 binutils
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: "1.99.0"
           components: rustfmt, clippy
       - name: Configure Bridge
-        run: cmake -S bridge -B build/bridge -G Ninja -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        run: cmake -S bridge -B build/bridge -G Ninja -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
       - name: Configure native viewport clip
-        run: cmake -S native/viewport-clip -B build/native-viewport-clip -G Ninja -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCC_NIRI_USE_RUST_SPRING=${{ matrix.rust-spring }} -DCC_NIRI_USE_RUST_VIEWPORT_MOTION=${{ matrix.rust-motion }} -DCC_NIRI_TEST_RUST_SCROLL_RUNTIME=${{ matrix.rust-scroll-test }} -DCC_NIRI_USE_RUST_SCROLL_RUNTIME=${{ matrix.rust-scroll }} -DCC_NIRI_USE_RUST_FOCUS_RING_CORE=${{ matrix.rust-ring }} -DCC_NIRI_USE_RUST_NATIVE_PROTOCOL=${{ matrix.rust-protocol }}
+        run: cmake -S native/viewport-clip -B build/native-viewport-clip -G Ninja -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
       - name: Configure native focus ring
-        run: cmake -S native/focus-ring -B build/native-focus-ring -G Ninja -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCC_NIRI_USE_RUST_SPRING=${{ matrix.rust-spring }} -DCC_NIRI_USE_RUST_VIEWPORT_MOTION=${{ matrix.rust-motion }} -DCC_NIRI_TEST_RUST_SCROLL_RUNTIME=${{ matrix.rust-scroll-test }} -DCC_NIRI_USE_RUST_SCROLL_RUNTIME=${{ matrix.rust-scroll }} -DCC_NIRI_USE_RUST_FOCUS_RING_CORE=${{ matrix.rust-ring }} -DCC_NIRI_USE_RUST_NATIVE_PROTOCOL=${{ matrix.rust-protocol }}
+        run: cmake -S native/focus-ring -B build/native-focus-ring -G Ninja -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
       - name: Configure Plasmoid
-        run: cmake -S plasmoid/com.cc.scrolltasks -B build/plasmoid -G Ninja -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        run: cmake -S plasmoid/com.cc.scrolltasks -B build/plasmoid -G Ninja -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
       - name: Build Bridge
         run: cmake --build build/bridge
       - name: Build native viewport clip
@@ -126,11 +60,8 @@ jobs:
         run: cmake --build build/native-focus-ring
       - name: Build Plasmoid
         run: cmake --build build/plasmoid
-      - name: Run native regression tests
-        run: |
-          ctest --test-dir build/bridge --output-on-failure
-          ctest --test-dir build/native-viewport-clip --output-on-failure
-          ctest --test-dir build/native-focus-ring --output-on-failure
+      - name: Run complete production Native gate
+        run: node tools/check.js --native
 
   rust-test:
     runs-on: ubuntu-latest

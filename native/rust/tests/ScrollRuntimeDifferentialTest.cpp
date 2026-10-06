@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
-#include "ScrollViewportRuntime.h"
+#include "reference/ScrollViewportRuntime.h"
 #include "RustScrollViewportRuntime.h"
 #include <QJsonDocument>
 #include <algorithm>

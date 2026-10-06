@@ -1,16 +1,12 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
-#include <QSet>
+#ifndef CC_NIRI_GOLDEN_REFERENCE
+#error "Frozen C++ reference is test-only; production must use Rust Native Core"
+#endif
+#include "FocusRingCandidate.h"
 #include <QString>
 
 namespace CcNiri {
-struct FocusRingCandidate {
-    QString id, output, workspace;
-    bool active = false, managed = false, normal = false, visible = false;
-    bool onCurrentActivity = false, onCurrentDesktop = false, minimized = false, deleted = false, fullscreen = false;
-    bool insideOutput = false;
-    double opacity = 0;
-};
 
 // Independent JS eligibility authority. Native focus and visibility still
 // choose the unique owner. No Dock, layout geometry or animation state.

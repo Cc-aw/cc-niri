@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
-#include "FocusRingCore.h"
-#if defined(CC_NIRI_USE_RUST_FOCUS_RING_CORE) && CC_NIRI_USE_RUST_FOCUS_RING_CORE
+#include "cc_niri_native_core.h"
 namespace CcNiri::FocusRingCore {
 inline CcNiriRingCorners corners(double a,double b,bool loaded) { return cc_niri_ring_corners(a,b,loaded); }
 inline CcNiriRingRadius radius(CcNiriRingCorners c,const double native[4],double w,double h) { return cc_niri_ring_radius(c,native,w,h); }
@@ -14,9 +13,3 @@ inline double padding(double p) { return cc_niri_ring_padding(p); }
 inline double devicePadding(double p,double s) { return cc_niri_ring_device_padding(p,s); }
 }
 namespace CcNiri { inline constexpr const char *FocusRingCoreBackendName = "Rust"; }
-#else
-namespace CcNiri {
-namespace FocusRingCore = FocusRingReference;
-inline constexpr const char *FocusRingCoreBackendName = "C++";
-}
-#endif

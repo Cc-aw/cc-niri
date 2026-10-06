@@ -14,8 +14,6 @@ Rust Native Core 重构已完成 R0 基础设施、工具链固定及 R1 Spring�
 
 | 文档 | 当前状态 |
 | --- | --- |
-| [Rust Native Core 总设计](todo/CC-Niri%20Rust%20Native%20Core%20重构实施设计.md) | R0 与固定工具链已实现，见 [R0 记录](../test/RUST_NATIVE_R0_RESULTS.md)；R1 首次实现通过本地门禁，见 [R1 记录](../test/RUST_NATIVE_R1_RESULTS.md)；R2 见 [Motion 记录](../test/RUST_NATIVE_R2_RESULTS.md)，两开关尚未默认 ON；[R2 实机](../test/RUST_NATIVE_R2_LIVE_RESULTS.md) 已单独部署，两轮内屏功能 / 视觉验收通过，mixed DPI 与帧时间待验收；[R3 代码阶段](../test/RUST_NATIVE_R3_RESULTS.md) 已完成；[R4 记录](../test/RUST_NATIVE_R4_RESULTS.md) 已记录生产接入、自动门禁、部署与内屏功能 / 视觉通过；[R5 记录](../test/RUST_NATIVE_R5_RESULTS.md) 已记录 Ring Core 迁移、自动门禁、部署与内屏验收通过。[R6 记录](../test/RUST_NATIVE_R6_RESULTS.md) 记录共享类型、sequence、Ring eligibility、完整门禁与部署，用户一般功能反馈正常，工作区离开视觉修复已由用户确认成功；[双屏与帧时间](../test/WORKSPACE_OUTPUT_FRAME_RESULTS.md)已完成普通 J/K 采样，人工流畅度、完整 HiDPI / mixed DPI 交互与长期稳定性待验证。 |
-| [R1 Spring 迁移准备](todo/CC-Niri%20Rust%20Native%20R1%20Spring%20迁移实施准备.md) | 首次实现按此准备完成：Rust Spring、差分、FFI 与默认 OFF 开关；ON 构建已通过 Native CTest；Rust Motion（包含 Rust Spring）已通过 R2 两轮内屏验收，单独 R1 路径及默认 ON 尚未推进。 |
 
 2026-10-01 用户明确指定以下两个目标，并确认先实现 ViewOffset Spring，再实现 Focus Ring；优先于 Quickshell 后续视觉升级：
 
@@ -38,6 +36,8 @@ Rust Native Core 重构已完成 R0 基础设施、工具链固定及 R1 Spring�
 | [Phase 8.5 Dock 双向顺序](done/cc-niri-maximize_V3_Phase8_5_Bidirectional_Dock_Order_Sync_Codex_Spec.md) | 已实现；见 [Phase 8.5 验收](../test/PHASE_8_5_RESULTS.md)。 |
 | [Phase 9.5 Presentation / Focus Ring](done/cc-niri-maximize_V3_Phase9_5_Mouse_First_Presentation_Focus_Ring_Codex_Spec.md) | Presentation 已实现；自定义 Focus Ring 曾实施后撤除，现使用原生 Dock 活跃指示，本文保留历史设计，不重新启用旧 Focus Ring。 |
 | [模块化与稳定性](done/cc-niri_模块化稳定性与动画重构设计.md) | 已实现模块化架构与稳定性职责拆分（a6d590b）。 |
+| [Rust Native Core R0–R7](done/CC-Niri%20Rust%20Native%20Core%20重构实施设计.md) | 已完成；用户确认 R6 实机验收通过，R7 固定 Rust 生产并删除生产 Legacy / 迁移开关。冻结 oracle 只用于差分测试，验证与回滚见 [R7 记录](../test/RUST_NATIVE_R7_RESULTS.md)。V3 总体验收仍由独立清单管理。 |
+| [R1 Spring 迁移准备](done/CC-Niri%20Rust%20Native%20R1%20Spring%20迁移实施准备.md) | 已完成；R1–R6 是实施历史，当前生产 Core 固定 Rust。 |
 | [连续滚动 / Native Clip](done/cc-niri_niri风格连续滚动动画与双屏Viewport_Clipping实现设计.md) | 已实现选定的 native clip 路线；shader 路线未采用；旧阶段未实现 spring，新的 viewoffset_spring 已列为下一目标。 |
 | [Phase 14 Motion Hardening](done/cc-niri_Phase14_Viewport_Motion_Runtime_Hardening.md) | 已实现 MotionTransaction、native clip 与 full-delta 滚动（883f778）。 |
 | [Phase 15 Contextual Wide](done/cc-niri_Phase15_WidePreference_ContextualViewport实现设计.md) | 已实现；当前 Wide 语义依据（b9c54b8）。 |

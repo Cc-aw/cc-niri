@@ -1,5 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
+#ifndef CC_NIRI_GOLDEN_REFERENCE
+#error "Frozen C++ reference is test-only; production must use Rust Native Core"
+#endif
 #include "cc_niri_native_core.h"
 namespace CcNiri::FocusRingReference {
 CcNiriRingCorners corners(double configured,double rounded,bool loaded);

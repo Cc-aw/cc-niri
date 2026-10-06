@@ -3,6 +3,16 @@ if(TARGET cc-niri-rust-core)
     return()
 endif()
 
+foreach(_legacy IN ITEMS CC_NIRI_USE_RUST_SPRING CC_NIRI_USE_RUST_VIEWPORT_MOTION
+        CC_NIRI_USE_RUST_SCROLL_RUNTIME CC_NIRI_TEST_RUST_SCROLL_RUNTIME
+        CC_NIRI_USE_RUST_FOCUS_RING_CORE CC_NIRI_USE_RUST_NATIVE_PROTOCOL)
+    if(DEFINED ${_legacy})
+        message(STATUS "Retired ${_legacy}=${${_legacy}}; Native Core is always Rust")
+        unset(${_legacy} CACHE)
+        unset(${_legacy})
+    endif()
+endforeach()
+
 find_program(CC_NIRI_CARGO_EXECUTABLE cargo REQUIRED)
 find_program(CC_NIRI_RUSTC_EXECUTABLE rustc REQUIRED)
 set(_repository_root "${CMAKE_CURRENT_SOURCE_DIR}/../..")
@@ -83,84 +93,49 @@ endforeach()
 add_dependencies(cc-niri-rust-core cc-niri-rust-build)
 
 if(BUILD_TESTING)
-    add_executable(cc-niri-workspace-motion-tests tests/WorkspaceMotionContractTest.cpp ../viewport-clip/Spring.cpp)
-    set_target_properties(cc-niri-workspace-motion-tests PROPERTIES AUTOMOC OFF)
-    target_include_directories(cc-niri-workspace-motion-tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../viewport-clip")
-    target_link_libraries(cc-niri-workspace-motion-tests PRIVATE cc-niri-rust-core)
-    add_test(NAME workspace-motion-rust-contract COMMAND cc-niri-workspace-motion-tests)
-    add_executable(cc-niri-ring-differential tests/FocusRingDifferentialTest.cpp ../focus-ring/FocusRingCore.cpp)
-    set_target_properties(cc-niri-ring-differential PROPERTIES AUTOMOC OFF)
-    target_include_directories(cc-niri-ring-differential PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../focus-ring")
-    target_link_libraries(cc-niri-ring-differential PRIVATE cc-niri-rust-core)
-    add_test(NAME focus-ring-cpp-rust-differential COMMAND cc-niri-ring-differential)
-    add_executable(cc-niri-spring-differential tests/SpringDifferentialTest.cpp
-        ../viewport-clip/Spring.cpp ../viewport-clip/RustSpring.cpp)
-    set_target_properties(cc-niri-spring-differential PROPERTIES AUTOMOC OFF)
-    target_include_directories(cc-niri-spring-differential PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../viewport-clip")
-    target_link_libraries(cc-niri-spring-differential PRIVATE cc-niri-rust-core)
-    add_test(NAME spring-cpp-rust-differential COMMAND cc-niri-spring-differential)
-    foreach(_backend cpp rust)
-        add_executable(cc-niri-spring-motion-${_backend}-tests
-            ../viewport-clip/tests/ViewportMotionTest.cpp ../viewport-clip/ViewportMotion.cpp ../viewport-clip/Spring.cpp)
-        set_target_properties(cc-niri-spring-motion-${_backend}-tests PROPERTIES AUTOMOC OFF)
-        target_include_directories(cc-niri-spring-motion-${_backend}-tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../viewport-clip")
-        if(_backend STREQUAL "rust")
-            target_sources(cc-niri-spring-motion-${_backend}-tests PRIVATE ../viewport-clip/RustSpring.cpp)
-            target_link_libraries(cc-niri-spring-motion-${_backend}-tests PRIVATE cc-niri-rust-core)
-            target_compile_definitions(cc-niri-spring-motion-${_backend}-tests PRIVATE CC_NIRI_USE_RUST_SPRING=1)
-        else()
-            target_compile_definitions(cc-niri-spring-motion-${_backend}-tests PRIVATE CC_NIRI_USE_RUST_SPRING=0)
-        endif()
-        add_test(NAME spring-motion-${_backend} COMMAND cc-niri-spring-motion-${_backend}-tests)
+    include("${CMAKE_CURRENT_LIST_DIR}/../common/NativeCore.cmake")
+    # Frozen R0-R6 differential oracle, never linked into a production artifact.
+    add_library(cc-niri-golden-reference STATIC
+        tests/reference/Spring.cpp tests/reference/ViewportMotion.cpp
+        tests/reference/ScrollViewportRuntime.cpp tests/reference/FocusRingCore.cpp
+        tests/reference/FocusRingContext.cpp)
+    set_target_properties(cc-niri-golden-reference PROPERTIES AUTOMOC OFF)
+    target_include_directories(cc-niri-golden-reference PUBLIC
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/reference"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../viewport-clip"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../focus-ring"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include")
+    target_compile_definitions(cc-niri-golden-reference PUBLIC CC_NIRI_GOLDEN_REFERENCE=1)
+    target_link_libraries(cc-niri-golden-reference PUBLIC Qt6::Core)
+
+    foreach(_pair IN ITEMS
+        "workspace-motion;tests/WorkspaceMotionContractTest.cpp;workspace-motion-rust-contract"
+        "ring;tests/FocusRingDifferentialTest.cpp;focus-ring-cpp-rust-differential"
+        "spring;tests/SpringDifferentialTest.cpp;spring-cpp-rust-differential"
+        "motion;tests/ViewportMotionDifferentialTest.cpp;viewport-motion-cpp-rust-differential"
+        "protocol;tests/NativeProtocolDifferentialTest.cpp;native-protocol-cpp-rust-differential"
+        "scroll;tests/ScrollRuntimeDifferentialTest.cpp;scroll-runtime-differential")
+        list(GET _pair 0 _name)
+        list(GET _pair 1 _source)
+        list(GET _pair 2 _test)
+        add_executable(cc-niri-${_name}-differential "${_source}")
+        set_target_properties(cc-niri-${_name}-differential PROPERTIES AUTOMOC OFF)
+        target_link_libraries(cc-niri-${_name}-differential PRIVATE cc-niri-golden-reference cc-niri-native-adapters)
+        add_test(NAME "${_test}" COMMAND cc-niri-${_name}-differential)
     endforeach()
-    add_executable(cc-niri-motion-differential tests/ViewportMotionDifferentialTest.cpp
-        ../viewport-clip/ViewportMotion.cpp ../viewport-clip/Spring.cpp ../viewport-clip/RustViewportMotion.cpp)
-    set_target_properties(cc-niri-motion-differential PROPERTIES AUTOMOC OFF)
-    target_compile_definitions(cc-niri-motion-differential PRIVATE CC_NIRI_USE_RUST_SPRING=0)
-    target_include_directories(cc-niri-motion-differential PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../viewport-clip")
-    target_link_libraries(cc-niri-motion-differential PRIVATE cc-niri-rust-core)
-    add_test(NAME viewport-motion-cpp-rust-differential COMMAND cc-niri-motion-differential)
-    add_executable(cc-niri-rust-motion-tests ../viewport-clip/tests/ViewportMotionTest.cpp
-        ../viewport-clip/Spring.cpp ../viewport-clip/RustViewportMotion.cpp)
-    set_target_properties(cc-niri-rust-motion-tests PROPERTIES AUTOMOC OFF)
-    target_compile_definitions(cc-niri-rust-motion-tests PRIVATE CC_NIRI_USE_RUST_SPRING=0 CC_NIRI_USE_RUST_VIEWPORT_MOTION=1)
-    target_include_directories(cc-niri-rust-motion-tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../viewport-clip")
-    target_link_libraries(cc-niri-rust-motion-tests PRIVATE cc-niri-rust-core)
-    add_test(NAME viewport-motion-rust-contract COMMAND cc-niri-rust-motion-tests)
-    # The Rust Core is platform-free; Qt is used only to call the preserved C++
-    # runtime and marshal the same JSON/geometry fixtures through the C ABI.
-    find_package(Qt6 6.6 REQUIRED COMPONENTS Core)
-    add_executable(cc-niri-native-protocol-differential tests/NativeProtocolDifferentialTest.cpp
-        ../focus-ring/FocusRingContext.cpp ../focus-ring/RustFocusRingContext.cpp ../viewport-clip/RustScrollPlanSequence.cpp)
-    set_target_properties(cc-niri-native-protocol-differential PROPERTIES AUTOMOC OFF)
-    target_link_libraries(cc-niri-native-protocol-differential PRIVATE cc-niri-rust-core Qt6::Core)
-    add_test(NAME native-protocol-cpp-rust-differential COMMAND cc-niri-native-protocol-differential)
-    add_executable(cc-niri-rust-ring-context-tests ../focus-ring/tests/FocusRingContextTest.cpp ../focus-ring/RustFocusRingContext.cpp)
-    set_target_properties(cc-niri-rust-ring-context-tests PROPERTIES AUTOMOC OFF)
-    target_compile_definitions(cc-niri-rust-ring-context-tests PRIVATE CC_NIRI_USE_RUST_NATIVE_PROTOCOL=1)
-    target_link_libraries(cc-niri-rust-ring-context-tests PRIVATE cc-niri-rust-core Qt6::Core)
-    add_test(NAME focus-ring-rust-context-contract COMMAND cc-niri-rust-ring-context-tests)
-    foreach(_test differential contract)
-        if(_test STREQUAL "differential")
-            set(_source tests/ScrollRuntimeDifferentialTest.cpp)
-        else()
-            set(_source ../viewport-clip/tests/ScrollViewportRuntimeTest.cpp)
-        endif()
-        add_executable(cc-niri-scroll-${_test} ${_source} ../viewport-clip/ScrollViewportRuntime.cpp
-            ../viewport-clip/ViewportMotion.cpp ../viewport-clip/Spring.cpp ../viewport-clip/RustScrollViewportRuntime.cpp)
-        set_target_properties(cc-niri-scroll-${_test} PROPERTIES AUTOMOC OFF)
-        target_include_directories(cc-niri-scroll-${_test} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../viewport-clip")
-        target_compile_definitions(cc-niri-scroll-${_test} PRIVATE CC_NIRI_USE_RUST_SPRING=0 CC_NIRI_USE_RUST_VIEWPORT_MOTION=0)
-        if(_test STREQUAL "contract")
-            target_compile_definitions(cc-niri-scroll-${_test} PRIVATE CC_NIRI_TEST_RUST_SCROLL_RUNTIME=1)
-        endif()
-        target_link_libraries(cc-niri-scroll-${_test} PRIVATE cc-niri-rust-core Qt6::Core)
-        add_test(NAME scroll-runtime-${_test} COMMAND cc-niri-scroll-${_test})
+    foreach(_pair IN ITEMS
+        "motion;../viewport-clip/tests/ViewportMotionTest.cpp;viewport-motion-rust-contract"
+        "scroll;../viewport-clip/tests/ScrollViewportRuntimeTest.cpp;scroll-runtime-contract"
+        "ring-context;../focus-ring/tests/FocusRingContextTest.cpp;focus-ring-rust-context-contract"
+        "core-smoke;tests/RustCoreSmokeTest.cpp;rust-core-ffi-smoke")
+        list(GET _pair 0 _name)
+        list(GET _pair 1 _source)
+        list(GET _pair 2 _test)
+        add_executable(cc-niri-rust-${_name}-tests "${_source}")
+        set_target_properties(cc-niri-rust-${_name}-tests PROPERTIES AUTOMOC OFF)
+        target_link_libraries(cc-niri-rust-${_name}-tests PRIVATE cc-niri-native-adapters)
+        add_test(NAME "${_test}" COMMAND cc-niri-rust-${_name}-tests)
     endforeach()
-    add_executable(cc-niri-rust-core-smoke tests/RustCoreSmokeTest.cpp)
-    set_target_properties(cc-niri-rust-core-smoke PROPERTIES AUTOMOC OFF)
-    target_link_libraries(cc-niri-rust-core-smoke PRIVATE cc-niri-rust-core)
-    add_test(NAME rust-core-ffi-smoke COMMAND cc-niri-rust-core-smoke)
     add_test(NAME native-cxx-toolchain-policy COMMAND "${CMAKE_COMMAND}"
         -P "${_repository_root}/cmake/tests/ToolchainPolicyTest.cmake")
 endif()

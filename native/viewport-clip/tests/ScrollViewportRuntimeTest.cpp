@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #include "ScrollRuntimeTestBackend.h"
+#include "SpringBackend.h"
 #include <iostream>
 #include <cstdlib>
 using namespace CcNiri;
@@ -211,7 +212,7 @@ int main() {
     reversing.advance(73ms);
     const auto reverseTarget = reversing.targets().value(QStringLiteral("1"));
     const double reverseOffset = -1920.5 + 1260.25 - reverseTarget.x() - reversing.projection(QStringLiteral("1"), reverseTarget)->translationX;
-    check(std::abs(reverseOffset - Spring(reverseFrom, 0, 0).sample(10ms).position) < 1e-8, "reverse resets velocity to zero");
+    check(std::abs(reverseOffset - SpringBackend(reverseFrom, 0, 0).sample(10ms).position) < 1e-8, "reverse resets velocity to zero");
     // Alternating targets transfer incoming/outgoing until the last completion.
     for (int epoch = 3; epoch <= 9; ++epoch) {
         reversing.advance(epoch * 60ms);

@@ -1,20 +1,14 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
+#ifndef CC_NIRI_GOLDEN_REFERENCE
+#error "Frozen C++ reference is test-only; production must use Rust Native Core"
+#endif
 
-#include "SpringBackend.h"
+#include "Spring.h"
 #include <cstdint>
 
 namespace CcNiri
 {
-enum class ViewportMotionKind { Static, Animation };
-
-struct ViewportMotionSample {
-    ViewportMotionKind kind;
-    double current;
-    double target;
-    double velocity;
-    std::int64_t epoch;
-};
 
 class ViewportMotion
 {
@@ -38,7 +32,7 @@ public:
 
 private:
     SpringParams m_params;
-    SpringBackend m_spring;
+    Spring m_spring;
     ViewportMotionKind m_kind = ViewportMotionKind::Static;
     double m_from = 0.0;
     double m_target = 0.0;

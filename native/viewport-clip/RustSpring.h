@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
-#include "Spring.h"
+#include "MotionTypes.h"
 #include "cc_niri_native_core.h"
 
 namespace CcNiri

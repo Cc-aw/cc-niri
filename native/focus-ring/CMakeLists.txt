@@ -16,29 +16,25 @@ find_package(KF6 6.0 REQUIRED COMPONENTS CoreAddons Config)
 find_package(KWin 6.7 REQUIRED COMPONENTS kwineffects)
 include(CTest)
 add_subdirectory(../rust rust-core)
-include("${CMAKE_CURRENT_LIST_DIR}/../common/SpringBackend.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/../common/ViewportMotionBackend.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/../common/ScrollRuntime.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/../common/FocusRingCore.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/../common/NativeProtocol.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/../common/NativeCore.cmake")
 kcoreaddons_add_plugin(cc-niri-focus-ring
-    SOURCES main.cpp FocusRingEffect.cpp FocusRingEffect.h FocusRingItem.cpp FocusRingItem.h FocusRingPaintFrame.cpp FocusRingStrokeItem.cpp FocusRingStrokeItem.h FocusRingPaintFrame.h FocusRingContext.cpp FocusRingContext.h FocusRingCornerStyle.cpp FocusRingCornerStyle.h
+    SOURCES main.cpp FocusRingEffect.cpp FocusRingEffect.h FocusRingItem.cpp FocusRingItem.h FocusRingPaintFrame.cpp FocusRingStrokeItem.cpp FocusRingStrokeItem.h FocusRingPaintFrame.h FocusRingCornerStyle.cpp FocusRingCornerStyle.h
     INSTALL_NAMESPACE "kwin/effects/plugins")
 set_property(TARGET cc-niri-focus-ring APPEND PROPERTY AUTOMOC_MACRO_NAMES KWIN_EFFECT_FACTORY_SUPPORTED)
 target_link_libraries(cc-niri-focus-ring PRIVATE Qt6::Core Qt6::DBus Qt6::Gui KF6::CoreAddons KF6::ConfigCore KWin::kwin)
-target_link_libraries(cc-niri-focus-ring PRIVATE cc-niri-rust-core cc-niri-focus-ring-core-backend)
+target_link_libraries(cc-niri-focus-ring PRIVATE cc-niri-native-adapters)
 if(BUILD_TESTING)
     find_package(Qt6 6.6 REQUIRED COMPONENTS Qml)
     add_executable(cc-niri-focus-ring-corner-style-tests tests/FocusRingCornerStyleTest.cpp FocusRingCornerStyle.cpp FocusRingCornerStyle.h)
     target_link_libraries(cc-niri-focus-ring-corner-style-tests PRIVATE Qt6::Core Qt6::Gui KF6::ConfigCore KWin::kwin)
     add_test(NAME focus-ring-corner-style-lifecycle COMMAND cc-niri-focus-ring-corner-style-tests)
-    add_executable(cc-niri-focus-ring-controller-tests tests/FocusRingControllerTest.cpp FocusRingContext.cpp)
+    add_executable(cc-niri-focus-ring-controller-tests tests/FocusRingControllerTest.cpp)
     target_link_libraries(cc-niri-focus-ring-controller-tests PRIVATE Qt6::Core Qt6::Qml)
     add_test(NAME focus-ring-controller-qobject COMMAND cc-niri-focus-ring-controller-tests
         "${CMAKE_CURRENT_SOURCE_DIR}/../../src/kwin/policy/WindowPolicy.js"
         "${CMAKE_CURRENT_SOURCE_DIR}/../../src/kwin/workspace/WorkspaceMembership.js"
         "${CMAKE_CURRENT_SOURCE_DIR}/../../src/kwin/visual/FocusRingController.js")
-    add_executable(cc-niri-focus-ring-context-tests tests/FocusRingContextTest.cpp FocusRingContext.cpp)
+    add_executable(cc-niri-focus-ring-context-tests tests/FocusRingContextTest.cpp)
     set_target_properties(cc-niri-focus-ring-context-tests PROPERTIES AUTOMOC OFF)
     target_link_libraries(cc-niri-focus-ring-context-tests PRIVATE Qt6::Core)
     add_test(NAME focus-ring-context COMMAND cc-niri-focus-ring-context-tests)
@@ -55,16 +51,14 @@ if(BUILD_TESTING)
     # Test-only composition with production Spring; the Ring plugin has no
     # motion/clock dependency and never reads scroll state itself.
     add_executable(cc-niri-focus-ring-visual-transform-tests tests/FocusRingVisualTransformTest.cpp
-        FocusRingItem.cpp FocusRingItem.h FocusRingPaintFrame.cpp FocusRingStrokeItem.cpp FocusRingStrokeItem.h
-        ../viewport-clip/ScrollViewportRuntime.cpp ../viewport-clip/ViewportMotion.cpp ../viewport-clip/Spring.cpp)
+        FocusRingItem.cpp FocusRingItem.h FocusRingPaintFrame.cpp FocusRingStrokeItem.cpp FocusRingStrokeItem.h)
     target_link_libraries(cc-niri-focus-ring-visual-transform-tests PRIVATE Qt6::Core Qt6::Gui KWin::kwin)
-    target_link_libraries(cc-niri-focus-ring-visual-transform-tests PRIVATE cc-niri-spring-backend cc-niri-motion-backend cc-niri-scroll-test-backend)
+    target_link_libraries(cc-niri-focus-ring-visual-transform-tests PRIVATE cc-niri-native-adapters)
     add_test(NAME focus-ring-visual-transform COMMAND cc-niri-focus-ring-visual-transform-tests)
     add_executable(cc-niri-focus-ring-retarget-tests tests/FocusRingRetargetTest.cpp
-        FocusRingItem.cpp FocusRingItem.h FocusRingPaintFrame.cpp FocusRingStrokeItem.cpp FocusRingStrokeItem.h
-        ../viewport-clip/ScrollViewportRuntime.cpp ../viewport-clip/ViewportMotion.cpp ../viewport-clip/Spring.cpp)
+        FocusRingItem.cpp FocusRingItem.h FocusRingPaintFrame.cpp FocusRingStrokeItem.cpp FocusRingStrokeItem.h)
     target_link_libraries(cc-niri-focus-ring-retarget-tests PRIVATE Qt6::Core Qt6::Gui KWin::kwin)
-    target_link_libraries(cc-niri-focus-ring-retarget-tests PRIVATE cc-niri-spring-backend cc-niri-motion-backend cc-niri-scroll-test-backend)
+    target_link_libraries(cc-niri-focus-ring-retarget-tests PRIVATE cc-niri-native-adapters)
     add_test(NAME focus-ring-retarget COMMAND cc-niri-focus-ring-retarget-tests)
     find_program(NODE_EXECUTABLE node REQUIRED)
     add_executable(cc-niri-focus-ring-presentation-tests tests/FocusRingPresentationTest.cpp
@@ -77,13 +71,13 @@ if(BUILD_TESTING)
     target_link_libraries(cc-niri-focus-ring-hidpi-tests PRIVATE Qt6::Core Qt6::Gui KWin::kwin)
     add_test(NAME focus-ring-hidpi COMMAND cc-niri-focus-ring-hidpi-tests)
     foreach(_target corner-style item paint viewport-clip visual-transform retarget presentation hidpi)
-        target_link_libraries(cc-niri-focus-ring-${_target}-tests PRIVATE cc-niri-focus-ring-core-backend)
+        target_link_libraries(cc-niri-focus-ring-${_target}-tests PRIVATE cc-niri-native-adapters)
     endforeach()
 endif()
 
-target_link_libraries(cc-niri-focus-ring PRIVATE cc-niri-native-protocol-backend)
+target_link_libraries(cc-niri-focus-ring PRIVATE cc-niri-native-adapters)
 if(BUILD_TESTING)
     foreach(_target controller context)
-        target_link_libraries(cc-niri-focus-ring-${_target}-tests PRIVATE cc-niri-native-protocol-backend)
+        target_link_libraries(cc-niri-focus-ring-${_target}-tests PRIVATE cc-niri-native-adapters)
     endforeach()
 endif()

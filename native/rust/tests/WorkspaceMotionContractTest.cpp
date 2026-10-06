@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #include "cc_niri_native_core.h"
-#include "Spring.h"
+#include "reference/Spring.h"
 #include <algorithm>
 #include <chrono>
 #include <cmath>

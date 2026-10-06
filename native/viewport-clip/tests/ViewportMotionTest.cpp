@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #include "ViewportMotionBackend.h"
+#include "SpringBackend.h"
 
 #include <cmath>
 #include <cstdio>
@@ -51,7 +52,7 @@ void checkSpring()
         SpringParams params;
         params.dampingRatio = ratio;
         params.mass = 2.0;
-        Spring spring(400.0, 2520.0, -25.0, params);
+        SpringBackend spring(400.0, 2520.0, -25.0, params);
         require(spring.isValid(), "valid damping regimes accepted");
         for (const auto elapsed : {10ms, 60ms, 400ms}) {
             const auto value = spring.sample(elapsed);
@@ -66,10 +67,10 @@ void checkSpring()
     for (const double ratio : {1.0 - 1e-12, 1.0 + 1e-12}) {
         SpringParams params;
         params.dampingRatio = ratio;
-        near(Spring(0.0, 1260.0, 0.0, params).sample(60ms).position,
-             Spring(0.0, 1260.0).sample(60ms).position, 0.00001, "near-critical numerics remain continuous");
+        near(SpringBackend(0.0, 1260.0, 0.0, params).sample(60ms).position,
+             SpringBackend(0.0, 1260.0).sample(60ms).position, 0.00001, "near-critical numerics remain continuous");
     }
-    Spring critical(0.0, 1260.0);
+    SpringBackend critical(0.0, 1260.0);
     double previous = 0.0;
     for (int ms = 0; ms <= 3000; ++ms) {
         const auto value = critical.sample(std::chrono::milliseconds(ms));
@@ -83,8 +84,8 @@ void checkSpring()
 
     const double nan = std::numeric_limits<double>::quiet_NaN();
     const double inf = std::numeric_limits<double>::infinity();
-    require(!Spring(nan, 0.0).isValid() && !Spring(0.0, inf).isValid()
-            && !Spring(0.0, 1.0, inf).isValid(), "invalid coordinates and velocity rejected");
+    require(!SpringBackend(nan, 0.0).isValid() && !SpringBackend(0.0, inf).isValid()
+            && !SpringBackend(0.0, 1.0, inf).isValid(), "invalid coordinates and velocity rejected");
     for (int field = 0; field < 4; ++field) {
         for (const double value : {nan, inf, -1.0}) {
             SpringParams params;
@@ -92,17 +93,17 @@ void checkSpring()
             if (field == 1) params.stiffness = value;
             if (field == 2) params.mass = value;
             if (field == 3) params.epsilon = value;
-            require(!Spring(0.0, 1260.0, 0.0, params).isValid(), "invalid parameters rejected");
+            require(!SpringBackend(0.0, 1260.0, 0.0, params).isValid(), "invalid parameters rejected");
         }
     }
     SpringParams params;
     params.stiffness = 0.0;
-    require(!Spring(0.0, 1.0, 0.0, params).isValid(), "zero stiffness rejected");
+    require(!SpringBackend(0.0, 1.0, 0.0, params).isValid(), "zero stiffness rejected");
     params = {}; params.mass = 0.0;
-    require(!Spring(0.0, 1.0, 0.0, params).isValid(), "zero mass rejected");
+    require(!SpringBackend(0.0, 1.0, 0.0, params).isValid(), "zero mass rejected");
     params = {}; params.epsilon = 0.0;
-    require(!Spring(0.0, 1.0, 0.0, params).isValid(), "zero precision rejected");
-    require(!Spring(-1e308, 1e308).isValid(), "unrepresentable displacement rejected");
+    require(!SpringBackend(0.0, 1.0, 0.0, params).isValid(), "zero precision rejected");
+    require(!SpringBackend(-1e308, 1e308).isValid(), "unrepresentable displacement rejected");
 }
 
 void checkMotion()
@@ -124,7 +125,7 @@ void checkMotion()
             const auto elapsed = std::chrono::nanoseconds(static_cast<long long>(1e9 * frame / hz));
             require(std::isfinite(motion.current(elapsed)), "every cadence sample finite");
         }
-        near(motion.current(333ms), Spring(0.0, 1260.0).sample(333ms).position,
+        near(motion.current(333ms), SpringBackend(0.0, 1260.0).sample(333ms).position,
              0.0, "same elapsed yields identical position regardless of cadence/history");
     }
 

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
-#include "Spring.h"
+#include "reference/Spring.h"
 #include "RustSpring.h"
 #include <algorithm>
 #include <array>

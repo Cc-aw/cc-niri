@@ -11,6 +11,15 @@ use crate::native_protocol::{
 };
 const INVALID_DTO: u32 = 2;
 
+/// Validate an untrusted JSON numeric epoch before the Qt adapter converts it.
+#[no_mangle]
+pub extern "C" fn cc_niri_json_integer_valid(value: f64) -> FfiSpringBoolResult {
+    FfiSpringBoolResult {
+        value: u32::from(crate::native_protocol::integer(value).is_some()),
+        status: OK,
+    }
+}
+
 #[repr(C)]
 pub struct ProtocolResult {
     value: u32,

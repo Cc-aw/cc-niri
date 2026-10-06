@@ -1,21 +1,13 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
+#ifndef CC_NIRI_GOLDEN_REFERENCE
+#error "Frozen C++ reference is test-only; production must use Rust Native Core"
+#endif
 
-#include <chrono>
+#include "MotionTypes.h"
 
 namespace CcNiri
 {
-struct SpringParams {
-    double dampingRatio = 1.0;
-    double stiffness = 800.0;
-    double epsilon = 0.0001;
-    double mass = 1.0;
-};
-
-struct SpringSample {
-    double position;
-    double velocity;
-};
 
 // Pure time-based oscillator. Sampling does not advance a frame counter or
 // touch a window, clock, QObject, or compositor.

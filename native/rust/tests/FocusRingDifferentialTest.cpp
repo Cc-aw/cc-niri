@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
-#include "FocusRingCore.h"
+#include "reference/FocusRingCore.h"
 #include <algorithm>
 #include <array>
 #include <cmath>

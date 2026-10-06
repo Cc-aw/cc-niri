@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
-#include "../../focus-ring/FocusRingContext.h"
+#include "reference/FocusRingContext.h"
 #include "../../focus-ring/RustFocusRingContext.h"
 #include "../../viewport-clip/RustScrollPlanSequence.h"
+#include "reference/ViewportScrollPlan.h"
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QUuid>
@@ -49,6 +50,18 @@ static_assert(sizeof(CcNiriEligibilitySnapshot)==112);
 static_assert(sizeof(CcNiriEligibilityCandidate)==64);
 static_assert(sizeof(CcNiriEligibilityStatus)==32);
 int main() {
+    // Cancellation's scalar epoch preflight must retain the old JSON contract.
+    for (const QJsonValue &value : {QJsonValue(), QJsonValue(true), QJsonValue(QStringLiteral("1")),
+            QJsonValue(-1), QJsonValue(0), QJsonValue(0.5), QJsonValue(42),
+            QJsonValue(9007199254740991.0), QJsonValue(9007199254740992.0)}) {
+        const double decoded = value.isDouble() ? value.toDouble() : std::numeric_limits<double>::quiet_NaN();
+        const auto result = cc_niri_json_integer_valid(decoded);
+        check(result.status == CC_NIRI_FFI_OK && bool(result.value) == scrollPlanInteger(value), "JSON cancellation epoch");
+    }
+    for (double value : {std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(),
+            std::numeric_limits<double>::quiet_NaN()}) {
+        check(!cc_niri_json_integer_valid(value).value, "nonfinite cancellation epoch");
+    }
     std::mt19937_64 random(0x43434e4952495236ULL);
     // Both invalid messages and stale messages must produce identical state,
     // including metadata retained after fail-closed and session tombstones.
@@ -114,7 +127,7 @@ int main() {
         }
     }
     for (int history=0;history<100;++history) {
-        ViewportScrollPlanSequence cpp; RustScrollPlanSequence rust;
+        ReferenceScrollPlanSequence cpp; RustScrollPlanSequence rust;
         QJsonObject latest=scroll();
         for(int step=0;step<300;++step) {
             ++actions; QJsonObject ctx{{"protocol"_L1,2},{"sessionId"_L1,"s"_L1},{"workspaceId"_L1,"w"_L1},{"targetOutput"_L1,"eDP-1"_L1},{"generation"_L1,step}};
@@ -143,7 +156,7 @@ int main() {
                 case 5:e.insert("windowId"_L1,QString(1,QChar(0xd800)));break;case 6:e.insert("columnId"_L1,0.5);break;default:break;}
                 entries[0]=e;plan.insert("entries"_L1,entries);
             }}
-            ++validations; check(validViewportScrollPlan(plan)==rust.validPlan(plan),"scroll validation");
+            ++validations; check(referenceValidViewportScrollPlan(plan)==rust.validPlan(plan),"scroll validation");
             check(cpp.observe(plan)==rust.observe(plan),"observer sequence disposition"); latest=plan;
         }
     }

@@ -142,6 +142,9 @@ enum { CC_NIRI_NATIVE_INVALID_PROTOCOL = 1, CC_NIRI_NATIVE_INVALID_EPOCH = 2,
        CC_NIRI_NATIVE_UNKNOWN_WINDOW = 5, CC_NIRI_NATIVE_SEQUENCE_REJECTED = 6,
        CC_NIRI_NATIVE_INTERNAL_INVARIANT = 7 };
 typedef struct { uint32_t value,status,error,reserved; } CcNiriProtocolResult;
+/* JSON integer validation uses the exact 0..2^53-1 range; rejects NaN/Inf,
+ * fractions and negative values. No allocation or handle ownership. */
+CcNiriSpringBoolResult cc_niri_json_integer_valid(double value);
 typedef struct CcNiriScrollSequence CcNiriScrollSequence;
 CcNiriScrollSequence *cc_niri_scroll_sequence_create(void);
 void cc_niri_scroll_sequence_destroy(CcNiriScrollSequence *handle);

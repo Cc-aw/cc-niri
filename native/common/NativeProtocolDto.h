@@ -17,6 +17,7 @@ inline QString text(CcNiriU16View value) { return QString::fromUtf16(reinterpret
 inline CcNiriRect rect(const QRectF &r) { return {r.x(),r.y(),r.width(),r.height()}; }
 inline QRectF rect(CcNiriRect r) { return {r.x,r.y,r.width,r.height}; }
 inline double number(const QJsonValue &v) { return v.isDouble() ? v.toDouble() : std::numeric_limits<double>::quiet_NaN(); }
+inline bool integer(const QJsonValue &v) { return accepted(cc_niri_json_integer_valid(number(v))); }
 inline std::uint32_t placement(const QJsonValue &v) {
     const auto s=v.toString();
     return s==QStringLiteral("visible") ? 1 : s==QStringLiteral("parked") ? 2 : 0;

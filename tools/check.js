@@ -53,6 +53,10 @@ if (native) {
     run("Viewport clip workspace barrier tests", "ctest", ["--test-dir", "build/native-viewport-clip", "--output-on-failure"]);
     run("Focus ring native build", "cmake", ["--build", "build/native-focus-ring"]);
     run("Focus ring ownership and scene tests", "ctest", ["--test-dir", "build/native-focus-ring", "--output-on-failure"]);
+    run("Rust production architecture boundary", "python3", ["tools/check-native-boundary.py",
+        "build/bridge/cc-scroll-dock-bridge",
+        "build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+        "build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so"]);
     run("Plasmoid native build", "cmake", ["--build", "build/plasmoid"]);
 }
 

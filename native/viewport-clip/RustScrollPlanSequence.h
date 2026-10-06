@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
-#include "../../src/protocol/ViewportScrollPlan.h"
+#include "ScrollTypes.h"
 #include "cc_niri_native_core.h"
 namespace CcNiri {
 class RustScrollPlanSequence {

@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
-#include "ScrollViewportRuntime.h"
+#include "ViewportMotionBackend.h"
+#include "ScrollTypes.h"
 #include "cc_niri_native_core.h"
 namespace CcNiri {
 // Qt value conversion and handle ownership only. Rust owns protocol/runtime policy.

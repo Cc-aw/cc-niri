@@ -12,9 +12,9 @@
 - JS Control Plane 负责布局、工作区、协议发布、StabilitySupervisor 与全局恢复；Rust 重构不得复制这些 authority。
 - Rust Core 负责与平台无关的算法、几何、协议验证和状态机。Qt/KWin 类型、QObject / EffectWindow 指针不得进入 Core。
 - C++ Adapter 负责 KWin/Qt API、对象生命周期、effect hooks、Scene Item 和渲染；迁移后的核心 policy 不得回流到 Adapter。
-- R0 基础设施已建立，R1 Spring 与 R2 ViewportMotion 已移植，分别接入默认 OFF 的 `CC_NIRI_USE_RUST_SPRING` / `CC_NIRI_USE_RUST_VIEWPORT_MOTION`。R3 Scroll Runtime 已迁移到 Rust，R4 通过默认 OFF 的 `CC_NIRI_USE_RUST_SCROLL_RUNTIME` 选择生产 Effect runtime；Scroll / Focus Ring 组合测试跟随生产开关。`CC_NIRI_TEST_RUST_SCROLL_RUNTIME` 默认 OFF，可单独覆盖测试选择 Rust。源码生产默认仍为 C++，实机独立构建与回滚基线按阶段记录保留；保留 Golden Baseline 和差分测试。
-- R5 Focus Ring 数值快照、geometry / corner / pixel alignment / decoration padding 由默认 OFF 的 `CC_NIRI_USE_RUST_FOCUS_RING_CORE` 选择；两个插件和现有 Ring 组合测试必须使用相同开关。Native KWin 继续决定唯一 owner；不引入 Ring 时钟或第二套 focus authority。
-- R6 `CC_NIRI_USE_RUST_NATIVE_PROTOCOL` 默认 OFF，选择共享 Rust Scroll observer 与 Focus Ring eligibility policy。Rust Motion / Scroll / Ring 复用统一 ID、Epoch、Generation、Context、Rect 和 NativeError；Scroll v2 与独立 Ring v1 authority / JS schema 保留。JSON / QUuid 解码与 KWin 实际焦点、可见性、对象生命周期仍在 Adapter；不能以类型统一为由合并两套发布 authority。
+- R0–R7 已完成：Spring、ViewportMotion、Scroll Runtime、Focus Ring geometry 和 Native Protocol / eligibility 的生产实现固定为 Rust；迁移开关已退休，不能选择 C++ runtime。
+- C++ Adapter 仅转换 Qt 值、管理 FFI handle、观察 KWin 实际焦点 / 可见性与对象生命周期、绘制。Scroll v2 与独立 Ring v1 的 JS schema 和发布 authority 保留；不建立第二套布局 / 焦点 authority 或 Ring 时钟。
+- 旧 C++ Golden Baseline 只存在于 `native/rust/tests/reference/`，仅 `BUILD_TESTING` 的差分可执行文件可链接，不继续开发。生产 Bridge 与两个插件必须通过 `tools/check-native-boundary.py`；`BUILD_TESTING=OFF` 不得生成 reference target。
 - 工具链或语言迁移不改变滚动、Spring 参数、retarget、Focus Ring、Pair/Wide、Workspace 或快捷键行为。
 - 修改 `src/` 后用 `node tools/build.js` 生成包，不直接编辑生成脚本。
 

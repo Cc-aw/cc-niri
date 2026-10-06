@@ -22,22 +22,7 @@ find_package(KWin 6.7 REQUIRED COMPONENTS kwineffects)
 
 include(CTest)
 add_subdirectory(../rust rust-core)
-include("${CMAKE_CURRENT_LIST_DIR}/../common/SpringBackend.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/../common/ViewportMotionBackend.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/../common/ScrollRuntime.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/../common/FocusRingCore.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/../common/NativeProtocol.cmake")
-
-# Preserved C++ math/reference plus the selected Spring/Motion adapters.
-add_library(cc-niri-viewport-motion STATIC
-    Spring.cpp Spring.h ViewportMotion.cpp ViewportMotion.h
-)
-set_target_properties(cc-niri-viewport-motion PROPERTIES
-    AUTOMOC OFF
-    POSITION_INDEPENDENT_CODE ON
-)
-target_include_directories(cc-niri-viewport-motion PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(cc-niri-viewport-motion PUBLIC cc-niri-spring-backend cc-niri-motion-backend)
+include("${CMAKE_CURRENT_LIST_DIR}/../common/NativeCore.cmake")
 
 kcoreaddons_add_plugin(cc-niri-viewport-clip
     SOURCES
@@ -46,16 +31,12 @@ kcoreaddons_add_plugin(cc-niri-viewport-clip
         ViewportClipEffect.h
         WorkspaceSlideAdapter.cpp
         WorkspaceSlideAdapter.h
-        ScrollViewportRuntime.cpp
-        ScrollViewportRuntime.h
     INSTALL_NAMESPACE "kwin/effects/plugins"
 )
 
 target_link_libraries(cc-niri-viewport-clip PRIVATE
     cc-niri-rust-core
-    cc-niri-viewport-motion
-    cc-niri-scroll-backend
-    cc-niri-focus-ring-core-backend
+    cc-niri-native-adapters
     Qt6::Core
     Qt6::DBus
     KF6::CoreAddons
@@ -63,14 +44,14 @@ target_link_libraries(cc-niri-viewport-clip PRIVATE
 )
 
 if(BUILD_TESTING)
-    add_executable(cc-niri-scroll-viewport-tests tests/ScrollViewportRuntimeTest.cpp ScrollViewportRuntime.cpp)
+    add_executable(cc-niri-scroll-viewport-tests tests/ScrollViewportRuntimeTest.cpp)
     set_target_properties(cc-niri-scroll-viewport-tests PROPERTIES AUTOMOC OFF)
     target_include_directories(cc-niri-scroll-viewport-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-    target_link_libraries(cc-niri-scroll-viewport-tests PRIVATE cc-niri-viewport-motion cc-niri-scroll-test-backend Qt6::Core)
+    target_link_libraries(cc-niri-scroll-viewport-tests PRIVATE cc-niri-native-adapters Qt6::Core)
     add_test(NAME scroll-viewport-runtime COMMAND cc-niri-scroll-viewport-tests)
     add_executable(cc-niri-viewport-motion-tests tests/ViewportMotionTest.cpp)
     set_target_properties(cc-niri-viewport-motion-tests PROPERTIES AUTOMOC OFF)
-    target_link_libraries(cc-niri-viewport-motion-tests PRIVATE cc-niri-viewport-motion)
+    target_link_libraries(cc-niri-viewport-motion-tests PRIVATE cc-niri-native-adapters)
     add_test(NAME viewport-spring-motion COMMAND cc-niri-viewport-motion-tests)
     add_executable(cc-niri-workspace-clip-tests tests/WorkspaceClipBarrierTest.cpp)
     target_include_directories(cc-niri-workspace-clip-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -78,4 +59,4 @@ if(BUILD_TESTING)
     add_test(NAME workspace-clip-barrier COMMAND cc-niri-workspace-clip-tests)
 endif()
 
-target_link_libraries(cc-niri-viewport-clip PRIVATE cc-niri-native-protocol-backend)
+target_link_libraries(cc-niri-viewport-clip PRIVATE cc-niri-native-adapters)

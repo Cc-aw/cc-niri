@@ -2,6 +2,7 @@
 
 #include "ViewportClipEffect.h"
 #include "../common/ViewportPaintClip.h"
+#include "../common/NativeProtocolDto.h"
 
 #include "core/renderviewport.h"
 #include "core/output.h"
@@ -33,7 +34,7 @@ Q_LOGGING_CATEGORY(CC_NIRI_VIEWPORT_CLIP, "cc.niri.viewport.clip", QtInfoMsg)
 namespace KWin
 {
 
-static CcNiri::ViewportMotion::TimePoint motionNow()
+static CcNiri::ViewportMotionBackend::TimePoint motionNow()
 {
     return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch());
 }
@@ -436,7 +437,7 @@ void CcNiriViewportClipEffect::CancelScrollPlan(const QString &json)
     const auto document = QJsonDocument::fromJson(json.toUtf8());
     if (!document.isObject()) return;
     const auto object = document.object();
-    if (!CcNiri::scrollPlanInteger(object.value(QStringLiteral("epoch")))) return;
+    if (!CcNiri::ProtocolAdapter::integer(object.value(QStringLiteral("epoch")))) return;
     m_scrollRuntime.cancel(object.value(QStringLiteral("sessionId")).toString(), object.value(QStringLiteral("epoch")).toInteger());
     updateScrollOwnership();
     effects->addRepaintFull();

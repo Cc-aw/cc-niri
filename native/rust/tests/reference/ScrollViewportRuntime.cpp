@@ -14,17 +14,17 @@ bool ScrollViewportRuntime::updateContext(const QJsonObject &state) {
     const auto output = state.value(QStringLiteral("targetOutput")).toString();
     if (!m_sequence.updateContext(state) || !m_sequence.hasAuthority()) {
         clear(); m_sequence = {}; m_session.clear(); m_workspace.clear(); m_output.clear();
-        m_motion = ViewportMotionBackend(); m_cancelledEpoch = -1; return false;
+        m_motion = ViewportMotion(); m_cancelledEpoch = -1; return false;
     }
     if (session != m_session || workspace != m_workspace || output != m_output) {
         clear();
-        if (session != m_session) { m_motion = ViewportMotionBackend(); m_cancelledEpoch = -1; }
+        if (session != m_session) { m_motion = ViewportMotion(); m_cancelledEpoch = -1; }
     }
     m_session = session; m_workspace = workspace; m_output = output;
     return true;
 }
-bool ScrollViewportRuntime::arm(const QJsonObject &plan, ViewportMotionBackend::TimePoint now, const QHash<QString, QRectF> &frames) {
-    if (!validViewportScrollPlan(plan) || plan.value(QStringLiteral("epoch")).toInteger() <= m_cancelledEpoch) return false;
+bool ScrollViewportRuntime::arm(const QJsonObject &plan, ViewportMotion::TimePoint now, const QHash<QString, QRectF> &frames) {
+    if (!referenceValidViewportScrollPlan(plan) || plan.value(QStringLiteral("epoch")).toInteger() <= m_cancelledEpoch) return false;
     const auto disposition = m_sequence.observe(plan);
     if (disposition == ScrollPlanDisposition::Rejected) return false;
     if (disposition == ScrollPlanDisposition::Duplicate) return active();
@@ -87,7 +87,7 @@ void ScrollViewportRuntime::cancel(const QString &session, qint64 epoch) {
     m_cancelledEpoch = qMax(m_cancelledEpoch, epoch);
     if (m_motion.epoch() <= epoch) clear();
 }
-bool ScrollViewportRuntime::advance(ViewportMotionBackend::TimePoint now) {
+bool ScrollViewportRuntime::advance(ViewportMotion::TimePoint now) {
     if (!active()) return false;
     if (m_completed) return true;
     m_frameOffset = m_motion.current(now);

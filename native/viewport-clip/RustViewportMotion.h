@@ -1,14 +1,14 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
-#include "ViewportMotion.h"
+#include "MotionTypes.h"
 #include "cc_niri_native_core.h"
 
 namespace CcNiri {
 // Owns one independent Rust state. All motion policy lives in Rust.
 class RustViewportMotion {
 public:
-    using TimePoint = ViewportMotion::TimePoint;
-    static constexpr auto MaxSpringTime = ViewportMotion::MaxSpringTime;
+    using TimePoint = std::chrono::nanoseconds;
+    static constexpr auto MaxSpringTime = std::chrono::seconds(3);
     explicit RustViewportMotion(SpringParams params = {}) noexcept;
     RustViewportMotion(const RustViewportMotion &other) noexcept;
     RustViewportMotion &operator=(const RustViewportMotion &other) noexcept;

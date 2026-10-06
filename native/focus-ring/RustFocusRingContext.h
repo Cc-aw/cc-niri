@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
-#include "FocusRingContext.h"
+#include "FocusRingCandidate.h"
 #include "cc_niri_native_core.h"
 namespace CcNiri {
 // Qt decoding and immutable public status mirrors; Rust owns all authority and

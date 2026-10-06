@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
-#include "ViewportMotion.h"
+#include "reference/ViewportMotion.h"
 #include "RustViewportMotion.h"
 #include <algorithm>
 #include <cmath>

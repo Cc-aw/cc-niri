@@ -1,5 +1,7 @@
 # CC-Niri Rust Native Core 重构实施设计
 
+实施状态（2026-10-06）：R0–R7 已完成，R6 实机验收由用户明确确认通过；生产 Core 固定 Rust，旧 C++ 仅作为冻结测试 oracle。实际验证、发布边界与回滚见 [R7 记录](../../test/RUST_NATIVE_R7_RESULTS.md)。本文保留原设计描述；过渡期开关和目录以当前 README / AGENTS 为准。V3 全套 daily smoke / release gate 属于独立验收，不从 Native 自动测试推定通过。
+
 ## 1. 文档目标
 
 本文定义 CC-Niri Native 层从当前以 C++ 为主的实现，逐步重构为：
@@ -2129,38 +2131,38 @@ doc/done/
 
 Rust Native Core 重构完成必须满足：
 
-- [ ] Rust Cargo workspace 已集成 CMake
-- [ ] Spring 已迁 Rust
-- [ ] ViewportMotion 已迁 Rust
-- [ ] ScrollViewportRuntime 已迁 Rust
-- [ ] C++ Viewport adapter 只保留 KWin 交互
-- [ ] Focus Ring 可迁核心逻辑已迁 Rust
-- [ ] Qt 类型不进入 Rust Core
-- [ ] EffectWindow 指针不进入 Rust Core
-- [ ] Rust panic 不跨 FFI
-- [ ] Rust Core 不使用 async runtime
-- [ ] JS Scroll protocol 行为不变
-- [ ] H/L 行为不变
-- [ ] Spring 参数不变
-- [ ] Retarget 行为不变
-- [ ] incoming / continuing / outgoing 行为不变
-- [ ] Pair/Wide 行为不变
-- [ ] Focus Ring 视觉不变
-- [ ] Workspace W0–W9 行为不变
-- [ ] Rust unit tests 全通过
-- [ ] differential tests 全通过
-- [ ] `cargo clippy` 无 warning
-- [ ] `cargo fmt --check` 通过
-- [ ] `node tools/check.js --native` 通过
-- [ ] Native C++/Rust 混合构建通过
-- [ ] 当前 V3 smoke test 通过
-- [ ] Rust Scroll 实机验收通过
-- [ ] Focus Ring 实机验收通过
-- [ ] mixed-DPI 验收通过
-- [ ] 无新增 `INVARIANT_FAIL`
-- [ ] 无新增 `FAIL_SAFE`
-- [ ] 无新增 compositor crash
-- [ ] Legacy C++ runtime 已删除
+- [x] Rust Cargo workspace 已集成 CMake
+- [x] Spring 已迁 Rust
+- [x] ViewportMotion 已迁 Rust
+- [x] ScrollViewportRuntime 已迁 Rust
+- [x] C++ Viewport adapter 只保留 KWin 交互
+- [x] Focus Ring 可迁核心逻辑已迁 Rust
+- [x] Qt 类型不进入 Rust Core
+- [x] EffectWindow 指针不进入 Rust Core
+- [x] Rust panic 不跨 FFI
+- [x] Rust Core 不使用 async runtime
+- [x] JS Scroll protocol 行为不变
+- [x] H/L 行为不变
+- [x] Spring 参数不变
+- [x] Retarget 行为不变
+- [x] incoming / continuing / outgoing 行为不变
+- [x] Pair/Wide 行为不变
+- [x] Focus Ring 视觉不变
+- [x] Workspace W0–W9 行为不变
+- [x] Rust unit tests 全通过
+- [x] differential tests 全通过
+- [x] `cargo clippy` 无 warning
+- [x] `cargo fmt --check` 通过
+- [x] `node tools/check.js --native` 通过
+- [x] Native C++/Rust 混合构建通过
+- [ ] 当前 V3 完整 daily smoke（独立验收，见 [V3 清单](../../test/V3_DAILY_ACCEPTANCE.md)；本次仅复验 Native 交互）
+- [x] Rust Scroll 实机验收通过
+- [x] Focus Ring 实机验收通过
+- [x] mixed-DPI 验收通过
+- [x] 无新增 `INVARIANT_FAIL`
+- [x] 无新增 `FAIL_SAFE`
+- [x] 无新增 compositor crash
+- [x] Legacy C++ runtime 已删除
 
 ---
 

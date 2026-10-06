@@ -11,6 +11,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 6.6 REQUIRED COMPONENTS Core DBus)
+include(CTest)
+add_subdirectory(../native/rust rust-core)
+include("${CMAKE_CURRENT_LIST_DIR}/../native/common/NativeCore.cmake")
 
 qt_add_executable(cc-scroll-dock-bridge
     src/main.cpp
@@ -18,18 +21,17 @@ qt_add_executable(cc-scroll-dock-bridge
     src/ScrollDockBridge.h
 )
 
-target_link_libraries(cc-scroll-dock-bridge PRIVATE Qt6::Core Qt6::DBus)
+target_link_libraries(cc-scroll-dock-bridge PRIVATE Qt6::Core Qt6::DBus cc-niri-native-adapters)
 
 install(TARGETS cc-scroll-dock-bridge
     RUNTIME DESTINATION "${CMAKE_INSTALL_LIBEXECDIR}"
 )
 
-include(CTest)
 if(BUILD_TESTING)
     qt_add_executable(cc-scroll-motion-plan-tests
         tests/ScrollMotionPlanTest.cpp src/ScrollDockBridge.cpp src/ScrollDockBridge.h)
     target_include_directories(cc-scroll-motion-plan-tests PRIVATE src)
-    target_link_libraries(cc-scroll-motion-plan-tests PRIVATE Qt6::Core Qt6::DBus)
+    target_link_libraries(cc-scroll-motion-plan-tests PRIVATE Qt6::Core Qt6::DBus cc-niri-native-adapters)
     add_test(NAME scroll-motion-protocol COMMAND cc-scroll-motion-plan-tests)
     find_package(Qt6 6.6 REQUIRED COMPONENTS Qml)
     qt_add_executable(cc-niri-workspace-recycle-qobject-tests tests/WorkspaceRecycleQObjectTest.cpp)
@@ -51,6 +53,6 @@ if(BUILD_TESTING)
     qt_add_executable(cc-scroll-dock-bridge-tests
         tests/ScrollDockBridgeTest.cpp src/ScrollDockBridge.cpp src/ScrollDockBridge.h)
     target_include_directories(cc-scroll-dock-bridge-tests PRIVATE src)
-    target_link_libraries(cc-scroll-dock-bridge-tests PRIVATE Qt6::Core Qt6::DBus)
+    target_link_libraries(cc-scroll-dock-bridge-tests PRIVATE Qt6::Core Qt6::DBus cc-niri-native-adapters)
     add_test(NAME workspace-persistence COMMAND cc-scroll-dock-bridge-tests)
 endif()
