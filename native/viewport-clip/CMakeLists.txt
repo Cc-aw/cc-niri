@@ -44,6 +44,8 @@ kcoreaddons_add_plugin(cc-niri-viewport-clip
         main.cpp
         ViewportClipEffect.cpp
         ViewportClipEffect.h
+        WorkspaceSlideAdapter.cpp
+        WorkspaceSlideAdapter.h
         ScrollViewportRuntime.cpp
         ScrollViewportRuntime.h
     INSTALL_NAMESPACE "kwin/effects/plugins"

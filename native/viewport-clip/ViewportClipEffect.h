@@ -5,14 +5,15 @@
 #include "effect/effect.h"
 
 #include "ScrollViewportRuntimeBackend.h"
-#include "NativeScrollProtocolBackend.h"
 #include <QSet>
 #include <QHash>
 #include <QString>
-#include "../../src/protocol/ViewportScrollPlan.h"
+#include <array>
+#include "NativeScrollProtocolBackend.h"
 
 namespace KWin
 {
+class WorkspaceSlideAdapter;
 
 class CcNiriViewportClipEffect : public Effect
 {
@@ -26,6 +27,7 @@ public:
     bool isActive() const override;
     bool blocksDirectScanout() const override;
     int requestedEffectChainPosition() const override;
+    void reconfigure(ReconfigureFlags flags) override;
 
     void prePaintScreen(ScreenPrePaintData &data) override;
     void prePaintWindow(RenderView *view, EffectWindow *window, WindowPrePaintData &data) override;
@@ -42,8 +44,14 @@ public Q_SLOTS:
     Q_SCRIPTABLE void CancelScrollPlan(const QString &json);
     Q_SCRIPTABLE QString GetScrollMotionStatus() const;
     Q_SCRIPTABLE bool WorkspaceTransitionActive() const;
+    Q_SCRIPTABLE void StartWorkspaceFrameCapture();
+    Q_SCRIPTABLE QString GetWorkspaceFrameCapture() const;
 
 private:
+    friend class WorkspaceSlideAdapter;
+    void paintClippedWindow(const RenderTarget &renderTarget, const RenderViewport &viewport,
+        EffectWindow *window, int mask, const Region &deviceRegion, WindowPaintData &data);
+    std::unique_ptr<WorkspaceSlideAdapter> m_workspaceSlide;
     static constexpr int ScrollOwnershipDataRole = 1005;
     static constexpr int ScrollMotionCapabilityDataRole = 1006;
     static constexpr int ViewportClipDataRole = 1001;
@@ -68,6 +76,29 @@ private:
     void updateWindowMarker(EffectWindow *window);
     void forwardMotionCompletion(EffectWindow *window);
     void clearWorkspaceState(LogicalOutput *output);
+    void observeWorkspaceFrames(LogicalOutput *output);
+
+    // Opt-in platform telemetry. No animation clock, scheduling or Core policy.
+    struct WorkspaceFrameSamples {
+        std::array<qint64, 512> timestamps{};
+        size_t count = 0;
+        int refreshRate = 0;
+        bool truncated = false;
+    };
+    struct WorkspaceDesktopEvent {
+        QString outputName;
+        QString previousId;
+        QString currentId;
+        qint64 timestamp = 0;
+    };
+    QHash<LogicalOutput *, QMetaObject::Connection> m_frameConnections;
+    QHash<LogicalOutput *, WorkspaceFrameSamples> m_frameSamples;
+    std::array<WorkspaceDesktopEvent, 16> m_frameDesktopEvents;
+    size_t m_frameDesktopEventCount = 0;
+    qint64 m_frameCaptureStart = 0;
+    qint64 m_frameCaptureDeadline = 0;
+    qint64 m_frameTransitionEnd = 0;
+    bool m_frameEventsTruncated = false;
 
     CcNiri::NativeScrollPlanSequence m_scrollPlanObserver;
     bool m_receivedDockStateSignal = false;

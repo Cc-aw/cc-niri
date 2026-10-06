@@ -21,6 +21,8 @@
 
 开发与验证环境为 Fedora 44、Plasma / KWin 6.7.5、Wayland。原生插件需要匹配的 KWin 开发包，Fedora 为 `kwin-devel`。
 
+仓库通过根 `rust-toolchain.toml` 精确固定 Rust / Cargo **1.99.0**，包含 rustfmt / clippy，并跟踪 `native/rust/Cargo.lock`；使用 rustup 执行 `rustup toolchain install 1.99.0 --profile minimal --component rustfmt --component clippy` 准备工具链。C++ 固定为 **`/usr/bin/g++`、GNU GCC 16.x**；CMake configure 拒绝其他路径、编译器或主版本。CMake 自动调用 Cargo，无需手动预编译 Rust。
+
 ```bash
 ./install.sh
 ```
@@ -62,6 +64,25 @@ Dock 菜单提供 Normal、Focus Wide 和安全区域最大化。原生最大化
 
 在 **系统设置 → 窗口管理 → KWin 脚本** 中配置输出名称、边距、间隔和日志。主屏名称留空时选择最左侧启用的输出。
 
+J/K 请求切换脚本的主屏。KDE 默认会联动所有屏幕；在 KWin 6.7 上执行下列命令可让副屏保留自己的工作区，设置立即生效并保留至下次登录：
+
+```bash
+cc-niri workspace primary
+cc-niri workspace status
+```
+
+`cc-niri workspace global` 恢复 KDE 的双屏联动模式。此设置使用 KWin 原生独立工作区，不移动窗口或模拟工作区；安装 / start 不强制覆盖用户选择。双屏实测与帧时间见 [工作区输出与帧率记录](test/WORKSPACE_OUTPUT_FRAME_RESULTS.md)。
+
+4K 60Hz 可启用独立的 420ms 工作区曲线：平滑起止、有限时间收尾，连续 J/K 从上一绘制位置接管。Rust 负责曲线与投影，KWin 继续管理工作区、窗口和绘制；不调整 KDE 全局动画速度、H/L Spring 或 Wide 参数。此选项默认关闭，启用需要已构建并安装包含该功能的 Native Clip：
+
+```bash
+kwriteconfig6 --file kwinrc --group Effect-cc-niri-viewport-clip --key OptimizedWorkspaceAnimation --type bool true
+kwriteconfig6 --file kwinrc --group Effect-cc-niri-viewport-clip --key WorkspaceDuration 420
+cc-niri restart
+```
+
+启用期间 `cc-niri` 暂停 KDE 原生 Slide，stop 时恢复先前偏好。将 `OptimizedWorkspaceAnimation` 设为 `false` 并 restart 可回到原动画；`WorkspaceDuration` 支持 240–800ms。60Hz 的物理呈现上限仍为每秒 60 帧，实测与限制见 [工作区动画优化记录](test/WORKSPACE_ANIMATION_RESULTS.md)。
+
 所有尺寸使用逻辑像素，不额外乘输出缩放比例：
 
 | 配置 | 主屏默认值 | 副屏默认值 |
@@ -96,6 +117,7 @@ cc-niri restart
 | `src/kwin/` | 窗口与列状态、布局、生命周期、工作区、策略与恢复 |
 | `src/effect/` | 动画状态、采样、retarget 与事务 |
 | `native/viewport-clip/` | 原生绘制裁剪、运动协议与 Spring 数学模块 |
+| `native/rust/` | Rust Spring、Motion、Scroll Runtime 与 C ABI，含差分测试；生产开关默认 OFF |
 | `bridge/` | 事件驱动的 D-Bus IPC 与快照持久化 |
 | `plasmoid/com.cc.scrolltasks/` | 定制任务栏、列顺序同步与窗口操作 |
 | `test/` | 自动测试和阶段验收记录 |
@@ -115,7 +137,72 @@ node tools/check.js
 node tools/check.js --native
 ```
 
-检查涵盖生成文件一致性、生产模块测试和空白检查；`--native` 额外执行 Bridge、原生 Effect、Plasmoid 构建及对应测试。自动测试不替代实机视觉验收。
+检查涵盖生成文件一致性、生产模块测试和空白检查；`--native` 额外执行 Rust fmt/clippy/unit tests、Bridge、原生 Effect、Plasmoid 构建及对应测试（含 C++ → Rust FFI smoke）。自动测试不替代实机视觉验收。
+
+无需 KDE 开发依赖即可验证 Rust 与 FFI：
+
+```bash
+cmake -S native -B build/native-core -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCC_NIRI_BUILD_KWIN_ADAPTERS=OFF -DCMAKE_BUILD_TYPE=Debug
+cmake --build build/native-core
+ctest --test-dir build/native-core --output-on-failure
+cargo test --manifest-path native/rust/Cargo.toml --locked --workspace
+```
+
+CMake `Debug` 对应 Cargo `dev`；`Release`、`RelWithDebInfo`、`MinSizeRel` 对应 Cargo `release`。Rust 产物放在各 CMake 构建树内；FFI 库采用 `panic=abort`，禁止 unwind 穿越 C++。
+
+现有构建树若缓存了 `/usr/bin/c++` 或发行版旧 Rust，重新 configure 时显式传入 `-DCMAKE_CXX_COMPILER=/usr/bin/g++`，并用 `-DCC_NIRI_CARGO_EXECUTABLE="$(command -v cargo)" -DCC_NIRI_RUSTC_EXECUTABLE="$(command -v rustc)"` 更新 Rust 缓存（仅 Native 入口需要）。更换 C++ 编译器可能触发 CMake 缓存重建，应复核安装前缀等自定义选项。
+
+开发约束和必执行测试见根 [AGENTS.md](AGENTS.md) 与 [native/AGENTS.md](native/AGENTS.md)。
+
+Rust Spring（R1）与 ViewportMotion（R2）已移植，源码默认仍使用 C++。两个开发开关默认 OFF：`CC_NIRI_USE_RUST_SPRING` 选择 C++ Motion 的 Spring；`CC_NIRI_USE_RUST_VIEWPORT_MOTION` 将整个 Motion 状态机交给 Rust（内部使用 Rust Spring）。默认 Scroll Runtime 使用 C++；R4 可单独选择 Rust。独立验证 Rust Motion 路径：
+
+```bash
+cmake -S native -B build/native-r2-on -G Ninja -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCC_NIRI_USE_RUST_SPRING=ON -DCC_NIRI_USE_RUST_VIEWPORT_MOTION=ON
+cmake --build build/native-r2-on
+ctest --test-dir build/native-r2-on --output-on-failure
+```
+
+该命令仅构建与测试。独立 Rust Motion 构建已部署并通过[两轮内屏功能 / 视觉验收](test/RUST_NATIVE_R2_LIVE_RESULTS.md)；源码默认 ON 切换尚未执行，mixed DPI 与实机帧时间尚未验收。代码验收见 [R1 记录](test/RUST_NATIVE_R1_RESULTS.md) 与 [R2 记录](test/RUST_NATIVE_R2_RESULTS.md)。
+
+Rust ScrollViewportRuntime（R3）的 Core、C ABI、Qt 转换层、差分与集成测试已完成。`CC_NIRI_TEST_RUST_SCROLL_RUNTIME` 默认 OFF，可仅切换测试中的 runtime。独立执行 R3 验证：
+
+```bash
+cmake -S native -B build/native-r3-tests -G Ninja -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCC_NIRI_USE_RUST_SPRING=OFF -DCC_NIRI_USE_RUST_VIEWPORT_MOTION=OFF -DCC_NIRI_TEST_RUST_SCROLL_RUNTIME=ON
+cmake --build build/native-r3-tests
+ctest --test-dir build/native-r3-tests --output-on-failure
+```
+
+结果与性能限制见 [R3 记录](test/RUST_NATIVE_R3_RESULTS.md)。Debug / Release Core CTest 的 reference harness 需要 Qt6 Core，Rust crate 本身不依赖 Qt。
+
+R4 新增生产开关 `CC_NIRI_USE_RUST_SCROLL_RUNTIME`（默认 OFF），将 Viewport Clip 的 runtime 交给 Rust；KWin hooks、平台对象生命周期与绘制仍在 C++。Scroll 与 Focus Ring 组合测试自动跟随生产 backend，验收构建关闭 R3 测试覆盖，避免只测试到覆盖路径。Rust Scroll 内部使用 Rust Motion / Spring，两个旧数学开关只控制保留的 C++ runtime。独立构建：
+
+```bash
+cmake -S native -B build/native-r4-on -G Ninja -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="$HOME/.local" -DKDE_INSTALL_PLUGINDIR=lib64/qt6/plugins -DCC_NIRI_USE_RUST_SPRING=ON -DCC_NIRI_USE_RUST_VIEWPORT_MOTION=ON -DCC_NIRI_USE_RUST_SCROLL_RUNTIME=ON -DCC_NIRI_TEST_RUST_SCROLL_RUNTIME=OFF
+cmake --build build/native-r4-on
+ctest --test-dir build/native-r4-on --output-on-failure
+```
+
+这些命令仅构建和测试。R4 独立构建已部署，用户反馈“功能全部正常”，内屏功能 / 视觉验收通过；部署与证据见 [R4 记录](test/RUST_NATIVE_R4_RESULTS.md)。只读 `GetScrollMotionStatus` 的 `scrollRuntimeBackend` 标识实际加载的生产路径。mixed DPI、实际帧时间与长期稳定性待验证；保留默认 C++、R2 immutable 插件及差分 baseline。
+
+R5 通过 `CC_NIRI_USE_RUST_FOCUS_RING_CORE`（默认 OFF）选择 Ring 数值快照、描边 / 圆角 / 像素对齐与 decoration padding 的 Rust 实现。KWin 唯一 owner、Scene Item、QPainter 栅格化、paint hooks 和 damage 提交仍由 C++ 负责；没有新增 Ring 动画时钟或修改 JS eligibility 协议。两个插件及现有 Ring Phase 1–6 测试共用此开关：
+
+```bash
+cmake -S native -B build/native-r5-on -G Ninja -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="$HOME/.local" -DKDE_INSTALL_PLUGINDIR=lib64/qt6/plugins -DCC_NIRI_USE_RUST_SPRING=ON -DCC_NIRI_USE_RUST_VIEWPORT_MOTION=ON -DCC_NIRI_USE_RUST_SCROLL_RUNTIME=ON -DCC_NIRI_TEST_RUST_SCROLL_RUNTIME=OFF -DCC_NIRI_USE_RUST_FOCUS_RING_CORE=ON
+cmake --build build/native-r5-on
+ctest --test-dir build/native-r5-on --output-on-failure
+```
+
+命令仅构建和测试。R5 独立构建已部署，用户反馈“功能正常”，内屏功能 / 视觉验收通过；HiDPI / fractional scale / mixed DPI 实机、实际帧时间与长期稳定性待验证。生产 Ring 的 `coreBackend` 与 Viewport Clip 的 `decorationGeometryBackend` 只读字段用于核验实际 backend；差分、性能、部署与验收证据见 [R5 记录](test/RUST_NATIVE_R5_RESULTS.md)。
+
+R6 使用共享的 Rust Native Protocol 类型与 sequence，并通过 `CC_NIRI_USE_RUST_NATIVE_PROTOCOL`（默认 OFF）选择 Scroll observer / validator 与 Ring eligibility policy。Scroll v2、独立 Ring v1、JS schema 与 KWin 唯一 owner 保留；两个插件的 `nativeProtocolBackend` 为只读加载诊断。代码和自动门禁已通过，独立构建已部署；用户反馈一般功能正常，[Pair→Wide 动画中 J/K 邻窗重叠](test/WORKSPACE_WIDE_DEPARTURE_RESULTS.md)的第二版交接修复已由用户确认成功。随后报告的双屏联动已启用原生主屏独立切换，普通 J/K 实测约 60fps，详见 [输出与帧率记录](test/WORKSPACE_OUTPUT_FRAME_RESULTS.md)及 [R6 记录](test/RUST_NATIVE_R6_RESULTS.md)。
+
+```bash
+cmake -S native -B build/native-r6-on -G Ninja -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="$HOME/.local" -DKDE_INSTALL_PLUGINDIR=lib64/qt6/plugins -DCC_NIRI_USE_RUST_SPRING=ON -DCC_NIRI_USE_RUST_VIEWPORT_MOTION=ON -DCC_NIRI_USE_RUST_SCROLL_RUNTIME=ON -DCC_NIRI_USE_RUST_FOCUS_RING_CORE=ON -DCC_NIRI_USE_RUST_NATIVE_PROTOCOL=ON -DCC_NIRI_TEST_RUST_SCROLL_RUNTIME=OFF
+cmake --build build/native-r6-on
+ctest --test-dir build/native-r6-on --output-on-failure
+```
+
+命令仅构建和测试。保留 C++ reference、R5 回滚插件与原有开关；R6 实机反馈与 R7 默认 Rust / 稳定使用等删除条件按阶段记录推进。
 
 ## 日志与兼容性
 

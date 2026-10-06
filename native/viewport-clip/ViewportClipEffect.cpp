@@ -5,6 +5,8 @@
 
 #include "core/renderviewport.h"
 #include "core/output.h"
+#include "core/backendoutput.h"
+#include "core/renderloop.h"
 #include "virtualdesktops.h"
 #include "effect/effecthandler.h"
 #include "effect/effectwindow.h"
@@ -22,10 +24,11 @@
 #include <QVariantMap>
 #include <QDateTime>
 #include "WorkspaceClipBarrier.h"
+#include "WorkspaceSlideAdapter.h"
 #include <utility>
 #include <chrono>
 
-Q_LOGGING_CATEGORY(CC_NIRI_VIEWPORT_CLIP, "cc.niri.viewport.clip")
+Q_LOGGING_CATEGORY(CC_NIRI_VIEWPORT_CLIP, "cc.niri.viewport.clip", QtInfoMsg)
 
 namespace KWin
 {
@@ -46,16 +49,42 @@ static QRectF scrollGeometry(EffectWindow *window)
 
 CcNiriViewportClipEffect::CcNiriViewportClipEffect()
 {
+    // Connect the workspace renderer first, so the existing barriers and Wide
+    // freeze guard see the active fullscreen owner on desktopChanged.
+    m_workspaceSlide = std::make_unique<WorkspaceSlideAdapter>(this);
     m_scrollEndpointRegistered = QDBusConnection::sessionBus().registerObject(
         QStringLiteral("/ccNiriViewportMotion"), this, QDBusConnection::ExportScriptableSlots);
     if (!m_scrollEndpointRegistered) qCWarning(CC_NIRI_VIEWPORT_CLIP) << "scroll arm endpoint unavailable";
     connect(effects, &EffectsHandler::screenRemoved, this, [this](LogicalOutput *) { clearScrollState(); });
+    for (auto *output : effects->screens()) observeWorkspaceFrames(output);
+    connect(effects, &EffectsHandler::screenAdded, this, &CcNiriViewportClipEffect::observeWorkspaceFrames);
+    connect(effects, &EffectsHandler::screenRemoved, this, [this](LogicalOutput *output) {
+        disconnect(m_frameConnections.take(output));
+        m_frameSamples.remove(output);
+    });
+    connect(effects, &EffectsHandler::hasActiveFullScreenEffectChanged, this, [this]() {
+        const auto now = motionNow().count();
+        if (m_frameDesktopEventCount && now < m_frameCaptureDeadline && !effects->hasActiveFullScreenEffect()) {
+            m_frameTransitionEnd = now;
+        }
+    });
     connect(effects, &EffectsHandler::windowDeleted, this, [this](EffectWindow *window) {
         m_scrollRuntime.remove(scrollWindowId(window));
         m_activeWindows.remove(window); m_motionPlanWindows.remove(window);
     });
     connect(effects, &EffectsHandler::desktopChanged, this,
-            [this](VirtualDesktop *, VirtualDesktop *, EffectWindow *, LogicalOutput *output) {
+            [this](VirtualDesktop *previous, VirtualDesktop *current, EffectWindow *, LogicalOutput *output) {
+                const auto now = motionNow().count();
+                if (now < m_frameCaptureDeadline) {
+                    if (m_frameDesktopEventCount < m_frameDesktopEvents.size()) {
+                        m_frameDesktopEvents[m_frameDesktopEventCount++] = {
+                            output ? output->name() : QString(), previous ? previous->id() : QString(),
+                            current ? current->id() : QString(), now};
+                    } else {
+                        m_frameEventsTruncated = true;
+                    }
+                    m_frameTransitionEnd = 0;
+                }
                 clearWorkspaceState(output);
             });
     for (EffectWindow *window : effects->stackingOrder()) {
@@ -120,11 +149,15 @@ CcNiriViewportClipEffect::CcNiriViewportClipEffect()
         if (!reply.isError() && !m_receivedDockStateSignal) onDockStateChanged(reply.value());
         watcher->deleteLater();
     });
-    qCInfo(CC_NIRI_VIEWPORT_CLIP) << "[VIEWPORT_CLIP_NATIVE] READY";
+    qCInfo(CC_NIRI_VIEWPORT_CLIP) << "[VIEWPORT_CLIP_NATIVE] READY scrollRuntimeBackend=" << CcNiri::scrollRuntimeBackendName();
 }
 
 CcNiriViewportClipEffect::~CcNiriViewportClipEffect()
 {
+    // Relinquishing fullscreen ownership synchronously calls the Script Guard.
+    // Keep the adapter alive until those callbacks have released the Wide pose.
+    m_workspaceSlide->stop();
+    m_workspaceSlide.reset();
     if (m_scrollEndpointRegistered) QDBusConnection::sessionBus().unregisterObject(QStringLiteral("/ccNiriViewportMotion"));
     clearScrollState();
     for (EffectWindow *window : effects->stackingOrder()) {
@@ -140,7 +173,8 @@ void CcNiriViewportClipEffect::clearWorkspaceState(LogicalOutput *output)
     clearScrollState();
     m_workspaceBarriers.insert(output, QDateTime::currentMSecsSinceEpoch());
     clearWorkspaceClipWindows(effects->stackingOrder(), output, m_activeWindows,
-        m_motionPlanWindows, ViewportClipDataRole, MotionPlanDataRole, MotionCompleteDataRole);
+        m_motionPlanWindows, ViewportClipDataRole, MotionPlanDataRole, MotionCompleteDataRole,
+        effects->hasActiveFullScreenEffect());
     m_loggedDeviceClips.clear();
     effects->addRepaintFull();
     qCInfo(CC_NIRI_VIEWPORT_CLIP) << "[WORKSPACE_CLIP_NATIVE] CLEAR";
@@ -311,13 +345,87 @@ bool CcNiriViewportClipEffect::WorkspaceTransitionActive() const
     return effects->hasActiveFullScreenEffect();
 }
 
+void CcNiriViewportClipEffect::observeWorkspaceFrames(LogicalOutput *output)
+{
+    auto *backend = output->backendOutput();
+    auto *loop = backend ? backend->renderLoop() : nullptr;
+    if (!loop || m_frameConnections.contains(output)) return;
+    m_frameConnections.insert(output, connect(loop, &RenderLoop::framePresented, this,
+        [this, output](RenderLoop *, std::chrono::nanoseconds timestamp, PresentationMode) {
+            // KWin supplies actual monotonic presentation timestamps. Recording
+            // stops after three seconds and allocates nothing in this callback.
+            if (!m_frameCaptureDeadline || timestamp.count() < m_frameCaptureStart ||
+                    timestamp.count() > m_frameCaptureDeadline) return;
+            auto entry = m_frameSamples.find(output);
+            if (entry == m_frameSamples.end()) return;
+            auto &samples = entry.value();
+            if (samples.count < samples.timestamps.size()) {
+                samples.timestamps[samples.count++] = timestamp.count();
+            } else {
+                samples.truncated = true;
+            }
+        }));
+}
+
+void CcNiriViewportClipEffect::StartWorkspaceFrameCapture()
+{
+    m_frameCaptureStart = motionNow().count();
+    m_frameCaptureDeadline = m_frameCaptureStart + 3000000000LL;
+    m_frameTransitionEnd = 0;
+    m_frameDesktopEventCount = 0;
+    m_frameEventsTruncated = false;
+    m_frameSamples.clear();
+    for (auto *output : effects->screens()) {
+        auto *backend = output->backendOutput();
+        auto *loop = backend ? backend->renderLoop() : nullptr;
+        if (!loop) continue;
+        WorkspaceFrameSamples samples;
+        samples.refreshRate = loop->refreshRate();
+        m_frameSamples.insert(output, samples);
+    }
+}
+
+QString CcNiriViewportClipEffect::GetWorkspaceFrameCapture() const
+{
+    QJsonArray outputs;
+    for (auto it = m_frameSamples.cbegin(); it != m_frameSamples.cend(); ++it) {
+        QJsonArray timestamps;
+        const auto &samples = it.value();
+        for (size_t i = 0; i < samples.count; ++i) {
+            timestamps.append(double(samples.timestamps[i] - m_frameCaptureStart) / 1000000.0);
+        }
+        outputs.append(QJsonObject{{QStringLiteral("outputName"), it.key()->name()},
+            {QStringLiteral("refreshHz"), samples.refreshRate / 1000.0},
+            {QStringLiteral("presentedMs"), timestamps}, {QStringLiteral("truncated"), samples.truncated}});
+    }
+    QJsonArray desktops;
+    for (size_t i = 0; i < m_frameDesktopEventCount; ++i) {
+        const auto &event = m_frameDesktopEvents[i];
+        desktops.append(QJsonObject{{QStringLiteral("outputName"), event.outputName},
+            {QStringLiteral("previousId"), event.previousId}, {QStringLiteral("currentId"), event.currentId},
+            {QStringLiteral("atMs"), double(event.timestamp - m_frameCaptureStart) / 1000000.0}});
+    }
+    const QJsonObject capture{{QStringLiteral("source"), QStringLiteral("KWin::RenderLoop::framePresented")},
+        {QStringLiteral("active"), m_frameCaptureDeadline > motionNow().count()},
+        {QStringLiteral("transitionEndMs"), m_frameTransitionEnd ?
+            QJsonValue(double(m_frameTransitionEnd - m_frameCaptureStart) / 1000000.0) : QJsonValue()},
+        {QStringLiteral("desktopEventsTruncated"), m_frameEventsTruncated},
+        {QStringLiteral("desktopChanges"), desktops}, {QStringLiteral("outputs"), outputs}};
+    return QString::fromUtf8(QJsonDocument(capture).toJson(QJsonDocument::Compact));
+}
+
 QString CcNiriViewportClipEffect::GetScrollMotionStatus() const
 {
     auto status = m_scrollRuntime.status();
+    status.insert(QStringLiteral("scrollRuntimeBackend"), CcNiri::scrollRuntimeBackendName());
     status.insert(QStringLiteral("nativeProtocolBackend"), QString::fromLatin1(CcNiri::NativeProtocolBackendName));
     status.insert(QStringLiteral("decorationGeometryBackend"), QString::fromLatin1(CcNiri::FocusRingCoreBackendName));
-    status.insert(QStringLiteral("scrollRuntimeBackend"), CcNiri::scrollRuntimeBackendName());
     status.insert(QStringLiteral("workspaceRemovalGate"), QStringLiteral("compositor-idle"));
+    status.insert(QStringLiteral("workspaceDepartureVisual"), QStringLiteral("freeze-wide-until-compositor-idle"));
+    status.insert(QStringLiteral("workspaceAnimationBackend"), QStringLiteral("RustFiniteCurve"));
+    status.insert(QStringLiteral("workspaceAnimationEnabled"), m_workspaceSlide->enabled());
+    status.insert(QStringLiteral("workspaceAnimationActive"), m_workspaceSlide->active());
+    status.insert(QStringLiteral("workspaceAnimationDuration"), m_workspaceSlide->duration());
     status.insert(QStringLiteral("paintClip"), QStringLiteral("viewport-with-decoration-outsets"));
     return QString::fromUtf8(QJsonDocument(status).toJson(QJsonDocument::Compact));
 }
@@ -344,10 +452,7 @@ void CcNiriViewportClipEffect::updateScrollOwnership()
             continue;
         }
         const auto rect = targets.value(id);
-        auto status = m_scrollRuntime.status();
-    status.insert(QStringLiteral("nativeProtocolBackend"), QString::fromLatin1(CcNiri::NativeProtocolBackendName));
-    status.insert(QStringLiteral("decorationGeometryBackend"), QString::fromLatin1(CcNiri::FocusRingCoreBackendName));
-    status.insert(QStringLiteral("scrollRuntimeBackend"), CcNiri::scrollRuntimeBackendName());
+        const auto status = m_scrollRuntime.status();
         const QVariantMap marker{{QStringLiteral("protocol"), 2}, {QStringLiteral("type"), QStringLiteral("SCROLL")},
             {QStringLiteral("sessionId"), status.value(QStringLiteral("sessionId")).toString()},
             {QStringLiteral("workspaceId"), status.value(QStringLiteral("workspaceId")).toString()},
@@ -365,6 +470,7 @@ void CcNiriViewportClipEffect::clearScrollState()
 }
 void CcNiriViewportClipEffect::prePaintScreen(ScreenPrePaintData &data)
 {
+    m_workspaceSlide->prePaintScreen(data);
     // Sample once per compositor paint pass. All continuing columns share it.
     if (m_scrollRuntime.active()) {
         if (!m_scrollRuntime.advance(motionNow())) updateScrollOwnership();
@@ -374,12 +480,14 @@ void CcNiriViewportClipEffect::prePaintScreen(ScreenPrePaintData &data)
 }
 void CcNiriViewportClipEffect::prePaintWindow(RenderView *view, EffectWindow *window, WindowPrePaintData &data)
 {
-    if (m_scrollRuntime.projection(scrollWindowId(window), scrollGeometry(window))) data.setTransformed();
+    m_workspaceSlide->prePaintWindow(window, data);
+    if (m_scrollRuntime.active() && m_scrollRuntime.projection(scrollWindowId(window), scrollGeometry(window))) data.setTransformed();
     effects->prePaintWindow(view, window, data);
 }
 void CcNiriViewportClipEffect::postPaintScreen()
 {
     effects->postPaintScreen();
+    m_workspaceSlide->postPaintScreen();
     if (m_scrollRuntime.active() && !m_scrollRuntime.completed()) effects->addRepaintFull();
 }
 
@@ -428,7 +536,7 @@ void CcNiriViewportClipEffect::advertiseCapability(EffectWindow *window, bool av
 
 bool CcNiriViewportClipEffect::isActive() const
 {
-    return m_scrollRuntime.active() || !m_activeWindows.isEmpty();
+    return (m_workspaceSlide && m_workspaceSlide->active()) || m_scrollRuntime.active() || !m_activeWindows.isEmpty();
 }
 
 bool CcNiriViewportClipEffect::blocksDirectScanout() const
@@ -441,6 +549,11 @@ int CcNiriViewportClipEffect::requestedEffectChainPosition() const
     // The scripted motion effect uses the default position 0. Clip after it
     // has applied paint translation, immediately before the scene renderer.
     return 95;
+}
+
+void CcNiriViewportClipEffect::reconfigure(ReconfigureFlags)
+{
+    m_workspaceSlide->reconfigure();
 }
 
 void CcNiriViewportClipEffect::updateWindowMarker(EffectWindow *window)
@@ -485,7 +598,16 @@ void CcNiriViewportClipEffect::paintWindow(const RenderTarget &renderTarget,
                                             const Region &deviceRegion,
                                             WindowPaintData &data)
 {
-    const auto projection = m_scrollRuntime.projection(scrollWindowId(window), scrollGeometry(window));
+    if (m_workspaceSlide->paintWindow(renderTarget, viewport, window, mask, deviceRegion, data)) return;
+    paintClippedWindow(renderTarget, viewport, window, mask, deviceRegion, data);
+}
+
+void CcNiriViewportClipEffect::paintClippedWindow(const RenderTarget &renderTarget,
+    const RenderViewport &viewport, EffectWindow *window, int mask,
+    const Region &deviceRegion, WindowPaintData &data)
+{
+    const auto projection = m_scrollRuntime.active()
+        ? m_scrollRuntime.projection(scrollWindowId(window), scrollGeometry(window)) : std::nullopt;
     if (projection) {
         data.setXTranslation(data.xTranslation() + projection->translationX);
         const auto &rect = projection->viewport;
@@ -500,28 +622,36 @@ void CcNiriViewportClipEffect::paintWindow(const RenderTarget &renderTarget,
         return;
     }
 
-    const RectF logicalClip(marker.value(QStringLiteral("x")).toDouble(),
+    RectF logicalClip(marker.value(QStringLiteral("x")).toDouble(),
                             marker.value(QStringLiteral("y")).toDouble(),
                             marker.value(QStringLiteral("width")).toDouble(),
                             marker.value(QStringLiteral("height")).toDouble());
+    if (marker.value(QStringLiteral("workspaceDeparture")).toBool()) {
+        // Pair/Wide channels have no vertical movement. Slide's downstream
+        // translation must move the viewport with its departing desktop.
+        logicalClip = logicalClip.translated(0, data.yTranslation());
+    }
     if (!logicalClip.isValid()) {
         effects->paintWindow(renderTarget, viewport, window, mask, deviceRegion, data);
         return;
     }
 
-    const Rect deviceClip = viewport.mapToDeviceCoordinates(logicalClip).rounded();
-    const QString logKey = QStringLiteral("%1:%2,%3,%4,%5")
-        .arg(marker.value(QStringLiteral("transactionId")).toString())
-        .arg(deviceClip.x())
-        .arg(deviceClip.y())
-        .arg(deviceClip.width())
-        .arg(deviceClip.height());
-    if (!m_loggedDeviceClips.contains(logKey)) {
-        m_loggedDeviceClips.insert(logKey);
-        qCInfo(CC_NIRI_VIEWPORT_CLIP)
-            << "[VIEWPORT_CLIP_NATIVE] MAP"
-            << "logical=" << logicalClip
-            << "device=" << deviceClip;
+    // Moving workspace clips change every frame. Keep device mapping diagnostics
+    // opt-in; ordinary paint must not format strings or write to the journal.
+    if (CC_NIRI_VIEWPORT_CLIP().isDebugEnabled()) {
+        const Rect deviceClip = viewport.mapToDeviceCoordinates(logicalClip).rounded();
+        const QString logKey = QStringLiteral("%1:%2:%3:%4")
+            .arg(marker.value(QStringLiteral("transactionId")).toString())
+            .arg(marker.value(QStringLiteral("role")).toString())
+            .arg(viewport.scale())
+            .arg(marker.value(QStringLiteral("workspaceDeparture")).toBool());
+        if (m_loggedDeviceClips.size() < 256 && !m_loggedDeviceClips.contains(logKey)) {
+            m_loggedDeviceClips.insert(logKey);
+            qCDebug(CC_NIRI_VIEWPORT_CLIP)
+                << "[VIEWPORT_CLIP_NATIVE] MAP"
+                << "logical=" << logicalClip
+                << "device=" << deviceClip;
+        }
     }
 
     const Region clipped = viewportPaintClip(window->windowItem(), viewport, logicalClip, deviceRegion);

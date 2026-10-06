@@ -11,7 +11,7 @@ SERVICE=cc-scroll-dock-bridge.service
 COMPAT_GROUP=CCNiriCompatibility
 INSTALLED_MAIN="${XDG_DATA_HOME:-${HOME}/.local/share}/kwin/scripts/${PLUGIN_ID}/contents/code/main.js"
 
-usage() { echo 'Usage: cc-niri {start|stop|restart|status|help} | focus-ring {on|off|status}'; }
+usage() { echo 'Usage: cc-niri {start|stop|restart|status|help} | focus-ring {on|off|status} | workspace {primary|global|status}'; }
 fail() { echo "cc-niri: $*" >&2; exit 1; }
 kwin() { local path="$1" method="$2"; shift 2; gdbus call --session --dest org.kde.KWin --object-path "$path" --method "$method" "$@"; }
 script_loaded() {
@@ -58,6 +58,30 @@ kwin4_effect_geometry_change GeometryChangeWasEnabled
 squash SquashWasEnabled
 magiclamp MagicLampWasEnabled
 EFFECTS
+    workspace_animation_compatibility "$mode"
+}
+
+workspace_animation_compatibility() {
+    local previous
+    if [[ "$1" == start ]]; then
+        [[ "$(kreadconfig6 --file kwinrc --group "Effect-${CLIP_ID}" --key OptimizedWorkspaceAnimation --default false)" == true ]] || return 0
+        # Slide is enabled by default in KWin. Save the preference once, including
+        # an explicit false, so restarting cc-niri never captures its own override.
+        previous="$(kreadconfig6 --file kwinrc --group "$COMPAT_GROUP" --key SlideWasEnabled --default unset)"
+        if [[ "$previous" == unset ]]; then
+            previous="$(kreadconfig6 --file kwinrc --group Plugins --key slideEnabled --default true)"
+            kwriteconfig6 --file kwinrc --group "$COMPAT_GROUP" --key SlideWasEnabled --type bool "$previous"
+        fi
+        enable_plugin slide false
+        kwin /Effects org.kde.kwin.Effects.unloadEffect slide >/dev/null
+    else
+        previous="$(kreadconfig6 --file kwinrc --group "$COMPAT_GROUP" --key SlideWasEnabled --default unset)"
+        if [[ "$previous" == true || "$previous" == false ]]; then
+            enable_plugin slide "$previous"
+            if [[ "$previous" == true ]]; then kwin /Effects org.kde.kwin.Effects.loadEffect slide >/dev/null; fi
+            kwriteconfig6 --file kwinrc --group "$COMPAT_GROUP" --key SlideWasEnabled --delete
+        fi
+    fi
 }
 
 ring_status() {
@@ -94,6 +118,38 @@ focus_ring() {
     esac
 }
 
+workspace_mode() {
+    local support mode previous attempt
+    support="$(kwin /KWin org.kde.KWin.supportInformation)" || fail 'Cannot query KWin workspace support.'
+    [[ "$support" =~ perOutputVirtualDesktops:\ (true|false) ]] ||
+        fail 'This KWin does not support independent workspaces per output (KWin 6.7 is required).'
+    previous="${BASH_REMATCH[1]}"
+    if [[ "$1" == status ]]; then
+        echo "Independent workspaces per output: $previous (Meta+J/K target the cc-niri primary screen)."
+        return
+    fi
+    mode=false
+    [[ "$1" != primary ]] || mode=true
+    [[ "$previous" != "$mode" ]] || return 0
+    kwriteconfig6 --file kwinrc --group Windows --key PerOutputVirtualDesktops --type bool "$mode"
+    if ! kwin /KWin org.kde.KWin.reconfigure >/dev/null; then
+        kwriteconfig6 --file kwinrc --group Windows --key PerOutputVirtualDesktops --type bool "$previous"
+        fail 'Cannot apply workspace mode; restored the previous setting.'
+    fi
+    # KWin queues reconfigure on a timer; its D-Bus reply is not an apply ACK.
+    for attempt in {1..20}; do
+        support="$(kwin /KWin org.kde.KWin.supportInformation)" || break
+        if [[ "$support" == *"perOutputVirtualDesktops: $mode"* ]]; then
+            echo "Workspace switching: $1."
+            return
+        fi
+        sleep 0.1
+    done
+    kwriteconfig6 --file kwinrc --group Windows --key PerOutputVirtualDesktops --type bool "$previous"
+    kwin /KWin org.kde.KWin.reconfigure >/dev/null || true
+    fail 'Cannot verify workspace mode; restored the previous setting.'
+}
+
 start_niri() {
     [[ -f "$INSTALLED_MAIN" ]] || fail 'Script is not installed. Run ./install.sh in the repository first.'
     if script_loaded; then
@@ -118,6 +174,22 @@ start_niri() {
         reply="$(kwin /Effects org.kde.kwin.Effects.loadEffect "$effect")"
         [[ "$reply" == '(true,)' ]] || fail "Unable to load effect: $effect"
     done
+    # KWin's queued global reconfigure does not reread an already loaded effect's
+    # settings. This synchronous API reparses kwinrc before applying Clip config.
+    kwin /Effects org.kde.kwin.Effects.reconfigureEffect "$CLIP_ID" >/dev/null
+    if [[ "$(kreadconfig6 --file kwinrc --group "Effect-${CLIP_ID}" --key OptimizedWorkspaceAnimation --default false)" == true ]]; then
+        local native_status
+        native_status="$(kwin /ccNiriViewportMotion org.cc.NiriViewportMotion1.GetScrollMotionStatus 2>/dev/null || true)"
+        if [[ "$native_status" != *'"workspaceAnimationEnabled":true'* ]]; then
+            # An older / unsupported plugin must not leave KDE Slide disabled.
+            for effect in "$EFFECT_ID" "$CLIP_ID"; do
+                enable_plugin "$effect" false
+                kwin /Effects org.kde.kwin.Effects.unloadEffect "$effect" >/dev/null
+            done
+            workspace_animation_compatibility stop
+            fail 'Native workspace animation did not enable; restored the Slide preference. Install the current Native Clip or disable OptimizedWorkspaceAnimation.'
+        fi
+    fi
     reply="$(kwin /Scripting org.kde.kwin.Scripting.loadScript "$INSTALLED_MAIN" "$PLUGIN_ID")"
     [[ "$reply" =~ ^\(([0-9]+),\)$ ]] || fail "Unable to load script: $reply"
     script_id="${BASH_REMATCH[1]}"
@@ -162,6 +234,7 @@ status_niri() {
 case "${1:-help}" in
     help|-h|--help) usage; exit 0 ;;
     focus-ring) [[ $# == 2 && "$2" =~ ^(on|off|status)$ ]] || { usage >&2; exit 2; } ;;
+    workspace) [[ $# == 2 && "$2" =~ ^(primary|global|status)$ ]] || { usage >&2; exit 2; } ;;
     start|stop|restart|status) [[ $# == 1 ]] || { usage >&2; exit 2; } ;;
     *) usage >&2; exit 2 ;;
 esac
@@ -174,4 +247,5 @@ case "$1" in
     restart) stop_niri; start_niri ;;
     status) status_niri ;;
     focus-ring) focus_ring "$2" ;;
+    workspace) workspace_mode "$2" ;;
 esac

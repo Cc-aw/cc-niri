@@ -1,6 +1,6 @@
 # 设计文档索引
 
-按当前源码、Git 实施记录和验收结果整理，更新于 2026-10-05。
+按当前源码、Git 实施记录和验收结果整理，更新于 2026-10-06。
 
 旧 `docx/` 的 8 份 Markdown 已核对正文与对应设计一致，统一合并到下列 `done/`、`todo/`；重复副本及旧目录已移除。
 
@@ -9,6 +9,13 @@
 - 验收结果保留在 [`test/`](../test/)，源码职责以当前实现和仓库 [README](../README.md) 为准。
 
 ## 本轮专项目标与结果
+
+Rust Native Core 重构已完成 R0 基础设施、工具链固定及 R1 Spring、R2 ViewportMotion、R3 ScrollViewportRuntime 的代码阶段本地验收。Rust Spring / Motion 已接入默认 OFF 的开发开关，源码默认仍为 C++；R2 独立 Rust 构建已部署并通过两轮内屏功能 / 视觉验收。R4 已新增默认 OFF 的 Rust Scroll 生产接入，独立构建部署后通过内屏功能 / 视觉验收；R5 Focus Ring 数值 Core 已完成生产接入、自动门禁与内屏功能 / 视觉验收，见阶段记录；源码默认 ON、mixed DPI 完整交互矩阵与长期稳定性待验证；R6 Native Protocol 代码和自动门禁已完成、独立构建已部署，用户一般功能反馈正常，[Pair→Wide 动画中 J/K](../test/WORKSPACE_WIDE_DEPARTURE_RESULTS.md)的第二版修复已由用户确认成功。随后报告的双屏联动已通过原生独立工作区处理，普通切换实测约 60fps，见 [输出与帧率记录](../test/WORKSPACE_OUTPUT_FRAME_RESULTS.md)；人工流畅度复验待反馈，R7 待推进。
+
+| 文档 | 当前状态 |
+| --- | --- |
+| [Rust Native Core 总设计](todo/CC-Niri%20Rust%20Native%20Core%20重构实施设计.md) | R0 与固定工具链已实现，见 [R0 记录](../test/RUST_NATIVE_R0_RESULTS.md)；R1 首次实现通过本地门禁，见 [R1 记录](../test/RUST_NATIVE_R1_RESULTS.md)；R2 见 [Motion 记录](../test/RUST_NATIVE_R2_RESULTS.md)，两开关尚未默认 ON；[R2 实机](../test/RUST_NATIVE_R2_LIVE_RESULTS.md) 已单独部署，两轮内屏功能 / 视觉验收通过，mixed DPI 与帧时间待验收；[R3 代码阶段](../test/RUST_NATIVE_R3_RESULTS.md) 已完成；[R4 记录](../test/RUST_NATIVE_R4_RESULTS.md) 已记录生产接入、自动门禁、部署与内屏功能 / 视觉通过；[R5 记录](../test/RUST_NATIVE_R5_RESULTS.md) 已记录 Ring Core 迁移、自动门禁、部署与内屏验收通过。[R6 记录](../test/RUST_NATIVE_R6_RESULTS.md) 记录共享类型、sequence、Ring eligibility、完整门禁与部署，用户一般功能反馈正常，工作区离开视觉修复已由用户确认成功；[双屏与帧时间](../test/WORKSPACE_OUTPUT_FRAME_RESULTS.md)已完成普通 J/K 采样，人工流畅度、完整 HiDPI / mixed DPI 交互与长期稳定性待验证。 |
+| [R1 Spring 迁移准备](todo/CC-Niri%20Rust%20Native%20R1%20Spring%20迁移实施准备.md) | 首次实现按此准备完成：Rust Spring、差分、FFI 与默认 OFF 开关；ON 构建已通过 Native CTest；Rust Motion（包含 Rust Spring）已通过 R2 两轮内屏验收，单独 R1 路径及默认 ON 尚未推进。 |
 
 2026-10-01 用户明确指定以下两个目标，并确认先实现 ViewOffset Spring，再实现 Focus Ring；优先于 Quickshell 后续视觉升级：
 
@@ -23,6 +30,7 @@
 
 | 文档 | 状态 / 依据 |
 | --- | --- |
+| [4K 60Hz 工作区动画](../test/WORKSPACE_ANIMATION_RESULTS.md) | 独立 Rust 420ms 曲线已部署；完整自动门禁与主屏普通 / 反向呈现采样通过，人工 Wide / 流畅度待验收。 |
 | [Focus Ring](done/cc-niri_Focus_Ring_实现设计.md) | Phase 1–6 内屏范围已完成、部署并通过用户验收，见 [Phase 6 记录](../test/FOCUS_RING_PHASE6_RESULTS.md)；Phase 4 / 6 计划同步归档。额外 [Phase 7 提案](done/cc-niri_Focus_Ring_Phase7_收尾加固_实施计划.md) 取消实施，仅保留历史记录。双屏不属于本轮范围。 |
 | [V1 Safe Area](done/cc-niri-maximize_Codex_Implementation_Spec.md) | 已实现；早期最大化方案，当前由 V3 列布局接续。 |
 | [V2 Safe Area / Quick Tile](done/cc-niri-maximize_V2_SafeArea_QuickTile_InnerGap_Codex_Spec.md) | 已实现；主屏 Safe Area 与 gap 基础。 |

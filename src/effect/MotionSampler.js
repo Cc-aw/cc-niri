@@ -72,7 +72,8 @@ function sampleMotionState(state, now) {
             opacity: 1,
         };
     }
-    const linearProgress = clampUnit((now - state.startTime) /
+    const elapsed = state.workspaceFrozen ? state.frozenElapsed : now - state.startTime;
+    const linearProgress = clampUnit(elapsed /
         Math.max(1, state.duration));
     const progress = state.curve === MotionCurves.standardDecel ||
             state.curve === MotionCurves.expressiveSpatial

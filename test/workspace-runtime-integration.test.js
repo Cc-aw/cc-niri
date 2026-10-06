@@ -208,6 +208,40 @@ nativeSwitch(2, null);
 assert.deepEqual(ids(), []); assert.equal(published.at(-1).columns.length, 0);
 assert.equal(state.focusedColumnIndex, -1);
 assert.equal(evaluate("invariantChecker.errors().length"), 0);
+// Exercise actual shortcut composition with independent desktops on two outputs.
+// Secondary changes and J/K on primary must leave secondary windows untouched.
+const secondary = { name: "HDMI-A-1", geometry: { x: 2560, y: 0, width: 1920, height: 1080 }, geometryChanged: signal() };
+let secondaryDesktop = desktops[1];
+const secondaryWindow = windowFor("secondary", secondaryDesktop);
+secondaryWindow.output = secondary;
+workspace.screens.push(secondary);
+windows.push(secondaryWindow);
+workspace.currentDesktopForScreen = screen => screen === output ? current : secondaryDesktop;
+workspace.screensChanged.emit();
+workspace.windowAdded.emit(secondaryWindow);
+const secondaryBefore = JSON.stringify({ geometry: secondaryWindow.frameGeometry,
+    desktops: Array.from(secondaryWindow.desktops), opacity: secondaryWindow.opacity, minimized: secondaryWindow.minimized });
+Object.defineProperty(workspace, "currentDesktop", { configurable: true, get: () => secondaryDesktop,
+    set: () => { throw new Error("J/K must never request a global desktop when per-output API exists"); } });
+workspace.setCurrentDesktopForScreen = (desktop, screen) => {
+    assert.equal(screen, output, "J/K always targets primary, even if global/active desktop is secondary");
+    nativeSwitch(desktops.indexOf(desktop), desktop.id === "B" ? b[0] : null);
+};
+shortcuts.get("CCScrollWorkspacePrevious")();
+assert.equal(state.activeWorkspaceId, "B");
+assert.equal(secondaryDesktop, desktops[1]);
+shortcuts.get("CCScrollWorkspaceNext")();
+assert.equal(state.activeWorkspaceId, "C");
+assert.equal(secondaryDesktop, desktops[1]);
+const primaryGeneration = published.at(-1).generation;
+secondaryDesktop = desktops[0];
+workspace.currentDesktopChanged.emit(desktops[1], secondaryDesktop, secondary);
+assert.equal(state.activeWorkspaceId, "C", "secondary signal must not mount primary");
+assert.equal(published.at(-1).generation, primaryGeneration);
+assert.equal(JSON.stringify({ geometry: secondaryWindow.frameGeometry,
+    desktops: Array.from(secondaryWindow.desktops), opacity: secondaryWindow.opacity, minimized: secondaryWindow.minimized }), secondaryBefore);
+// Restore the delayed setter for the existing stop/late-callback checks below.
+workspace.setCurrentDesktopForScreen = (desktop, screen) => { assert.equal(screen, output); requests.push(desktop); };
 shortcuts.get("CCScrollWorkspacePrevious")();
 assert.equal(state.workspaceSwitching, true);
 const stoppedTimeout = evaluate("workspaceSwitchController.timer").callback;

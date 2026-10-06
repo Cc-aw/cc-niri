@@ -83,7 +83,11 @@ endforeach()
 add_dependencies(cc-niri-rust-core cc-niri-rust-build)
 
 if(BUILD_TESTING)
-    find_package(Qt6 6.6 REQUIRED COMPONENTS Core)
+    add_executable(cc-niri-workspace-motion-tests tests/WorkspaceMotionContractTest.cpp ../viewport-clip/Spring.cpp)
+    set_target_properties(cc-niri-workspace-motion-tests PROPERTIES AUTOMOC OFF)
+    target_include_directories(cc-niri-workspace-motion-tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../viewport-clip")
+    target_link_libraries(cc-niri-workspace-motion-tests PRIVATE cc-niri-rust-core)
+    add_test(NAME workspace-motion-rust-contract COMMAND cc-niri-workspace-motion-tests)
     add_executable(cc-niri-ring-differential tests/FocusRingDifferentialTest.cpp ../focus-ring/FocusRingCore.cpp)
     set_target_properties(cc-niri-ring-differential PROPERTIES AUTOMOC OFF)
     target_include_directories(cc-niri-ring-differential PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../focus-ring")
@@ -123,6 +127,9 @@ if(BUILD_TESTING)
     target_include_directories(cc-niri-rust-motion-tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../viewport-clip")
     target_link_libraries(cc-niri-rust-motion-tests PRIVATE cc-niri-rust-core)
     add_test(NAME viewport-motion-rust-contract COMMAND cc-niri-rust-motion-tests)
+    # The Rust Core is platform-free; Qt is used only to call the preserved C++
+    # runtime and marshal the same JSON/geometry fixtures through the C ABI.
+    find_package(Qt6 6.6 REQUIRED COMPONENTS Core)
     add_executable(cc-niri-native-protocol-differential tests/NativeProtocolDifferentialTest.cpp
         ../focus-ring/FocusRingContext.cpp ../focus-ring/RustFocusRingContext.cpp ../viewport-clip/RustScrollPlanSequence.cpp)
     set_target_properties(cc-niri-native-protocol-differential PROPERTIES AUTOMOC OFF)

@@ -234,8 +234,6 @@ mod tests {
 #[path = "ffi_motion.rs"]
 mod motion;
 
-#[path = "ffi_protocol_views.rs"]
-mod protocol_views;
 #[path = "ffi_scroll.rs"]
 mod scroll;
 
@@ -244,3 +242,8 @@ mod ring;
 
 #[path = "ffi_protocol.rs"]
 mod protocol;
+#[path = "ffi_protocol_views.rs"]
+mod protocol_views;
+
+#[path = "ffi_workspace.rs"]
+mod workspace;

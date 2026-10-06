@@ -82,6 +82,25 @@ class MotionController {
         windows.forEach(window => this.cancel(window));
     }
 
+    freezeForWorkspace(window, now) {
+        const state = this.states.get(window);
+        if (!state || typeof freezeInTime !== "function") return false;
+        if (state.workspaceFrozen) return true;
+        const elapsed = Math.max(0, Math.min(state.duration - 1, now - state.startTime));
+        const frozen = [];
+        for (const id of state.animationIds) {
+            if (!freezeInTime(id, elapsed)) {
+                frozen.forEach(id => freezeInTime(id, -1));
+                return false;
+            }
+            frozen.push(id);
+        }
+        if (!frozen.length) return false;
+        state.workspaceFrozen = true;
+        state.frozenElapsed = elapsed;
+        return true;
+    }
+
     kwinAttribute(name) {
         if (name === "translation") return Effect.Translation;
         if (name === "scale") return Effect.Scale;
@@ -276,6 +295,7 @@ class MotionController {
     animationEnded(window, animationId) {
         const state = this.states.get(window);
         if (!state) return false;
+        if (state.workspaceFrozen) return false;
         /* KWin 6.7 reports animationId=0 for declarative animation groups.
          * The signal is still scoped to the correct EffectWindow, and all
          * channels in a group share one duration, so the first group-end

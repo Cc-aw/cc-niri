@@ -57,6 +57,7 @@ function recycleCandidate() {
  var live = true, timers = [], confirmed = [], rows = [];
  var controller = new WorkspaceRecycleController({
   enabled:true, isReady:()=>true,
+  transitionStatus:callback=>callback(false),
   getDesktopIds:()=>live?[first.id,candidate.id,tail.id]:[first.id,tail.id],
   getProtectedIds:()=>[first.id], getWindows:()=>[window], occupancy,
   removeDesktop(id) { if(id!==candidate.id) throw new Error('wrong candidate'); backend.remove(candidate); candidate=null; live=false; controller.request(); },

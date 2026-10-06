@@ -10,6 +10,8 @@ class ContextualWideCoordinator {
         this.presentationRect = options.presentationRect;
         this.normalizeUuid = options.normalizeUuid;
         this.relayout = options.relayout;
+        this.commitParking = options.commitParking;
+        this.departureState = options.departureState;
         this.setActiveWindow = options.setActiveWindow;
         this.setTimer = options.setTimer;
         this.clearTimer = options.clearTimer;
@@ -21,14 +23,86 @@ class ContextualWideCoordinator {
         this.lastCommittedViewport = { mode: "pair", wideColumnId: null };
         this.pendingPark = null;
         this.pendingExit = null;
+        this.departures = new Set();
         this.nextParkToken = 1;
         this.nextExitToken = 1;
     }
 
     cancel() {
+        if (!this.appState.enabled) {
+            Array.from(this.departures).forEach(pending => this.retireDeparture(pending));
+        }
         this.releasePark();
         this.clearPendingTimer(this.pendingExit);
         this.pendingExit = null;
+    }
+
+    cancelForWorkspace() {
+        const pending = this.pendingPark;
+        const state = this.appState;
+        // Keep the real Pair neighbor for the departing workspace's frozen
+        // Effect pose. Park only after the compositor says Slide is idle.
+        // A pending geometry ACK has no parkItem and remains an actual Pair.
+        if (pending && pending.parkItem &&
+                state.viewport.mode === "wide-focus" &&
+                state.viewport.wideColumnId === pending.target.id &&
+                state.columns.includes(pending.target) &&
+                state.columns.includes(pending.neighbor)) {
+            this.clearPendingTimer(pending);
+            this.pendingPark = null;
+            pending.workspaceId = state.activeWorkspaceId;
+            pending.outputName = state.targetOutput.name;
+            pending.departureAttempts = 0;
+            this.departures.add(pending);
+            this.scheduleDeparture(pending);
+        }
+        this.cancel();
+    }
+
+    retireDeparture(pending) {
+        this.clearPendingTimer(pending);
+        if (pending.check) this.clearPendingTimer(pending.check);
+        pending.check = null;
+        this.departures.delete(pending);
+    }
+
+    scheduleDeparture(pending) {
+        if (!this.departures.has(pending)) return;
+        if (++pending.departureAttempts > 60) {
+            this.retireDeparture(pending);
+            this.warn("[cc-presentation] workspace parking idle check unavailable");
+            return; // Hydration/recovery still settles this sleeping workspace.
+        }
+        pending.timer = this.setTimer(() => {
+            pending.timer = null;
+            this.checkDeparture(pending);
+        }, this.retryMs);
+    }
+
+    checkDeparture(pending) {
+        if (!this.departures.has(pending)) return;
+        const disposition = this.departureState(pending);
+        if (disposition === "retired") { this.retireDeparture(pending); return; }
+        if (disposition === "waiting") { this.scheduleDeparture(pending); return; }
+        const check = { timer: null };
+        pending.check = check;
+        const finish = active => {
+            if (!this.departures.has(pending) || pending.check !== check) return;
+            this.clearPendingTimer(check);
+            pending.check = null;
+            const current = this.departureState(pending);
+            if (current === "retired") { this.retireDeparture(pending); return; }
+            if (active !== false || current !== "sleeping") { this.scheduleDeparture(pending); return; }
+            this.retireDeparture(pending);
+            this.commitParking(pending.parkItem);
+            this.gateway.reportMotionParked({
+                type: "PAIR_TO_WIDE", transitionToken: pending.token,
+                targetWindowUuid: this.normalizeUuid(pending.target.window.internalId),
+            }, () => {});
+        };
+        check.timer = this.setTimer(() => finish(null), 1000);
+        try { this.gateway.workspaceTransitionStatus(finish); }
+        catch (_error) { finish(null); }
     }
 
     adoptRestoredViewport() {
@@ -65,6 +139,9 @@ class ContextualWideCoordinator {
     }
 
     cancelForWindow(window) {
+        Array.from(this.departures).forEach(pending => {
+            if (pending.target.window === window || pending.neighbor.window === window) this.retireDeparture(pending);
+        });
         if (this.pendingPark &&
                 (this.pendingPark.target.window === window ||
                  this.pendingPark.neighbor.window === window)) {
@@ -138,6 +215,16 @@ class ContextualWideCoordinator {
 
     onPlanCommitted(plan, wideExitColumn, commitResult, activationWindow) {
         const state = this.appState;
+        if (this.pendingPark && plan.viewportMotion &&
+                plan.viewportMotion.type === "PAIR_TO_WIDE" && plan.layoutSnapshots) {
+            const neighbor = this.pendingPark.neighbor;
+            const entry = plan.layoutSnapshots.to.entries.find(item =>
+                item.columnId === neighbor.id && item.placement === "isolated-hidden");
+            const item = plan.windows.find(item => item.column === neighbor);
+            if (entry && item) this.pendingPark.parkItem = Object.assign({}, item, {
+                placement: "parked", rect: Object.assign({}, entry.realRect),
+            });
+        }
         if (wideExitColumn && commitResult.heldIncoming.length) {
             this.clearPendingTimer(this.pendingExit);
             this.pendingExit = {

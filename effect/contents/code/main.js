@@ -244,7 +244,8 @@ function sampleMotionState(state, now) {
             opacity: 1,
         };
     }
-    const linearProgress = clampUnit((now - state.startTime) /
+    const elapsed = state.workspaceFrozen ? state.frozenElapsed : now - state.startTime;
+    const linearProgress = clampUnit(elapsed /
         Math.max(1, state.duration));
     const progress = state.curve === MotionCurves.standardDecel ||
             state.curve === MotionCurves.expressiveSpatial
@@ -564,6 +565,25 @@ class MotionController {
         windows.forEach(window => this.cancel(window));
     }
 
+    freezeForWorkspace(window, now) {
+        const state = this.states.get(window);
+        if (!state || typeof freezeInTime !== "function") return false;
+        if (state.workspaceFrozen) return true;
+        const elapsed = Math.max(0, Math.min(state.duration - 1, now - state.startTime));
+        const frozen = [];
+        for (const id of state.animationIds) {
+            if (!freezeInTime(id, elapsed)) {
+                frozen.forEach(id => freezeInTime(id, -1));
+                return false;
+            }
+            frozen.push(id);
+        }
+        if (!frozen.length) return false;
+        state.workspaceFrozen = true;
+        state.frozenElapsed = elapsed;
+        return true;
+    }
+
     kwinAttribute(name) {
         if (name === "translation") return Effect.Translation;
         if (name === "scale") return Effect.Scale;
@@ -758,6 +778,7 @@ class MotionController {
     animationEnded(window, animationId) {
         const state = this.states.get(window);
         if (!state) return false;
+        if (state.workspaceFrozen) return false;
         /* KWin 6.7 reports animationId=0 for declarative animation groups.
          * The signal is still scoped to the correct EffectWindow, and all
          * channels in a group share one duration, so the first group-end
@@ -795,10 +816,31 @@ class WorkspaceEffectGuard {
         Object.assign(this, options);
         this.epoch = 0;
         this.clearing = false;
+        this.frozenWindows = new Set();
     }
 
     canAnimate(window) {
-        return !this.clearing && window && window.onCurrentDesktop !== false;
+        return !this.clearing && window && window.onCurrentDesktop !== false &&
+            !this.frozenWindows.has(window);
+    }
+
+    forget(window) {
+        this.frozenWindows.delete(window);
+    }
+
+    onTransitionChanged() {
+        if (this.transitionActive() || this.clearing) return;
+        this.clearing = true;
+        try {
+            this.frozenWindows.forEach(window => {
+                this.motion.cancel(window);
+                this.releaseWindowIsolation(window, "workspace-slide-finished");
+            });
+            this.frozenWindows.clear();
+            this.repaint();
+        } finally {
+            this.clearing = false;
+        }
     }
 
     onDesktopChanged(_previous, _current, _with, output) {
@@ -810,22 +852,37 @@ class WorkspaceEffectGuard {
             const windows = new Set(this.motion.states.keys());
             const stacking = this.getWindows();
             for (let index = 0; index < stacking.length; ++index) windows.add(stacking[index]);
+            const preserved = new Set();
+            if (this.transitionActive && this.transitionActive()) {
+                const now = Date.now();
+                for (const [window, state] of this.motion.states) {
+                    if (window.onCurrentDesktop === false &&
+                            [MotionType.PAIR_TO_WIDE, MotionType.WIDE_TO_PAIR,
+                                MotionType.WIDE_ENTER, MotionType.WIDE_EXIT].includes(state.type) &&
+                            this.motion.freezeForWorkspace(window, now)) preserved.add(window);
+                }
+                for (const window of this.getIsolationWindows()) {
+                    if (window.onCurrentDesktop === false) preserved.add(window);
+                }
+            }
             this.motionTransaction.clear();
             this.clearTemporaryState();
-            this.motion.cancelAll();
-            this.releaseIsolation("workspace-switch");
+            this.releaseIsolation("workspace-switch", preserved);
             this.parkingGrabber.releaseAll("workspace-switch");
             windows.forEach(window => {
                 if (!window) return;
-                this.motion.cancel(window); // Also cancel orphaned legacy IDs.
-                delete window.ccNiriScrollAnimation;
-                delete window.ccNiriIncomingVisual;
+                if (!preserved.has(window)) {
+                    this.motion.cancel(window); // Also cancel orphaned legacy IDs.
+                    delete window.ccNiriScrollAnimation;
+                    delete window.ccNiriIncomingVisual;
+                }
                 if (typeof window.setData === "function") {
-                    window.setData(CC_NIRI_VIEWPORT_CLIP_ROLE, null);
+                    if (!preserved.has(window)) window.setData(CC_NIRI_VIEWPORT_CLIP_ROLE, null);
                     window.setData(CC_NIRI_MOTION_PLAN_ROLE, null);
                     window.setData(CC_NIRI_MOTION_COMPLETE_ROLE, null);
                 }
             });
+            this.frozenWindows = preserved;
             this.repaint();
             this.debug(`[WORKSPACE_EFFECT] clear epoch=${this.epoch}`);
             return true;
@@ -1134,13 +1191,18 @@ class CCNiriScrollTransition {
             affectsOutput: output => output.name ===
                 animationTargetOutput(effects.stackingOrder, this.targetOutputName),
             clearTemporaryState: () => { this.pendingWideExit = null; },
-            releaseIsolation: reason => this.releaseAllWideIsolation(reason),
+            releaseIsolation: (reason, preserved) => this.releaseAllWideIsolation(reason, preserved),
+            releaseWindowIsolation: (window, reason) => this.releaseWideIsolation(window, reason),
+            getIsolationWindows: () => this.wideIsolationHolds.keys(),
+            transitionActive: () => effects.hasActiveFullScreenEffect === true,
             repaint: () => effects.addRepaintFull(),
             debug: message => this.debug(message),
         });
         this.loadConfig();
         if (effects.desktopChanged) effects.desktopChanged.connect(
             this.workspaceGuard.onDesktopChanged.bind(this.workspaceGuard));
+        if (effects.hasActiveFullScreenEffectChanged) effects.hasActiveFullScreenEffectChanged.connect(
+            this.workspaceGuard.onTransitionChanged.bind(this.workspaceGuard));
         effect.configChanged.connect(this.loadConfig.bind(this));
         effect.animationEnded.connect((window, animationId) => {
             if (this.workspaceGuard.clearing) return;
@@ -1162,6 +1224,7 @@ class CCNiriScrollTransition {
         });
         effects.windowAdded.connect(this.manage.bind(this));
         effects.windowClosed.connect(window => {
+            this.workspaceGuard.forget(window);
             this.motion.cancel(window);
             this.releaseWideIsolation(window, "window-closed");
             this.parkingGrabber.release(window, "window-closed");
@@ -1232,8 +1295,9 @@ class CCNiriScrollTransition {
         return true;
     }
 
-    releaseAllWideIsolation(reason) {
+    releaseAllWideIsolation(reason, preserved) {
         for (const window of this.wideIsolationHolds.keys()) {
+            if (preserved && preserved.has(window)) continue;
             this.releaseWideIsolation(window, reason);
         }
     }
