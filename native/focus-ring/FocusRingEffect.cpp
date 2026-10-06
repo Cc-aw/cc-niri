@@ -150,6 +150,7 @@ QString CcNiriFocusRingEffect::GetFocusRingStatus() const {
         {QStringLiteral("phase"), QStringLiteral("hidpi")},
         {QStringLiteral("eligibilitySource"), QStringLiteral("layout-script")},
         {QStringLiteral("eligibilityEnabled"), m_context.enabled},
+        {QStringLiteral("nativeProtocolBackend"), QString::fromLatin1(CcNiri::FocusRingProtocolBackendName)},
         {QStringLiteral("sessionId"), m_context.session},
         {QStringLiteral("generation"), double(m_context.generation)},
         {QStringLiteral("eligibleCount"), m_context.windows.size()},

@@ -236,7 +236,7 @@ void CcNiriViewportClipEffect::observeScrollPlan(const QJsonObject &plan)
 
 bool CcNiriViewportClipEffect::resolveScrollPlan(const QJsonObject &plan) const
 {
-    if (!CcNiri::validViewportScrollPlan(plan)) return false;
+    if (!m_scrollPlanObserver.validPlan(plan)) return false;
     const auto entries = plan.value(QStringLiteral("entries")).toArray();
     QSet<QString> resolved;
     for (EffectWindow *window : effects->stackingOrder()) {
@@ -314,6 +314,8 @@ bool CcNiriViewportClipEffect::WorkspaceTransitionActive() const
 QString CcNiriViewportClipEffect::GetScrollMotionStatus() const
 {
     auto status = m_scrollRuntime.status();
+    status.insert(QStringLiteral("nativeProtocolBackend"), QString::fromLatin1(CcNiri::NativeProtocolBackendName));
+    status.insert(QStringLiteral("decorationGeometryBackend"), QString::fromLatin1(CcNiri::FocusRingCoreBackendName));
     status.insert(QStringLiteral("scrollRuntimeBackend"), CcNiri::scrollRuntimeBackendName());
     status.insert(QStringLiteral("workspaceRemovalGate"), QStringLiteral("compositor-idle"));
     status.insert(QStringLiteral("paintClip"), QStringLiteral("viewport-with-decoration-outsets"));
@@ -343,6 +345,8 @@ void CcNiriViewportClipEffect::updateScrollOwnership()
         }
         const auto rect = targets.value(id);
         auto status = m_scrollRuntime.status();
+    status.insert(QStringLiteral("nativeProtocolBackend"), QString::fromLatin1(CcNiri::NativeProtocolBackendName));
+    status.insert(QStringLiteral("decorationGeometryBackend"), QString::fromLatin1(CcNiri::FocusRingCoreBackendName));
     status.insert(QStringLiteral("scrollRuntimeBackend"), CcNiri::scrollRuntimeBackendName());
         const QVariantMap marker{{QStringLiteral("protocol"), 2}, {QStringLiteral("type"), QStringLiteral("SCROLL")},
             {QStringLiteral("sessionId"), status.value(QStringLiteral("sessionId")).toString()},

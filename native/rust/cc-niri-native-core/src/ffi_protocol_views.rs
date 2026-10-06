@@ -69,3 +69,38 @@ pub struct FfiTextResult {
     pub(super) status: u32,
     pub(super) reserved: u32,
 }
+pub(super) fn id_result(result: Result<u64, u32>) -> FfiIdResult {
+    match result {
+        Ok(value) => FfiIdResult {
+            value,
+            status: OK,
+            reserved: 0,
+        },
+        Err(status) => FfiIdResult {
+            value: 0,
+            status,
+            reserved: 0,
+        },
+    }
+}
+pub(super) fn text_result(result: Result<Option<&Text>, u32>) -> FfiTextResult {
+    let empty = U16View {
+        data: std::ptr::null(),
+        len: 0,
+    };
+    match result {
+        Ok(value) => FfiTextResult {
+            value: value.map_or(empty, |text| U16View {
+                data: text.0.as_ptr(),
+                len: text.0.len() as u64,
+            }),
+            status: OK,
+            reserved: 0,
+        },
+        Err(status) => FfiTextResult {
+            value: empty,
+            status,
+            reserved: 0,
+        },
+    }
+}

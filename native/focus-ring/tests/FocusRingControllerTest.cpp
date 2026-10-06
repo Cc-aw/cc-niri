@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
-#include "../FocusRingContext.h"
+#include "../FocusRingContextBackend.h"
 #include <QCoreApplication>
 #include <QFile>
 #include <QJSEngine>
@@ -39,7 +39,7 @@ Q_SIGNALS:
 class Publisher : public QObject {
     Q_OBJECT
 public:
-    CcNiri::FocusRingContext context;
+    CcNiri::FocusRingContextBackend context;
     bool rejected = false;
     Q_INVOKABLE bool publish(const QString &json) {
         const bool accepted = context.update(json);

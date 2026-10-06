@@ -26,6 +26,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/../common/SpringBackend.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/../common/ViewportMotionBackend.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/../common/ScrollRuntime.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/../common/FocusRingCore.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/../common/NativeProtocol.cmake")
 
 # Preserved C++ math/reference plus the selected Spring/Motion adapters.
 add_library(cc-niri-viewport-motion STATIC
@@ -74,3 +75,5 @@ if(BUILD_TESTING)
     target_link_libraries(cc-niri-workspace-clip-tests PRIVATE Qt6::Core)
     add_test(NAME workspace-clip-barrier COMMAND cc-niri-workspace-clip-tests)
 endif()
+
+target_link_libraries(cc-niri-viewport-clip PRIVATE cc-niri-native-protocol-backend)

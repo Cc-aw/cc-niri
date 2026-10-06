@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
-#include "../FocusRingContext.h"
+#include "../FocusRingContextBackend.h"
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -28,7 +28,7 @@ static FocusRingCandidate eligible() {
     return window;
 }
 int main() {
-    FocusRingContext context;
+    FocusRingContextBackend context;
     check(!context.permits(eligible()), "no context means no ring");
     check(context.update(json(snapshot())), "valid independent eligibility");
     check(context.permits(eligible()), "actual active main managed window");

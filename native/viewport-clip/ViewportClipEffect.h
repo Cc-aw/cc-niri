@@ -5,6 +5,7 @@
 #include "effect/effect.h"
 
 #include "ScrollViewportRuntimeBackend.h"
+#include "NativeScrollProtocolBackend.h"
 #include <QSet>
 #include <QHash>
 #include <QString>
@@ -68,7 +69,7 @@ private:
     void forwardMotionCompletion(EffectWindow *window);
     void clearWorkspaceState(LogicalOutput *output);
 
-    CcNiri::ViewportScrollPlanSequence m_scrollPlanObserver;
+    CcNiri::NativeScrollPlanSequence m_scrollPlanObserver;
     bool m_receivedDockStateSignal = false;
     QSet<EffectWindow *> m_activeWindows;
     QSet<EffectWindow *> m_motionPlanWindows;

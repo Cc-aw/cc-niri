@@ -2,7 +2,7 @@
 #pragma once
 #include "effect/effect.h"
 #include "effect/effectwindow.h"
-#include "FocusRingContext.h"
+#include "FocusRingContextBackend.h"
 #include "FocusRingItem.h"
 #include "FocusRingCornerStyle.h"
 #include <QPointer>
@@ -31,7 +31,7 @@ private:
     void refresh();
     bool eligible(EffectWindow *window) const;
     void clearRing();
-    CcNiri::FocusRingContext m_context;
+    CcNiri::FocusRingContextBackend m_context;
     FocusRingItem m_ring;
     QPointer<EffectWindow> m_owner;
     QSet<EffectWindow *> m_watched;

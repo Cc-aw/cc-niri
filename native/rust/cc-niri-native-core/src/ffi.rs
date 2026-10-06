@@ -241,3 +241,6 @@ mod scroll;
 
 #[path = "ffi_ring.rs"]
 mod ring;
+
+#[path = "ffi_protocol.rs"]
+mod protocol;
