@@ -1,0 +1,16 @@
+[workspace]
+resolver = "2"
+members = ["cc-niri-native-core"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.99"
+publish = false
+
+# Never unwind through a C++ frame. Tests retain Cargo's unwind test harness.
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"

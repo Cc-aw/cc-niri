@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
+include("${CMAKE_CURRENT_LIST_DIR}/../cmake/CCNiriToolchain.cmake")
+cc_niri_select_cxx_compiler()
 project(cc-scroll-dock-bridge VERSION 0.1.0 LANGUAGES CXX)
+cc_niri_check_cxx_compiler()
 
 include(GNUInstallDirs)
 

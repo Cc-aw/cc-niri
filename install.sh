@@ -24,6 +24,9 @@ DIM_INACTIVE_EFFECT_ID="diminactive"
 COMPAT_GROUP="CCNiriCompatibility"
 
 command -v gdbus >/dev/null || { echo "gdbus is required." >&2; exit 1; }
+command -v cargo >/dev/null || { echo "cargo is required (Rust 1.99.0; see rust-toolchain.toml)." >&2; exit 1; }
+command -v rustc >/dev/null || { echo "rustc is required (Rust 1.99.0; see rust-toolchain.toml)." >&2; exit 1; }
+[[ -x /usr/bin/g++ ]] || { echo "/usr/bin/g++ (GNU GCC 16.x) is required." >&2; exit 1; }
 node "${SCRIPT_DIR}/tools/build.js"
 
 command -v kpackagetool6 >/dev/null || {
@@ -50,23 +53,27 @@ fi
 
 
 cmake -S "${NATIVE_CLIP_DIR}" -B "${NATIVE_CLIP_BUILD_DIR}" \
+    -DCMAKE_CXX_COMPILER=/usr/bin/g++ \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DCMAKE_INSTALL_PREFIX="${HOME}/.local" \
     -DKDE_INSTALL_PLUGINDIR=lib64/qt6/plugins
 cmake --build "${NATIVE_CLIP_BUILD_DIR}"
 
 cmake -S "${NATIVE_RING_DIR}" -B "${NATIVE_RING_BUILD_DIR}" \
+    -DCMAKE_CXX_COMPILER=/usr/bin/g++ \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DCMAKE_INSTALL_PREFIX="${HOME}/.local" \
     -DKDE_INSTALL_PLUGINDIR=lib64/qt6/plugins
 cmake --build "${NATIVE_RING_BUILD_DIR}"
 
 cmake -S "${BRIDGE_DIR}" -B "${BRIDGE_BUILD_DIR}" \
+    -DCMAKE_CXX_COMPILER=/usr/bin/g++ \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DCMAKE_INSTALL_PREFIX="${HOME}/.local"
 cmake --build "${BRIDGE_BUILD_DIR}"
 
 cmake -S "${PLASMOID_DIR}" -B "${PLASMOID_BUILD_DIR}" \
+    -DCMAKE_CXX_COMPILER=/usr/bin/g++ \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DCMAKE_INSTALL_PREFIX="${HOME}/.local" \
     -DKDE_INSTALL_PLUGINDIR=lib64/qt6/plugins

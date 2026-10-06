@@ -1,0 +1,16 @@
+cmake_minimum_required(VERSION 3.20)
+include("${CMAKE_CURRENT_LIST_DIR}/../cmake/CCNiriToolchain.cmake")
+cc_niri_select_cxx_compiler()
+project(cc-niri-native VERSION 0.1.0 LANGUAGES CXX)
+cc_niri_check_cxx_compiler()
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+include(CTest)
+option(CC_NIRI_BUILD_KWIN_ADAPTERS "Build the KWin viewport and focus ring plugins" ON)
+
+add_subdirectory(rust)
+if(CC_NIRI_BUILD_KWIN_ADAPTERS)
+    add_subdirectory(viewport-clip)
+    add_subdirectory(focus-ring)
+endif()

@@ -28,6 +28,10 @@ run("production module regression suite", process.execPath, ["--test", ...tests]
 run("patch whitespace", "git", ["diff", "--check"]);
 
 if (native) {
+    const rustManifest = "native/rust/Cargo.toml";
+    run("Rust formatting", "cargo", ["fmt", "--manifest-path", rustManifest, "--all", "--check"]);
+    run("Rust lint", "cargo", ["clippy", "--manifest-path", rustManifest, "--locked", "--workspace", "--all-targets", "--", "-D", "warnings"]);
+    run("Rust unit tests", "cargo", ["test", "--manifest-path", rustManifest, "--locked", "--workspace"]);
     for (const [name, dir] of [
         ["Bridge", "build/bridge"],
         ["Viewport clip", "build/native-viewport-clip"],

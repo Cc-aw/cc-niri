@@ -36,15 +36,19 @@ jobs:
             plasma-activities-devel plasma-activities-stats-devel \
             libksysguard-devel plasma-workspace-devel \
             libepoxy-devel libdrm-devel vulkan-loader-devel \
-            nodejs git
+            nodejs git curl
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.99.0"
+          components: rustfmt, clippy
       - name: Configure Bridge
-        run: cmake -S bridge -B build/bridge -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        run: cmake -S bridge -B build/bridge -G Ninja -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - name: Configure native viewport clip
-        run: cmake -S native/viewport-clip -B build/native-viewport-clip -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        run: cmake -S native/viewport-clip -B build/native-viewport-clip -G Ninja -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - name: Configure native focus ring
-        run: cmake -S native/focus-ring -B build/native-focus-ring -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        run: cmake -S native/focus-ring -B build/native-focus-ring -G Ninja -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - name: Configure Plasmoid
-        run: cmake -S plasmoid/com.cc.scrolltasks -B build/plasmoid -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        run: cmake -S plasmoid/com.cc.scrolltasks -B build/plasmoid -G Ninja -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - name: Build Bridge
         run: cmake --build build/bridge
       - name: Build native viewport clip
@@ -58,3 +62,44 @@ jobs:
           ctest --test-dir build/bridge --output-on-failure
           ctest --test-dir build/native-viewport-clip --output-on-failure
           ctest --test-dir build/native-focus-ring --output-on-failure
+
+  rust-test:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:44
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install GCC 16 and CMake dependencies
+        run: dnf install -y gcc-c++ cmake ninja-build qt6-qtbase-devel curl git
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.99.0"
+      - name: Rust unit tests
+        run: cargo test --manifest-path native/rust/Cargo.toml --locked --workspace
+      - name: CMake Cargo and C ABI smoke (Debug and Release)
+        run: |
+          for config in Debug Release; do
+            cmake -S native -B "build/rust-$config" -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCC_NIRI_BUILD_KWIN_ADAPTERS=OFF -DCMAKE_BUILD_TYPE="$config"
+            cmake --build "build/rust-$config"
+            ctest --test-dir "build/rust-$config" --output-on-failure
+          done
+
+  rust-fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.99.0"
+          components: rustfmt
+      - run: cargo fmt --manifest-path native/rust/Cargo.toml --all --check
+
+  rust-clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.99.0"
+          components: clippy
+      - run: cargo clippy --manifest-path native/rust/Cargo.toml --locked --workspace --all-targets -- -D warnings

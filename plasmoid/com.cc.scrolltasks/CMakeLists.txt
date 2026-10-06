@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
+include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/CCNiriToolchain.cmake")
+cc_niri_select_cxx_compiler()
 project(cc-scroll-tasks VERSION 0.1.0 LANGUAGES CXX)
+cc_niri_check_cxx_compiler()
 
 find_package(ECM 6.0 REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
