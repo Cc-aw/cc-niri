@@ -15,7 +15,7 @@ bool ViewportMotion::start(double from, double target, std::int64_t epoch, TimeP
     if (epoch < 0 || epoch < m_epoch || now < TimePoint::zero()) return false;
     if (epoch == m_epoch) return from == m_from && target == m_target;
     if (now < m_startTime) return false;
-    const Spring candidate(from, target, 0.0, m_params);
+    const SpringBackend candidate(from, target, 0.0, m_params);
     if (!candidate.isValid()) return false;
     m_spring = candidate;
     m_from = from;

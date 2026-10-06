@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
-#include "ViewportMotion.h"
+#include "ViewportMotionBackend.h"
 
 #include <cmath>
 #include <cstdio>
@@ -109,7 +109,7 @@ void checkMotion()
 {
     for (const auto endpoints : {std::pair{0.0, 1260.0}, {1260.0, 0.0},
                                  {400.0, 2520.0}, {800.0, 0.0}}) {
-        ViewportMotion motion;
+        ViewportMotionBackend motion;
         require(motion.start(endpoints.first, endpoints.second, 1, 10s), "documented start accepted");
         near(motion.current(10s), endpoints.first, 0.0, "starts at exact origin");
         near(motion.target(), endpoints.second, 0.0, "logical target immediately available");
@@ -118,7 +118,7 @@ void checkMotion()
         near(motion.current(11s), endpoints.second, 0.0, "completion snaps exactly to target");
     }
     for (const int hz : {60, 120, 144}) {
-        ViewportMotion motion;
+        ViewportMotionBackend motion;
         require(motion.start(0.0, 1260.0, 1, 0ns), "cadence start");
         for (int frame = 0; frame < hz; ++frame) {
             const auto elapsed = std::chrono::nanoseconds(static_cast<long long>(1e9 * frame / hz));
@@ -128,7 +128,7 @@ void checkMotion()
              0.0, "same elapsed yields identical position regardless of cadence/history");
     }
 
-    ViewportMotion motion;
+    ViewportMotionBackend motion;
     require(motion.start(0.0, 1260.0, 1, 1s), "retarget start");
     const double at60 = motion.current(1s + 60ms);
     require(motion.retarget(2520.0, 2, 1s + 60ms), "forward retarget accepted");
@@ -164,18 +164,18 @@ void checkMotion()
 
     SpringParams slow;
     slow.stiffness = 0.01;
-    ViewportMotion timeout(slow);
+    ViewportMotionBackend timeout(slow);
     require(timeout.start(0.0, 1260.0, 0, 0ns), "slow spring start");
     require(timeout.isActive(2999ms), "timeout not early");
     require(timeout.isDone(3s), "three-second failsafe stops slow spring");
     near(timeout.current(3s), 1260.0, 0.0, "failsafe exact target");
-    ViewportMotion extremeTime;
+    ViewportMotionBackend extremeTime;
     require(extremeTime.start(0.0, 1260.0, 0, std::chrono::nanoseconds::max() - 1s), "large clock accepted");
     require(extremeTime.isDone(std::chrono::nanoseconds::max()), "large clock subtraction safe");
-    ViewportMotion fresh;
+    ViewportMotionBackend fresh;
     require(!fresh.retarget(0.0, -1, 0ns), "uninitialized duplicate epoch rejected");
     require(!fresh.retarget(0.0, 0, -1ns), "negative retarget timestamp rejected");
-    ViewportMotion same;
+    ViewportMotionBackend same;
     require(same.start(400.0, 400.0, 0, 0ns) && same.isDone(0ns), "no-op motion static");
 }
 
@@ -183,5 +183,5 @@ int main()
 {
     checkSpring();
     checkMotion();
-    std::puts("PASS spring and viewport motion");
+    std::printf("PASS spring=%s viewport motion=%s\n", SpringBackendName, ViewportMotionBackendName);
 }

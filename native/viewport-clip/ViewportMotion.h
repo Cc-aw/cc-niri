@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
-#include "Spring.h"
+#include "SpringBackend.h"
 #include <cstdint>
 
 namespace CcNiri
@@ -38,7 +38,7 @@ public:
 
 private:
     SpringParams m_params;
-    Spring m_spring;
+    SpringBackend m_spring;
     ViewportMotionKind m_kind = ViewportMotionKind::Static;
     double m_from = 0.0;
     double m_target = 0.0;

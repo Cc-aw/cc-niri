@@ -1,0 +1,13 @@
+include_guard(GLOBAL)
+option(CC_NIRI_USE_RUST_SPRING "Use Rust Spring in the existing C++ Motion (migration only)" OFF)
+message(STATUS "CC-Niri Spring backend: Rust=${CC_NIRI_USE_RUST_SPRING}")
+add_library(cc-niri-spring-backend INTERFACE)
+target_compile_definitions(cc-niri-spring-backend INTERFACE
+    CC_NIRI_USE_RUST_SPRING=$<BOOL:${CC_NIRI_USE_RUST_SPRING}>)
+if(CC_NIRI_USE_RUST_SPRING)
+    add_library(cc-niri-rust-spring STATIC "${CMAKE_CURRENT_LIST_DIR}/../viewport-clip/RustSpring.cpp")
+    set_target_properties(cc-niri-rust-spring PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
+    target_include_directories(cc-niri-rust-spring PUBLIC "${CMAKE_CURRENT_LIST_DIR}/../viewport-clip")
+    target_link_libraries(cc-niri-rust-spring PUBLIC cc-niri-rust-core)
+    target_link_libraries(cc-niri-spring-backend INTERFACE cc-niri-rust-spring)
+endif()
