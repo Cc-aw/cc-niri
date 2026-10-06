@@ -44,7 +44,7 @@ CcNiriFocusRingEffect::CcNiriFocusRingEffect() {
     connect(effects, &EffectsHandler::hasActiveFullScreenEffectChanged, this, [this] { refresh(); });
     reconfigure(ReconfigureAll);
     requestEligibility();
-    qCInfo(CC_NIRI_FOCUS_RING) << "[FOCUS_RING] READY isolated post-window border";
+    qCInfo(CC_NIRI_FOCUS_RING) << "[FOCUS_RING] READY isolated post-window border coreBackend=" << CcNiri::FocusRingCoreBackendName;
 }
 CcNiriFocusRingEffect::~CcNiriFocusRingEffect() {
     clearRing();
@@ -146,6 +146,7 @@ bool CcNiriFocusRingEffect::isActive() const { return m_ring.attached() && eligi
 bool CcNiriFocusRingEffect::blocksDirectScanout() const { return isActive(); }
 QString CcNiriFocusRingEffect::GetFocusRingStatus() const {
     return QString::fromUtf8(QJsonDocument(QJsonObject{
+        {QStringLiteral("coreBackend"), QString::fromLatin1(CcNiri::FocusRingCoreBackendName)},
         {QStringLiteral("phase"), QStringLiteral("hidpi")},
         {QStringLiteral("eligibilitySource"), QStringLiteral("layout-script")},
         {QStringLiteral("eligibilityEnabled"), m_context.enabled},

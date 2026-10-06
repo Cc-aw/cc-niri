@@ -11,12 +11,9 @@ namespace KWin {
 FocusRingItem::FocusRingItem(QObject *parent) : QObject(parent) {}
 FocusRingItem::~FocusRingItem() { clear(); }
 bool FocusRingItem::attach(Item *windowItem, Item *contentItem, const QSizeF &frameSize, const BorderRadius &radius) {
-    if (!windowItem || !contentItem || contentItem->parentItem() != windowItem
-        || !std::isfinite(frameSize.width()) || !std::isfinite(frameSize.height())
-        || frameSize.width() <= 0 || frameSize.height() <= 0) { clear(); return false; }
-    for (const qreal value : {radius.topLeft(), radius.topRight(), radius.bottomRight(), radius.bottomLeft()}) {
-        if (!std::isfinite(value) || value < 0 || value > std::min(frameSize.width(), frameSize.height()) / 2) { clear(); return false; }
-    }
+    if (!windowItem || !contentItem || contentItem->parentItem() != windowItem) { clear(); return false; }
+    const double radii[4]{radius.topLeft(),radius.topRight(),radius.bottomRight(),radius.bottomLeft()};
+    if(!CcNiri::FocusRingCore::geometryValid(frameSize.width(),frameSize.height(),radii)) { clear(); return false; }
     const RectF inner(0, 0, frameSize.width(), frameSize.height());
     const BorderOutline outline(Width, QColor(QStringLiteral("#7FC8FF")), radius);
     if (m_parent != windowItem || !m_border) {
@@ -65,20 +62,17 @@ bool FocusRingItem::paint(ItemRenderer *renderer, const RenderTarget &target, co
         if (!m_stroke) { m_stroke = new FocusRingStrokeItem(m_paintRoot); m_stroke->setParent(this); }
         if (!m_stroke->update(*metrics, frame.outline(), m_parent->scene())) return false;
         m_border->setVisible(false); m_stroke->setVisible(true);
-        const auto &inner = frame.innerRect();
-        m_damage->setGeometry(inner.adjusted(-metrics->thickness / metrics->scaleX, -metrics->thickness / metrics->scaleY,
-            metrics->thickness / metrics->scaleX, metrics->thickness / metrics->scaleY));
     } else {
         if (m_stroke) m_stroke->setVisible(false);
         // Quantize the outer margin before KWin rounds the border's origin
         // and size. A 3px margin at 150% otherwise rounds -4.5 and +9
         // independently, shrinking the native inner box by one device pixel.
-        const qreal thickness = metrics->scaleX == 1 && metrics->scaleY == 1
-            ? metrics->thickness : frame.outline().thickness();
+        const qreal thickness = metrics->borderThickness;
         const BorderOutline outline(thickness, frame.outline().color(), frame.outline().radius());
         m_border->setInnerRect(frame.innerRect()); m_border->setOutline(outline); m_border->setVisible(true);
-        m_damage->setGeometry(outline.inflate(frame.innerRect()));
     }
+    const auto damage=CcNiri::FocusRingCore::damage(frame.coreState().inner,metrics->numeric());
+    m_damage->setGeometry(RectF(damage.x,damage.y,damage.width,damage.height));
     renderer->renderItem(target, viewport, m_paintRoot, frame.mask(), frame.deviceRegion(), frame.paintData(), {}, {});
     return true;
 }

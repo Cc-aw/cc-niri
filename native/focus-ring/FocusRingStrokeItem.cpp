@@ -35,29 +35,26 @@ bool same(const FocusRingStrokeMetrics &a, const FocusRingStrokeMetrics &b) {
 }
 }
 std::optional<FocusRingStrokeMetrics> FocusRingStrokeMetrics::fromFrame(const FocusRingPaintFrame &frame, qreal scale) {
-    if (!std::isfinite(scale) || scale <= 0 || !frame.innerRect().isValid()) return std::nullopt;
+    // Platform matrix composition requires a finite, positive device scale.
+    if(!std::isfinite(scale) || scale<=0) return std::nullopt;
     auto matrix = frame.paintData().toMatrix(scale);
     matrix.scale(scale,scale); matrix *= QMatrix4x4(frame.transform()); matrix.scale(1/scale,1/scale);
-    for (int i=0;i<4;++i) for (int j=0;j<4;++j) if (!std::isfinite(matrix(i,j))) return std::nullopt;
+    CcNiriRingInput input{}; input.frame=frame.coreState(); input.device_scale=scale;
+    for(int i=0;i<4;++i) for(int j=0;j<4;++j) input.matrix[4*i+j]=matrix(i,j);
+    const auto result=CcNiri::FocusRingCore::metrics(input);
+    if(result.status || !result.valid) return std::nullopt;
+    const auto &v=result.value;
     FocusRingStrokeMetrics m;
-    m.deviceScale = scale; m.body = frame.innerRect().size();
-    const bool axis = matrix(0,1)==0 && matrix(1,0)==0 && matrix(0,2)==0 && matrix(1,2)==0
-        && matrix(2,0)==0 && matrix(2,1)==0 && matrix(3,0)==0 && matrix(3,1)==0 && matrix(3,2)==0 && matrix(3,3)==1;
-    // Preserve the existing native path for rotations/shears/reflections.
-    if (!axis || matrix(0,0)<0 || matrix(1,1)<0) return m;
-    m.scaleX = matrix(0,0); m.scaleY = matrix(1,1);
-    if (m.scaleX < 0.0001 || m.scaleY < 0.0001 || m.scaleX > 64 || m.scaleY > 64) return std::nullopt;
-    m.thickness = std::round(frame.outline().thickness()*scale)/scale;
-    m.body = QSizeF(std::round(frame.innerRect().width()*scale)*m.scaleX/scale,
-        std::round(frame.innerRect().height()*scale)*m.scaleY/scale);
-    const auto &r = frame.outline().radius();
-    const std::array<qreal,4> radii{r.topLeft(),r.topRight(),r.bottomRight(),r.bottomLeft()};
-    for (int i=0;i<4;++i) {
-        const qreal radius = std::round(radii[i]*scale)/scale;
-        m.radii[i] = QSizeF(std::min(radius*m.scaleX,m.body.width()/2), std::min(radius*m.scaleY,m.body.height()/2));
-    }
-    // Only stroke children counter-scale; the root retains the window matrix.
-    m.compensated = m.scaleX != 1 || m.scaleY != 1;
+    m.scaleX=v.scale_x; m.scaleY=v.scale_y; m.deviceScale=v.device_scale; m.thickness=v.thickness;
+    m.body=QSizeF(v.width,v.height); m.compensated=v.compensated; m.borderThickness=v.border_thickness;
+    for(int i=0;i<4;++i) m.radii[i]=QSizeF(v.radii[2*i],v.radii[2*i+1]);
+    return m;
+}
+CcNiriRingMetrics FocusRingStrokeMetrics::numeric() const {
+    CcNiriRingMetrics m{};
+    m.scale_x=scaleX; m.scale_y=scaleY; m.device_scale=deviceScale; m.thickness=thickness;
+    m.width=body.width(); m.height=body.height(); m.compensated=compensated; m.border_thickness=borderThickness;
+    for(int i=0;i<4;++i) { m.radii[2*i]=radii[i].width(); m.radii[2*i+1]=radii[i].height(); }
     return m;
 }
 FocusRingStrokeItem::FocusRingStrokeItem(Item *parent) : Item(parent) {
@@ -68,19 +65,9 @@ bool FocusRingStrokeItem::update(const FocusRingStrokeMetrics &m, const BorderOu
     if (this->scene() != scene) setScene(scene);
     for (auto *patch : m_patches) static_cast<StrokePatch *>(patch)->bindScene(scene);
     if (m_previous && same(*m_previous,m) && m_color == outline.color()) return true;
-    const qreal w=m.body.width(),h=m.body.height(),t=m.thickness,s=m.deviceScale;
-    std::array<QSizeF,4> inset;
-    for(int i=0;i<4;++i) inset[i]=QSizeF(std::min(std::ceil(m.radii[i].width()*s)/s,w/2),std::min(std::ceil(m.radii[i].height()*s)/s,h/2));
-    const std::array<QRectF,8> rects{
-        QRectF(-t,-t,inset[0].width()+t,inset[0].height()+t),
-        QRectF(w-inset[1].width(),-t,inset[1].width()+t,inset[1].height()+t),
-        QRectF(w-inset[2].width(),h-inset[2].height(),inset[2].width()+t,inset[2].height()+t),
-        QRectF(-t,h-inset[3].height(),inset[3].width()+t,inset[3].height()+t),
-        QRectF(inset[0].width(),-t,std::max(0.0,w-inset[0].width()-inset[1].width()),t),
-        QRectF(w,inset[1].height(),t,std::max(0.0,h-inset[1].height()-inset[2].height())),
-        QRectF(inset[3].width(),h,std::max(0.0,w-inset[3].width()-inset[2].width()),t),
-        QRectF(-t,inset[0].height(),t,std::max(0.0,h-inset[0].height()-inset[3].height()))};
-    for (int i=0;i<4;++i) if (std::ceil(rects[i].width()*s)>1024 || std::ceil(rects[i].height()*s)>1024) return false;
+    const auto layout=CcNiri::FocusRingCore::layout(m.numeric());
+    if(layout.status || !layout.valid) return false;
+    const qreal t=m.thickness;
     const QPainterPath inner=strokeContour(m);
     QPainterPathStroker stroker; stroker.setWidth(2*t); stroker.setJoinStyle(Qt::RoundJoin);
     const QPainterPath stroke=stroker.createStroke(inner).subtracted(inner);
@@ -90,23 +77,21 @@ bool FocusRingStrokeItem::update(const FocusRingStrokeMetrics &m, const BorderOu
         // KWin snaps the Item origin and its local quad independently. Keep
         // the desired extent in device space, including the animated body's
         // fractional right/bottom edge, without moving the window paint root.
-        const auto &rect = rects[i];
-        const QPointF snapped(std::round(rect.x()*s)/s, std::round(rect.y()*s)/s);
-        const QSizeF extent(std::max(1.0,std::round(rect.width()*s))/s,
-            std::max(1.0,std::round(rect.height()*s))/s);
-        patch->setGeometry(RectF(snapped,extent));
+        const auto &p=layout.patches[i];
+        const QRectF rect(p.rect.x,p.rect.y,p.rect.width,p.rect.height);
+        patch->setGeometry(RectF(p.geometry.x,p.geometry.y,p.geometry.width,p.geometry.height));
         QTransform correction;
-        correction.translate(rect.x()-snapped.x(),rect.y()-snapped.y());
-        correction.scale(rect.width()/extent.width(),rect.height()/extent.height());
+        correction.translate(p.translate_x,p.translate_y);
+        correction.scale(p.scale_x,p.scale_y);
         patch->setTransform(correction);
-        patch->setVisible(!rect.isEmpty());
+        patch->setVisible(p.visible);
         if(i<4) {
-            QImage pixels(std::max(1,int(std::ceil(rects[i].width()*s))),std::max(1,int(std::ceil(rects[i].height()*s))),QImage::Format_ARGB32_Premultiplied);
+            QImage pixels(p.texture_width,p.texture_height,QImage::Format_ARGB32_Premultiplied);
             pixels.fill(Qt::transparent);
             QPainter painter(&pixels); painter.setRenderHint(QPainter::Antialiasing);
             // Map the exact patch extent onto its small native texture.
-            painter.scale(pixels.width()/rects[i].width(),pixels.height()/rects[i].height());
-            painter.translate(-rects[i].topLeft()); painter.fillPath(stroke,outline.color()); painter.end();
+            painter.scale(pixels.width()/rect.width(),pixels.height()/rect.height());
+            painter.translate(-rect.topLeft()); painter.fillPath(stroke,outline.color()); painter.end();
             patch->setImage(pixels); ++m_rasterizations;
         } else if(patch->image().isNull() || m_color!=outline.color()) patch->setImage(solid);
     }

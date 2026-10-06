@@ -5,6 +5,7 @@
 #include "scene/borderoutline.h"
 #include <QPointer>
 #include <optional>
+#include "FocusRingCoreBackend.h"
 
 namespace KWin {
 // A local value for one paintWindow call. No clock, layout target, or cached
@@ -24,8 +25,9 @@ public:
     int mask() const { return m_mask; }
     const Region &deviceRegion() const { return m_deviceRegion; }
     const WindowPaintData &paintData() const { return m_data; }
+    const CcNiriRingFrame &coreState() const { return m_coreState; }
 private:
-    FocusRingPaintFrame(Item *owner, Item *attachment, int mask, const Region &deviceRegion, const WindowPaintData &data, const RectF &inner, const BorderOutline &outline);
+    FocusRingPaintFrame(Item *owner, Item *attachment, int mask, const Region &deviceRegion, const WindowPaintData &data, const RectF &inner, const BorderOutline &outline, const CcNiriRingFrame &coreState);
     QPointer<Item> m_owner;
     QPointer<Item> m_attachment;
     RectF m_innerRect;
@@ -36,5 +38,6 @@ private:
     int m_mask;
     Region m_deviceRegion;
     WindowPaintData m_data;
+    CcNiriRingFrame m_coreState;
 };
 }

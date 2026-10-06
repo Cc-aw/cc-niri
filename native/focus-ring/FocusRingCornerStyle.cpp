@@ -18,18 +18,19 @@ void FocusRingCornerStyle::reconfigure(bool roundCornersLoaded) {
     m_config->reparseConfiguration();
     m_roundCornersLoaded = roundCornersLoaded;
     const qreal configured = KConfigGroup(m_config, QStringLiteral("Effect-cc-niri-focus-ring")).readEntry("CornerRadius", -1.0);
-    m_configuredRadius = std::isfinite(configured) && configured >= 0 ? std::min(configured, 128.0) : -1;
     const qreal rounded = KConfigGroup(m_config, QStringLiteral("Round-Corners")).readEntry("Size", 12.0);
-    m_roundCornersRadius = roundCornersLoaded && std::isfinite(rounded) ? std::clamp(rounded, 0.0, 128.0) : 0;
+    m_corners = CcNiri::FocusRingCore::corners(configured,rounded,roundCornersLoaded);
     Q_EMIT changed();
 }
 BorderRadius FocusRingCornerStyle::radius(const BorderRadius &nativeRadius, const QSizeF &frameSize) const {
-    if (m_configuredRadius < 0 && m_roundCornersRadius <= 0) return nativeRadius;
-    const qreal limit = std::max(0.0, std::min(frameSize.width(), frameSize.height()) / 2);
-    return BorderRadius(std::min(m_configuredRadius >= 0 ? m_configuredRadius : m_roundCornersRadius, limit));
+    const double native[4]{nativeRadius.topLeft(),nativeRadius.topRight(),nativeRadius.bottomRight(),nativeRadius.bottomLeft()};
+    const auto r=CcNiri::FocusRingCore::radius(m_corners,native,frameSize.width(),frameSize.height());
+    return BorderRadius(r.values[0],r.values[1],r.values[2],r.values[3]);
 }
 QString FocusRingCornerStyle::source() const {
-    if (m_configuredRadius >= 0) return QStringLiteral("override");
-    return m_roundCornersRadius > 0 ? QStringLiteral("round-corners") : QStringLiteral("native-item");
+    const double native[4]{};
+    const auto r=CcNiri::FocusRingCore::radius(m_corners,native,0,0);
+    if(r.source==2) return QStringLiteral("override");
+    return r.source==1 ? QStringLiteral("round-corners") : QStringLiteral("native-item");
 }
 }

@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #include "../FocusRingItem.h"
 #include "../FocusRingPaintFrame.h"
-#include "../../viewport-clip/ScrollViewportRuntime.h"
+#include "../../viewport-clip/ScrollRuntimeTestBackend.h"
 #include "CaptureRenderer.h"
 #include <QCoreApplication>
 #include <algorithm>
@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
     qreal maxCommitMatrixDelta = 0;
     for (const qreal scale : {1.0, 1.5, 2.0}) for (bool reverse : {false, true}) {
         RenderViewport viewport(RectF(0, 0, 1920, 1080), scale, target, QPoint());
-        CcNiri::ScrollViewportRuntime runtime;
+        CcNiri::ScrollRuntimeTestBackend runtime;
         check(runtime.updateContext({{QStringLiteral("protocol"), 2}, {QStringLiteral("sessionId"), QStringLiteral("ring-test")},
             {QStringLiteral("generation"), 1}, {QStringLiteral("workspaceId"), QStringLiteral("workspace")},
             {QStringLiteral("targetOutput"), QStringLiteral("eDP-1")}}), "production Spring context");

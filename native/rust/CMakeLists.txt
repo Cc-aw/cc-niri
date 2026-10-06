@@ -84,6 +84,11 @@ add_dependencies(cc-niri-rust-core cc-niri-rust-build)
 
 if(BUILD_TESTING)
     find_package(Qt6 6.6 REQUIRED COMPONENTS Core)
+    add_executable(cc-niri-ring-differential tests/FocusRingDifferentialTest.cpp ../focus-ring/FocusRingCore.cpp)
+    set_target_properties(cc-niri-ring-differential PROPERTIES AUTOMOC OFF)
+    target_include_directories(cc-niri-ring-differential PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../focus-ring")
+    target_link_libraries(cc-niri-ring-differential PRIVATE cc-niri-rust-core)
+    add_test(NAME focus-ring-cpp-rust-differential COMMAND cc-niri-ring-differential)
     add_executable(cc-niri-spring-differential tests/SpringDifferentialTest.cpp
         ../viewport-clip/Spring.cpp ../viewport-clip/RustSpring.cpp)
     set_target_properties(cc-niri-spring-differential PROPERTIES AUTOMOC OFF)

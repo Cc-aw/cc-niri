@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #include "../FocusRingItem.h"
 #include "../FocusRingPaintFrame.h"
-#include "../../viewport-clip/ScrollViewportRuntime.h"
+#include "../../viewport-clip/ScrollRuntimeTestBackend.h"
 #include "CaptureRenderer.h"
 #include <QCoreApplication>
 #include <algorithm>
@@ -9,7 +9,7 @@
 #include <map>
 #include <memory>
 using namespace std::chrono_literals;
-using CcNiri::ScrollViewportRuntime;
+using CcNiri::ScrollRuntimeTestBackend;
 namespace {
 constexpr double Step = 940;
 const QString Session = QStringLiteral("ring-retarget");
@@ -55,7 +55,7 @@ class Scene {
 public:
     explicit Scene(qreal scale) : image(3840, 2160, QImage::Format_ARGB32_Premultiplied), target(&image),
         viewport(RectF(0, 0, 1920, 1080), scale, target, QPoint()) {}
-    void initialize(ScrollViewportRuntime &runtime, bool pending) {
+    void initialize(ScrollRuntimeTestBackend &runtime, bool pending) {
         const auto targets = runtime.targets(), sources = runtime.sourceFrames();
         for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
             nodes.emplace(it.key(), std::make_unique<WindowNode>(pending && sources.contains(it.key()) ? sources.value(it.key()) : it.value()));
@@ -79,14 +79,14 @@ public:
         for (const auto &[id, n] : nodes) result.insert(id, QRectF(n->window.position(), n->window.size()));
         return result;
     }
-    void commit(ScrollViewportRuntime &runtime) {
+    void commit(ScrollRuntimeTestBackend &runtime) {
         const auto targets = runtime.targets();
         for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
             if (!nodes.contains(it.key())) nodes.emplace(it.key(), std::make_unique<WindowNode>(it.value()));
             else node(it.key()).window.setGeometry(RectF(it.value()));
         }
     }
-    WindowPaintData paintData(ScrollViewportRuntime &runtime, const QString &id) {
+    WindowPaintData paintData(ScrollRuntimeTestBackend &runtime, const QString &id) {
         const auto &n = node(id);
         const auto projection = runtime.projection(id, QRectF(n.window.position(), n.window.size()));
         check(projection.has_value(), "production runtime accepts actual source/target geometry");
@@ -94,13 +94,13 @@ public:
         data.setOpacity(0.75); data.setBrightness(0.2); data.setSaturation(0.3);
         return data;
     }
-    Region clip(ScrollViewportRuntime &runtime, const QString &id) {
+    Region clip(ScrollRuntimeTestBackend &runtime, const QString &id) {
         const auto projection = runtime.projection(id, QRectF(node(id).window.position(), node(id).window.size()));
         check(projection.has_value(), "production viewport for current owner");
         const Region screen(viewport.mapToDeviceCoordinates(RectF(0, 0, 1920, 1080)).rounded());
         return viewportPaintClip(&node(id).window, viewport, RectF(projection->viewport), screen);
     }
-    Picture paint(ScrollViewportRuntime &runtime, const QString &id) {
+    Picture paint(ScrollRuntimeTestBackend &runtime, const QString &id) {
         focus(id);
         auto &n = node(id);
         const auto position = n.window.position();
@@ -144,7 +144,7 @@ public:
         const auto projection = runtime.projection(id, QRectF(n.window.position(), n.window.size()));
         return {expected, n.window.position().x() + projection->translationX};
     }
-    QHash<QString, Picture> paintAll(ScrollViewportRuntime &runtime) {
+    QHash<QString, Picture> paintAll(ScrollRuntimeTestBackend &runtime) {
         QHash<QString, Picture> result;
         const auto targets = runtime.targets();
         for (auto it = targets.cbegin(); it != targets.cend(); ++it) result.insert(it.key(), paint(runtime, it.key()));
@@ -169,7 +169,7 @@ void continuous(const Picture &before, const Picture &after) {
     check(delta <= 0.001, "native float matrix remains subpixel-continuous across geometry commit");
 }
 void chain(qreal scale, const std::array<int, 6> &directions, double start) {
-    ScrollViewportRuntime runtime; check(runtime.updateContext(context()), "chain authority");
+    ScrollRuntimeTestBackend runtime; check(runtime.updateContext(context()), "chain authority");
     Scene scene(scale);
     double from = start;
     std::chrono::nanoseconds lastTime = 0ns;
@@ -228,7 +228,7 @@ void chain(qreal scale, const std::array<int, 6> &directions, double start) {
 void pendingAndNested(qreal scale) {
     for (bool returnToSource : {false, true}) {
         testScope = QStringLiteral("pending scale=%1 return=%2").arg(scale).arg(returnToSource);
-        ScrollViewportRuntime runtime; runtime.updateContext(context());
+        ScrollRuntimeTestBackend runtime; runtime.updateContext(context());
         check(runtime.arm(plan(1, 0, Step), 0ns), "pending first plan");
         Scene scene(scale); scene.initialize(runtime, true); runtime.advance(40ms);
         const QString id = QStringLiteral("1"); const auto before = scene.paint(runtime, id);
@@ -240,7 +240,7 @@ void pendingAndNested(qreal scale) {
         }
     }
     testScope = QStringLiteral("nested and completion scale=%1").arg(scale);
-    ScrollViewportRuntime runtime; runtime.updateContext(context()); runtime.arm(plan(1, 0, Step), 0ns);
+    ScrollRuntimeTestBackend runtime; runtime.updateContext(context()); runtime.arm(plan(1, 0, Step), 0ns);
     Scene scene(scale); scene.initialize(runtime, false); runtime.advance(40ms);
     const QString id = QStringLiteral("2"); scene.focus(id);
     const auto oldData = scene.paintData(runtime, id); const auto oldClip = scene.clip(runtime, id);

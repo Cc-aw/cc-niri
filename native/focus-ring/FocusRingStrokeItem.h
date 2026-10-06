@@ -10,6 +10,8 @@ struct FocusRingStrokeMetrics {
     QSizeF body;
     std::array<QSizeF, 4> radii;
     bool compensated = false;
+    qreal borderThickness = 3;
+    CcNiriRingMetrics numeric() const;
     static std::optional<FocusRingStrokeMetrics> fromFrame(const FocusRingPaintFrame &frame, qreal deviceScale);
 };
 class FocusRingStrokeItem : public Item {

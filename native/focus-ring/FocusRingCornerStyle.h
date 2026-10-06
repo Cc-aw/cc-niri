@@ -5,6 +5,7 @@
 #include <KSharedConfig>
 #include <QObject>
 #include <QSizeF>
+#include "FocusRingCoreBackend.h"
 
 namespace KWin {
 // Configuration/lifecycle only. Painting uses cached values, never config I/O.
@@ -23,7 +24,6 @@ private:
     KSharedConfig::Ptr m_config;
     KConfigWatcher::Ptr m_watcher;
     bool m_roundCornersLoaded = false;
-    qreal m_configuredRadius = -1;
-    qreal m_roundCornersRadius = 0;
+    CcNiriRingCorners m_corners{-1,0};
 };
 }

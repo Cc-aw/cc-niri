@@ -238,3 +238,6 @@ mod motion;
 mod protocol_views;
 #[path = "ffi_scroll.rs"]
 mod scroll;
+
+#[path = "ffi_ring.rs"]
+mod ring;

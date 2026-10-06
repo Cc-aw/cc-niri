@@ -6,6 +6,7 @@
 #include <QVariant>
 #include <algorithm>
 #include <cmath>
+#include "FocusRingCoreBackend.h"
 
 namespace KWin {
 // A scene decoration can reserve its stroke space around all viewport edges,
@@ -22,7 +23,7 @@ public:
             clear(); m_owner = owner;
             if (owner) m_previous = owner->property(ViewportDecorationPaddingProperty);
         }
-        m_padding = std::isfinite(padding) ? std::clamp(padding, 0.0, 128.0) : 0;
+        m_padding = CcNiri::FocusRingCore::padding(padding);
         if (owner && owner->property(ViewportDecorationPaddingProperty) != QVariant(m_padding)) {
             owner->setProperty(ViewportDecorationPaddingProperty, m_padding);
         }
@@ -41,11 +42,10 @@ private:
 inline Region viewportPaintClip(Item *owner, const RenderViewport &viewport,
         const RectF &logicalViewport, const Region &deviceRegion) {
     const qreal requested = owner ? owner->property(ViewportDecorationPaddingProperty).toDouble() : 0;
-    const qreal padding = std::isfinite(requested) ? std::clamp(requested, 0.0, 128.0) : 0;
     const Rect deviceClip = viewport.mapToDeviceCoordinates(logicalViewport).rounded();
     // OutlinedBorderItem rounds its device thickness. Reserve outward to
     // avoid losing an outer row or column at fractional scale.
-    const int devicePadding = std::ceil(padding * viewport.scale());
+    const int devicePadding = CcNiri::FocusRingCore::devicePadding(requested,viewport.scale());
     return deviceRegion & deviceClip.adjusted(-devicePadding, -devicePadding, devicePadding, devicePadding);
 }
 }

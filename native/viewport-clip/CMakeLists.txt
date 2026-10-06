@@ -25,6 +25,7 @@ add_subdirectory(../rust rust-core)
 include("${CMAKE_CURRENT_LIST_DIR}/../common/SpringBackend.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/../common/ViewportMotionBackend.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/../common/ScrollRuntime.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/../common/FocusRingCore.cmake")
 
 # Preserved C++ math/reference plus the selected Spring/Motion adapters.
 add_library(cc-niri-viewport-motion STATIC
@@ -51,6 +52,7 @@ target_link_libraries(cc-niri-viewport-clip PRIVATE
     cc-niri-rust-core
     cc-niri-viewport-motion
     cc-niri-scroll-backend
+    cc-niri-focus-ring-core-backend
     Qt6::Core
     Qt6::DBus
     KF6::CoreAddons
