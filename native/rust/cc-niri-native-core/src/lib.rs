@@ -7,4 +7,6 @@ pub fn rust_core_version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
 
+pub mod native_protocol;
 pub mod spring;
+pub mod viewport_motion;

@@ -17,6 +17,7 @@ find_package(KWin 6.7 REQUIRED COMPONENTS kwineffects)
 include(CTest)
 add_subdirectory(../rust rust-core)
 include("${CMAKE_CURRENT_LIST_DIR}/../common/SpringBackend.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/../common/ViewportMotionBackend.cmake")
 kcoreaddons_add_plugin(cc-niri-focus-ring
     SOURCES main.cpp FocusRingEffect.cpp FocusRingEffect.h FocusRingItem.cpp FocusRingItem.h FocusRingPaintFrame.cpp FocusRingStrokeItem.cpp FocusRingStrokeItem.h FocusRingPaintFrame.h FocusRingContext.cpp FocusRingContext.h FocusRingCornerStyle.cpp FocusRingCornerStyle.h
     INSTALL_NAMESPACE "kwin/effects/plugins")
@@ -53,13 +54,13 @@ if(BUILD_TESTING)
         FocusRingItem.cpp FocusRingItem.h FocusRingPaintFrame.cpp FocusRingStrokeItem.cpp FocusRingStrokeItem.h
         ../viewport-clip/ScrollViewportRuntime.cpp ../viewport-clip/ViewportMotion.cpp ../viewport-clip/Spring.cpp)
     target_link_libraries(cc-niri-focus-ring-visual-transform-tests PRIVATE Qt6::Core Qt6::Gui KWin::kwin)
-    target_link_libraries(cc-niri-focus-ring-visual-transform-tests PRIVATE cc-niri-spring-backend  )
+    target_link_libraries(cc-niri-focus-ring-visual-transform-tests PRIVATE cc-niri-spring-backend cc-niri-motion-backend )
     add_test(NAME focus-ring-visual-transform COMMAND cc-niri-focus-ring-visual-transform-tests)
     add_executable(cc-niri-focus-ring-retarget-tests tests/FocusRingRetargetTest.cpp
         FocusRingItem.cpp FocusRingItem.h FocusRingPaintFrame.cpp FocusRingStrokeItem.cpp FocusRingStrokeItem.h
         ../viewport-clip/ScrollViewportRuntime.cpp ../viewport-clip/ViewportMotion.cpp ../viewport-clip/Spring.cpp)
     target_link_libraries(cc-niri-focus-ring-retarget-tests PRIVATE Qt6::Core Qt6::Gui KWin::kwin)
-    target_link_libraries(cc-niri-focus-ring-retarget-tests PRIVATE cc-niri-spring-backend  )
+    target_link_libraries(cc-niri-focus-ring-retarget-tests PRIVATE cc-niri-spring-backend cc-niri-motion-backend )
     add_test(NAME focus-ring-retarget COMMAND cc-niri-focus-ring-retarget-tests)
     find_program(NODE_EXECUTABLE node REQUIRED)
     add_executable(cc-niri-focus-ring-presentation-tests tests/FocusRingPresentationTest.cpp

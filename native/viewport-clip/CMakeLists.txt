@@ -23,6 +23,7 @@ find_package(KWin 6.7 REQUIRED COMPONENTS kwineffects)
 include(CTest)
 add_subdirectory(../rust rust-core)
 include("${CMAKE_CURRENT_LIST_DIR}/../common/SpringBackend.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/../common/ViewportMotionBackend.cmake")
 
 # Preserved C++ math/reference plus the selected Spring/Motion adapters.
 add_library(cc-niri-viewport-motion STATIC
@@ -33,7 +34,7 @@ set_target_properties(cc-niri-viewport-motion PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 target_include_directories(cc-niri-viewport-motion PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(cc-niri-viewport-motion PUBLIC cc-niri-spring-backend )
+target_link_libraries(cc-niri-viewport-motion PUBLIC cc-niri-spring-backend cc-niri-motion-backend)
 
 kcoreaddons_add_plugin(cc-niri-viewport-clip
     SOURCES

@@ -230,3 +230,6 @@ mod tests {
         assert_eq!(super::cc_niri_rust_core_version(), version.as_ptr());
     }
 }
+
+#[path = "ffi_motion.rs"]
+mod motion;

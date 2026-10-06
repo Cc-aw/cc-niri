@@ -1,0 +1,13 @@
+include_guard(GLOBAL)
+option(CC_NIRI_USE_RUST_VIEWPORT_MOTION "Use Rust ViewportMotion (includes Rust Spring)" OFF)
+message(STATUS "CC-Niri Rust ViewportMotion backend: ${CC_NIRI_USE_RUST_VIEWPORT_MOTION}")
+add_library(cc-niri-motion-backend INTERFACE)
+target_compile_definitions(cc-niri-motion-backend INTERFACE
+    CC_NIRI_USE_RUST_VIEWPORT_MOTION=$<BOOL:${CC_NIRI_USE_RUST_VIEWPORT_MOTION}>)
+if(CC_NIRI_USE_RUST_VIEWPORT_MOTION)
+    add_library(cc-niri-rust-motion STATIC "${CMAKE_CURRENT_LIST_DIR}/../viewport-clip/RustViewportMotion.cpp")
+    set_target_properties(cc-niri-rust-motion PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
+    target_include_directories(cc-niri-rust-motion PUBLIC "${CMAKE_CURRENT_LIST_DIR}/../viewport-clip")
+    target_link_libraries(cc-niri-rust-motion PUBLIC cc-niri-rust-core cc-niri-spring-backend)
+    target_link_libraries(cc-niri-motion-backend INTERFACE cc-niri-rust-motion)
+endif()
