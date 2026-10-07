@@ -1989,7 +1989,7 @@ function loadRuntimeConfig(readValue) {
         autoRecycleWorkspaces: Boolean(readValue("AutoRecycleWorkspaces", false)),
         primary: {
             top: number("GapTop", 50),
-            bottom: number("GapBottom", 70),
+            bottom: number("GapBottom", 8),
             left: number("GapLeft", 24),
             right: number("GapRight", 24),
             inner: number("InnerGap", 8),

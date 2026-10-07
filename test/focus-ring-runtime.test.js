@@ -100,6 +100,9 @@ function nativeSwitch(index, active) {
 }
 assert.deepEqual(eligibility.at(-1).windows, [firstId, secondId], "generated runtime publishes initial mounted membership");
 assert.equal(eligibility.at(-1).workspaceId, "A");
+assert.deepEqual(JSON.parse(JSON.stringify(a[0].frameGeometry)),
+    { x: 24, y: 50, width: 1252, height: 1382 },
+    "mounted Ring-eligible window uses the compact default safe area");
 const beforeGeometry = JSON.stringify(a.map(window => window.frameGeometry));
 const epoch = evaluate('beginLayoutTransaction("test-owner-change")');
 const beforeGeneration = eligibility.at(-1).generation;

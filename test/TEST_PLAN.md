@@ -11,6 +11,12 @@ node test/geometry-v2.test.js
 It verifies the configured `2560x1440` safe rectangle, all eight Quick Tile rectangles, exact 8 px seams, and absence of overlap or unassigned pixels.
 It also verifies the secondary `24/24/24/24` profile and its Left/Right tile geometry.
 
+The V2 fixture deliberately retains an explicit 70 px bottom gap as a legacy
+configuration regression. Core UX P1 changes the unconfigured primary default
+to 8 px; `runtime-config-output.test.js`, `presentation-controller.test.js`,
+`fullscreen-controller.test.js`, and `focus-ring-runtime.test.js` cover the
+compact profile and saved overrides. See [P1 results](CORE_UX_P1_RESULTS.md).
+
 ## Live POC and installed-package results on KWin 6.7.4
 
 - Normal `380,170 1800x1100` → maximize `24,50 2512x1320` → normal restore passed.
@@ -25,7 +31,7 @@ It also verifies the secondary `24/24/24/24` profile and its Left/Right tile geo
 
 ## Manual acceptance matrix
 
-1. Maximize several normal apps on `DP-1`; confirm `24/50/24/70` outer gaps.
+1. With default configuration, maximize several normal apps on `DP-1`; confirm `24/50/24/8` outer gaps. Explicit saved gaps must retain their configured values.
 2. Restore each app and confirm its original free-window rectangle.
 3. Exercise Left, Right, Top, Bottom, and four corners on `DP-1`.
 4. Place two adjacent windows and confirm one 8 px inner seam with no overlap.

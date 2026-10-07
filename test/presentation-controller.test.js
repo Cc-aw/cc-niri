@@ -5,6 +5,8 @@ const { PresentationController } =
     require("../src/kwin/presentation/PresentationController");
 const { ContextualViewport } =
     require("../src/kwin/presentation/ContextualViewport");
+const { loadRuntimeConfig } = require("../src/kwin/runtime/RuntimeConfig");
+const { computeSafeRect } = require("../src/kwin/layout/SafeArea");
 
 const modes = { normal: "normal", wide: "wide", maximized: "maximized" };
 const primary = { name: "DP-1" };
@@ -221,6 +223,18 @@ for (const startingWide of [true, false]) {
     h.controller.setMode("abc", "maximized", "maximize");
     h.controller.restoreFromMaximize("abc", "restore");
     assert.equal(h.viewport.pendingReveal, null);
+}
+
+{
+    const config = loadRuntimeConfig((_key, fallback) => fallback);
+    const safeRect = computeSafeRect({ x: 0, y: 0, width: 2560, height: 1440 },
+        config.primary);
+    const { controller, appState } = fixture({ appState: { safeRect } });
+    controller.setMode("abc", "maximized", "compact-safe-maximize");
+    assert.deepEqual(controller.rect(), { x: 24, y: 50, width: 2512, height: 1382 });
+    controller.setMode("abc", "wide", "compact-safe-wide");
+    assert.deepEqual(controller.rect(), { x: 375, y: 50, width: 1809, height: 1382 });
+    assert.equal(appState.safeRect.y + controller.rect().height, 1432);
 }
 
 const mainSource = fs.readFileSync(

@@ -19,7 +19,7 @@
       <default>50</default>
     </entry>
     <entry name="GapBottom" type="Int">
-      <default>70</default>
+      <default>8</default>
     </entry>
     <entry name="GapLeft" type="Int">
       <default>24</default>

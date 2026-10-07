@@ -5,6 +5,9 @@ const { FullscreenController } =
     require("../src/kwin/lifecycle/FullscreenController");
 const { ContextualViewport } =
     require("../src/kwin/presentation/ContextualViewport");
+const { loadRuntimeConfig } = require("../src/kwin/runtime/RuntimeConfig");
+const { computeSafeRect } = require("../src/kwin/layout/SafeArea");
+const { quickTileRect } = require("../src/kwin/layout/Geometry");
 
 function fixture(overrides = {}) {
     const calls = [];
@@ -148,6 +151,30 @@ for (const options of [
     controller.onFullscreenChanged(window);
     assert.deepEqual(calls, [["adopt", window, "fullscreen-exit"]]);
     assert.equal(state.layoutModeBeforeFullscreen, "normal");
+}
+
+{
+    const config = loadRuntimeConfig((_key, fallback) => fallback);
+    const screen = { x: 0, y: 0, width: 2560, height: 1440 };
+    const safeRect = computeSafeRect(screen, config.primary);
+    const window = makeWindow(true);
+    window.frameGeometry = { ...screen };
+    const { controller } = fixture({
+        state: { layoutMode: "right" },
+        options: {
+            onManagedOutput: () => true,
+            applyLayoutGeometry: (target, _state, mode) => {
+                target.frameGeometry = quickTileRect(mode, safeRect, config.primary.inner);
+            },
+        },
+    });
+    controller.onFullscreenChanged(window);
+    assert.deepEqual(window.frameGeometry, screen, "fullscreen retains native screen bounds");
+    window.fullScreen = false;
+    controller.onFullscreenChanged(window);
+    assert.deepEqual(window.frameGeometry,
+        { x: 1284, y: 50, width: 1252, height: 1382 },
+        "fullscreen exit restores the compact safe-area tile");
 }
 
 const mainSource = fs.readFileSync(
