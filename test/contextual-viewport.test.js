@@ -41,6 +41,32 @@ viewport.restore({ mode: ViewportMode.PAIR, wideColumnId: wide.id });
 assert.equal(appState.viewport.mode, ViewportMode.PAIR);
 viewport.restore({ mode: ViewportMode.WIDE_FOCUS, wideColumnId: 999 });
 assert.equal(appState.viewport.mode, ViewportMode.PAIR);
+const full = { id: 3, widthMode: "full", persistentWide: true };
+appState.columns.push(full);
+for (const source of Object.values(FocusSource)) {
+    assert.equal(shouldEnterWide(full, { source, changedFocus: true }), false);
+    viewport.select(full, { source, changedFocus: true, direction: 1, viewportMoved: true });
+    assert.equal(viewport.pendingReveal, null);
+    assert.equal(viewport.pendingFocusedWide, null);
+    assert.equal(viewport.enterFocusedWide(full, 1), false);
+    assert.equal(appState.viewport.mode, ViewportMode.PAIR);
+}
+viewport.wide(wide);
+viewport.wide(full);
+assert.equal(appState.viewport.mode, ViewportMode.PAIR);
+viewport.restore({ mode: ViewportMode.WIDE_FOCUS, wideColumnId: full.id });
+assert.equal(appState.viewport.mode, ViewportMode.PAIR);
+appState.viewport = { mode: ViewportMode.WIDE_FOCUS, wideColumnId: full.id };
+assert.equal(viewport.column(), null, "stale Wide state cannot shrink Full");
+assert.equal(appState.viewport.mode, ViewportMode.PAIR);
+full.widthMode = "half";
+viewport.select(full, { source: FocusSource.DIRECTIONAL, changedFocus: true,
+    direction: 1, viewportMoved: true });
+full.widthMode = "full";
+assert.equal(viewport.confirmReveal(full, 1), false, "pending Wide cannot override a changed width");
+full.widthMode = "half";
+viewport.wide(full);
+assert.equal(appState.viewport.mode, ViewportMode.WIDE_FOCUS, "non-Full can reuse the retained Wide preference");
 const mainSource = fs.readFileSync(
     path.join(__dirname, "../package/contents/code/main.js"), "utf8"
 );

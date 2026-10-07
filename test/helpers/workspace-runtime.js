@@ -99,7 +99,8 @@ const context = vm.createContext({ workspace, QTimer: Timer,
     registerShortcut: (name, _description, _sequence, handler) => shortcuts.set(name, handler), console: { info: message => logs.push(message), warn: message => logs.push(message) },
     callDBus: (_service, _path, _interface, method, ...args) => {
         const callback = args.at(-1);
-        if (method === "GetState") callback("");
+        if (method === "GetState") callback(config.PreviousState
+            ? JSON.stringify(config.PreviousState) : "");
         else if (method === "EnsureVerticalDesktopLayout") { desktopRows.push(args[0]); callback(true); }
         else if (method === "PublishState") { published.push(JSON.parse(args[0])); callback(true); }
         else if (method === "PublishMotionPlan") { motionPlans.push(JSON.parse(args[0])); motionPublishWrites.push(geometryWrites); motionAcks.push(callback); if (motionPlans.at(-1).type === "SCROLL" && !config.HoldScrollAck) callback(true); }

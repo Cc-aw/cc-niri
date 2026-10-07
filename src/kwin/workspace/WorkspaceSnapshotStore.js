@@ -23,7 +23,7 @@ function normalizeWorkspaceSnapshot(workspaceId, snapshot) {
         seen.add(uuid);
         columns.push({
             uuid,
-            widthMode: ["half", "third", "twoThirds"].includes(column.widthMode)
+            widthMode: ["half", "third", "twoThirds", "full"].includes(column.widthMode)
                 ? column.widthMode : "half",
             persistentWide: column.persistentWide === true,
         });

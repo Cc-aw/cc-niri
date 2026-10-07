@@ -1,6 +1,6 @@
 # CC-Niri Core UX 下一阶段实施设计
 
-实施状态（2026-10-07）：P1 Compact Safe Area 已完成代码、完整 Native 门禁和部署核验，人工视觉验收待反馈。主屏底部默认值已改为 8，保留显式用户边距和副屏独立配置；验证、部署与人工验收进度见 [P1 记录](../../test/CORE_UX_P1_RESULTS.md)。P2–P8 尚未实施，本文继续保留在 `todo/`；下文“当前基线”记录设计编写时的 70px 默认值。
+实施状态（2026-10-07）：P1 Compact Safe Area、P2 Persistent Full Column 已完成代码、完整 Native 门禁和部署核验。主屏底部默认值为 8，保留显式用户边距和副屏独立配置；Full 使用普通列条带并占 100% Safe Area，保留持久化和跨工作区迁移语义。实机已核验 H/L、快速 L L H、J/K、重启后的 Full 几何与 Ring owner，临时测试列宽已恢复；动画连续性和视觉观感仍待人工反馈。详见 [P1 记录](../../test/CORE_UX_P1_RESULTS.md)与 [P2 记录](../../test/CORE_UX_P2_RESULTS.md)。P3–P8 尚未实施，本文继续保留在 `todo/`；下文“当前基线”记录设计编写时的 70px 默认值。
 
 ## 1. 文档目的
 
@@ -267,6 +267,8 @@ full = persistent Column width
 | 重启后 | 按 Presentation 恢复 | 始终 100% |
 
 两套语义第一阶段同时保留。
+
+P2 已实现的优先级：`widthMode=full` 时不进入 72% Wide 视口，已有 `persistentWide` 偏好保留但暂不生效。方向导航、快照恢复及显式 Wide 命令均保持 Full 的 100% 几何；恢复非 Full 宽度后可继续使用原有 Wide 偏好。Full 不新增 Presentation mode 或动画时钟。
 
 ---
 
@@ -1936,12 +1938,12 @@ Width mode
 
 本阶段完成必须满足：
 
-- [ ] `widthMode=full` 已实现
-- [ ] full = 100% Safe Area width
-- [ ] full 不等于 Fullscreen
-- [ ] full 不等于 Focus Wide
-- [ ] full 可持久化
-- [ ] full 可跨 Workspace 保持
+- [x] `widthMode=full` 已实现
+- [x] full = 100% Safe Area width
+- [x] full 不等于 Fullscreen
+- [x] full 不等于 Focus Wide
+- [x] full 可持久化
+- [x] full 可跨 Workspace 保持
 - [ ] Full toggle 已实现
 - [ ] Width cycle 已实现
 - [ ] `Meta+Shift+J/K` 已实现
@@ -1952,12 +1954,12 @@ Width mode
 - [ ] `Meta+1..9` 已实现
 - [ ] `Meta+Ctrl+1..9` 已实现
 - [x] bottom gap 默认从 70 改为 8
-- [ ] Full Column 在新 Safe Area 下正确
+- [x] Full Column 在新 Safe Area 下正确
 - [ ] Focus Ring 在底部正确显示
 - [ ] Dock 不再是核心功能依赖
 - [ ] Bridge 保留通用 persistence / IPC
 - [ ] Dockless 模式完整可用
-- [ ] Workspace Snapshot backward compatible
+- [x] Workspace Snapshot backward compatible
 - [ ] 自动测试全部通过
 - [ ] `node tools/check.js --native` 通过
 - [ ] Rust Native 门禁通过

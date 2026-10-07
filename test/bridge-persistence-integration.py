@@ -33,11 +33,11 @@ with tempfile.TemporaryDirectory(prefix="cc-niri-bridge-") as directory:
         global server
         server.terminate(); server.wait(timeout=5); server = None
 
-    legacy = {"protocol": 1, "sessionId": "legacy", "generation": 10, "targetOutput": "eDP-1", "columns": [{"uuid": "a1"}]}
+    legacy = {"protocol": 1, "sessionId": "legacy", "generation": 10, "targetOutput": "eDP-1", "columns": [{"uuid": "a1", "widthMode": "full"}]}
     state = {"protocol": 2, "sessionId": "w5", "generation": 1, "targetOutput": "eDP-1", "workspaceId": "B",
-        "columns": [{"uuid": "b1", "widthMode": "half"}], "workspaces": [
-            {"id": "A", "columns": [{"uuid": "a1", "persistentWide": True}], "viewportAnchor": {"uuid": "a1", "delta": 25}},
-            {"id": "B", "columns": [{"uuid": "b1", "widthMode": "half"}]}]}
+        "columns": [{"uuid": "b1", "widthMode": "full"}], "workspaces": [
+            {"id": "A", "columns": [{"uuid": "a1", "widthMode": "full", "persistentWide": True}], "viewportAnchor": {"uuid": "a1", "delta": 25}},
+            {"id": "B", "columns": [{"uuid": "b1", "widthMode": "full"}]}]}
     try:
         assert start() == ""
         assert call("PublishState", json.dumps(legacy))
@@ -48,6 +48,10 @@ with tempfile.TemporaryDirectory(prefix="cc-niri-bridge-") as directory:
         assert call("PublishState", json.dumps(state))
         cache = Path(directory, "cc-niri/workspaces.json")
         assert json.loads(cache.read_text()) == state
+        mismatch = dict(state, columns=[{"uuid": "b1", "widthMode": "half"}])
+        assert call("PublishState", json.dumps(mismatch)) is False
+        assert json.loads(call("GetState")) == state
+        assert json.loads(cache.read_text()) == state, "width mismatch must not replace durable Full data"
         stop(); assert json.loads(start()) == state
         assert call("PublishState", json.dumps(dict(state, sessionId="reloaded", generation=0)))
         blocked = Path(directory, "blocked")
@@ -58,6 +62,6 @@ with tempfile.TemporaryDirectory(prefix="cc-niri-bridge-") as directory:
         stop()
         cache.write_text("broken")
         assert start() == ""
-        print("PASS isolated DBus Bridge upgrade handoff, protocol 1/2 cache restart and corruption")
+        print("PASS isolated DBus Bridge upgrade handoff, persistent Full protocol 1/2 restart, width mismatch and corruption")
     finally:
         if server is not None: stop()

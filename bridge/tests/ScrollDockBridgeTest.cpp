@@ -48,6 +48,25 @@ int main(int argc, char **argv) {
         CHECK(broken.PublishState(json(legacy))); CHECK(!broken.GetState().isEmpty());
     }
     {
+        const QString fullCache = directory.filePath("full/workspaces.json");
+        auto fullState = state;
+        const QJsonArray fullColumns{QJsonObject{{"uuid", "b1"}, {"widthMode", "full"}, {"persistentWide", true}}};
+        fullState["columns"] = fullColumns;
+        fullState["workspaces"] = QJsonArray{a, QJsonObject{{"id", "B"}, {"columns", fullColumns}}};
+        {
+            ScrollDockBridge full(nullptr, fullCache);
+            CHECK(full.PublishState(json(fullState))); CHECK(full.lastSaveSucceeded());
+            QFile saved(fullCache); CHECK(saved.open(QIODevice::ReadOnly));
+            CHECK(QJsonDocument::fromJson(saved.readAll()).object() == fullState);
+            auto mismatch = fullState; mismatch["columns"] = active;
+            CHECK(!full.PublishState(json(mismatch)));
+            CHECK(QJsonDocument::fromJson(full.GetState().toUtf8()).object() == fullState);
+        }
+        ScrollDockBridge fullRestarted(nullptr, fullCache);
+        CHECK(QJsonDocument::fromJson(fullRestarted.GetState().toUtf8()).object() == fullState);
+        CHECK(!fullRestarted.RequestEmergencyRestore());
+    }
+    {
         // Persistence failure must not freeze live Dock updates.
         ScrollDockBridge unwritable(nullptr, directory.path());
         CHECK(unwritable.PublishState(json(state))); CHECK(!unwritable.lastSaveSucceeded()); CHECK(!unwritable.GetState().isEmpty());

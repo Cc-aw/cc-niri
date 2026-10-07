@@ -13,8 +13,14 @@ const FocusSource = Object.freeze({
     PROGRAMMATIC: "programmatic",
 });
 
+function isContextualWideColumn(column) {
+    // Full is a persistent strip width. Keep its Wide preference dormant so
+    // focus, restore and explicit Wide commands cannot shrink it to 72%.
+    return Boolean(column && column.persistentWide && column.widthMode !== "full");
+}
+
 function shouldEnterWide(column, intent) {
-    return Boolean(column && column.persistentWide && intent &&
+    return Boolean(isContextualWideColumn(column) && intent &&
         intent.source === FocusSource.DIRECTIONAL && intent.changedFocus);
 }
 
@@ -40,7 +46,8 @@ class ContextualViewport {
 
     wide(column) {
         this.cancelReveal();
-        if (!column || !column.persistentWide) return false;
+        if (column && column.widthMode === "full") return this.pair();
+        if (!isContextualWideColumn(column)) return false;
         const old = this.appState.viewport;
         this.appState.viewport = {
             mode: ViewportMode.WIDE_FOCUS,
@@ -57,7 +64,7 @@ class ContextualViewport {
         }
         const column = this.appState.columns.find(item =>
             item.id === snapshot.wideColumnId);
-        return column && column.persistentWide
+        return isContextualWideColumn(column)
             ? this.wide(column) : this.pair();
     }
 
@@ -66,7 +73,7 @@ class ContextualViewport {
         if (!state || state.mode !== ViewportMode.WIDE_FOCUS) return null;
         const column = this.appState.columns.find(item =>
             item.id === state.wideColumnId) || null;
-        if (!column || !column.persistentWide) {
+        if (!isContextualWideColumn(column)) {
             this.pair();
             return null;
         }
@@ -76,7 +83,7 @@ class ContextualViewport {
     select(column, intent) {
         if (!shouldEnterWide(column, intent)) {
             const changed = this.pair();
-            if (column && column.persistentWide && intent &&
+            if (isContextualWideColumn(column) && intent &&
                     intent.source !== FocusSource.DIRECTIONAL &&
                     intent.changedFocus) {
                 this.pendingFocusedWide = column;
@@ -105,7 +112,7 @@ class ContextualViewport {
         const pending = this.pendingReveal;
         this.cancelReveal();
         if (!pending || pending.column !== column ||
-                pending.direction !== direction || !column.persistentWide ||
+                pending.direction !== direction || !isContextualWideColumn(column) ||
                 this.appState.columns.indexOf(column) < 0 ||
                 this.appState.viewport.mode !== ViewportMode.PAIR ||
                 this.appState.scrollOffsetX !== pending.scrollOffsetX) return false;
@@ -116,7 +123,7 @@ class ContextualViewport {
         if (this.pendingReveal) return this.confirmReveal(column, direction);
         const armed = this.pendingFocusedWide === column;
         this.pendingFocusedWide = null;
-        if (!armed || !column || !column.persistentWide ||
+        if (!armed || !isContextualWideColumn(column) ||
                 this.appState.columns.indexOf(column) < 0 ||
                 this.appState.viewport.mode !== ViewportMode.PAIR) return false;
         const index = this.appState.columns.indexOf(column);

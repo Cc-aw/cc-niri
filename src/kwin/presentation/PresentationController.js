@@ -32,9 +32,7 @@ class PresentationController {
         const appState = this.getAppState();
         if (appState.presentation.mode !== this.modes.maximized &&
                 appState.viewport && appState.viewport.mode === "wide-focus") {
-            return appState.columns.find(column =>
-                column.id === appState.viewport.wideColumnId &&
-                column.persistentWide) || null;
+            return this.viewport.column();
         }
         if (appState.presentation.mode === this.modes.normal ||
                 !appState.presentation.windowUuid) return null;
@@ -60,7 +58,8 @@ class PresentationController {
     rect() {
         const appState = this.getAppState();
         return appState.presentation.mode !== this.modes.maximized &&
-                appState.viewport && appState.viewport.mode === "wide-focus"
+                appState.viewport && appState.viewport.mode === "wide-focus" &&
+                this.viewport.column()
             ? this.wideRect()
             : this.rectCopy(appState.safeRect);
     }
