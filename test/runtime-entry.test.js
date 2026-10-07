@@ -11,6 +11,8 @@ const actions = {
     workspaceNext: () => calls.push("workspaceNext"),
     focusPrevious: () => calls.push("focusPrevious"),
     focusNext: () => calls.push("focusNext"),
+    cycleWidth: () => calls.push("cycleWidth"),
+    toggleFull: () => calls.push("toggleFull"),
     toggleWide: () => calls.push("toggleWide"),
     moveLeft: () => calls.push("moveLeft"),
     moveRight: () => calls.push("moveRight"),
@@ -21,11 +23,13 @@ const actions = {
     emergencyRestore: () => calls.push("emergencyRestore"),
 };
 const catalog = createShortcutCatalog(actions);
-assert.equal(catalog.length, 13);
+assert.equal(catalog.length, 15);
 assert.deepEqual(catalog.map(item => item.defaultSequence), [
     "Meta+K", "Meta+J",
     "Meta+H",
     "Meta+L",
+    "Meta+R",
+    "Meta+F",
     "Meta+Z",
     "Meta+Shift+H",
     "Meta+Shift+L",
@@ -38,7 +42,7 @@ assert.deepEqual(catalog.map(item => item.defaultSequence), [
 ]);
 catalog.forEach(item => item.handler());
 assert.deepEqual(calls, [
-    "workspacePrevious", "workspaceNext", "focusPrevious", "focusNext", "toggleWide", "moveLeft", "moveRight",
+    "workspacePrevious", "workspaceNext", "focusPrevious", "focusNext", "cycleWidth", "toggleFull", "toggleWide", "moveLeft", "moveRight",
     "toggleFloating", "toggleFloating", "publishFocusRingState", "publishDockState",
     "applyDockCommand", "emergencyRestore",
 ]);

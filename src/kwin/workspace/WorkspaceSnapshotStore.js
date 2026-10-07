@@ -1,5 +1,9 @@
 "use strict";
 
+/* cjs:start */
+const { normalizePreviousNonFullWidthMode } = require("../model/ColumnStore");
+/* cjs:end */
+
 // Only plain, steady-state data crosses this boundary. Never retain live Columns,
 // windows, temporary Column IDs or pending transition state.
 function workspaceSnapshotUuid(value) {
@@ -21,10 +25,13 @@ function normalizeWorkspaceSnapshot(workspaceId, snapshot) {
         const uuid = workspaceSnapshotUuid(column && column.uuid);
         if (!uuid || seen.has(uuid)) continue;
         seen.add(uuid);
+        const widthMode = ["half", "third", "twoThirds", "full"].includes(column.widthMode)
+            ? column.widthMode : "half";
         columns.push({
             uuid,
-            widthMode: ["half", "third", "twoThirds", "full"].includes(column.widthMode)
-                ? column.widthMode : "half",
+            widthMode,
+            previousNonFullWidthMode: normalizePreviousNonFullWidthMode(
+                column.previousNonFullWidthMode, widthMode),
             persistentWide: column.persistentWide === true,
         });
     }

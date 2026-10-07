@@ -23,10 +23,16 @@ class GeometryCommitter {
                 this.isTileMode(windowState.layoutMode)) {
             return;
         }
-        if (this.sameRect(window.frameGeometry, target)) return;
+        // A Wayland client may still report the old frame while a different
+        // configure is pending. Returning to that frame must supersede the
+        // outstanding request, even though the current geometry already fits.
+        const requested = windowState.scrollLastRequestedGeometry;
+        if (this.sameRect(window.frameGeometry, target) &&
+                (!requested || this.sameRect(requested, target))) return;
         windowState.internalChange = true;
         try {
             window.frameGeometry = target;
+            windowState.scrollLastRequestedGeometry = this.rectCopy(target);
         } finally {
             windowState.internalChange = false;
         }

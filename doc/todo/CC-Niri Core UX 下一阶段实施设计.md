@@ -1,6 +1,6 @@
 # CC-Niri Core UX 下一阶段实施设计
 
-实施状态（2026-10-07）：P1 Compact Safe Area、P2 Persistent Full Column 已完成代码、完整 Native 门禁和部署核验。主屏底部默认值为 8，保留显式用户边距和副屏独立配置；Full 使用普通列条带并占 100% Safe Area，保留持久化和跨工作区迁移语义。实机已核验 H/L、快速 L L H、J/K、重启后的 Full 几何与 Ring owner，临时测试列宽已恢复；动画连续性和视觉观感仍待人工反馈。详见 [P1 记录](../../test/CORE_UX_P1_RESULTS.md)与 [P2 记录](../../test/CORE_UX_P2_RESULTS.md)。P3–P8 尚未实施，本文继续保留在 `todo/`；下文“当前基线”记录设计编写时的 70px 默认值。
+实施状态（2026-10-07）：P1 Compact Safe Area、P2 Persistent Full Column、P3 Width Controls 已完成代码、完整 Native 门禁和部署核验。主屏底部默认值为 8，Full 占 100% Safe Area；Meta+R 循环四档宽度，Meta+F 记住并恢复先前非 Full 宽度，跨工作区和重载保留。实机已核验宽度循环、连续 Full 切换、H/L、J/K、重启恢复与 Ring owner，原有测试列宽和焦点已恢复；动画连续性和视觉观感仍待人工反馈。详见 [P1](../../test/CORE_UX_P1_RESULTS.md)、[P2](../../test/CORE_UX_P2_RESULTS.md)、[P3](../../test/CORE_UX_P3_RESULTS.md) 记录。P4–P8 尚未实施，本文继续保留在 `todo/`；下文“当前基线”记录设计编写时的 70px 默认值。
 
 ## 1. 文档目的
 
@@ -439,6 +439,10 @@ third
 half
 twoThirds
 ```
+
+P3 已采用 `previousNonFullWidthMode`，随 protocol 1/2 兼容的 Workspace Snapshot 保存，只允许上述三种值。缺少或无效记忆时，普通列以当前非 Full 宽度初始化，旧 Full 以 half 初始化。Meta+R 进入 Full 时保存刚离开的宽度，离开 Full 到 third 时更新记忆；Meta+F 从 Full 恢复保存值。
+
+宽度操作只作用于当前活动的受管列。Fullscreen、浮动、副屏、无活动列和工作区切换期间 no-op；改宽度退出 Wide / 安全区域最大化展示，保留 persistentWide 偏好。复用现有 LayoutTransaction / LayoutEngine，取消旧 Scroll / Wide ACK 和 deferred parking；不新增动画时钟。几何提交同时考虑实际 frame 与最后发出的请求，避免 Wayland 延迟 configure ACK 下快速 Full 往返丢失最终宽度。
 
 ---
 
@@ -1944,8 +1948,8 @@ Width mode
 - [x] full 不等于 Focus Wide
 - [x] full 可持久化
 - [x] full 可跨 Workspace 保持
-- [ ] Full toggle 已实现
-- [ ] Width cycle 已实现
+- [x] Full toggle 已实现
+- [x] Width cycle 已实现
 - [ ] `Meta+Shift+J/K` 已实现
 - [ ] Workspace Move 使用正式 transaction/controller
 - [ ] Workspace Move 默认 move-and-follow

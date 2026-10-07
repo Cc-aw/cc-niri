@@ -47,4 +47,4 @@ P2 不增加每帧算法工作；Full 窗口内容面积更大，实际绘制成
 
 备份与审计：`/tmp/cc-niri-core-ux-p2-live-qv88pp70`，含旧布局包、kwinrc、原始 workspace state、Full fixture、前后 Bridge / Ring / 窗口几何和操作日志。指针：`/tmp/cc-niri-core-ux-p2-live-path`；部署日志：`/tmp/cc-niri-core-ux-p2-install.log`。`/tmp` 可随重启清除。
 
-下一阶段 P3 提供 Meta+R / Meta+F 和前一非 Full 宽度记忆；通过快捷键设置 A half / B full / C half 后，继续人工确认动画连续、Ring 视觉正确和 parking 无闪现。
+后续 P3 已提供 Meta+R / Meta+F 和前一非 Full 宽度记忆，见 [P3 记录](CORE_UX_P3_RESULTS.md)；通过快捷键设置 A half / B full / C half 后，继续人工确认动画连续、Ring 视觉正确和 parking 无闪现。

@@ -7,7 +7,7 @@
 ## 当前功能
 
 - **滚动列**：主屏每列一个普通窗口；默认显示两列，H/L 移动焦点并按需滚动。列顺序与 Dock 双向同步，重载后恢复已有窗口的顺序和视口。
-- **持久列宽（Core UX P2）**：支持 `third / half / twoThirds / full`；Full 占 100% Safe Area，跨导航、工作区迁移和重载保留。宽度循环与 Full 切换快捷键将在 P3 接入。
+- **持久列宽（Core UX P2–P3）**：Meta+R 按 `third → half → twoThirds → full` 循环，Meta+F 在当前宽度与 Full 间切换并记住非 Full 宽度。Full 占 100% Safe Area，宽度及恢复记忆跨导航、工作区迁移和重载保留。
 - **安全区域**：最大化和 Quick Tile 使用配置的边距与间隔；Fullscreen 保持原生行为。副屏支持独立安全区域，滚动列仅管理主屏。
 - **Contextual Wide**：保存每列的 Wide 偏好，聚焦时可居中扩展至安全区域的 72%；Full 列保持 100%，其 Wide 偏好暂不生效。Pair 视口使用普通列条带，默认显示两个半宽窗口。
 - **窗口策略**：支持手动浮动及拖动脱离；Dialog、Modal、Transient 等辅助窗口保持原生浮动，不进入列布局。
@@ -55,11 +55,17 @@ cc-niri status
 | --- | --- |
 | `Meta+H / L` | 聚焦上一列 / 下一列，不循环 |
 | `Meta+J / K` | 切换下一工作区 / 上一工作区，不循环 |
+| `Meta+R` | 当前列宽循环：third → half → twoThirds → full → third |
+| `Meta+F` | 当前列切换 Full，再次按下恢复先前非 Full 宽度 |
 | `Meta+Z` | 切换当前列的 Focus Wide |
 | `Meta+Shift+H / L` | 将当前列左移 / 右移 |
 | `Meta+Shift+Enter` | 切换列管理与浮动，支持主键盘和小键盘 Enter |
 
 Dock 菜单提供 Normal、Focus Wide 和安全区域最大化。原生最大化按钮也进入安全区域最大化；部分窗口装饰的图标不会随状态变化，但再次点击仍可还原。
+
+宽度操作只作用于当前活动的受管列；浮动窗口、副屏、Fullscreen 和工作区切换期间不生效。操作会退出 Wide / 安全区域最大化展示并保留 Wide 偏好。Meta+R 从 Full 进入 third；Meta+F 从 Full 返回保存的非 Full 宽度，旧快照缺少记忆时返回 half。
+
+快捷键保留 KGlobalAccel 的已有自定义绑定。若 Meta+F / Meta+R 已被其他全局动作占用，请在系统设置中重新分配冲突动作；本机 P3 部署已将原生“最大化窗口”从 Meta+F 改为 Meta+PgUp，Meta+F 用于列宽 Full。
 
 ## 配置与工作区
 

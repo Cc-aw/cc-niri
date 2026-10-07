@@ -33,11 +33,11 @@ with tempfile.TemporaryDirectory(prefix="cc-niri-bridge-") as directory:
         global server
         server.terminate(); server.wait(timeout=5); server = None
 
-    legacy = {"protocol": 1, "sessionId": "legacy", "generation": 10, "targetOutput": "eDP-1", "columns": [{"uuid": "a1", "widthMode": "full"}]}
+    legacy = {"protocol": 1, "sessionId": "legacy", "generation": 10, "targetOutput": "eDP-1", "columns": [{"uuid": "a1", "widthMode": "full", "previousNonFullWidthMode": "third"}]}
     state = {"protocol": 2, "sessionId": "w5", "generation": 1, "targetOutput": "eDP-1", "workspaceId": "B",
         "columns": [{"uuid": "b1", "widthMode": "full"}], "workspaces": [
-            {"id": "A", "columns": [{"uuid": "a1", "widthMode": "full", "persistentWide": True}], "viewportAnchor": {"uuid": "a1", "delta": 25}},
-            {"id": "B", "columns": [{"uuid": "b1", "widthMode": "full"}]}]}
+            {"id": "A", "columns": [{"uuid": "a1", "widthMode": "full", "previousNonFullWidthMode": "third", "persistentWide": True}], "viewportAnchor": {"uuid": "a1", "delta": 25}},
+            {"id": "B", "columns": [{"uuid": "b1", "widthMode": "full", "previousNonFullWidthMode": "twoThirds"}]}]}
     try:
         assert start() == ""
         assert call("PublishState", json.dumps(legacy))

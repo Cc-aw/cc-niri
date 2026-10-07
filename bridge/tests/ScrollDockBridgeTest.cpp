@@ -50,7 +50,8 @@ int main(int argc, char **argv) {
     {
         const QString fullCache = directory.filePath("full/workspaces.json");
         auto fullState = state;
-        const QJsonArray fullColumns{QJsonObject{{"uuid", "b1"}, {"widthMode", "full"}, {"persistentWide", true}}};
+        const QJsonArray fullColumns{QJsonObject{{"uuid", "b1"}, {"widthMode", "full"},
+            {"previousNonFullWidthMode", "twoThirds"}, {"persistentWide", true}}};
         fullState["columns"] = fullColumns;
         fullState["workspaces"] = QJsonArray{a, QJsonObject{{"id", "B"}, {"columns", fullColumns}}};
         {

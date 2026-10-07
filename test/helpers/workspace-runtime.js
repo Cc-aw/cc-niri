@@ -37,6 +37,7 @@ const requests = [];
 const desktopCreates = [];
 const desktopRemoves = [];
 const desktopRows = [];
+const geometryControls = new Map();
 class Timer {
     constructor() { this.timeout = signal(); timers.push(this); }
     start() { this.running = true; }
@@ -54,9 +55,20 @@ function windowFor(uuid, desktop) {
     Object.defineProperty(window, "desktops", { get: () => Object.assign({ length: desktopList.length }, desktopList),
         set: entries => { desktopList = Array.from(entries); } });
     let geometry = { x: 100, y: 100, width: 800, height: 600 };
-    Object.defineProperty(window, "frameGeometry", { get: () => geometry, set: value => {
-        const previous = geometry; geometry = value; geometryWrites += 1;
+    let held = false;
+    let requested = null;
+    const acknowledge = value => {
+        const previous = geometry; geometry = value;
         window.frameGeometryChanged.emit(previous);
+    };
+    geometryControls.set(window, {
+        hold() { held = true; },
+        flush() { held = false; if (requested) acknowledge(requested); requested = null; },
+    });
+    Object.defineProperty(window, "frameGeometry", { get: () => geometry, set: value => {
+        geometryWrites += 1;
+        if (held) requested = value;
+        else acknowledge(value);
     } });
     window.setMaximize = (horizontal, vertical) => { window.maximizeMode = horizontal && vertical ? 3 : 0; window.maximizedChanged.emit(); };
     return window;
@@ -136,6 +148,8 @@ return { evaluate, state, ids, nativeSwitch, desktops, desktopCreates, desktopRe
     add(uuid, index, properties = {}) { const window = Object.assign(windowFor(uuid, desktops[index]), properties); windows.push(window); workspace.windowAdded.emit(window); return window; },
     close(window) { windows = windows.filter(w => w !== window); window.closed.emit(); },
     writes: () => geometryWrites,
+    holdGeometry(window) { geometryControls.get(window).hold(); },
+    flushGeometry(window) { geometryControls.get(window).flush(); },
 };
 }
 module.exports = { createRuntime };

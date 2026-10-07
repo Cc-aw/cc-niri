@@ -37,7 +37,7 @@ const raw = { columns: modes.map((widthMode, index) => ({ uuid: `w${index}`, wid
 const normalized = normalizeWorkspaceSnapshot("A", raw);
 assert.deepEqual(normalized.columns.map(c => c.widthMode), modes);
 assert.equal(normalized.columns.at(-1).persistentWide, true);
-assert.deepEqual(Object.keys(normalized.columns.at(-1)).sort(), ["persistentWide", "uuid", "widthMode"]);
+assert.deepEqual(Object.keys(normalized.columns.at(-1)).sort(), ["persistentWide", "previousNonFullWidthMode", "uuid", "widthMode"]);
 const legacy = migrateLegacyWorkspaceSnapshot({ ...raw, protocol: 1, targetOutput: "DP-1" }, "A", "DP-1");
 assert.deepEqual(legacy.columns, normalized.columns, "protocol 1 retains old modes and Full");
 const snapshots = new WorkspaceSnapshotStore();

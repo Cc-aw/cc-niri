@@ -4,6 +4,12 @@
 
 /* BEGIN GENERATED KWIN MODULES */
 // Generated from src/kwin/model/ColumnStore.js
+function normalizePreviousNonFullWidthMode(value, widthMode) {
+    const nonFull = ["third", "half", "twoThirds"];
+    return nonFull.includes(value) ? value
+        : nonFull.includes(widthMode) ? widthMode : "half";
+}
+
 class ColumnStore {
     constructor(state, onMembershipChanged = () => {}) {
         this.state = state;
@@ -54,12 +60,13 @@ class ColumnStore {
         return this.focusIndex(this.indexOfWindow(window));
     }
 
-    insertWindow(window, insertionIndex, widthMode) {
+    insertWindow(window, insertionIndex, widthMode, previousNonFullWidthMode) {
         if (this.indexOfWindow(window) >= 0) return null;
         const column = {
             id: this.state.nextColumnId++,
             window,
             widthMode,
+            previousNonFullWidthMode: normalizePreviousNonFullWidthMode(previousNonFullWidthMode, widthMode),
             persistentWide: false,
             logicalX: 0,
             pixelWidth: 0,
@@ -189,10 +196,13 @@ function normalizeWorkspaceSnapshot(workspaceId, snapshot) {
         const uuid = workspaceSnapshotUuid(column && column.uuid);
         if (!uuid || seen.has(uuid)) continue;
         seen.add(uuid);
+        const widthMode = ["half", "third", "twoThirds", "full"].includes(column.widthMode)
+            ? column.widthMode : "half";
         columns.push({
             uuid,
-            widthMode: ["half", "third", "twoThirds", "full"].includes(column.widthMode)
-                ? column.widthMode : "half",
+            widthMode,
+            previousNonFullWidthMode: normalizePreviousNonFullWidthMode(
+                column.previousNonFullWidthMode, widthMode),
             persistentWide: column.persistentWide === true,
         });
     }
@@ -533,7 +543,8 @@ class WorkspaceMountController {
         const wide = columns.find(column => column.id === state.viewport.wideColumnId);
         return this.snapshots.set(state.activeWorkspaceId, {
             columns: columns.map(column => ({ uuid: this.normalizeUuid(column.window.internalId),
-                widthMode: column.widthMode, persistentWide: column.persistentWide })),
+                widthMode: column.widthMode, previousNonFullWidthMode: column.previousNonFullWidthMode,
+                persistentWide: column.persistentWide })),
             focusedUuid: focused ? this.normalizeUuid(focused.window.internalId) : null,
             viewportAnchor: anchor ? { uuid: this.normalizeUuid(anchor.window.internalId),
                 delta: state.scrollOffsetX - anchor.logicalX } : null,
@@ -589,7 +600,8 @@ class WorkspaceMountController {
         const entries = this.reconcile(workspaceId, snapshot);
         state.activeWorkspaceId = workspaceId;
         entries.forEach(({ window, entry }) => {
-            const column = this.columnStore.insertWindow(window, state.columns.length, entry.widthMode);
+            const column = this.columnStore.insertWindow(window, state.columns.length,
+                entry.widthMode, entry.previousNonFullWidthMode);
             column.persistentWide = entry.persistentWide;
             const windowState = this.stateFor(window);
             windowState.workspaceOwnerId = workspaceId;
@@ -867,7 +879,8 @@ class WorkspaceTransferController {
             this.windowPolicy.canJoinColumn(window) && !state.floating &&
             (!window.fullScreen || column || savedEntry) &&
             window.output === this.appState.targetOutput);
-        const entry = column ? { uuid, widthMode: column.widthMode, persistentWide: column.persistentWide }
+        const entry = column ? { uuid, widthMode: column.widthMode,
+            previousNonFullWidthMode: column.previousNonFullWidthMode, persistentWide: column.persistentWide }
             : savedEntry ||
                 state.workspaceColumnPreference || { uuid, widthMode: "half", persistentWide: false };
         const changed = owner !== previous || !eligible;
@@ -1297,6 +1310,53 @@ function scrollOffsetToRevealColumn(offset, column, stripWidth, viewportWidth) {
         nextOffset = column.logicalX + column.pixelWidth - viewportWidth;
     }
     return boundScrollOffset(nextOffset, stripWidth, viewportWidth);
+}
+
+// Generated from src/kwin/layout/ColumnWidthController.js
+class ColumnWidthController {
+    constructor(options) { Object.assign(this, options); }
+
+    activeColumn() {
+        const state = this.getAppState();
+        const window = this.getActiveWindow();
+        if (!state.enabled || state.workspaceSwitching || !window || window.fullScreen ||
+                window.output !== state.targetOutput) return null;
+        return state.columns.find(column => column.window === window) || null;
+    }
+
+    apply(column, widthMode, reason) {
+        const previous = column.widthMode === "full"
+            ? normalizePreviousNonFullWidthMode(column.previousNonFullWidthMode, "full")
+            : normalizePreviousNonFullWidthMode(column.widthMode, "half");
+        // Width changes replace strip geometry. Retire old motion ownership and
+        // presentations before committing a new layout, keeping Wide preference.
+        this.cancelPending(reason);
+        this.clearPresentation();
+        column.widthMode = widthMode;
+        column.previousNonFullWidthMode = widthMode === "full" ? previous : widthMode;
+        this.focusColumn(column);
+        this.recomputeLogicalLayout();
+        this.ensureColumnVisible(column);
+        this.relayout(reason);
+        this.commitState(reason);
+        return true;
+    }
+
+    cycle() {
+        const column = this.activeColumn();
+        if (!column) return false;
+        const modes = ["third", "half", "twoThirds", "full"];
+        const index = modes.indexOf(column.widthMode);
+        return this.apply(column, modes[(index + 1) % modes.length], "cycle-column-width");
+    }
+
+    toggleFull() {
+        const column = this.activeColumn();
+        if (!column) return false;
+        const widthMode = column.widthMode === "full"
+            ? normalizePreviousNonFullWidthMode(column.previousNonFullWidthMode, "full") : "full";
+        return this.apply(column, widthMode, "toggle-column-full");
+    }
 }
 
 // Generated from src/kwin/layout/Projection.js
@@ -1782,10 +1842,16 @@ class GeometryCommitter {
                 this.isTileMode(windowState.layoutMode)) {
             return;
         }
-        if (this.sameRect(window.frameGeometry, target)) return;
+        // A Wayland client may still report the old frame while a different
+        // configure is pending. Returning to that frame must supersede the
+        // outstanding request, even though the current geometry already fits.
+        const requested = windowState.scrollLastRequestedGeometry;
+        if (this.sameRect(window.frameGeometry, target) &&
+                (!requested || this.sameRect(requested, target))) return;
         windowState.internalChange = true;
         try {
             window.frameGeometry = target;
+            windowState.scrollLastRequestedGeometry = this.rectCopy(target);
         } finally {
             windowState.internalChange = false;
         }
@@ -2369,6 +2435,18 @@ function createShortcutCatalog(actions) {
             description: "CC Scroll: Focus Next Column",
             defaultSequence: "Meta+L",
             handler: actions.focusNext,
+        },
+        {
+            name: "CCScrollCycleColumnWidth",
+            description: "CC Scroll: Cycle Column Width",
+            defaultSequence: "Meta+R",
+            handler: actions.cycleWidth,
+        },
+        {
+            name: "CCScrollToggleColumnFull",
+            description: "CC Scroll: Toggle Column Full Width",
+            defaultSequence: "Meta+F",
+            handler: actions.toggleFull,
         },
         {
             name: "CCScrollToggleFocusWide",
@@ -5269,6 +5347,26 @@ const dockScrollController = new DockScrollController({
     relayout,
     debug,
 });
+const columnWidthController = new ColumnWidthController({
+    getAppState: () => mainScreenState,
+    getActiveWindow: () => workspace.activeWindow,
+    cancelPending: reason => {
+        motionPlanCommitGate.cancel();
+        scrollPlanCommitGate.cancel();
+        contextualWideCoordinator.cancel();
+        cancelPendingDockScroll(reason);
+    },
+    clearPresentation: () => {
+        clearPresentationState();
+        mainScreenState.prePresentationViewport = null;
+        contextualWideCoordinator.adoptRestoredViewport();
+    },
+    focusColumn: column => columnStore.focusColumn(column),
+    recomputeLogicalLayout,
+    ensureColumnVisible,
+    relayout,
+    commitState: commitDockState,
+});
 const reorderController = new ReorderController({
     getAppState: () => mainScreenState,
     normalizeUuid: normalizeWindowUuid,
@@ -5457,12 +5555,13 @@ const controllerComposition = new ControllerComposition({
     output: outputController,
     fullscreen: fullscreenController,
     presentation: presentationController,
+    columnWidth: columnWidthController,
     dockGateway,
     dockScroll: dockScrollController,
     reorder: reorderController,
 }, [
     "focusRing", "parking", "geometry", "invariants", "transactions", "recovery",
-    "adoption", "floating", "output", "fullscreen", "presentation",
+    "adoption", "floating", "output", "fullscreen", "presentation", "columnWidth",
     "dockGateway", "dockScroll", "reorder", "workspaceMount", "workspaceSwitch", "workspaceTransfer", "dynamicWorkspace", "workspaceRecycle",
 ]);
 
@@ -5965,6 +6064,8 @@ function addColumnAt(window, insertionIndex, reason) {
     const preference = windowState.workspaceColumnPreference;
     if (preference) {
         column.widthMode = preference.widthMode;
+        column.previousNonFullWidthMode = normalizePreviousNonFullWidthMode(
+            preference.previousNonFullWidthMode, preference.widthMode);
         column.persistentWide = preference.persistentWide;
         windowState.workspaceColumnPreference = null;
     }
@@ -6430,6 +6531,7 @@ function createWindowState(window) {
         scrollLastVisibleGeometry: inheritedParkingHidden
             ? null
             : currentGeometry,
+        scrollLastRequestedGeometry: null,
     };
 }
 
@@ -6785,6 +6887,8 @@ const shortcuts = createShortcutCatalog({
     workspaceNext: () => workspaceSwitchController.next(),
     focusPrevious: () => runWorkspaceAction(() => focusRelativeColumn(-1)),
     focusNext: () => runWorkspaceAction(() => focusRelativeColumn(1)),
+    cycleWidth: () => runWorkspaceAction(() => columnWidthController.cycle()),
+    toggleFull: () => runWorkspaceAction(() => columnWidthController.toggleFull()),
     toggleWide: () => runWorkspaceAction(() => toggleFocusWide(workspace.activeWindow)),
     moveLeft: () => runWorkspaceAction(() => moveFocusedColumn(-1)),
     moveRight: () => runWorkspaceAction(() => moveFocusedColumn(1)),

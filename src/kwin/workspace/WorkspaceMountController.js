@@ -53,7 +53,8 @@ class WorkspaceMountController {
         const wide = columns.find(column => column.id === state.viewport.wideColumnId);
         return this.snapshots.set(state.activeWorkspaceId, {
             columns: columns.map(column => ({ uuid: this.normalizeUuid(column.window.internalId),
-                widthMode: column.widthMode, persistentWide: column.persistentWide })),
+                widthMode: column.widthMode, previousNonFullWidthMode: column.previousNonFullWidthMode,
+                persistentWide: column.persistentWide })),
             focusedUuid: focused ? this.normalizeUuid(focused.window.internalId) : null,
             viewportAnchor: anchor ? { uuid: this.normalizeUuid(anchor.window.internalId),
                 delta: state.scrollOffsetX - anchor.logicalX } : null,
@@ -109,7 +110,8 @@ class WorkspaceMountController {
         const entries = this.reconcile(workspaceId, snapshot);
         state.activeWorkspaceId = workspaceId;
         entries.forEach(({ window, entry }) => {
-            const column = this.columnStore.insertWindow(window, state.columns.length, entry.widthMode);
+            const column = this.columnStore.insertWindow(window, state.columns.length,
+                entry.widthMode, entry.previousNonFullWidthMode);
             column.persistentWide = entry.persistentWide;
             const windowState = this.stateFor(window);
             windowState.workspaceOwnerId = workspaceId;

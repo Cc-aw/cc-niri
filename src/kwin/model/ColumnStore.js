@@ -1,5 +1,11 @@
 "use strict";
 
+function normalizePreviousNonFullWidthMode(value, widthMode) {
+    const nonFull = ["third", "half", "twoThirds"];
+    return nonFull.includes(value) ? value
+        : nonFull.includes(widthMode) ? widthMode : "half";
+}
+
 class ColumnStore {
     constructor(state, onMembershipChanged = () => {}) {
         this.state = state;
@@ -50,12 +56,13 @@ class ColumnStore {
         return this.focusIndex(this.indexOfWindow(window));
     }
 
-    insertWindow(window, insertionIndex, widthMode) {
+    insertWindow(window, insertionIndex, widthMode, previousNonFullWidthMode) {
         if (this.indexOfWindow(window) >= 0) return null;
         const column = {
             id: this.state.nextColumnId++,
             window,
             widthMode,
+            previousNonFullWidthMode: normalizePreviousNonFullWidthMode(previousNonFullWidthMode, widthMode),
             persistentWide: false,
             logicalX: 0,
             pixelWidth: 0,
@@ -131,5 +138,5 @@ class ColumnStore {
 }
 
 /* cjs:start */
-module.exports = { ColumnStore };
+module.exports = { ColumnStore, normalizePreviousNonFullWidthMode };
 /* cjs:end */

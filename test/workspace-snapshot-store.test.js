@@ -17,9 +17,9 @@ const raw = {
 const expected = {
     workspaceId: "WS-A",
     columns: [
-        { uuid: "a", widthMode: "third", persistentWide: true },
-        { uuid: "b", widthMode: "twoThirds", persistentWide: false },
-        { uuid: "c", widthMode: "half", persistentWide: false },
+        { uuid: "a", widthMode: "third", previousNonFullWidthMode: "third", persistentWide: true },
+        { uuid: "b", widthMode: "twoThirds", previousNonFullWidthMode: "twoThirds", persistentWide: false },
+        { uuid: "c", widthMode: "half", previousNonFullWidthMode: "half", persistentWide: false },
     ],
     focusedUuid: "b", viewportAnchor: { uuid: "a", delta: 12 },
     viewport: { mode: "wide", wideUuid: "b" },

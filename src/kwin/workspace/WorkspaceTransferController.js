@@ -39,7 +39,8 @@ class WorkspaceTransferController {
             this.windowPolicy.canJoinColumn(window) && !state.floating &&
             (!window.fullScreen || column || savedEntry) &&
             window.output === this.appState.targetOutput);
-        const entry = column ? { uuid, widthMode: column.widthMode, persistentWide: column.persistentWide }
+        const entry = column ? { uuid, widthMode: column.widthMode,
+            previousNonFullWidthMode: column.previousNonFullWidthMode, persistentWide: column.persistentWide }
             : savedEntry ||
                 state.workspaceColumnPreference || { uuid, widthMode: "half", persistentWide: false };
         const changed = owner !== previous || !eligible;

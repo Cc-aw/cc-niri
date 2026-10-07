@@ -52,7 +52,7 @@ function checkFull(r) {
     const r = createRuntime({ PreviousState: fixture() });
     r.move(r.a[1], ["B"]);
     const moved = r.published.at(-1).workspaces.find(w => w.id === "B").columns.at(-1);
-    assert.deepEqual(moved, { uuid: "a1", widthMode: "full", persistentWide: true });
+    assert.deepEqual(moved, { uuid: "a1", widthMode: "full", previousNonFullWidthMode: "half", persistentWide: true });
     r.nativeSwitch(1, r.a[1]);
     checkFull(r);
     assert.deepEqual({ ...r.a[1].frameGeometry }, { ...r.state.safeRect });

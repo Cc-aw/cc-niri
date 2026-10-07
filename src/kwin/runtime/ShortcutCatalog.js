@@ -19,6 +19,18 @@ function createShortcutCatalog(actions) {
             handler: actions.focusNext,
         },
         {
+            name: "CCScrollCycleColumnWidth",
+            description: "CC Scroll: Cycle Column Width",
+            defaultSequence: "Meta+R",
+            handler: actions.cycleWidth,
+        },
+        {
+            name: "CCScrollToggleColumnFull",
+            description: "CC Scroll: Toggle Column Full Width",
+            defaultSequence: "Meta+F",
+            handler: actions.toggleFull,
+        },
+        {
             name: "CCScrollToggleFocusWide",
             description: "CC Scroll: Toggle Focus Wide",
             defaultSequence: "Meta+Z",

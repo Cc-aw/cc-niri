@@ -105,7 +105,8 @@ assert.equal(state.workspaceSwitching, true);
 const switchTimer = evaluate("workspaceSwitchController.timer").timer;
 const beforeAwait = geometryWrites;
 const focusBeforeAwait = state.focusedColumnIndex;
-for (const name of ["CCScrollFocusNextColumn", "CCScrollToggleFocusWide", "CCScrollMoveColumnRight", "CCScrollToggleFloating"]) shortcuts.get(name)();
+for (const name of ["CCScrollFocusNextColumn", "CCScrollToggleFocusWide", "CCScrollMoveColumnRight", "CCScrollToggleFloating",
+    "CCScrollCycleColumnWidth", "CCScrollToggleColumnFull"]) shortcuts.get(name)();
 evaluate("dockGateway.dispatch(dockGateway.commandEnvelope({type: 'set-presentation-mode', commandId: 'await-wide', windowUuid: 'a0', mode: PRESENTATION_WIDE}))");
 assert.equal(geometryWrites, beforeAwait); assert.equal(state.focusedColumnIndex, focusBeforeAwait);
 assert.equal(state.viewport.mode, "pair");

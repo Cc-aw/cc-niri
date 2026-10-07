@@ -48,7 +48,7 @@ Rust Native Core 重构 R0–R7 已完成并归档到 `done/`。Spring、Viewpor
 
 | 文档 | 剩余范围 / 状态 |
 | --- | --- |
-| [Core UX 下一阶段](todo/CC-Niri%20Core%20UX%20下一阶段实施设计.md) | P1 主屏底部默认留白 8、P2 持久化 Full 已通过完整门禁并部署，见 [P1 记录](../test/CORE_UX_P1_RESULTS.md)与 [P2 记录](../test/CORE_UX_P2_RESULTS.md)。Full 已核验 H/L、快速切换、J/K、重启后的几何与 Ring owner，人工视觉验收待反馈；P3–P8 的宽度操作、Workspace Move / Direct、Dockless 与通用 Bridge 继续分阶段实施。 |
+| [Core UX 下一阶段](todo/CC-Niri%20Core%20UX%20下一阶段实施设计.md) | P1 底部默认留白 8、P2 持久 Full、P3 Meta+R / Meta+F 与宽度记忆已通过完整门禁并部署，见 [P1](../test/CORE_UX_P1_RESULTS.md)、[P2](../test/CORE_UX_P2_RESULTS.md)、[P3](../test/CORE_UX_P3_RESULTS.md) 记录。Full 导航、快速宽度切换、J/K、重启恢复及 Ring owner 已核验，人工视觉验收待反馈；P4–P8 的 Workspace Move / Direct、Dockless 与通用 Bridge 继续分阶段实施。 |
 | [V3 稳定版收尾](todo/cc-niri_V3_日常稳定版收尾设计.md) | 部分完成；native CI 与自动安全恢复已实现（b97594a），已有受控实机检查（8b6c887），但 [V3 实机验收](../test/V3_DAILY_ACCEPTANCE.md) 的完整交互矩阵与 release gate 仍有 Pending / Partial 项。 |
 | [Clavis Motion](todo/CC_Niri_Maximize_Clavis_Motion_实现设计.md) | 部分实现；窗口 MotionController、retarget、MotionTransaction、native clip 已有，Dock UI Motion、OSD、Spotlight 等尚未完成。后续视觉工作优先参考 Quickshell 升级设计。 |
 | [Quickshell 视觉升级](todo/cc-niri_Quickshell视觉升级_模块化实现设计.md) | 部分实现；V1 MotionProfiles 已完成（bde8a03），V2–V11 尚未完整实施。 |
