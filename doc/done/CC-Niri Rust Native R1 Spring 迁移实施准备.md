@@ -1,8 +1,8 @@
 # CC-Niri Rust Native R1 Spring 迁移实施准备
 
-归档状态（2026-10-06）：R1–R7 已完成；文中迁移开关是历史实施步骤，生产固定 Rust。旧 Spring 文件现为冻结测试 reference，见 [R7 记录](../../test/RUST_NATIVE_R7_RESULTS.md)。
+归档状态（2026-10-07）：R1–R7 已完成，用户已确认 Rust 部署正常、重构完成；文中迁移开关是历史实施步骤，生产固定 Rust。旧 Spring 文件现为冻结测试 reference，见 [R7 记录](../../test/RUST_NATIVE_R7_RESULTS.md)。
 
-本文记录 R1 实施前的边界、语义基准与验证方案。首次实现已按此方案完成 Rust Spring、差分测试、C ABI 与默认 OFF 的开发开关，见 [R1 验收记录](../../test/RUST_NATIVE_R1_RESULTS.md)。生产默认仍为 C++；默认 ON 和实机验收待推进。下文的起点、拟实施清单与准备结果保留实施前语境。
+本文记录 R1 实施前的边界、语义基准与验证方案。首次实现已按此方案完成 Rust Spring、差分测试、C ABI 与当时默认 OFF 的开发开关，见 [R1 验收记录](../../test/RUST_NATIVE_R1_RESULTS.md)。R1 当时生产默认仍为 C++，默认 ON 和实机验收留给后续阶段；这些工作现已完成。下文的起点、拟实施清单与准备结果保留实施前语境。
 
 本轮依据 [Native Core 总设计](CC-Niri%20Rust%20Native%20Core%20重构实施设计.md)、[R0 验收记录](../../test/RUST_NATIVE_R0_RESULTS.md)和当前源码。工具链继续固定为 Rust 1.99.0、`/usr/bin/g++` GNU 16.x，沿用 R0 的单 crate、C ABI、CMake → Cargo 和 `--locked`。
 

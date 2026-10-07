@@ -164,4 +164,4 @@ cmake --build build/native-r6-on
 ctest --test-dir build/native-r6-on --output-on-failure
 ```
 
-命令只构建和测试。生产插件 / Bridge 不链接任何旧 C++ 算法；冻结基线只用于 `BUILD_TESTING` 的 differential tests，`--native` 额外检查生产符号边界。自动验证、用户 R6 验收确认和 R7 回滚方式见 [R7 记录](test/RUST_NATIVE_R7_RESULTS.md)；[R0](test/RUST_NATIVE_R0_RESULTS.md)–[R6](test/RUST_NATIVE_R6_RESULTS.md) 保留历史实施证据。
+命令只构建和测试。生产插件 / Bridge 不链接任何旧 C++ 算法；冻结基线只用于 `BUILD_TESTING` 的 differential tests，`--native` 额外检查生产符号边界。2026-10-07 重新部署后用户确认运行正常，Rust 重构验收完成。自动验证、用户 R6 / R7 验收确认和回滚方式见 [R7 记录](test/RUST_NATIVE_R7_RESULTS.md)；[R0](test/RUST_NATIVE_R0_RESULTS.md)–[R6](test/RUST_NATIVE_R6_RESULTS.md) 保留历史实施证据。

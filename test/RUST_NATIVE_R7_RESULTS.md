@@ -1,6 +1,6 @@
 # Rust Native R7 实现与验收记录
 
-日期：2026-10-06。用户明确确认“R6验收已经通过”，并要求完成 R7、提交。R7 已完成 Rust 生产默认和 Legacy 清理，完整本地门禁通过；默认构建已部署，KWin PID **2050** 前后相同。R6 用户验收作为既有生产行为基线；新部署后的动画 / 帧率复验因当前会话锁屏未完成，不将无呈现帧记录为通过。
+日期：2026-10-06；2026-10-07 更新。R0–R7 已完成 Rust 生产默认、Legacy 清理、完整本地门禁与部署。2026-10-07 重新部署后用户确认“全部正常”，随后明确“rust完成”，Rust 重构验收完成。首轮部署因锁屏未完成的动画 / 帧率复验保留为历史记录；本次用户确认不等同于新增 FPS 测量或 V3 全套 release gate。
 
 ## 范围与边界
 
@@ -52,8 +52,9 @@ Native CI 已改为默认 Rust Debug / RelWithDebInfo，执行完整门禁；Rus
 | r6 | `25db792f436a` | refactor(rust): share R6 native protocol and eligibility policy |
 | workspace | `42fb3883603f` | fix(workspace): preserve departure pose and optimize primary 4K animation |
 | rust_default | `7034b9a2bd0e` | refactor(native): make validated Rust backends the production default |
+| r7 | `c9a5cee1bb4b` | refactor(native): retire legacy C++ cores after R6 acceptance |
 
-R7 清理是随后独立提交。源码回退该提交即可回到 **7034b9a2bd0e** 的默认 Rust、保留 C++ 参考 / 迁移选择器状态；不需要把生产默认退回 C++。
+R7 清理提交为 **c9a5cee1bb4b**。源码回退该提交即可回到 **7034b9a2bd0e** 的默认 Rust、保留 C++ 参考 / 迁移选择器状态；不需要把生产默认退回 C++。
 
 ## 部署与实机范围
 
@@ -86,3 +87,13 @@ python3 /tmp/cc-niri-r7-live-20261006-ddolxcrr/rollback.py
 ```
 
 脚本按既有 stop / 原子旧链接与 Bridge / CLI 恢复 / start 路径回退；保持 4K 60Hz、主屏独立与 420ms 配置。`/tmp` 可随重启清理，旧 immutable 插件保留在 `.local/lib/cc-niri`；需要长期保存时另存备份。回滚后不重新启用生产 C++ 默认。
+
+## 2026-10-07 重新部署与最终用户验收
+
+从 **c9a5cee1bb4b** 复用四个既有 standalone 构建树，先执行 `node tools/check.js --native`，Rust fmt / clippy / 30 单测、89 JS 回归、Bridge 16 CTest / 3 隔离 D-Bus、Clip 15 CTest、Ring 22 CTest、Plasmoid 构建和生产符号边界全部通过。随后执行既有 `./install.sh`，保存工作区状态、停止旧运行时、安装 immutable Native 插件、更新 Bridge / CLI / 两个 KPackage / Plasmoid，再启动 CC-Niri 与 Plasma 面板。
+
+安装后在独立 DESTDIR 暂存相同构建的安装产物，逐一核对 Clip、Ring、Bridge、Plasmoid、CLI、布局和动画包的 SHA-256；全部一致。已安装 Bridge 与两个插件再次通过生产符号边界检查；Scroll / Native Protocol / decoration / Ring Core 运行状态均为 Rust，布局脚本与三个 CC Effect 已加载，Bridge 与 Plasma 面板 active。KWin PID **2050**、输出配置、主屏独立工作区和 **420ms** WorkspaceMotion 设置前后相同；DP-1 保持 **3840×2160@60Hz / 150%**。最终运行核验 UTC **2026-10-07T01:39:24.185321+00:00**，会话已解锁；部署后的日志无核心不变量错误、fail-safe、Rust panic 或崩溃记录。
+
+本次 standalone 安装的 Clip SHA-256 为 `e4e5fce6f2b18a3705a91079ab35b8c0d489277a54e1b3d9200c16142eca1e05`，Ring 为 `aa7154bd4e1ff9f211034aa95693f2e5885486dfa19ddcb00a54c6961ec3b461`。两次部署分别采用 standalone 和 umbrella 构建，均通过 Rust 生产边界检查；Bridge、CLI 和两个 JS bundle 与首轮部署一致。备份与安装审计位于 `/tmp/cc-niri-redeploy-20261007-hfpv2f18`；完整门禁和安装日志分别为 `/tmp/cc-niri-redeploy-native-gate.log`、`/tmp/cc-niri-redeploy-install.log`。
+
+重新部署后用户反馈“全部正常”，后续明确“已经成功切换了 rust完成”，并要求归档与提交。以此记录 R7 部署后的用户验收通过；Native Core 总设计与 R1 准备文档均已位于 `doc/done/`，文档索引已更新。此结论不扩大为逐项自动执行过 H/L / Wide / Ring 交互矩阵，也不新增帧率采样、热插拔、gesture / wrap 或长期压力验证；V3 daily smoke 的独立 Pending 项保持原状态。

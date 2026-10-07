@@ -1,6 +1,6 @@
 # 设计文档索引
 
-按当前源码、Git 实施记录和验收结果整理，更新于 2026-10-06。
+按当前源码、Git 实施记录和验收结果整理，更新于 2026-10-07。
 
 旧 `docx/` 的 8 份 Markdown 已核对正文与对应设计一致，统一合并到下列 `done/`、`todo/`；重复副本及旧目录已移除。
 
@@ -10,10 +10,9 @@
 
 ## 本轮专项目标与结果
 
-Rust Native Core 重构已完成 R0 基础设施、工具链固定及 R1 Spring、R2 ViewportMotion、R3 ScrollViewportRuntime 的代码阶段本地验收。Rust Spring / Motion 已接入默认 OFF 的开发开关，源码默认仍为 C++；R2 独立 Rust 构建已部署并通过两轮内屏功能 / 视觉验收。R4 已新增默认 OFF 的 Rust Scroll 生产接入，独立构建部署后通过内屏功能 / 视觉验收；R5 Focus Ring 数值 Core 已完成生产接入、自动门禁与内屏功能 / 视觉验收，见阶段记录；源码默认 ON、mixed DPI 完整交互矩阵与长期稳定性待验证；R6 Native Protocol 代码和自动门禁已完成、独立构建已部署，用户一般功能反馈正常，[Pair→Wide 动画中 J/K](../test/WORKSPACE_WIDE_DEPARTURE_RESULTS.md)的第二版修复已由用户确认成功。随后报告的双屏联动已通过原生独立工作区处理，普通切换实测约 60fps，见 [输出与帧率记录](../test/WORKSPACE_OUTPUT_FRAME_RESULTS.md)；人工流畅度复验待反馈，R7 待推进。
+Rust Native Core 重构 R0–R7 已完成并归档到 `done/`。Spring、ViewportMotion、Scroll Runtime、Focus Ring 数值和共享 Native Protocol / eligibility 的生产实现固定 Rust，迁移开关已退休；旧 C++ 只保留冻结差分测试基线。2026-10-07 从 `c9a5cee` 重新部署，完整 Native 门禁与安装后核验通过，用户确认“全部正常”并明确 Rust 重构完成，见 [R7 验收记录](../test/RUST_NATIVE_R7_RESULTS.md)。早期 R0–R6 记录保留历史阶段的 OFF 开关和部署证据，不代表当前生产配置。
 
-| 文档 | 当前状态 |
-| --- | --- |
+重构期间发现的 [Pair→Wide 动画中 J/K](../test/WORKSPACE_WIDE_DEPARTURE_RESULTS.md)交接缺陷已修复并由用户确认成功；双屏工作区现按主屏独立切换，帧率采样见 [输出与帧率记录](../test/WORKSPACE_OUTPUT_FRAME_RESULTS.md)。Rust 完成结论不覆盖 V3 完整 daily smoke / release gate、热插拔和长期压力等独立验收。
 
 2026-10-01 用户明确指定以下两个目标，并确认先实现 ViewOffset Spring，再实现 Focus Ring；优先于 Quickshell 后续视觉升级：
 
@@ -36,7 +35,7 @@ Rust Native Core 重构已完成 R0 基础设施、工具链固定及 R1 Spring�
 | [Phase 8.5 Dock 双向顺序](done/cc-niri-maximize_V3_Phase8_5_Bidirectional_Dock_Order_Sync_Codex_Spec.md) | 已实现；见 [Phase 8.5 验收](../test/PHASE_8_5_RESULTS.md)。 |
 | [Phase 9.5 Presentation / Focus Ring](done/cc-niri-maximize_V3_Phase9_5_Mouse_First_Presentation_Focus_Ring_Codex_Spec.md) | Presentation 已实现；自定义 Focus Ring 曾实施后撤除，现使用原生 Dock 活跃指示，本文保留历史设计，不重新启用旧 Focus Ring。 |
 | [模块化与稳定性](done/cc-niri_模块化稳定性与动画重构设计.md) | 已实现模块化架构与稳定性职责拆分（a6d590b）。 |
-| [Rust Native Core R0–R7](done/CC-Niri%20Rust%20Native%20Core%20重构实施设计.md) | 已完成；用户确认 R6 实机验收通过，R7 固定 Rust 生产并删除生产 Legacy / 迁移开关。冻结 oracle 只用于差分测试，验证与回滚见 [R7 记录](../test/RUST_NATIVE_R7_RESULTS.md)。V3 总体验收仍由独立清单管理。 |
+| [Rust Native Core R0–R7](done/CC-Niri%20Rust%20Native%20Core%20重构实施设计.md) | 已完成并通过用户验收；R7 固定 Rust 生产并删除生产 Legacy / 迁移开关，2026-10-07 重新部署后用户确认正常。冻结 oracle 只用于差分测试，验证与回滚见 [R7 记录](../test/RUST_NATIVE_R7_RESULTS.md)。V3 总体验收仍由独立清单管理。 |
 | [R1 Spring 迁移准备](done/CC-Niri%20Rust%20Native%20R1%20Spring%20迁移实施准备.md) | 已完成；R1–R6 是实施历史，当前生产 Core 固定 Rust。 |
 | [连续滚动 / Native Clip](done/cc-niri_niri风格连续滚动动画与双屏Viewport_Clipping实现设计.md) | 已实现选定的 native clip 路线；shader 路线未采用；旧阶段未实现 spring，新的 viewoffset_spring 已列为下一目标。 |
 | [Phase 14 Motion Hardening](done/cc-niri_Phase14_Viewport_Motion_Runtime_Hardening.md) | 已实现 MotionTransaction、native clip 与 full-delta 滚动（883f778）。 |

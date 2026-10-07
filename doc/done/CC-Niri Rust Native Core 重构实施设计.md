@@ -1,6 +1,6 @@
 # CC-Niri Rust Native Core 重构实施设计
 
-实施状态（2026-10-06）：R0–R7 已完成，R6 实机验收由用户明确确认通过；生产 Core 固定 Rust，旧 C++ 仅作为冻结测试 oracle。实际验证、发布边界与回滚见 [R7 记录](../../test/RUST_NATIVE_R7_RESULTS.md)。本文保留原设计描述；过渡期开关和目录以当前 README / AGENTS 为准。V3 全套 daily smoke / release gate 属于独立验收，不从 Native 自动测试推定通过。
+归档状态（2026-10-07）：R0–R7 已完成，R6 与 R7 部署后的实机使用已由用户确认正常，Rust 重构验收结束；生产 Core 固定 Rust，旧 C++ 仅作为冻结测试 oracle。实际验证、发布边界与回滚见 [R7 记录](../../test/RUST_NATIVE_R7_RESULTS.md)。本文保留原设计描述；过渡期开关和目录以当前 README / AGENTS 为准。V3 全套 daily smoke / release gate 属于独立验收，不从 Native 自动测试推定通过。
 
 ## 1. 文档目标
 
@@ -2163,6 +2163,7 @@ Rust Native Core 重构完成必须满足：
 - [x] 无新增 `FAIL_SAFE`
 - [x] 无新增 compositor crash
 - [x] Legacy C++ runtime 已删除
+- [x] R7 固定 Rust 部署后用户验收通过
 
 ---
 
