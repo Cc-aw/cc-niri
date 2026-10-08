@@ -23,6 +23,18 @@ FOCUS_RING_EFFECT_ID="kwin4_effect_cc_niri_focus_ring"
 DIM_INACTIVE_EFFECT_ID="diminactive"
 COMPAT_GROUP="CCNiriCompatibility"
 
+WITH_DOCK=false
+for option in "$@"; do
+    case "${option}" in
+        --with-dock) WITH_DOCK=true ;;
+        --help|-h)
+            echo "Usage: ./install.sh [--with-dock]"
+            echo "Install the core; --with-dock also installs and enables CC Scroll Tasks integration."
+            exit 0 ;;
+        *) echo "Unknown option: ${option}" >&2; exit 2 ;;
+    esac
+done
+
 command -v gdbus >/dev/null || { echo "gdbus is required." >&2; exit 1; }
 command -v cargo >/dev/null || { echo "cargo is required (Rust 1.99.0; see rust-toolchain.toml)." >&2; exit 1; }
 command -v rustc >/dev/null || { echo "rustc is required (Rust 1.99.0; see rust-toolchain.toml)." >&2; exit 1; }
@@ -72,12 +84,14 @@ cmake -S "${BRIDGE_DIR}" -B "${BRIDGE_BUILD_DIR}" \
     -DCMAKE_INSTALL_PREFIX="${HOME}/.local"
 cmake --build "${BRIDGE_BUILD_DIR}"
 
-cmake -S "${PLASMOID_DIR}" -B "${PLASMOID_BUILD_DIR}" \
-    -DCMAKE_CXX_COMPILER=/usr/bin/g++ \
-    -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-    -DCMAKE_INSTALL_PREFIX="${HOME}/.local" \
-    -DKDE_INSTALL_PLUGINDIR=lib64/qt6/plugins
-cmake --build "${PLASMOID_BUILD_DIR}"
+if ${WITH_DOCK}; then
+    cmake -S "${PLASMOID_DIR}" -B "${PLASMOID_BUILD_DIR}" \
+        -DCMAKE_CXX_COMPILER=/usr/bin/g++ \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+        -DCMAKE_INSTALL_PREFIX="${HOME}/.local" \
+        -DKDE_INSTALL_PLUGINDIR=lib64/qt6/plugins
+    cmake --build "${PLASMOID_BUILD_DIR}"
+fi
 
 # Preserve protocol 1/2 data before stopping the old Bridge during an upgrade.
 "${BRIDGE_BUILD_DIR}/cc-scroll-dock-bridge" --save-current-state
@@ -87,7 +101,11 @@ python3 "${SCRIPT_DIR}/tools/install-native-clip.py" \
 python3 "${SCRIPT_DIR}/tools/install-native-clip.py" \
     "${NATIVE_RING_BUILD_DIR}" "${HOME}/.local" cc-niri-focus-ring
 cmake --install "${BRIDGE_BUILD_DIR}"
-cmake --install "${PLASMOID_BUILD_DIR}"
+if ${WITH_DOCK}; then
+    cmake --install "${PLASMOID_BUILD_DIR}"
+    kwriteconfig6 --file kwinrc --group Script-cc-niri-maximize \
+        --key EnableDockIntegration --type bool true
+fi
 install -Dm755 "${SCRIPT_DIR}/cc-niri" "${HOME}/.local/bin/cc-niri"
 command -v kbuildsycoca6 >/dev/null && kbuildsycoca6 --noincremental >/dev/null
 
@@ -193,7 +211,14 @@ if command -v gdbus >/dev/null; then
         "[318767109]" 4 >/dev/null || true
 fi
 
-systemctl --user restart plasma-plasmashell.service
+if ${WITH_DOCK}; then
+    systemctl --user restart plasma-plasmashell.service
+fi
 
 echo "Terminal control: cc-niri start | stop | restart | status"
-echo "Installed and enabled ${PLUGIN_ID}, ${EFFECT_ID}, ${NATIVE_CLIP_EFFECT_ID}, bridge, and CC Scroll Tasks."
+echo "Installed and enabled ${PLUGIN_ID}, ${EFFECT_ID}, ${NATIVE_CLIP_EFFECT_ID}, and bridge."
+if ${WITH_DOCK}; then
+    echo "Installed CC Scroll Tasks and enabled optional Dock integration."
+else
+    echo "Core installation complete; existing Dock packages and settings are preserved."
+fi

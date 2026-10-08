@@ -6,8 +6,8 @@
 
 ## 当前功能
 
-- **滚动列**：主屏每列一个普通窗口；默认显示两列，H/L 移动焦点并按需滚动。列顺序与 Dock 双向同步，重载后恢复已有窗口的顺序和视口。
-- **持久列宽（Core UX P2–P3）**：Meta+R 按 `third → half → twoThirds → full` 循环，Meta+F 在当前宽度与 Full 间切换并记住非 Full 宽度。Full 占 100% Safe Area，宽度及恢复记忆跨导航、工作区迁移和重载保留。
+- **滚动列**：主屏每列一个普通窗口；默认显示两列，H/L 移动焦点并按需滚动。重载后恢复已有窗口的顺序和视口；Dock 同步为可选集成。
+- **持久列宽（Core UX P2–P3）**：Meta+R / Meta+F 在 `half ↔ full`（50% ↔ 100%）间切换。Full 占 100% Safe Area，跨导航、工作区迁移和重载保留。Full 与 half 相邻时，部分进入视口的邻窗保持原宽度并受 Native 绘制 / 输入裁剪。1/3、2/3 宽度开发暂缓，旧快照中的这两档恢复为 half。
 - **安全区域**：最大化和 Quick Tile 使用配置的边距与间隔；Fullscreen 保持原生行为。副屏支持独立安全区域，滚动列仅管理主屏。
 - **Contextual Wide**：保存每列的 Wide 偏好，聚焦时可居中扩展至安全区域的 72%；Full 列保持 100%，其 Wide 偏好暂不生效。Pair 视口使用普通列条带，默认显示两个半宽窗口。
 - **窗口策略**：支持手动浮动及拖动脱离；Dialog、Modal、Transient 等辅助窗口保持原生浮动，不进入列布局。
@@ -28,7 +28,9 @@
 ./install.sh
 ```
 
-安装器无需 root，会编译并安装 KWin Script、动画与裁剪 Effect、D-Bus Bridge 和 `CC Scroll Tasks`，重载 KWin 组件并重启 Plasma Shell。Script、Bridge 和 Dock 应一起升级。
+安装器无需 root，默认编译并安装 KWin Script、动画与裁剪 Effect 和 D-Bus Bridge，重载 KWin 组件。默认不安装 Dock 或重启 Plasma Shell，保留已安装 Dock 及已有集成设置。
+
+需要可选的 `CC Scroll Tasks` 时使用 `./install.sh --with-dock`，同时安装 Dock、启用集成并重启 Plasma Shell。Bridge 始终负责持久化、动画消息和恢复；键盘操作、Focus Ring 与启动恢复独立于 Dock。Bridge 的现有服务名与协议保留，命名清理属于后续 P8。
 
 日常控制无需重新编译或重启 Plasma Shell：
 
@@ -55,21 +57,37 @@ cc-niri status
 | --- | --- |
 | `Meta+H / L` | 聚焦上一列 / 下一列，不循环 |
 | `Meta+J / K` | 切换下一工作区 / 上一工作区，不循环 |
-| `Meta+R` | 当前列宽循环：third → half → twoThirds → full → third |
-| `Meta+F` | 当前列切换 Full，再次按下恢复先前非 Full 宽度 |
+| `Meta+1…9` | 直达当前 KDE 顺序中的第 1…9 个工作区；不存在或已在目标工作区时不操作 |
+| `Meta+Shift+J / K` | 将当前列移到下一工作区 / 上一工作区，并跟随、聚焦该列，不循环 |
+| `Meta+Ctrl+1…9` | 将当前列移到当前 KDE 顺序中的第 1…9 个工作区，并跟随、聚焦；当前或缺失目标不操作 |
+| `Meta+R` | 当前列宽循环：half ↔ full（50% ↔ 100%） |
+| `Meta+F` | 当前列切换 Full，再次按下恢复 half（50%） |
 | `Meta+Z` | 切换当前列的 Focus Wide |
 | `Meta+Shift+H / L` | 将当前列左移 / 右移 |
 | `Meta+Shift+Enter` | 切换列管理与浮动，支持主键盘和小键盘 Enter |
 
-Dock 菜单提供 Normal、Focus Wide 和安全区域最大化。原生最大化按钮也进入安全区域最大化；部分窗口装饰的图标不会随状态变化，但再次点击仍可还原。
+启用可选 Dock 集成后，Dock 菜单提供 Normal、Focus Wide 和安全区域最大化。原生最大化按钮也进入安全区域最大化；部分窗口装饰的图标不会随状态变化，但再次点击仍可还原。
 
-宽度操作只作用于当前活动的受管列；浮动窗口、副屏、Fullscreen 和工作区切换期间不生效。操作会退出 Wide / 安全区域最大化展示并保留 Wide 偏好。Meta+R 从 Full 进入 third；Meta+F 从 Full 返回保存的非 Full 宽度，旧快照缺少记忆时返回 half。
+宽度操作只作用于当前活动的受管列；浮动窗口、副屏、Fullscreen 和工作区切换期间不生效。操作会退出 Wide / 安全区域最大化展示并保留 Wide 偏好。Meta+R 和 Meta+F 从 Full 返回 half，复用既有 Pair/Wide 的 Scale / Translation 动画、Native 视口裁剪、邻窗延迟停放和 J/K 中断处理；时长沿用 `PresentationDuration`，不新增动画时钟。
+
+跨工作区移动只作用于主屏实际活动的受管列；浮动窗口、对话框、副屏窗口和切换期间不生效。移动保留 half / Full、恢复宽度与 Wide 偏好，结束临时展示和旧滚动事务；目标工作区先完成布局，再聚焦移动的列。源工作区优先记住右邻列、否则左邻列；空工作区沿用现有自动创建 / 回收规则。移动已受管的 Fullscreen 列保持原生 Fullscreen 状态。到达首尾时不循环，也不由快捷键创建工作区。数字移动按当前 KDE 顺序解析，事务中固定目标 ID，目标编号变化不会改投其他工作区；同一目标或缺失目标不操作。实现与验收范围见 [P4 记录](test/CORE_UX_P4_RESULTS.md)、[P6 记录](test/CORE_UX_P6_RESULTS.md)。
 
 快捷键保留 KGlobalAccel 的已有自定义绑定。若 Meta+F / Meta+R 已被其他全局动作占用，请在系统设置中重新分配冲突动作；本机 P3 部署已将原生“最大化窗口”从 Meta+F 改为 Meta+PgUp，Meta+F 用于列宽 Full。
+
+数字键直达与 J/K 共用主屏切换、快照和动画流程。编号按当前 KDE 顺序解析，工作区新增、回收或重排后立即更新；无效编号不自动创建工作区，也不移动窗口。Plasma 默认使用 Meta+1…9 激活任务管理器条目，存在冲突时需要在系统设置的快捷键页面解绑这九个动作，再为 `CC Scroll: Workspace 1…9` 分配对应数字键。本机 P5 部署已备份并释放这九个默认绑定；脚本启动时不会强制覆盖其他用户的自定义快捷键。验收与回滚见 [P5 记录](test/CORE_UX_P5_RESULTS.md)。
 
 ## 配置与工作区
 
 在 **系统设置 → 窗口管理 → KWin 脚本** 中配置输出名称、边距、间隔和日志。主屏名称留空时选择最左侧启用的输出。
+
+Dock 集成默认关闭。系统设置的 **Enable optional CC Scroll Tasks integration** 控制 Dock 点击、拖动重排和展示菜单；关闭后不创建 Dock 滚动规划器，也不接受这些 Dock 命令。已安装 Dock 可直接重新启用：
+
+```bash
+kwriteconfig6 --file kwinrc --group Script-cc-niri-maximize --key EnableDockIntegration --type bool true
+cc-niri restart
+```
+
+将 `true` 改为 `false` 关闭集成。布局快照、动画完成通知、恢复请求与 Ring 通道始终保留，不依赖 Dock 是否加载；更改不会删除 Plasma 面板或 applet。验证范围与回滚见 [P7 记录](test/CORE_UX_P7_RESULTS.md)。
 
 J/K 请求切换脚本的主屏。KDE 默认会联动所有屏幕；在 KWin 6.7 上执行下列命令可让副屏保留自己的工作区，设置立即生效并保留至下次登录：
 

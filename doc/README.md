@@ -48,7 +48,7 @@ Rust Native Core 重构 R0–R7 已完成并归档到 `done/`。Spring、Viewpor
 
 | 文档 | 剩余范围 / 状态 |
 | --- | --- |
-| [Core UX 下一阶段](todo/CC-Niri%20Core%20UX%20下一阶段实施设计.md) | P1 底部默认留白 8、P2 持久 Full、P3 Meta+R / Meta+F 与宽度记忆已通过完整门禁并部署，见 [P1](../test/CORE_UX_P1_RESULTS.md)、[P2](../test/CORE_UX_P2_RESULTS.md)、[P3](../test/CORE_UX_P3_RESULTS.md) 记录。Full 导航、快速宽度切换、J/K、重启恢复及 Ring owner 已核验，人工视觉验收待反馈；P4–P8 的 Workspace Move / Direct、Dockless 与通用 Bridge 继续分阶段实施。 |
+| [Core UX 下一阶段](todo/CC-Niri%20Core%20UX%20下一阶段实施设计.md) | P1 底部默认留白 8、P2–P3 持久 half / Full、P4 相邻移动、P5 数字直达、P6 数字移动已实现并部署；P7 Dockless Core 完整门禁、部署与无 Dock 受控实机矩阵通过，人工日常 smoke 待反馈，见 [P3](../test/CORE_UX_P3_RESULTS.md)、[P4](../test/CORE_UX_P4_RESULTS.md)、[P5](../test/CORE_UX_P5_RESULTS.md)、[P6](../test/CORE_UX_P6_RESULTS.md)、[P7](../test/CORE_UX_P7_RESULTS.md) 记录。P8 Bridge 命名 / 清理留待后续；1/3、2/3 列宽开发延期。 |
 | [V3 稳定版收尾](todo/cc-niri_V3_日常稳定版收尾设计.md) | 部分完成；native CI 与自动安全恢复已实现（b97594a），已有受控实机检查（8b6c887），但 [V3 实机验收](../test/V3_DAILY_ACCEPTANCE.md) 的完整交互矩阵与 release gate 仍有 Pending / Partial 项。 |
 | [Clavis Motion](todo/CC_Niri_Maximize_Clavis_Motion_实现设计.md) | 部分实现；窗口 MotionController、retarget、MotionTransaction、native clip 已有，Dock UI Motion、OSD、Spotlight 等尚未完成。后续视觉工作优先参考 Quickshell 升级设计。 |
 | [Quickshell 视觉升级](todo/cc-niri_Quickshell视觉升级_模块化实现设计.md) | 部分实现；V1 MotionProfiles 已完成（bde8a03），V2–V11 尚未完整实施。 |
@@ -60,5 +60,3 @@ Rust Native Core 重构 R0–R7 已完成并归档到 `done/`。Spring、Viewpor
 Focus Ring 本轮开发已完成，优先阅读 `done/` 中的设计与 Phase 6 验收记录；额外 Phase 7 提案已取消实施。ViewOffset Spring 当前实现依据仍见其设计与阶段验收记录。
 Quickshell V2–V11 暂列后续，Clavis 旧文档作为背景参考。
 Partial Viewport 旧提案已被 Contextual Wide 取代，重新采用需要新的明确需求。
-
-Core UX P4–P6 与 Full 动画修复已实现、通过门禁并部署，记录见 [P3](../test/CORE_UX_P3_RESULTS.md)、[P4](../test/CORE_UX_P4_RESULTS.md)、[P5](../test/CORE_UX_P5_RESULTS.md)、[P6](../test/CORE_UX_P6_RESULTS.md)。Dockless 与 Bridge 命名清理留待 P7 / P8。

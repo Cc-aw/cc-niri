@@ -5,6 +5,7 @@ function loadRuntimeConfig(readValue) {
         Math.max(0, Number(readValue(key, fallback)) || 0);
     return {
         targetOutputName: String(readValue("TargetOutputName", "")).trim(),
+        dockIntegration: Boolean(readValue("EnableDockIntegration", false)),
         dynamicTrailingWorkspace: Boolean(readValue("DynamicTrailingWorkspace", false)),
         autoRecycleWorkspaces: Boolean(readValue("AutoRecycleWorkspaces", false)),
         primary: {

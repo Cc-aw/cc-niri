@@ -39,7 +39,7 @@ assert.deepEqual(stepOffsets(5, 150, 1), [100, 50, 0],
 
 assert.ok(mainSource.includes("const DOCK_SCROLL_STEP_MS = 140"));
 assert.ok(mainSource.includes('type: "advance-dock-scroll"'));
-assert.ok(mainSource.includes("new DockScrollController"));
+assert.ok(mainSource.includes("runtimeConfig.dockIntegration ? new DockScrollController"));
 assert.ok(mainSource.includes("function advancePendingDockScroll"));
 assert.ok(mainSource.includes("function cancelPendingDockScroll"));
 assert.ok(controllerSource.includes("if (!offsets.length) return this.finish"),

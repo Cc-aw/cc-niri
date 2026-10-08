@@ -2362,6 +2362,7 @@ function loadRuntimeConfig(readValue) {
         Math.max(0, Number(readValue(key, fallback)) || 0);
     return {
         targetOutputName: String(readValue("TargetOutputName", "")).trim(),
+        dockIntegration: Boolean(readValue("EnableDockIntegration", false)),
         dynamicTrailingWorkspace: Boolean(readValue("DynamicTrailingWorkspace", false)),
         autoRecycleWorkspaces: Boolean(readValue("AutoRecycleWorkspaces", false)),
         primary: {
@@ -5392,17 +5393,20 @@ const dockGateway = new DockGateway({
     path: DOCK_BRIDGE_PATH,
     interfaceName: DOCK_BRIDGE_INTERFACE,
     snapshotProvider: createDockSnapshot,
-    handlers: {
+    handlers: Object.assign({
         "emergency-restore": () => emergencyRestoreAllWindows("bridge-unload"),
         "finalize-contextual-wide": command =>
             runWorkspaceAction(() => contextualWideCoordinator.finalizePark(command)),
         "finalize-contextual-wide-exit": command =>
             runWorkspaceAction(() => contextualWideCoordinator.finalizeExit(command)),
+    }, runtimeConfig.dockIntegration ? {
+        // Persistence, animation completion and recovery stay available without
+        // a Dock. Only UI-originated commands are part of the optional integration.
         "advance-dock-scroll": command => runWorkspaceAction(() => advancePendingDockScroll(command)),
         "set-presentation-mode": command => runWorkspaceAction(() => handleDockPresentationCommand(command)),
         "focus-column-right": command => runWorkspaceAction(() => handleDockFocusCommand(command)),
         "set-column-order": command => runWorkspaceAction(() => handleDockReorderCommand(command)),
-    },
+    } : {}),
     generationAgnosticTypes: [
         "finalize-contextual-wide",
         "finalize-contextual-wide-exit",
@@ -5741,7 +5745,7 @@ const presentationController = new PresentationController({
     commitDockState,
     debug,
 });
-const dockScrollController = new DockScrollController({
+const dockScrollController = runtimeConfig.dockIntegration ? new DockScrollController({
     getAppState: () => mainScreenState,
     normalizeUuid: normalizeWindowUuid,
     recomputeLogicalLayout,
@@ -5765,7 +5769,7 @@ const dockScrollController = new DockScrollController({
     },
     relayout,
     debug,
-});
+}) : null;
 const columnWidthController = new ColumnWidthController({
     getAppState: () => mainScreenState,
     getActiveWindow: () => workspace.activeWindow,
@@ -6000,7 +6004,7 @@ focusRingController = new FocusRingController({
     now: () => Date.now(),
     random: () => Math.random(),
 });
-const controllerComposition = new ControllerComposition({
+const controllerComposition = new ControllerComposition(Object.assign({
     focusRing: focusRingController,
     workspaceRecycle: workspaceRecycleController,
     dynamicWorkspace: dynamicWorkspaceController,
@@ -6020,12 +6024,11 @@ const controllerComposition = new ControllerComposition({
     presentation: presentationController,
     columnWidth: columnWidthController,
     dockGateway,
-    dockScroll: dockScrollController,
     reorder: reorderController,
-}, [
+}, dockScrollController ? { dockScroll: dockScrollController } : {}), [
     "focusRing", "parking", "geometry", "invariants", "transactions", "recovery",
     "adoption", "floating", "output", "fullscreen", "presentation", "columnWidth",
-    "dockGateway", "dockScroll", "reorder", "workspaceMount", "workspaceSwitch", "workspaceTransfer", "workspaceMove", "dynamicWorkspace", "workspaceRecycle",
+    "dockGateway", "reorder", "workspaceMount", "workspaceSwitch", "workspaceTransfer", "workspaceMove", "dynamicWorkspace", "workspaceRecycle",
 ]);
 
 function debug(message) {
@@ -6475,30 +6478,15 @@ function clearPresentationState() {
 
 function cancelPendingDockScroll(reason, preserveWideReveal = false) {
     if (!preserveWideReveal) contextualViewport.cancelReveal();
-    return dockScrollController.cancel(reason);
-}
-
-function boundedScrollOffset(offset) {
-    return dockScrollController.boundedOffset(offset);
-}
-
-function dockScrollOffsetsToTarget(column) {
-    return dockScrollController.offsetsToTarget(column);
-}
-
-function requestDeferredDockScrollStep(pending) {
-    return dockScrollController.requestStep(pending);
-}
-
-function finishDockScroll(pending, column) {
-    return dockScrollController.finish(pending, column);
+    return dockScrollController ? dockScrollController.cancel(reason) : false;
 }
 
 function advancePendingDockScroll(command) {
-    return dockScrollController.advance(command);
+    return dockScrollController ? dockScrollController.advance(command) : false;
 }
 
 function beginDockScroll(column, reason) {
+    if (!dockScrollController) return false;
     contextualViewport.cancelReveal();
     return dockScrollController.begin(column, reason);
 }
@@ -6820,7 +6808,7 @@ function onWindowActivatedForScrollLayout(window) {
 
     const index = columnIndexForWindow(window);
     if (index < 0) return;
-    if (dockScrollController.hasPending()) {
+    if (dockScrollController && dockScrollController.hasPending()) {
         cancelPendingDockScroll("window-activated");
     }
     const column = mainScreenState.columns[index];

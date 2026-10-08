@@ -195,4 +195,14 @@ UTC 06:53:19–06:53:45 自动实机状态核验通过 half / Full / Wide 移动
 
 范围、限制与回滚见 [P6 记录](CORE_UX_P6_RESULTS.md)。部署 / 实机日志 `/tmp/cc-niri-core-ux-p6-{deploy,live}.log`；备份与仅 P6 回滚 `/tmp/cc-niri-redeploy-20261007-lccfe21b/rollback-p6.py` 保留当前持久布局与其他 KDE 设置。本轮未提交 Git；P7 / P8 和分数列宽延期保持。
 
-提交整理：P3 Full 修复与 P4–P6 的共享布局 / 工作区事务作为一组 Core 基线，P7 / P8 独立提交。不伪造历史提交；分组 Core 生成包与 97 JS 回归再次通过，当前最终版本 Native 门禁与实机结果见后续阶段记录。
+## 2026-10-08 Core UX P7 Dockless Core
+
+JS 配置 `EnableDockIntegration` 默认关闭。Dock planner 从 mandatory composition 移除，四类 UI 命令仅显式启用后注册；保持 contextual reveal 的取消、独立 Ring、Native motion、Workspace authority、通用 Bridge 的状态 / 动画 / Wide 完成 / 恢复队列。原服务名、端点、ABI 与 generic queue 快捷键留至 P8。默认安装 Core 并保留用户 Dock / 面板 / 配置，`--with-dock` 额外安装并开启 Dock；默认不重启 Plasma Shell。
+
+完整门禁 99 JS、fmt / locked clippy / 31 Rust、Bridge 16 / Clip 15 / Ring 22 CTest（含 Golden differential）、3 隔离 D-Bus、Plasmoid 与生产边界通过。首轮 Qt JS 语法检查拒绝 object spread；改为兼容 Object.assign 后原生语法与完整重跑通过。未改变 Native / Rust / C++ / FFI / CMake 文件 / 协议 / 动画参数，不增加每帧工作。未额外重跑独立 Core Debug / Release、umbrella 或 configure 拒绝矩阵，未测 FPS / GPU。
+
+P7 布局 / 配置 UI 部署、安装哈希、Native 字节与原设置 / 面板清单核验通过。UTC 08:41:11–08:41:45 完整无 Plasma / Dock 的受控实机状态核验通过 H/L、重排、half / Full、Wide、Floating、J/K、数字 / 相对移动、restart persistence、Ring / 副屏隔离和通用 Bridge 紧急恢复。临时窗口已关闭，原 membership、顺序、偏好、锚点、主屏 / 全局焦点、拓扑、输出、配置、Native 字节与 Plasma 面板 / applet ID 恢复核对通过，KWin PID 2050 保持。没有新增 invariant / fail-safe / JS 错误 / completion timeout / Rust panic。
+
+早期未通过的焦点 / restart / 临时客户端接管夹具及最终修正见 [P7 记录](CORE_UX_P7_RESULTS.md)，生产 policy 没有因测试改变。用户动画观感与长期 Dockless 日常 smoke 待反馈；受控实机不代表这些人工与长期项已通过。
+
+最终门禁 `/tmp/cc-niri-core-ux-p7-native-final.log`，部署 `/tmp/cc-niri-core-ux-p7-deploy.log`，实机 `/tmp/cc-niri-core-ux-p7-live-complete.log`，证据在备份下 `p7-live-complete/`；备份与仅 P7 回滚 `/tmp/cc-niri-redeploy-20261007-xkjiy97y/rollback-p7.py` 保留当前布局、KDE 配置与 Native。本轮未提交 Git；P8 与分数列宽延期保持。

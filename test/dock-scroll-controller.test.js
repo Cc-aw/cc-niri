@@ -172,7 +172,7 @@ assert.equal(applicationSource.includes("pendingDockScroll"), false);
 assert.equal(applicationSource.includes("nextDockScrollToken"), false);
 assert.ok(applicationSource.includes("dockScrollController.hasPending()"));
 assert.ok(applicationSource.includes(
-    "return dockScrollController.advance(command)"
+    "return dockScrollController ? dockScrollController.advance(command) : false"
 ));
 
 console.log("PASS DockScrollController owns stepwise scrolling and activation order");

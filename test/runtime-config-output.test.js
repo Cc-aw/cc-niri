@@ -73,6 +73,9 @@ assert.deepEqual(disabled.managed(), [left]);
 // Missing configuration adopts the compact primary profile; explicit settings
 // keep their geometry, including zero and independent secondary gaps.
 const defaults = loadRuntimeConfig((_key, fallback) => fallback);
+assert.equal(defaults.dockIntegration, false);
+assert.equal(loadRuntimeConfig((key, fallback) =>
+    key === "EnableDockIntegration" ? true : fallback).dockIntegration, true);
 const defaultTopology = new OutputTopology({
     getScreens: () => [left, right], config: defaults, computeSafeRect,
     warn: () => {},
