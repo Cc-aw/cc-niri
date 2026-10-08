@@ -7,6 +7,7 @@ class WorkspaceSwitchController {
         this.switchEpoch = 0;
         this.timer = null;
         this.stopped = false;
+        this.pendingRequest = null;
     }
 
     ready() {
@@ -17,6 +18,14 @@ class WorkspaceSwitchController {
     previous() { return this.request(-1); }
     next() { return this.request(1); }
 
+    focusNumber(number) {
+        if (this.stopped || this.phase !== "IDLE" || this.appState.workspaceSwitching ||
+                !Number.isInteger(number) || number < 1 || number > 9) return false;
+        // Numbers describe the current KDE order, never a cached workspace ID.
+        const target = this.topology.byNumber(number);
+        return target ? this.requestTo(target, { reason: "workspace-direct-shortcut" }) : false;
+    }
+
     request(direction) {
         if (this.stopped || this.phase !== "IDLE") return false;
         this.mount.refreshState();
@@ -24,13 +33,38 @@ class WorkspaceSwitchController {
         const current = this.topology.current(this.appState.targetOutput);
         const target = direction < 0 ? this.topology.previous(current) : this.topology.next(current);
         if (!target) return false; // Fixed topology, no wrapping or implicit creation.
-        const epoch = this.begin("workspace-shortcut");
+        return this.requestTo(target);
+    }
+
+    requestTo(target, options = {}) {
+        if (this.stopped || this.phase !== "IDLE") return false;
+        this.mount.refreshState();
+        if (!this.ready()) return false;
+        const targetId = this.topology.id(target);
+        if (!targetId || !this.topology.byId(targetId) ||
+                targetId === this.topology.id(this.topology.current(this.appState.targetOutput))) return false;
+        const request = { targetId, focusedUuid: options.focusedUuid || null,
+            onFinished: options.onFinished || (() => {}) };
+        this.pendingRequest = request;
+        const epoch = this.begin(options.reason || "workspace-shortcut");
         if (epoch === null) return false;
-        this.phase = "AWAITING_KWIN";
-        // Arm before requesting: KWin may emit the desktop signal synchronously.
+        // The same barrier and bounded timeout cover motion retirement,
+        // membership preparation and the native desktop request.
         try {
             this.timer = this.setTimer(() => this.finish(epoch, "workspace-timeout"), 400);
-            this.requestDesktop(target, this.appState.targetOutput);
+            const prepared = accepted => {
+                if (!this.valid(epoch) || this.phase !== "PREPARING" || this.pendingRequest !== request) return;
+                const desktop = this.topology.byId(targetId);
+                if (!accepted || !desktop) { this.finish(epoch, "workspace-prepare-aborted"); return; }
+                this.phase = "AWAITING_KWIN";
+                try { this.requestDesktop(desktop, this.appState.targetOutput); }
+                catch (error) {
+                    this.debug(`[cc-workspace] request failed: ${error}`);
+                    this.finish(epoch, "workspace-request-failed");
+                }
+            };
+            if (options.prepare) options.prepare(prepared);
+            else prepared(true);
         } catch (error) {
             this.debug(`[cc-workspace] request failed: ${error}`);
             this.finish(epoch, "workspace-request-failed");
@@ -66,16 +100,21 @@ class WorkspaceSwitchController {
         if (!this.valid(epoch) || this.phase === "MOUNTING") return false;
         this.clearTimeout();
         this.phase = "MOUNTING";
+        const request = this.pendingRequest;
+        let committed = false;
         try {
             // Preparation can emit another native switch. Hydrate the final KDE
             // authority before publishing one Dock generation for this transaction.
             for (let pass = 0; pass < 8; pass += 1) {
                 const desktop = this.topology.current(this.appState.targetOutput);
                 if (!this.topology.id(desktop)) throw new Error("workspace-current-desktop-unavailable");
-                if (!this.mount.mountPrepared(desktop, reason)) return false;
+                const focusedUuid = request && request.targetId === this.topology.id(desktop)
+                    ? request.focusedUuid : null;
+                if (!this.mount.mountPrepared(desktop, reason, focusedUuid)) return false;
                 if (!this.valid(epoch)) return false;
                 if (this.appState.activeWorkspaceId === this.topology.id(this.topology.current(this.appState.targetOutput))) {
                     this.mount.commitDock(reason);
+                    committed = true;
                     return true;
                 }
             }
@@ -87,6 +126,8 @@ class WorkspaceSwitchController {
             if (epoch === this.switchEpoch) {
                 this.phase = "IDLE";
                 this.appState.workspaceSwitching = false;
+                this.pendingRequest = null;
+                if (request) request.onFinished(committed ? this.appState.activeWorkspaceId : null);
             }
         }
     }
@@ -122,6 +163,9 @@ class WorkspaceSwitchController {
         this.clearTimeout();
         this.phase = "IDLE";
         this.appState.workspaceSwitching = false;
+        const request = this.pendingRequest;
+        this.pendingRequest = null;
+        if (request) request.onFinished(null);
     }
 }
 

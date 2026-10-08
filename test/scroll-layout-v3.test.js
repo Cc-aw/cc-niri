@@ -104,9 +104,9 @@ function offsetAfterClosingVisibleLeft(oldOffset, removedWidth, gap, removalInde
     return Math.max(0, oldOffset - removedWidth - gap);
 }
 
-assert.equal(widthForMode("third"), 832);
+assert.equal(widthForMode("third"), 1252, "deferred preset falls back to half");
 assert.equal(widthForMode("half"), 1252);
-assert.equal(widthForMode("twoThirds"), 1672);
+assert.equal(widthForMode("twoThirds"), 1252, "deferred preset falls back to half");
 
 const columns = Array.from({ length: 4 }, () => ({ widthMode: "half" }));
 recompute(columns);

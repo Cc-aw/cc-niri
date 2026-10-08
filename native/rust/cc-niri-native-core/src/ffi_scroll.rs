@@ -48,6 +48,7 @@ pub struct FfiPlan {
     fingerprint: ByteView,
     shape_valid: u32,
     retarget_only: u32,
+    clip_partial: u32,
 }
 #[repr(C)]
 pub struct FfiScrollStatus {
@@ -197,6 +198,7 @@ pub(super) unsafe fn decode_plan(p: &FfiPlan) -> Result<ScrollPlan, u32> {
         old_offset: p.old_offset,
         new_offset: p.new_offset,
         retarget_only: p.retarget_only,
+        clip_partial: p.clip_partial,
         viewport: p.viewport.into(),
         entries,
         fingerprint: unsafe { slice(p.fingerprint.data, p.fingerprint.len)? }.to_vec(),
@@ -264,6 +266,23 @@ pub unsafe extern "C" fn cc_niri_scroll_remove(handle: *mut ScrollHandle, id: u6
     }
 }
 /// # Safety
+/// Live shared-borrowed handle, no concurrent mutation or destruction.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_input_blocked(
+    handle: *const ScrollHandle,
+    id: u64,
+    x: f64,
+    y: f64,
+) -> FfiSpringBoolResult {
+    bool_result((|| {
+        let h = unsafe { handle.as_ref() }.ok_or(INVALID_HANDLE)?;
+        if !x.is_finite() || !y.is_finite() {
+            return Err(INVALID_DTO);
+        }
+        Ok(h.0.input_blocked(WindowId(id), x, y))
+    })())
+}
+/// # Safety
 /// Live exclusively-borrowed handle; null returns INVALID_HANDLE.
 #[no_mangle]
 pub unsafe extern "C" fn cc_niri_scroll_advance(
@@ -286,7 +305,7 @@ pub unsafe extern "C" fn cc_niri_scroll_status(handle: *const ScrollHandle) -> F
             active: u32::from(h.0.active()),
             completed: u32::from(h.0.completed()),
             status: OK,
-            reserved: 0,
+            reserved: u32::from(h.0.clips_partial()),
         },
         None => FfiScrollStatus {
             epoch: -1,
@@ -476,6 +495,10 @@ mod tests {
             assert_eq!(cc_niri_scroll_remove(null, 0), INVALID_HANDLE);
             assert_eq!(cc_niri_scroll_advance(null, 0).status, INVALID_HANDLE);
             assert_eq!(cc_niri_scroll_status(null).status, INVALID_HANDLE);
+            assert_eq!(
+                cc_niri_scroll_input_blocked(null, 1, 0.0, 0.0).status,
+                INVALID_HANDLE
+            );
             assert_eq!(cc_niri_scroll_context_text(null, 0).status, INVALID_HANDLE);
             assert_eq!(
                 cc_niri_scroll_projection(null, 0, Rect::default().into()).status,
@@ -487,6 +510,14 @@ mod tests {
                 INVALID_HANDLE
             );
             let h = cc_niri_scroll_create(1);
+            assert_eq!(
+                cc_niri_scroll_input_blocked(h, 1, f64::NAN, 0.0).status,
+                INVALID_DTO
+            );
+            assert_eq!(
+                cc_niri_scroll_input_blocked(h, 1, 0.0, f64::INFINITY).status,
+                INVALID_DTO
+            );
             assert_eq!(
                 cc_niri_scroll_intern(
                     h,
@@ -538,6 +569,7 @@ mod tests {
                     old_offset: 0.0,
                     new_offset: 100.0,
                     retarget_only: 0,
+                    clip_partial: 0,
                     viewport: Rect {
                         x: 0.0,
                         y: 0.0,

@@ -4,7 +4,8 @@
 // offset while an earlier target is armed but its geometry is not committed.
 function createViewportScrollPlan(transaction, context) {
     if (!transaction || !context.workspaceId || !context.targetOutput) return null;
-    return Object.assign(transaction.retargetOnly ? { retargetOnly: true } : {}, {
+    return Object.assign(transaction.retargetOnly ? { retargetOnly: true } : {},
+        transaction.clipPartial ? { clipPartial: true } : {}, {
         protocol: 2,
         type: "SCROLL",
         epoch: transaction.epoch,
@@ -38,6 +39,22 @@ function prepareViewportReturnPlan(plan, offset, viewport) {
     });
 }
 
+// Width animation retains a neighbor's real frame while painting it toward a
+// virtual edge. Protect those planned real frames with a stationary clip;
+// the existing Pair/Wide effect continues to supply every paint transform.
+function createWidthViewportClipPlan(plan, context) {
+    if (!plan.viewportMotion || !plan.windows.some(item => item.partial)) return null;
+    const viewport = plan.viewportMotion.viewport;
+    const visible = plan.windows.filter(item => item.placement === "visible");
+    const offset = Math.max(0, ...visible.map(item => viewport.x - item.rect.x));
+    return createViewportScrollPlan({ epoch: plan.epoch, retargetOnly: true, clipPartial: true,
+        oldScrollOffsetX: offset, newScrollOffsetX: offset, viewport,
+        entries: visible.map(item => ({ windowId: String(item.column.window.internalId),
+            columnId: item.columnId, logicalX: item.rect.x - viewport.x + offset,
+            pixelWidth: item.rect.width, oldPlacement: "visible", newPlacement: "visible" })),
+    }, context);
+}
+
 /* cjs:start */
-module.exports = { createViewportScrollPlan, prepareViewportReturnPlan };
+module.exports = { createViewportScrollPlan, prepareViewportReturnPlan, createWidthViewportClipPlan };
 /* cjs:end */

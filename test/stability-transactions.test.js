@@ -17,7 +17,7 @@ assert.ok(mainSource.includes("function endLayoutTransaction(reason, epoch)"));
 assert.ok(mainSource.includes("function validateLayoutInvariants(reason, epoch)"));
 
 const relayoutSource = mainSource.slice(
-    mainSource.indexOf("function relayout(reason, scrollOffsets)"),
+    mainSource.indexOf("function relayout(reason, scrollOffsets,"),
     mainSource.indexOf("function columnIndexForWindow")
 );
 assert.ok(relayoutSource.includes("try {"));
@@ -84,6 +84,23 @@ assert.deepEqual(exceptional.snapshot(), { depth: 0, epoch: 1, validations: 1 },
 exceptional.transact(() => {});
 assert.deepEqual(exceptional.snapshot(), { depth: 0, epoch: 2, validations: 2 },
     "a later relayout starts a fresh epoch after recovery");
+
+const resumedAudits = [];
+const resumed = new LayoutTransaction({ audit: (_reason, epoch) => resumedAudits.push(epoch), debug: () => {} });
+const publishedEpoch = resumed.run("publish", epoch => epoch);
+resumed.resume("ack", publishedEpoch, () => {
+    assert.equal(resumed.isActive(), true);
+    assert.equal(resumed.currentEpoch(), publishedEpoch);
+    resumed.run("nested-geometry", epoch => assert.equal(epoch, publishedEpoch));
+});
+assert.equal(resumed.currentEpoch(), publishedEpoch, "ACK cannot consume an extra Native epoch");
+assert.deepEqual(resumedAudits, [publishedEpoch, publishedEpoch]);
+assert.throws(() => resumed.resume("ack-error", publishedEpoch, () => { throw new Error("ACK writer failed"); }), /ACK writer failed/);
+assert.equal(resumed.isActive(), false);
+resumed.run("new-layout", () => {});
+let staleWrites = 0;
+assert.equal(resumed.resume("stale-ack", publishedEpoch, () => staleWrites++), false);
+assert.equal(staleWrites, 0, "retired ACK cannot write geometry");
 
 const output = { name: "DP-1" };
 const window = { internalId: "{A}", output };

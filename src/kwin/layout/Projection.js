@@ -15,6 +15,12 @@ function isRectFullyVisible(rect, viewport) {
         rect.y + rect.height <= viewport.y + viewport.height);
 }
 
+function isRectVisible(rect, viewport) {
+    return Boolean(viewport && rect.width > 0 && rect.height > 0 &&
+        rect.x < viewport.x + viewport.width && rect.x + rect.width > viewport.x &&
+        rect.y < viewport.y + viewport.height && rect.y + rect.height > viewport.y);
+}
+
 /* cjs:start */
-module.exports = { isRectFullyVisible, projectColumnRect };
+module.exports = { isRectFullyVisible, isRectVisible, projectColumnRect };
 /* cjs:end */

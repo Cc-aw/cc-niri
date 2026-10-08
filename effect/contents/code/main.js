@@ -633,6 +633,25 @@ class MotionController {
             const name = channel.name || this.channelName(channel.type);
             if (name) desired[name] = channel;
         });
+        const scaleAnchor = desired.scale ? (desired.scale.anchor || "center")
+            : previous && previous.channels.scale
+                ? previous.channels.scale.anchor : "center";
+        // Scale is relative to the real frame. Rebase the sampled painted
+        // rectangle when a resize/anchor changes that frame during retarget.
+        const previousAnchor = previous && previous.channels.scale
+            ? previous.channels.scale.anchor : "center";
+        const rebase = previous && (options.oldGeometry.width !== options.newGeometry.width ||
+            options.oldGeometry.height !== options.newGeometry.height || previousAnchor !== scaleAnchor);
+        let rebasedScale, rebasedTranslation;
+        if (rebase) {
+            const painted = visualRectFor(options.oldGeometry, previousSample, previousAnchor);
+            rebasedScale = { value1: painted.width / options.newGeometry.width,
+                value2: painted.height / options.newGeometry.height };
+            const base = visualRectFor(options.newGeometry, {
+                scale: rebasedScale, translation: { value1: 0, value2: 0 }, opacity: 1,
+            }, scaleAnchor);
+            rebasedTranslation = { value1: painted.x - base.x, value2: painted.y - base.y };
+        }
 
         if (previous) {
             this.states.delete(window);
@@ -651,7 +670,7 @@ class MotionController {
             if (!target && !carried) return;
 
             if (name === "translation") {
-                const from = previous
+                const from = rebase ? rebasedTranslation : previous
                     ? retargetedTranslation(
                         previousSample.translation,
                         options.oldGeometry,
@@ -668,7 +687,7 @@ class MotionController {
 
             if (name === "scale") {
                 channels.scale = {
-                    from: previous ? previousSample.scale : target.from,
+                    from: rebase ? rebasedScale : previous ? previousSample.scale : target.from,
                     to: target ? target.to : { value1: 1, value2: 1 },
                     anchor: target ? (target.anchor || "center") :
                         (carried.anchor || "center"),
@@ -955,6 +974,9 @@ function presentationTransition(oldGeometry, newGeometry, screenRect) {
 
 function wideExitNeighborMatches(wide, neighborRect, innerGap) {
     if (!wide || !wide.pairRect || !neighborRect) return false;
+    if (wide.snapshot && wide.snapshot.neighbor) {
+        return rectNear(neighborRect, wide.snapshot.neighbor.newVisualRect);
+    }
     const neighborSide = wide.side === "left" ? "right" : "left";
     const expectedX = neighborSide === "right"
         ? wide.pairRect.x + wide.pairRect.width + innerGap
@@ -1012,6 +1034,16 @@ function readNativeScrollMarker(window) {
             !["continuing", "incoming", "outgoing"].includes(marker.role) ||
             ![marker.x, marker.y, marker.width, marker.height].every(Number.isFinite) ||
             marker.width <= 0 || marker.height <= 0) return null;
+    // A width transition can arm Native clipping at the same epoch without
+    // handing its established Pair/Wide paint timeline to the Scroll Spring.
+    const width = window.data(CC_NIRI_MOTION_PLAN_ROLE);
+    if (width && width.protocol === 1 && width.epoch === marker.epoch &&
+            width.sessionId === marker.sessionId &&
+            ["PAIR_TO_WIDE", "WIDE_TO_PAIR"].includes(width.type) &&
+            ["target", "neighbor"].includes(width.role) &&
+            width.entries && (width.entries.length === 1 || width.entries.length === 2) &&
+            Number.isFinite(Number(width.issuedAt)) &&
+            Math.abs(Date.now() - Number(width.issuedAt)) <= 5000) return null;
     return marker;
 }
 
@@ -1215,11 +1247,22 @@ class CCNiriScrollTransition {
                     this.holdWideIsolation(window);
                     this.reportWideMotionComplete(window, completed);
                 }
+                if (completed && completed.type === MotionType.WIDE_TO_PAIR && completed.role === "continuing")
+                    this.reportWideMotionComplete(window, completed);
                 this.parkingGrabber.release(window, "motion-complete");
             }
         });
         if (effects.windowDataChanged) effects.windowDataChanged.connect((window, role) => {
-            if (role === CC_NIRI_MOTION_PLAN_ROLE) this.wideNeighborLifecycle.onPlanChanged(window);
+            if (role === CC_NIRI_MOTION_PLAN_ROLE) {
+                this.wideNeighborLifecycle.onPlanChanged(window);
+                const marker = window.data(CC_NIRI_MOTION_PLAN_ROLE);
+                // A rapid reverse can supersede a pending Wayland configure
+                // with the current frame, without another geometry signal.
+                if (marker && marker.role === "target" && marker.oldRealRect &&
+                        rectNear(window.geometry, marker.newVisualRect)) {
+                    this.geometryChanged(window, marker.oldRealRect);
+                }
+            }
             if (role === CC_NIRI_SCROLL_OWNERSHIP_ROLE && readNativeScrollMarker(window)) this.takeNativeScrollOwnership(window);
         });
         effects.windowAdded.connect(this.manage.bind(this));
@@ -1311,8 +1354,8 @@ class CCNiriScrollTransition {
         } catch (_) {
             return false;
         }
-        if (!marker || marker.type !== MotionType.PAIR_TO_WIDE ||
-                marker.role !== "neighbor" ||
+        if (!marker || !((marker.type === MotionType.PAIR_TO_WIDE && marker.role === "neighbor") ||
+                (marker.type === MotionType.WIDE_TO_PAIR && marker.role === "target")) ||
                 Number(marker.epoch) !== motionState.transactionEpoch ||
                 !marker.transitionToken || !marker.sessionId ||
                 !marker.targetWindowUuid) return false;
@@ -1351,25 +1394,26 @@ class CCNiriScrollTransition {
         }
         // KWin exposes the native QVariantList as an array-like QJSValue,
         // not necessarily as a JavaScript Array.
-        if (!marker || !marker.entries || marker.entries.length !== 2 ||
+        if (!marker || !marker.entries || (marker.entries.length !== 1 && marker.entries.length !== 2) ||
                 !Number.isFinite(Number(marker.issuedAt)) ||
                 Math.abs(Date.now() - Number(marker.issuedAt)) > 5000 ||
                 (marker.type !== MotionType.WIDE_TO_PAIR &&
                  marker.type !== MotionType.PAIR_TO_WIDE)) return null;
         const geometryMatches = marker.role === "target"
-            ? (rectNear(oldGeometry, marker.oldVisualRect) ||
+            ? (rectNear(oldGeometry, marker.oldRealRect || marker.oldVisualRect) ||
                 (marker.type === MotionType.PAIR_TO_WIDE &&
                     parked(oldGeometry, screenRect))) &&
                 rectNear(newGeometry, marker.newVisualRect)
             : marker.role === "neighbor" &&
                 (marker.type === MotionType.WIDE_TO_PAIR &&
-                    parked(oldGeometry, screenRect) &&
+                    (parked(oldGeometry, screenRect) || rectNear(oldGeometry, marker.oldRealRect)) &&
                     rectNear(newGeometry, marker.newVisualRect));
         if (!geometryMatches) return null;
-        const entries = [marker.entries[0], marker.entries[1]];
+        const entries = Array.from(marker.entries);
         const target = entries.find(entry => entry && entry.role === "target");
         const neighbor = entries.find(entry => entry && entry.role === "neighbor");
-        if (!target || !neighbor) return null;
+        if (!target || (entries.length === 2 && !neighbor) ||
+                (entries.length === 1 && marker.role !== "target")) return null;
         this.debug(`[MOTION_PLAN] consume epoch=${marker.epoch}` +
             ` type=${marker.type} role=${marker.role}`);
         return Object.assign({}, marker, {
@@ -1496,8 +1540,10 @@ class CCNiriScrollTransition {
                 ? (entering ? explicitPlan.newVisualRect :
                     explicitPlan.oldVisualRect)
                 : entering ? newGeometry : oldGeometry;
-            const viewport = viewportFromSlot(pairRect,
-                visibleSlot(pairRect, screenRect), this.innerGap);
+            const viewport = explicitPlan && explicitPlan.viewport &&
+                    explicitPlan.viewport.width > 0 && explicitPlan.viewport.height > 0
+                ? explicitPlan.viewport : viewportFromSlot(pairRect,
+                    visibleSlot(pairRect, screenRect), this.innerGap);
             const side = explicitPlan ? explicitPlan.side :
                 (pairRect.x + pairRect.width / 2 <
                     viewport.x + viewport.width / 2 ? "left" : "right");
@@ -1567,8 +1613,8 @@ class CCNiriScrollTransition {
             if (entering) {
                 const neighbor = virtualEntry
                     ? virtualEntry.neighbor
-                    : this.plannedNeighbor(explicitPlan) ||
-                        this.pairNeighbor(window, pairRect, side);
+                    : explicitPlan ? this.plannedNeighbor(explicitPlan)
+                        : this.pairNeighbor(window, pairRect, side);
                 if (neighbor) {
                     const neighborRect = explicitPlan
                         ? explicitPlan.snapshot.neighbor.oldVisualRect
@@ -1606,8 +1652,11 @@ class CCNiriScrollTransition {
 
         if (!sameSize(oldGeometry, newGeometry)) return;
         const oldSlot = visibleSlot(oldGeometry, screenRect);
-        const newSlot = visibleSlot(newGeometry, screenRect);
-        const oldParked = parked(oldGeometry, screenRect);
+        const plannedIncoming = explicitPlan && explicitPlan.type === MotionType.WIDE_TO_PAIR &&
+            explicitPlan.role === "neighbor";
+        const newSlot = visibleSlot(newGeometry, screenRect) ||
+            (plannedIncoming ? (explicitPlan.side === "left" ? "right" : "left") : null);
+        const oldParked = parked(oldGeometry, screenRect) || plannedIncoming;
         const newParked = parked(newGeometry, screenRect);
         this.expireStalePendingDelta();
         if (!(oldSlot || oldParked) || !(newSlot || newParked) ||
@@ -1667,7 +1716,7 @@ class CCNiriScrollTransition {
                         side: explicitPlan.side,
                         snapshot: explicitPlan.snapshot,
                     },
-                    viewport: viewportFromSlot(
+                    viewport: explicitPlan.viewport || viewportFromSlot(
                         explicitPlan.snapshot.target.newVisualRect,
                         explicitPlan.side, this.innerGap),
                     armedAt: motionTime,

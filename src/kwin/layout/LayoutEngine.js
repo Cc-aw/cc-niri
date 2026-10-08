@@ -3,7 +3,7 @@
 /* cjs:start */
 const { copyRect } = require("./Geometry");
 const { computeParkingRect } = require("./Parking");
-const { isRectFullyVisible, projectColumnRect } = require("./Projection");
+const { isRectFullyVisible, isRectVisible, projectColumnRect } = require("./Projection");
 const { buildWidePairSnapshots } = require("./LayoutSnapshot");
 /* cjs:end */
 
@@ -38,6 +38,58 @@ function adjacentPairWindow(windows, target, gap) {
             target.newProjectedRect.width - gap) < 3 ||
          Math.abs(item.rect.x + item.rect.width + gap -
             target.newProjectedRect.x) < 3)) || null;
+}
+
+function captureColumnWidthTransition(column, columns, safeRect, gap) {
+    const oldRect = copyRect(column.window.frameGeometry);
+    const neighbor = columns.find(candidate => {
+        if (candidate === column || candidate.window.minimized) return false;
+        const rect = candidate.window.frameGeometry;
+        return isRectVisible(rect, safeRect) &&
+            Math.abs(rect.y - oldRect.y) < 2 &&
+            Math.abs(rect.height - oldRect.height) < 2 &&
+            (Math.abs(rect.x - oldRect.x - oldRect.width - gap) < 3 ||
+             Math.abs(rect.x + rect.width + gap - oldRect.x) < 3);
+    }) || null;
+    return { column, oldRect, neighbor,
+        neighborRect: neighbor ? copyRect(neighbor.window.frameGeometry) : null };
+}
+
+function columnWidthMotionSnapshot(transition, windows, safeRect, gap) {
+    if (!transition || !isRectFullyVisible(transition.oldRect, safeRect)) return null;
+    const target = windows.find(item => item.column === transition.column);
+    if (!target || target.placement !== "visible") return null;
+    const entering = target.column.widthMode === "full";
+    const neighbor = entering
+        ? windows.find(item => item.column === transition.neighbor) || null
+        : adjacentPairWindow(windows, target, gap);
+    const pairRect = entering ? transition.oldRect : target.rect;
+    const wideRect = entering ? target.rect : transition.oldRect;
+    const pairNeighbor = neighbor && (entering
+        ? transition.neighborRect : neighbor.newProjectedRect);
+    const side = pairNeighbor
+        ? (pairNeighbor.x < pairRect.x ? "right" : "left")
+        : (pairRect.x + pairRect.width / 2 < safeRect.x + safeRect.width / 2
+            ? "left" : "right");
+    const virtualNeighbor = pairNeighbor && Object.assign({}, pairNeighbor, {
+        x: side === "right" ? wideRect.x - gap - pairNeighbor.width
+            : wideRect.x + wideRect.width + gap,
+    });
+    return {
+        target, neighbor,
+        motion: {
+            type: entering ? "PAIR_TO_WIDE" : "WIDE_TO_PAIR",
+            targetColumnId: target.columnId,
+            neighborColumnId: neighbor ? neighbor.columnId : null,
+            side, viewport: copyRect(safeRect),
+            target: { oldVisualRect: copyRect(transition.oldRect),
+                newVisualRect: copyRect(target.rect) },
+            neighbor: neighbor ? {
+                oldVisualRect: copyRect(entering ? pairNeighbor : virtualNeighbor),
+                newVisualRect: copyRect(entering ? virtualNeighbor : pairNeighbor),
+            } : null,
+        },
+    };
 }
 
 function viewportMotionSnapshot(type, target, neighbor, wideRect, gap) {
@@ -85,39 +137,49 @@ function computeLayoutPlan(options) {
         retainedColumn,
         wideExitColumn,
         wideRect,
+        widthTransition,
     } = options;
-    const hasScrollTransaction = Boolean(!presentedColumn && scrollOffsets &&
+    const partialLayout = Boolean(options.clipPartial && !presentedColumn &&
+        columns.some(column => column.widthMode === "full"));
+    const visibility = partialLayout ? isRectVisible : isRectFullyVisible;
+    const offsetChanged = Boolean(!presentedColumn && scrollOffsets &&
         scrollOffsets.oldScrollOffsetX !== scrollOffsets.newScrollOffsetX);
-    const oldScrollOffsetX = hasScrollTransaction
+    const oldScrollOffsetX = offsetChanged
         ? scrollOffsets.oldScrollOffsetX
         : scrollOffsetX;
-    const newScrollOffsetX = hasScrollTransaction
+    const newScrollOffsetX = offsetChanged
         ? scrollOffsets.newScrollOffsetX
         : scrollOffsetX;
+    const hasPartialTarget = partialLayout && columns.some(column => {
+        const rect = projectColumnRect(column, safeRect, newScrollOffsetX);
+        return isRectVisible(rect, safeRect) && !isRectFullyVisible(rect, safeRect);
+    });
+    const hasScrollTransaction = offsetChanged || hasPartialTarget;
     let parkingIndex = 0;
 
-    const windows = columns.map(column => {
+    const windows = columns.map((column, index) => {
         const oldProjectedRect = projectColumnRect(column, safeRect, oldScrollOffsetX);
         const newProjectedRect = projectColumnRect(column, safeRect, newScrollOffsetX);
-        const oldPlacement = isRectFullyVisible(oldProjectedRect, safeRect)
+        const oldPlacement = visibility(oldProjectedRect, safeRect)
             ? "visible"
             : "parked";
-        const projectedPlacement = isRectFullyVisible(newProjectedRect, safeRect)
+        const projectedPlacement = visibility(newProjectedRect, safeRect)
             ? "visible"
             : "parked";
         const isPresented = presentedColumn === column;
-        const newPlacement = presentedColumn
+        const retainedForWidth = !presentedColumn && retainedColumn === column;
+        const newPlacement = retainedForWidth ? "visible" : presentedColumn
             ? (isPresented || (retainedColumn === column &&
                 projectedPlacement === "visible") ? "visible" : "parked")
             : projectedPlacement;
-        const visibleRect = isPresented ? copyRect(presentedRect) : newProjectedRect;
-        const rect = newPlacement === "visible"
-            ? visibleRect
-            : computeParkingRect(column, parkingIndex++, {
+        const visibleRect = retainedForWidth ? copyRect(column.window.frameGeometry)
+            : isPresented ? copyRect(presentedRect) : newProjectedRect;
+        const parkingRect = computeParkingRect(column, newPlacement === "parked" ? parkingIndex++ : index, {
                 baseX: parkingBaseX,
                 innerGap,
                 safeRect,
             });
+        const rect = newPlacement === "visible" ? visibleRect : parkingRect;
         const role = hasScrollTransaction
             ? transitionRole(oldPlacement, newPlacement)
             : "static";
@@ -125,6 +187,8 @@ function computeLayoutPlan(options) {
             column,
             columnId: column.id,
             placement: newPlacement,
+            partial: partialLayout && newPlacement === "visible" && !isRectFullyVisible(visibleRect, safeRect),
+            parkingRect,
             rect,
             projectedRect: newPlacement === "visible" ? visibleRect : newProjectedRect,
             oldProjectedRect: hasScrollTransaction ? oldProjectedRect : null,
@@ -136,7 +200,7 @@ function computeLayoutPlan(options) {
     });
 
     const deltaX = newScrollOffsetX - oldScrollOffsetX;
-    const scrollTransaction = hasScrollTransaction ? {
+    const scrollTransaction = hasScrollTransaction ? Object.assign({
         id: epoch,
         epoch,
         type: "SCROLL",
@@ -159,15 +223,17 @@ function computeLayoutPlan(options) {
             .map(motionWindowId),
         outgoing: windows.filter(item => item.transitionRole === "outgoing")
             .map(motionWindowId),
-    } : null;
+    }, partialLayout ? { clipPartial: true } : {},
+    oldScrollOffsetX === newScrollOffsetX ? { retargetOnly: true } : {}) : null;
 
+    const widthMotion = columnWidthMotionSnapshot(widthTransition, windows, safeRect, innerGap);
     const motionTargetColumn = wideExitColumn ||
         (retainedColumn ? presentedColumn : null);
-    const motionTarget = windows.find(item =>
+    const motionTarget = widthMotion ? widthMotion.target : windows.find(item =>
         item.column === motionTargetColumn) || null;
-    const motionNeighbor = motionTarget
+    const motionNeighbor = widthMotion ? widthMotion.neighbor : motionTarget
         ? adjacentPairWindow(windows, motionTarget, innerGap) : null;
-    const viewportMotion = motionTarget && motionNeighbor
+    const viewportMotion = widthMotion ? widthMotion.motion : motionTarget && motionNeighbor
         ? viewportMotionSnapshot(wideExitColumn ? "WIDE_TO_PAIR" :
             "PAIR_TO_WIDE", motionTarget, motionNeighbor,
             wideExitColumn
@@ -181,7 +247,7 @@ function computeLayoutPlan(options) {
     const layoutSnapshots = viewportMotion ? buildWidePairSnapshots(
         viewportMotion, motionTarget, motionNeighbor, {
             windowId: motionWindowId,
-            neighborParkingRect: computeParkingRect(motionNeighbor.column,
+            neighborParkingRect: motionNeighbor && computeParkingRect(motionNeighbor.column,
                 neighborParkingIndex, {
                     baseX: parkingBaseX,
                     innerGap,
@@ -203,7 +269,7 @@ function computeLayoutPlan(options) {
             newOpacity: layoutSnapshots.to.entries[index].placement ===
                 "isolated-hidden" ? 0 : 1,
         }));
-        viewportMotion.parkAfterComplete = viewportMotion.type === "PAIR_TO_WIDE"
+        viewportMotion.parkAfterComplete = motionNeighbor && viewportMotion.type === "PAIR_TO_WIDE"
             ? [motionWindowId(motionNeighbor)] : [];
     }
 
@@ -211,7 +277,8 @@ function computeLayoutPlan(options) {
         reason,
         epoch,
         scrollTransaction,
-        viewportMotion,
+        viewportMotion: viewportMotion
+            ? Object.assign({ viewport: copyRect(safeRect) }, viewportMotion) : null,
         layoutSnapshots,
         wideExitColumn: wideExitColumn || null,
         windows,
@@ -227,5 +294,5 @@ function computeLayoutPlan(options) {
 }
 
 /* cjs:start */
-module.exports = { computeLayoutPlan, transitionRole };
+module.exports = { computeLayoutPlan, transitionRole, captureColumnWidthTransition };
 /* cjs:end */

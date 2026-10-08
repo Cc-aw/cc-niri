@@ -53,8 +53,10 @@ class GeometryCommitter {
             this.debug(`[MOTION_TX] BEGIN epoch=${plan.epoch}` +
                 ` type=${motion.type} target=${motion.targetColumnId}` +
                 ` neighbor=${motion.neighborColumnId} side=${motion.side}` +
-                ` neighborVisualStart=${this.rectText(motion.neighbor.oldVisualRect)}` +
-                ` neighborVisualEnd=${this.rectText(motion.neighbor.newVisualRect)}`);
+                (motion.neighbor
+                    ? ` neighborVisualStart=${this.rectText(motion.neighbor.oldVisualRect)}` +
+                        ` neighborVisualEnd=${this.rectText(motion.neighbor.newVisualRect)}`
+                    : ""));
         }
         if (transaction) {
             this.debug(`[MOTION_TX] BEGIN id=${transaction.id}` +
@@ -62,7 +64,10 @@ class GeometryCommitter {
                 ` direction=${transaction.direction} delta=${transaction.deltaX}` +
                 ` viewport=${this.rectText(transaction.viewport)}`);
         }
-        plan.commitOrder.forEach(item => {
+        plan.commitOrder.forEach(original => {
+            // A partial physical surface requires Native paint AND input clipping.
+            const item = original.partial && !options.nativeScroll
+                ? Object.assign({}, original, { placement: "parked", rect: original.parkingRect }) : original;
             const column = item.column;
             if (options.nativeScroll && item.placement === "parked" &&
                     (item.transitionRole === "outgoing" || this.stateFor(column.window).scrollPendingParkEpoch != null)) {

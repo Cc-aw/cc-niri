@@ -52,13 +52,17 @@ struct ScrollPlan {
             shape=shape && value.isObject(); const auto e=value.toObject();
             rows.push_back({intern(e.value(QStringLiteral("windowId")).toString()),number(e.value(QStringLiteral("columnId"))),number(e.value(QStringLiteral("logicalX"))),number(e.value(QStringLiteral("pixelWidth"))),placement(e.value(QStringLiteral("oldPlacement"))),placement(e.value(QStringLiteral("newPlacement")))});
         }
+        std::uint32_t partial=0;
+        if (plan.contains(QStringLiteral("clipPartial"))) {
+            const auto v=plan.value(QStringLiteral("clipPartial")); partial=v.isBool() ? (v.toBool() ? 2 : 1) : 3;
+        }
         std::uint32_t retarget=0;
         if (plan.contains(QStringLiteral("retargetOnly"))) {
             const auto v=plan.value(QStringLiteral("retargetOnly")); retarget=v.isBool() ? (v.toBool() ? 2 : 1) : 3;
         }
         dto={number(plan.value(QStringLiteral("protocol"))),number(plan.value(QStringLiteral("epoch"))),number(plan.value(QStringLiteral("issuedAt"))),number(plan.value(QStringLiteral("oldScrollOffsetX"))),number(plan.value(QStringLiteral("newScrollOffsetX"))),
             text(kind),text(session),text(workspace),text(output),{number(viewport.value(QStringLiteral("x"))),number(viewport.value(QStringLiteral("y"))),number(viewport.value(QStringLiteral("width"))),number(viewport.value(QStringLiteral("height")))},
-            rows.data(),static_cast<std::uint64_t>(rows.size()),{reinterpret_cast<const std::uint8_t*>(fingerprint.constData()),static_cast<std::uint64_t>(fingerprint.size())},static_cast<std::uint32_t>(shape),retarget};
+            rows.data(),static_cast<std::uint64_t>(rows.size()),{reinterpret_cast<const std::uint8_t*>(fingerprint.constData()),static_cast<std::uint64_t>(fingerprint.size())},static_cast<std::uint32_t>(shape),retarget,partial};
     }
     ScrollPlan(const ScrollPlan &) = delete;
     ScrollPlan &operator=(const ScrollPlan &) = delete;

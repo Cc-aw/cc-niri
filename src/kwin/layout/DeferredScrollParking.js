@@ -18,12 +18,20 @@ class DeferredScrollParking {
         }
         pending.paused = true;
     }
-    start(epoch, items) {
+    release() {
+        const pending = this.pending;
+        this.pause(); this.pending = null;
+        if (pending) pending.items.forEach(item => {
+            const state = this.getState ? this.getState(item.column.window) : this.stateFor(item.column.window);
+            if (state && state.scrollPendingParkEpoch === pending.epoch) state.scrollPendingParkEpoch = null;
+        });
+    }
+    start(epoch, items, partialItems = []) {
         // GeometryCommitter already transferred retained outgoing items and
         // released any incoming owner. Do not park the previous visual batch.
         this.pause();
         this.pending = null;
-        const pending = { epoch, items, context: this.context(), timer: null, watchdog: null, rescue: null };
+        const pending = { epoch, items, partialItems, context: this.context(), timer: null, watchdog: null, rescue: null };
         this.pending = pending;
         items.forEach(item => { this.stateFor(item.column.window).scrollPendingParkEpoch = epoch; });
         const poll = () => {
@@ -37,7 +45,12 @@ class DeferredScrollParking {
                     if (status && this.sameContext(pending.context) &&
                             ["sessionId", "workspaceId", "targetOutput"].every(key => status[key] === pending.context[key]) &&
                             status.epoch === epoch && status.completed === true && status.active === true) {
-                        this.cancel();
+                        if (status.clipPartial === true && partialItems.length) {
+                            // Settled clips retain their Native owner without a timer or repaint loop.
+                            this.pause();
+                            this.finalizeItems(pending, pending.items);
+                            pending.items = [];
+                        } else this.cancel();
                     } else {
                         pending.timer = this.setTimer(poll, 32);
                     }
@@ -61,7 +74,18 @@ class DeferredScrollParking {
         if (pending.timer) this.clearTimer(pending.timer);
         if (pending.watchdog) this.clearTimer(pending.watchdog);
         if (pending.rescue) this.clearTimer(pending.rescue);
-        pending.items.forEach(item => {
+        this.finalizeItems(pending, pending.items);
+        if (this.sameContext(pending.context)) pending.partialItems.forEach(item => {
+            const state = this.getState ? this.getState(item.column.window) : this.stateFor(item.column.window);
+            if (state && this.isCurrent(item.column) && state.managedByScrollLayout && !state.floating && !item.column.window.fullScreen)
+                this.finalize(Object.assign({}, item, { rect: item.parkingRect }));
+        });
+        if (disarm) {
+            try { this.disarm(pending.epoch, () => {}); } catch (_) { /* Layout can continue. */ }
+        }
+    }
+    finalizeItems(pending, items) {
+        items.forEach(item => {
             const state = this.getState ? this.getState(item.column.window) : this.stateFor(item.column.window);
             if (!state) return;
             if (state.scrollPendingParkEpoch !== pending.epoch) return;
@@ -71,9 +95,6 @@ class DeferredScrollParking {
                 this.finalize(item);
             }
         });
-        if (disarm) {
-            try { this.disarm(pending.epoch, () => {}); } catch (_) { /* Layout can continue. */ }
-        }
     }
 }
 

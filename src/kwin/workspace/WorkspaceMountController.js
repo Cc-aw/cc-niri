@@ -105,7 +105,7 @@ class WorkspaceMountController {
         return order;
     }
 
-    hydrate(workspaceId, snapshot) {
+    hydrate(workspaceId, snapshot, focusedUuid = null) {
         const state = this.appState;
         const entries = this.reconcile(workspaceId, snapshot);
         state.activeWorkspaceId = workspaceId;
@@ -122,16 +122,19 @@ class WorkspaceMountController {
         });
         this.recomputeLayout();
         const kdeIndex = this.columnStore.indexOfWindow(this.getActiveWindow());
+        const requestedIndex = focusedUuid ? state.columns.findIndex(column =>
+            this.normalizeUuid(column.window.internalId) === focusedUuid) : -1;
+        const selectedIndex = requestedIndex >= 0 ? requestedIndex : kdeIndex;
         const savedIndex = snapshot ? state.columns.findIndex(column =>
             this.normalizeUuid(column.window.internalId) === snapshot.focusedUuid) : -1;
-        this.columnStore.focusIndex(kdeIndex >= 0 ? kdeIndex : savedIndex >= 0 ? savedIndex : 0);
+        this.columnStore.focusIndex(selectedIndex >= 0 ? selectedIndex : savedIndex >= 0 ? savedIndex : 0);
         const anchor = snapshot && snapshot.viewportAnchor;
         const anchorColumn = anchor && state.columns.find(column =>
             this.normalizeUuid(column.window.internalId) === anchor.uuid);
         state.scrollOffsetX = this.boundOffset(anchorColumn ? anchorColumn.logicalX + anchor.delta : 0);
         const focused = this.columnStore.focusedColumn();
         // Keep a valid saved anchor unless KDE selected a different Column.
-        if (focused && (!anchorColumn || (kdeIndex >= 0 && kdeIndex !== savedIndex))) this.ensureVisible(focused);
+        if (focused && (!anchorColumn || (selectedIndex >= 0 && selectedIndex !== savedIndex))) this.ensureVisible(focused);
         this.resetPresentation();
         // Snapshots store UUIDs, while newly mounted Columns receive fresh IDs.
         // Restore the saved viewport only when KDE still focuses that Wide owner.
@@ -145,13 +148,16 @@ class WorkspaceMountController {
         }
         this.restoreViewport(restoredViewport);
         this.relayout("workspace-mount");
+        // Explicit move-and-follow selects a live mounted Column. Commit its
+        // real target before activation; ordinary J/K keeps native focus policy.
+        if (requestedIndex >= 0) this.activateColumn(focused.window);
     }
 
-    mountPrepared(desktop, reason) {
-        return this.mount(desktop, reason, false, true);
+    mountPrepared(desktop, reason, focusedUuid = null) {
+        return this.mount(desktop, reason, false, true, focusedUuid);
     }
 
-    mount(desktop, reason = "workspace-switch", commit = true, prepared = false) {
+    mount(desktop, reason = "workspace-switch", commit = true, prepared = false, focusedUuid = null) {
         const state = this.appState;
         const id = this.topology.id(desktop);
         if (this.stopped || (state.workspaceSwitching && !prepared) || !state.enabled || !state.targetOutput || !id) return false;
@@ -162,7 +168,7 @@ class WorkspaceMountController {
             if (!prepared) this.capture();
             const snapshot = this.snapshots.get(id);
             this.unmount(false);
-            this.hydrate(id, snapshot);
+            this.hydrate(id, snapshot, focusedUuid);
             this.capture();
             if (commit) this.commitDock(reason);
             this.debug(`[cc-workspace] MOUNT id=${id} columns=${state.columns.length} reason=${reason}`);

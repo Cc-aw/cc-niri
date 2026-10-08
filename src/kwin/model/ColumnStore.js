@@ -1,10 +1,10 @@
 "use strict";
 
-function normalizePreviousNonFullWidthMode(value, widthMode) {
-    const nonFull = ["third", "half", "twoThirds"];
-    return nonFull.includes(value) ? value
-        : nonFull.includes(widthMode) ? widthMode : "half";
-}
+// Fractional presets are deferred. Old snapshots migrate to the ordinary pair
+// width, including Full's remembered restoration width.
+function normalizeColumnWidthMode(value) { return value === "full" ? "full" : "half"; }
+
+function normalizePreviousNonFullWidthMode() { return "half"; }
 
 class ColumnStore {
     constructor(state, onMembershipChanged = () => {}) {
@@ -61,7 +61,7 @@ class ColumnStore {
         const column = {
             id: this.state.nextColumnId++,
             window,
-            widthMode,
+            widthMode: normalizeColumnWidthMode(widthMode),
             previousNonFullWidthMode: normalizePreviousNonFullWidthMode(previousNonFullWidthMode, widthMode),
             persistentWide: false,
             logicalX: 0,
@@ -138,5 +138,5 @@ class ColumnStore {
 }
 
 /* cjs:start */
-module.exports = { ColumnStore, normalizePreviousNonFullWidthMode };
+module.exports = { ColumnStore, normalizeColumnWidthMode, normalizePreviousNonFullWidthMode };
 /* cjs:end */

@@ -49,6 +49,7 @@ gate.schedule({ epoch: 3 }, { id: "fallback" }, {});
 callbacks[3].callback(false);
 assert.equal(commits.length, 2,
     "Bridge rejection still commits using the geometry fallback");
+assert.equal(commits[1].context.motionFallback, true);
 assert.equal(warnings.length, 1);
 
 gate.schedule({ epoch: 3 }, { id: "stale-epoch" }, {});

@@ -143,7 +143,7 @@ legacy.controller.initialize(JSON.stringify({ protocol: 1, targetOutput: "eDP-1"
     columns: [{ uuid: "b", widthMode: "third" }, { uuid: "a" }], focusedUuid: "b",
     viewportAnchor: { uuid: "b", delta: 0 } }));
 assert.deepEqual(legacy.state.columns.map(column => column.window), [oldB, oldA, legacy.state.columns[2].window]);
-assert.equal(legacy.state.columns[0].widthMode, "third");
+assert.equal(legacy.state.columns[0].widthMode, "half", "legacy fractional width migrates at mount");
 assert.equal(legacy.columns.focusedColumn().window, oldB);
 
 const fullscreen = fixture(); const fs = fullscreen.window("fs", fullscreen.desktops[0], { fullScreen: true });

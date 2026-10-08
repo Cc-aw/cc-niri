@@ -20,6 +20,7 @@ const targets = [
             "src/kwin/workspace/WorkspaceMountController.js",
             "src/kwin/workspace/WorkspaceSwitchController.js",
             "src/kwin/workspace/WorkspaceTransferController.js",
+            "src/kwin/workspace/WorkspaceMoveController.js",
             "src/kwin/workspace/DynamicWorkspaceController.js",
             "src/kwin/workspace/WorkspaceRecycleController.js",
             "src/kwin/layout/Geometry.js",

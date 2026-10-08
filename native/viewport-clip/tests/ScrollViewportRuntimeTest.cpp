@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #include "ScrollRuntimeTestBackend.h"
 #include "SpringBackend.h"
+#include "ScrollClipHandoff.h"
 #include <iostream>
 #include <cstdlib>
 using namespace CcNiri;
@@ -52,6 +53,12 @@ int main() {
     check(runtime.advance(100ms), "animation active");
     const auto sample = runtime.projection(QStringLiteral("1"), rect)->translationX;
     check(sample > 0 && sample < 1260.25, "spring intermediate");
+    auto moving = runtime;
+    ScrollClipHandoff frozenHandoff;
+    frozenHandoff.retain(moving, 2, {QStringLiteral("1")});
+    moving.advance(200ms);
+    check(frozenHandoff.projection(QStringLiteral("1"), rect)->translationX == sample,
+        "handoff holds the last Rust paint sample without advancing another clock");
     check(runtime.projection(QStringLiteral("1"), rect)->translationX == sample, "paint does not resample clock");
     check(runtime.arm(first, 100ms), "duplicate idempotent");
     check(runtime.projection(QStringLiteral("1"), rect)->translationX == sample, "duplicate does not restart");
@@ -268,5 +275,88 @@ int main() {
     const auto b1 = boundary.targets().value(QStringLiteral("1"));
     check(std::abs(b1.x() + boundary.projection(QStringLiteral("1"), b1)->translationX
         - settled.value(QStringLiteral("1")).x()) < 1e-8, "completion boundary position continuity");
+    // Opt-in partial placement shares the existing Spring and keeps static clipping.
+    ScrollRuntimeTestBackend partial; partial.updateContext(state());
+    auto p = plan(1, 0, 1260.25);
+    p.insert(QStringLiteral("clipPartial"), true);
+    auto a = p.value(QStringLiteral("entries")).toArray()[0].toObject();
+    auto b = p.value(QStringLiteral("entries")).toArray()[1].toObject();
+    a.insert(QStringLiteral("pixelWidth"), 2512.5);
+    a.insert(QStringLiteral("newPlacement"), QStringLiteral("visible"));
+    b.insert(QStringLiteral("logicalX"), 2520.5);
+    b.insert(QStringLiteral("oldPlacement"), QStringLiteral("parked"));
+    p.insert(QStringLiteral("entries"), QJsonArray{a, b});
+    auto malformed = p; malformed.insert(QStringLiteral("clipPartial"), QStringLiteral("true"));
+    check(!partial.arm(malformed, 0ns), "partial flag must be a boolean");
+    check(partial.arm(p, 0ns), "Full/half partial arm");
+    check(partial.advance(4s) && partial.completed() && partial.clipsPartial(), "partial clip survives Spring completion");
+    const auto full = partial.targets().value(QStringLiteral("0"));
+    check(full.width() == 2512.5 && full.x() < -1920.5, "Full width preserved beyond left edge");
+    check(partial.projection(QStringLiteral("0"), full)->translationX == 0, "settled physical frame is projected unchanged");
+    check(!partial.inputBlocked(QStringLiteral("0"), QPointF(-1920.5, 100)), "visible surface remains clickable");
+    check(partial.inputBlocked(QStringLiteral("0"), QPointF(-1921, 100)), "hidden surface excluded from input");
+    check(!partial.inputBlocked(QStringLiteral("unknown"), QPointF(-1921, 100)), "unmanaged surface input unaffected");
+    auto frozen = partial;
+    partial.updateContext(state(QStringLiteral("s"), QStringLiteral("b")));
+    check(!partial.clipsPartial() && frozen.projection(QStringLiteral("0"), full).has_value(), "workspace clone holds last paint until adapter retires it");
+    // Pair/Wide keeps its paint clock while a cold static handle clips the
+    // Full neighbor. Its target resize may still await a Wayland frame ACK.
+    for (const bool neighborLeft : {false, true}) {
+        ScrollRuntimeTestBackend widthClip; widthClip.updateContext(state());
+        auto clip = plan(1, neighborLeft ? 1260.25 : 0, neighborLeft ? 1260.25 : 0);
+        clip.insert(QStringLiteral("retargetOnly"), true);
+        clip.insert(QStringLiteral("clipPartial"), true);
+        auto target = clip.value(QStringLiteral("entries")).toArray()[0].toObject();
+        auto neighbor = clip.value(QStringLiteral("entries")).toArray()[1].toObject();
+        target.insert(QStringLiteral("windowId"), QStringLiteral("0"));
+        target.insert(QStringLiteral("columnId"), 0);
+        neighbor.insert(QStringLiteral("windowId"), QStringLiteral("1"));
+        neighbor.insert(QStringLiteral("columnId"), 1);
+        target.insert(QStringLiteral("logicalX"), neighborLeft ? 2520.5 : 0);
+        neighbor.insert(QStringLiteral("logicalX"), neighborLeft ? 0 : 1260.25);
+        neighbor.insert(QStringLiteral("pixelWidth"), 2512.5);
+        for (auto *entry : {&target, &neighbor}) {
+            entry->insert(QStringLiteral("oldPlacement"), QStringLiteral("visible"));
+            entry->insert(QStringLiteral("newPlacement"), QStringLiteral("visible"));
+        }
+        clip.insert(QStringLiteral("entries"), QJsonArray{target, neighbor});
+        const QRectF awaitingTarget(-1920.5, 50.25, 2512.5, 1320.25);
+        check(widthClip.arm(clip, 0ns, {{QStringLiteral("0"), awaitingTarget}}), "static width clip accepts a pending real Full frame");
+        check(widthClip.projection(QStringLiteral("0"), awaitingTarget).has_value(), "pending target stays owned until geometry ACK");
+        check(widthClip.advance(0ns) && widthClip.completed() && widthClip.clipsPartial(), "clip does not add another animation clock");
+        const auto neighborFrame = widthClip.targets().value(QStringLiteral("1"));
+        check(widthClip.projection(QStringLiteral("1"), neighborFrame)->translationX == 0, "Full neighbor translation belongs to Script");
+        check(widthClip.inputBlocked(QStringLiteral("1"), QPointF(-1921, 100)), "width clip blocks the left hidden surface");
+        check(widthClip.inputBlocked(QStringLiteral("1"), QPointF(593, 100)), "width clip blocks the right hidden surface");
+        ScrollClipHandoff handoff;
+        handoff.retain(widthClip, 2, {QStringLiteral("0"), QStringLiteral("1")});
+        // Reverse after disarming the old epoch, retaining the neighbor's real
+        // frame while the legacy outgoing animation moves it to a virtual edge.
+        widthClip.cancel(QStringLiteral("s"), 1);
+        check(!widthClip.active() && handoff.active(), "old runtime cancellation does not leave a paint/input gap");
+        check(handoff.projection(QStringLiteral("1"), neighborFrame)->viewport == QRectF(-1920.5, 50.25, 2512.5, 1320.25), "frozen handoff clips the real Full frame to the original primary viewport");
+        check(handoff.inputBlocked(QStringLiteral("1"), QPointF(593, 100)), "secondary output cannot hit the Full surface during handoff");
+        check(!handoff.projection(QStringLiteral("unmanaged"), neighborFrame), "handoff is scoped to published window membership");
+        handoff.cancel(QStringLiteral("wrong"), 2); handoff.cancel(QStringLiteral("s"), 1);
+        handoff.release(QStringLiteral("1"), 1);
+        check(handoff.active() && handoff.projection(QStringLiteral("1"), neighborFrame).has_value(), "stale cancellation and old Script clip cannot retire the replacement handoff");
+        handoff.release(QStringLiteral("0"), 2);
+        check(handoff.active() && !handoff.projection(QStringLiteral("0"), awaitingTarget), "each real Script clip takes over its own window");
+        handoff.release(QStringLiteral("1"), 2);
+        check(!handoff.active(), "last replacement Script clip releases the frozen handle");
+        clip.insert(QStringLiteral("epoch"), 2);
+        target.insert(QStringLiteral("pixelWidth"), 2512.5);
+        clip.insert(QStringLiteral("entries"), QJsonArray{target, neighbor});
+        check(widthClip.arm(clip, 1ms), "static width clip accepts overlapping retained real frames after cancellation");
+        handoff.retain(widthClip, 3, {QStringLiteral("1")});
+        handoff.cancel(QStringLiteral("s"), 3);
+        check(!handoff.active(), "failed replacement cancellation retires its handoff");
+        handoff.retain(widthClip, 3, {QStringLiteral("1")});
+        handoff.updateContext(state(QStringLiteral("s"), QStringLiteral("b")));
+        check(!handoff.active(), "workspace context clears the old handoff");
+        handoff.retain(widthClip, 3, {QStringLiteral("1")});
+        handoff.remove(QStringLiteral("1"));
+        check(!handoff.active(), "window lifecycle releases the handoff handle");
+    }
     std::cout << "PASS native scroll projection ownership and lifecycle with incoming fixed gap" << std::endl;
 }

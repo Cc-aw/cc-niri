@@ -30,14 +30,14 @@ function checkWidth(r, mode, memory, pixels) {
     const r = createRuntime();
     assert.equal(activeColumn(r).previousNonFullWidthMode, "half");
     const order = r.ids(); const window = r.workspace.activeWindow;
-    for (const [mode, memory, pixels] of [["twoThirds", "twoThirds", 1672],
-        ["full", "twoThirds", 2512], ["third", "third", 832], ["half", "half", 1252]]) {
+    for (const [mode, memory, pixels] of [["full", "half", 2512], ["half", "half", 1252],
+        ["full", "half", 2512], ["half", "half", 1252]]) {
         key(r, "CycleColumnWidth");
         checkWidth(r, mode, memory, pixels);
         assert.equal(r.workspace.activeWindow, window);
         assert.deepEqual(r.ids(), order);
     }
-    for (const [mode, pixels] of [["half", 1252], ["twoThirds", 1672], ["third", 832]]) {
+    for (const [mode, pixels] of [["half", 1252]]) {
         while (activeColumn(r).widthMode !== mode) key(r, "CycleColumnWidth");
         key(r, "ToggleColumnFull"); checkWidth(r, "full", mode, 2512);
         key(r, "ToggleColumnFull"); checkWidth(r, mode, mode, pixels);
@@ -49,15 +49,14 @@ function checkWidth(r, mode, memory, pixels) {
 }
 {
     const r = createRuntime();
-    key(r, "CycleColumnWidth"); key(r, "CycleColumnWidth"); key(r, "CycleColumnWidth");
-    key(r, "ToggleColumnFull"); checkWidth(r, "full", "third", 2512);
+    key(r, "CycleColumnWidth"); checkWidth(r, "full", "half", 2512);
     r.nativeSwitch(1, r.b[0]); r.nativeSwitch(0, r.a[0]);
-    checkWidth(r, "full", "third", 2512);
+    checkWidth(r, "full", "half", 2512);
     const reloaded = createRuntime({ PreviousState: r.published.at(-1) });
-    checkWidth(reloaded, "full", "third", 2512);
-    key(reloaded, "ToggleColumnFull"); checkWidth(reloaded, "third", "third", 832);
+    checkWidth(reloaded, "full", "half", 2512);
+    key(reloaded, "ToggleColumnFull"); checkWidth(reloaded, "half", "half", 1252);
     // Older Full snapshots have no memory; invalid memory cannot select Full again.
-    for (const memory of [undefined, null, "full", "bad", 4]) {
+    for (const memory of [undefined, null, "third", "twoThirds", "full", "bad", 4]) {
         const saved = JSON.parse(JSON.stringify(r.published.at(-1)));
         saved.workspaces.find(w => w.id === "A").columns.find(c => c.uuid === "a0")
             .previousNonFullWidthMode = memory;
@@ -67,16 +66,16 @@ function checkWidth(r, mode, memory, pixels) {
 }
 {
     const r = createRuntime();
-    key(r, "CycleColumnWidth"); key(r, "ToggleColumnFull");
+    key(r, "CycleColumnWidth");
     r.move(r.a[0], ["B"]); r.nativeSwitch(1, r.a[0]);
-    checkWidth(r, "full", "twoThirds", 2512);
-    key(r, "ToggleColumnFull"); checkWidth(r, "twoThirds", "twoThirds", 1672);
+    checkWidth(r, "full", "half", 2512);
+    key(r, "ToggleColumnFull"); checkWidth(r, "half", "half", 1252);
     key(r, "ToggleColumnFull");
     r.nativeSwitch(0, r.a[1]);
     r.move(r.a[0], ["A"]);
     r.workspace.activeWindow = r.a[0]; // Active-workspace adoption uses its saved preference.
-    checkWidth(r, "full", "twoThirds", 2512);
-    key(r, "ToggleColumnFull"); checkWidth(r, "twoThirds", "twoThirds", 1672);
+    checkWidth(r, "full", "half", 2512);
+    key(r, "ToggleColumnFull"); checkWidth(r, "half", "half", 1252);
 }
 for (const config of [{ HoldScrollAck: true }, { HoldNativeAck: true }]) {
     const r = createRuntime(config);
@@ -84,7 +83,7 @@ for (const config of [{ HoldScrollAck: true }, { HoldNativeAck: true }]) {
     assert.ok(r.evaluate("scrollPlanCommitGate.pending"));
     assert.equal(r.workspace.activeWindow, r.a[1], "pending target is not the actual active window yet");
     key(r, "CycleColumnWidth");
-    checkWidth(r, "twoThirds", "twoThirds", 1672);
+    checkWidth(r, "full", "half", 2512);
     assert.equal(activeColumn(r).window, r.a[1]);
     const writes = r.writes(); const published = r.published.length;
     r.motionAcks.forEach(callback => callback(true));
@@ -94,15 +93,15 @@ for (const config of [{ HoldScrollAck: true }, { HoldNativeAck: true }]) {
     check(r);
 }
 {
-    const r = createRuntime();
+    const r = createRuntime({ HoldWidthAck: true });
     key(r, "ToggleFocusWide");
     assert.ok(r.evaluate("motionPlanCommitGate.pending"));
-    key(r, "ToggleColumnFull"); checkWidth(r, "full", "half", 2512);
+    key(r, "ToggleColumnFull"); r.motionAcks.at(-1)(true); checkWidth(r, "full", "half", 2512);
     assert.equal(activeColumn(r).persistentWide, true);
     const writes = r.writes();
     r.motionAcks.forEach(callback => callback(true));
     assert.equal(r.writes(), writes, "old Wide ACK cannot overwrite Full");
-    key(r, "ToggleColumnFull"); checkWidth(r, "half", "half", 1252);
+    key(r, "ToggleColumnFull"); r.motionAcks.at(-1)(true); checkWidth(r, "half", "half", 1252);
     assert.equal(activeColumn(r).persistentWide, true);
     key(r, "ToggleFocusWide");
     assert.equal(r.state.viewport.mode, "wide-focus", "retained Wide preference remains usable");
@@ -127,19 +126,19 @@ for (const config of [{ HoldScrollAck: true }, { HoldNativeAck: true }]) {
 }
 for (const widthMode of ["third", "half", "twoThirds", "full", "bad"]) {
     const column = normalizeWorkspaceSnapshot("A", { columns: [{ uuid: "w", widthMode }] }).columns[0];
-    assert.equal(column.previousNonFullWidthMode, ["full", "bad"].includes(widthMode) ? "half" : widthMode);
+    assert.equal(column.widthMode, widthMode === "full" ? "full" : "half");
+    assert.equal(column.previousNonFullWidthMode, "half");
 }
 {
     const r = createRuntime();
-    key(r, "CycleColumnWidth");
     const window = r.workspace.activeWindow;
     r.holdGeometry(window); // Wayland client keeps its old frame until configure ACK.
     key(r, "ToggleColumnFull");
-    assert.equal(window.frameGeometry.width, 1672);
+    assert.equal(window.frameGeometry.width, 1252);
     key(r, "ToggleColumnFull");
-    assert.equal(activeColumn(r).widthMode, "twoThirds");
+    assert.equal(activeColumn(r).widthMode, "half");
     r.flushGeometry(window);
-    checkWidth(r, "twoThirds", "twoThirds", 1672);
+    checkWidth(r, "half", "half", 1252);
     const writes = r.writes();
     r.evaluate("relayout('settled-width')");
     assert.equal(r.writes(), writes, "settled geometry still avoids redundant writes");
@@ -148,14 +147,45 @@ for (const widthMode of ["third", "half", "twoThirds", "full", "bad"]) {
     const r = createRuntime();
     r.evaluate("setPresentationMode('a0', PRESENTATION_MAXIMIZED, 'test-maximize')");
     assert.equal(r.state.presentation.mode, "maximized");
-    key(r, "CycleColumnWidth"); checkWidth(r, "twoThirds", "twoThirds", 1672);
+    key(r, "CycleColumnWidth"); checkWidth(r, "full", "half", 2512);
     assert.equal(r.evaluate("stateFor(workspace.activeWindow).layoutMode"), "normal");
     assert.equal(r.state.prePresentationViewport, null);
-    key(r, "ToggleColumnFull");
     r.a[0].fullScreen = true; r.a[0].fullScreenChanged.emit();
     assert.equal(key(r, "ToggleColumnFull"), false);
     r.a[0].fullScreen = false; r.a[0].fullScreenChanged.emit();
-    checkWidth(r, "full", "twoThirds", 2512);
-    key(r, "ToggleColumnFull"); checkWidth(r, "twoThirds", "twoThirds", 1672);
+    checkWidth(r, "full", "half", 2512);
+    key(r, "ToggleColumnFull"); checkWidth(r, "half", "half", 1252);
 }
-console.log("PASS actual width shortcuts, remembered Full restoration, reload/transfer, pending ACK retirement and no-op boundaries");
+{
+    const initial = createRuntime();
+    const saved = JSON.parse(JSON.stringify(initial.published.at(-1)));
+    const active = saved.workspaces.find(w => w.id === "A");
+    active.columns[0].widthMode = "third";
+    active.columns[1].widthMode = "twoThirds";
+    active.viewportAnchor = { uuid: "a0", delta: 420 };
+    saved.columns[0].widthMode = "third";
+    saved.columns[1].widthMode = "twoThirds";
+    saved.viewportAnchor = { uuid: "a0", delta: 420 };
+    const sleeping = saved.workspaces.find(w => w.id === "B");
+    sleeping.columns[0].widthMode = "full";
+    sleeping.columns[0].previousNonFullWidthMode = "twoThirds";
+    sleeping.columns[1].widthMode = "third";
+    const r = createRuntime({ PreviousState: saved });
+    assert.equal(r.state.scrollOffsetX, 0, "migration removes fractional viewport residue");
+    assert.equal(r.a[0].minimized, false);
+    assert.equal(r.a[1].minimized, false);
+    assert.equal(r.a[0].frameGeometry.width, 1252);
+    assert.equal(r.a[1].frameGeometry.x, 1284);
+    const migrated = r.published.at(-1);
+    assert.ok(migrated.workspaces.flatMap(w => w.columns).every(c =>
+        ["half", "full"].includes(c.widthMode) && c.previousNonFullWidthMode === "half"));
+    r.add("zed-completion", 0, { normalWindow: false, transient: true });
+    assert.equal(r.a[0].minimized, false, "editor popup cannot park the ordinary left pair window");
+    assert.equal(r.a[1].minimized, false);
+    r.evaluate("workspaceMountController.cancelPending('workspace-shortcut')");
+    assert.equal(r.a[0].minimized, false, "workspace preparation keeps the static pair visible");
+    r.nativeSwitch(1, r.b[0]);
+    checkWidth(r, "full", "half", 2512);
+    key(r, "CycleColumnWidth"); checkWidth(r, "half", "half", 1252);
+}
+console.log("PASS half/Full shortcuts, legacy preset migration, editor popup, workspace/reload/transfer and delayed Wayland ACK");

@@ -1,9 +1,5 @@
 "use strict";
 
-/* cjs:start */
-const { normalizePreviousNonFullWidthMode } = require("../model/ColumnStore");
-/* cjs:end */
-
 class ColumnWidthController {
     constructor(options) { Object.assign(this, options); }
 
@@ -16,19 +12,17 @@ class ColumnWidthController {
     }
 
     apply(column, widthMode, reason) {
-        const previous = column.widthMode === "full"
-            ? normalizePreviousNonFullWidthMode(column.previousNonFullWidthMode, "full")
-            : normalizePreviousNonFullWidthMode(column.widthMode, "half");
-        // Width changes replace strip geometry. Retire old motion ownership and
-        // presentations before committing a new layout, keeping Wide preference.
+        // Capture the real pair before changing strip widths. The existing
+        // presentation transaction owns only the paint/parking handoff.
+        const transition = this.captureLayout(column);
         this.cancelPending(reason);
         this.clearPresentation();
         column.widthMode = widthMode;
-        column.previousNonFullWidthMode = widthMode === "full" ? previous : widthMode;
+        column.previousNonFullWidthMode = "half";
         this.focusColumn(column);
         this.recomputeLogicalLayout();
         this.ensureColumnVisible(column);
-        this.relayout(reason);
+        this.relayout(reason, undefined, transition);
         this.commitState(reason);
         return true;
     }
@@ -36,16 +30,13 @@ class ColumnWidthController {
     cycle() {
         const column = this.activeColumn();
         if (!column) return false;
-        const modes = ["third", "half", "twoThirds", "full"];
-        const index = modes.indexOf(column.widthMode);
-        return this.apply(column, modes[(index + 1) % modes.length], "cycle-column-width");
+        return this.apply(column, column.widthMode === "full" ? "half" : "full", "cycle-column-width");
     }
 
     toggleFull() {
         const column = this.activeColumn();
         if (!column) return false;
-        const widthMode = column.widthMode === "full"
-            ? normalizePreviousNonFullWidthMode(column.previousNonFullWidthMode, "full") : "full";
+        const widthMode = column.widthMode === "full" ? "half" : "full";
         return this.apply(column, widthMode, "toggle-column-full");
     }
 }

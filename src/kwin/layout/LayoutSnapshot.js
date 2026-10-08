@@ -16,14 +16,14 @@ function snapshotEntry(columnId, windowId, role, visualRect, realRect, placement
 }
 
 function buildWidePairSnapshots(motion, target, neighbor, options) {
-    if (!motion || !target || !neighbor) return null;
+    if (!motion || !target) return null;
     const entering = motion.type === "PAIR_TO_WIDE";
     const targetId = options.windowId(target);
-    const neighborId = options.windowId(neighbor);
-    const oldNeighborReal = entering
+    const neighborId = neighbor && options.windowId(neighbor);
+    const oldNeighborReal = !neighbor ? null : entering
         ? motion.neighbor.oldVisualRect
         : (neighbor.column.window.frameGeometry || options.neighborParkingRect);
-    const newNeighborReal = entering
+    const newNeighborReal = !neighbor ? null : entering
         ? options.neighborParkingRect
         : motion.neighbor.newVisualRect;
     const from = {
@@ -31,20 +31,18 @@ function buildWidePairSnapshots(motion, target, neighbor, options) {
         entries: [
             snapshotEntry(target.columnId, targetId, "target",
                 motion.target.oldVisualRect, motion.target.oldVisualRect, "visible"),
-            snapshotEntry(neighbor.columnId, neighborId, "neighbor",
-                motion.neighbor.oldVisualRect, oldNeighborReal,
-                entering ? "visible" : "isolated-hidden"),
-        ],
+        ].concat(neighbor ? [snapshotEntry(neighbor.columnId, neighborId, "neighbor",
+            motion.neighbor.oldVisualRect, oldNeighborReal,
+            entering ? "visible" : "isolated-hidden")] : []),
     };
     const to = {
         viewportMode: entering ? "wide-focus" : "pair",
         entries: [
             snapshotEntry(target.columnId, targetId, "target",
                 motion.target.newVisualRect, motion.target.newVisualRect, "visible"),
-            snapshotEntry(neighbor.columnId, neighborId, "neighbor",
-                motion.neighbor.newVisualRect, newNeighborReal,
-                entering ? "isolated-hidden" : "visible"),
-        ],
+        ].concat(neighbor ? [snapshotEntry(neighbor.columnId, neighborId, "neighbor",
+            motion.neighbor.newVisualRect, newNeighborReal,
+            entering ? "isolated-hidden" : "visible")] : []),
     };
     return { from, to };
 }

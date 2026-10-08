@@ -18,6 +18,8 @@ public:
     void remove(const QString &id);
     bool active() const;
     bool completed() const;
+    bool clipsPartial() const;
+    bool inputBlocked(const QString &id, const QPointF &point) const;
     QJsonObject status() const;
     bool advance(ViewportMotionBackend::TimePoint now);
     std::optional<ScrollProjection> projection(const QString &id,const QRectF &geometry) const;

@@ -19,6 +19,7 @@ let windows = [];
 let geometryWrites = 0;
 const logs = [];
 const published = [];
+const traffic = [];
 const deferred = [];
 const motionAcks = [];
 const motionPlans = [];
@@ -110,12 +111,18 @@ const context = vm.createContext({ workspace, QTimer: Timer,
         ? config[key] : key === "DebugLogging" ? true : fallback,
     registerShortcut: (name, _description, _sequence, handler) => shortcuts.set(name, handler), console: { info: message => logs.push(message), warn: message => logs.push(message) },
     callDBus: (_service, _path, _interface, method, ...args) => {
+        traffic.push({ service: _service, path: _path, method, payload: args[0] });
         const callback = args.at(-1);
         if (method === "GetState") callback(config.PreviousState
             ? JSON.stringify(config.PreviousState) : "");
         else if (method === "EnsureVerticalDesktopLayout") { desktopRows.push(args[0]); callback(true); }
         else if (method === "PublishState") { published.push(JSON.parse(args[0])); callback(true); }
-        else if (method === "PublishMotionPlan") { motionPlans.push(JSON.parse(args[0])); motionPublishWrites.push(geometryWrites); motionAcks.push(callback); if (motionPlans.at(-1).type === "SCROLL" && !config.HoldScrollAck) callback(true); }
+        else if (method === "PublishMotionPlan") {
+            const plan = JSON.parse(args[0]);
+            motionPlans.push(plan); motionPublishWrites.push(geometryWrites); motionAcks.push(callback);
+            if ((plan.type === "SCROLL" && !config.HoldScrollAck) ||
+                    (plan.viewport && plan.type !== "SCROLL" && !config.HoldWidthAck)) callback(true);
+        }
         else if (method === "ArmScrollPlan") { nativeArms.push(JSON.parse(args[0])); nativeAcks.push(callback); if (!config.HoldNativeAck) callback(true); }
         else if (method === "WorkspaceTransitionActive") {
             workspaceTransitionAcks.push(callback);
@@ -132,16 +139,17 @@ vm.runInContext(fs.readFileSync(path.join(__dirname, "../../package/contents/cod
 const evaluate = code => vm.runInContext(code, context);
 const state = evaluate("mainScreenState");
 const ids = () => Array.from(state.columns, column => column.window.internalId);
-function nativeSwitch(index, active) {
+function nativeSwitch(index, active, expectMount = true) {
     const batches = logs.filter(line => /BEGIN epoch=.*reason=workspace-mount/.test(line)).length;
     const previous = current; current = desktops[index];
     // Exercise the problematic native signal order: activation precedes desktop signal.
     workspace.activeWindow = active;
     workspace.currentDesktopChanged.emit(previous, current, output);
-    assert.equal(logs.filter(line => /BEGIN epoch=.*reason=workspace-mount/.test(line)).length, batches + 1,
+    assert.equal(logs.filter(line => /BEGIN epoch=.*reason=workspace-mount/.test(line)).length, batches + Number(expectMount),
         "native desktop changes issue one relayout, including empty workspaces");
 }
-return { evaluate, state, ids, nativeSwitch, desktops, desktopCreates, desktopRemoves, desktopRows, output, workspace, a, b, published, motionAcks, motionPlans, motionPublishWrites, nativeArms, nativeAcks, nativeCancels, cancelAcks, scrollStatusAcks, timers, shortcuts, logs,
+return { evaluate, state, ids, nativeSwitch, desktops, desktopCreates, desktopRemoves, desktopRows, output, workspace, a, b, published, traffic, deferred, motionAcks, motionPlans, motionPublishWrites, nativeArms, nativeAcks, nativeCancels, cancelAcks, scrollStatusAcks, timers, shortcuts, logs,
+    queueCommand(command) { pendingCommand = JSON.stringify(command); },
     workspaceTransitionAcks,
     setWorkspaceTransitionActive(value) { workspaceTransitionActive = value; },
     move(window, ids) { window.desktops = ids.map(id => desktops.find(d => d.id === id)); window.onAllDesktops = !ids.length; window.desktopsChanged.emit(); },

@@ -150,6 +150,25 @@ class MotionController {
             const name = channel.name || this.channelName(channel.type);
             if (name) desired[name] = channel;
         });
+        const scaleAnchor = desired.scale ? (desired.scale.anchor || "center")
+            : previous && previous.channels.scale
+                ? previous.channels.scale.anchor : "center";
+        // Scale is relative to the real frame. Rebase the sampled painted
+        // rectangle when a resize/anchor changes that frame during retarget.
+        const previousAnchor = previous && previous.channels.scale
+            ? previous.channels.scale.anchor : "center";
+        const rebase = previous && (options.oldGeometry.width !== options.newGeometry.width ||
+            options.oldGeometry.height !== options.newGeometry.height || previousAnchor !== scaleAnchor);
+        let rebasedScale, rebasedTranslation;
+        if (rebase) {
+            const painted = visualRectFor(options.oldGeometry, previousSample, previousAnchor);
+            rebasedScale = { value1: painted.width / options.newGeometry.width,
+                value2: painted.height / options.newGeometry.height };
+            const base = visualRectFor(options.newGeometry, {
+                scale: rebasedScale, translation: { value1: 0, value2: 0 }, opacity: 1,
+            }, scaleAnchor);
+            rebasedTranslation = { value1: painted.x - base.x, value2: painted.y - base.y };
+        }
 
         if (previous) {
             this.states.delete(window);
@@ -168,7 +187,7 @@ class MotionController {
             if (!target && !carried) return;
 
             if (name === "translation") {
-                const from = previous
+                const from = rebase ? rebasedTranslation : previous
                     ? retargetedTranslation(
                         previousSample.translation,
                         options.oldGeometry,
@@ -185,7 +204,7 @@ class MotionController {
 
             if (name === "scale") {
                 channels.scale = {
-                    from: previous ? previousSample.scale : target.from,
+                    from: rebase ? rebasedScale : previous ? previousSample.scale : target.from,
                     to: target ? target.to : { value1: 1, value2: 1 },
                     anchor: target ? (target.anchor || "center") :
                         (carried.anchor || "center"),

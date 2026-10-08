@@ -15,7 +15,7 @@ function check(r) {
 }
 {
     const r = createRuntime();
-    r.evaluate("mainScreenState.columns[4].widthMode = 'third'; mainScreenState.columns[4].persistentWide = true; recomputeLogicalLayout(); publishDockState('save-preference')");
+    r.evaluate("mainScreenState.columns[4].widthMode = 'full'; mainScreenState.columns[4].persistentWide = true; recomputeLogicalLayout(); publishDockState('save-preference')");
     assert.equal(r.a[4].opacity, 0); assert.equal(r.a[4].minimized, true);
     const focus = r.workspace.activeWindow;
     r.move(r.a[4], ["B"]);
@@ -26,25 +26,25 @@ function check(r) {
     assert.equal(owner(r, "a4"), "B");
     assert.equal(r.evaluate("stateFor(workspace.windowList().find(w => w.internalId==='a4')).adoptionPhase"), "waiting-workspace");
     const entry = r.published.at(-1).workspaces.find(w => w.id === "B").columns.at(-1);
-    assert.equal(entry.widthMode, "third"); assert.equal(entry.persistentWide, true);
+    assert.equal(entry.widthMode, "full"); assert.equal(entry.persistentWide, true);
     r.move(r.a[4], ["B"]);
     assert.equal(r.published.at(-1).workspaces.find(w => w.id === "B").columns.filter(c => c.uuid === "a4").length, 1);
     r.nativeSwitch(1, r.b[0]);
     assert.deepEqual(r.ids(), ["b0", "b1", "a4"]);
-    assert.equal(r.state.columns[2].widthMode, "third"); assert.equal(r.state.columns[2].persistentWide, true);
+    assert.equal(r.state.columns[2].widthMode, "full"); assert.equal(r.state.columns[2].persistentWide, true);
     check(r);
 }
 {
     const r = createRuntime();
     const focus = r.workspace.activeWindow;
-    r.evaluate("const savedB=workspaceSnapshots.get('B'); savedB.columns[0].widthMode='third'; savedB.columns[0].persistentWide=true; workspaceSnapshots.set('B',savedB)");
+    r.evaluate("const savedB=workspaceSnapshots.get('B'); savedB.columns[0].widthMode='full'; savedB.columns[0].persistentWide=true; workspaceSnapshots.set('B',savedB)");
     r.move(r.b[0], ["A"]);
     assert.equal(r.workspace.activeWindow, focus);
     assert.ok(!r.ids().includes("b0"), "inactive incoming window waits for native activation");
     assert.equal(owner(r, "b0"), null, "old snapshot reference removed while active graph has no incoming column yet");
     r.workspace.activeWindow = r.b[0];
     assert.ok(r.ids().includes("b0")); assert.equal(owner(r, "b0"), "A");
-    assert.equal(r.state.columns.find(c => c.window === r.b[0]).widthMode, "third");
+    assert.equal(r.state.columns.find(c => c.window === r.b[0]).widthMode, "full");
     assert.equal(r.state.columns.find(c => c.window === r.b[0]).persistentWide, true);
     r.move(r.b[1], ["C"]);
     assert.equal(owner(r, "b1"), "C");
@@ -54,7 +54,7 @@ function check(r) {
 }
 {
     const r = createRuntime();
-    r.evaluate("mainScreenState.columns[4].widthMode='third'; mainScreenState.columns[4].persistentWide=true");
+    r.evaluate("mainScreenState.columns[4].widthMode='full'; mainScreenState.columns[4].persistentWide=true");
     r.nativeSwitch(1, r.b[0]);
     assert.equal(r.a[4].opacity, 0);
     r.move(r.a[4], ["B"]);
@@ -62,7 +62,7 @@ function check(r) {
     assert.ok(r.a[4].frameGeometry.x >= 0); assert.equal(r.workspace.activeWindow, r.b[0]);
     assert.ok(!r.ids().includes("a4"));
     r.workspace.activeWindow = r.a[4];
-    assert.equal(r.state.columns.find(c => c.window === r.a[4]).widthMode, "third");
+    assert.equal(r.state.columns.find(c => c.window === r.a[4]).widthMode, "full");
     assert.equal(r.state.columns.find(c => c.window === r.a[4]).persistentWide, true);
     assert.equal(r.a[3].opacity, 0);
     r.move(r.a[3], ["C"]);
@@ -131,11 +131,11 @@ function check(r) {
         release(window, reason);
         if (!changed) { changed = true; r.move(window, ["C"]); }
     };
-    r.evaluate("mainScreenState.columns[4].widthMode='twoThirds'; mainScreenState.columns[4].persistentWide=true");
+    r.evaluate("mainScreenState.columns[4].widthMode='full'; mainScreenState.columns[4].persistentWide=true");
     r.move(r.a[4], ["B"]);
     assert.equal(owner(r, "a4"), "C", "synchronous reentry follows final native membership");
     const entry = r.published.at(-1).workspaces.find(w => w.id === "C").columns[0];
-    assert.equal(entry.widthMode, "twoThirds"); assert.equal(entry.persistentWide, true);
+    assert.equal(entry.widthMode, "full"); assert.equal(entry.persistentWide, true);
     check(r);
 }
 {

@@ -102,7 +102,30 @@ int main(int argc, char **argv)
     CHECK(bridge.ReportMotionComplete(json(QJsonObject{{"type", "PAIR_TO_WIDE"}, {"sessionId", "live"},
          {"transitionToken", "wide-token"}, {"targetWindowUuid", "a"}}))); // SCROLL did not erase Wide token.
 
+    const auto enteringCompletion = QJsonDocument::fromJson(bridge.TakePendingCommand().toUtf8()).object();
+    CHECK(enteringCompletion.value("type") == QJsonValue("finalize-contextual-wide"));
+    const QJsonObject exitCompletion{{"type", "WIDE_TO_PAIR"}, {"sessionId", "live"},
+        {"transitionToken", "wide-token"}, {"targetWindowUuid", "a"}};
+    CHECK(bridge.ReportMotionComplete(json(exitCompletion)));
+    const auto exitingCompletion = QJsonDocument::fromJson(bridge.TakePendingCommand().toUtf8()).object();
+    CHECK(exitingCompletion.value("type") == QJsonValue("finalize-contextual-wide-exit"));
+    CHECK(exitingCompletion.value("motionCompleted").toBool());
+    CHECK(exitingCompletion.value("commandId") != enteringCompletion.value("commandId"));
+    CHECK(bridge.ReportMotionComplete(json(exitCompletion)) && bridge.TakePendingCommand().isEmpty());
+
     CHECK(bridge.ReportMotionParked(json(QJsonObject{{"type", "PAIR_TO_WIDE"}, {"sessionId", "live"}, {"transitionToken", "wide-token"}, {"targetWindowUuid", "a"}})));
+
+    // Full can animate a solo target through the same protocol-1 endpoint.
+    auto solo = wide;
+    auto soloEntry = wideEntries.first().toObject();
+    soloEntry["role"] = "target";
+    solo["entries"] = QJsonArray{soloEntry};
+    CHECK(bridge.PublishMotionPlan(json(solo)) && received == solo);
+    soloEntry["role"] = "neighbor";
+    solo["entries"] = QJsonArray{soloEntry};
+    rejected(solo, false);
+    solo["entries"] = QJsonArray{}; rejected(solo, false);
+    solo["entries"] = QJsonArray{soloEntry, soloEntry, soloEntry}; rejected(solo, false);
 
     // Switching desktops keeps the epoch barrier and changes authority.
     state["generation"] = 1; state["workspaceId"] = "desktop-b";

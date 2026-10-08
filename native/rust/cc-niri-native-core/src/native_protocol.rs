@@ -130,6 +130,7 @@ pub struct ScrollPlan {
     pub new_offset: f64,
     // 0 absent, 1 false, 2 true, 3 wrong JSON type.
     pub retarget_only: u32,
+    pub clip_partial: u32,
     pub viewport: Rect,
     pub entries: Vec<ScrollEntry>,
     // Opaque canonical envelope bytes, including extra fields; never parsed on a frame.
@@ -347,6 +348,7 @@ pub fn valid_scroll_plan(plan: &ScrollPlan, windows_registry: &WindowRegistry) -
         || plan.old_offset < 0.0
         || !plan.new_offset.is_finite()
         || plan.new_offset < 0.0
+        || plan.clip_partial > 2
         || plan.retarget_only > 2
         || (plan.old_offset == plan.new_offset) != (plan.retarget_only == 2)
         || !plan.viewport.valid_viewport()
@@ -383,12 +385,15 @@ pub fn valid_scroll_plan(plan: &ScrollPlan, windows_registry: &WindowRegistry) -
             if !left.is_finite() || !right.is_finite() {
                 return false;
             }
-            let expected =
-                if left >= plan.viewport.x && right <= plan.viewport.x + plan.viewport.width {
-                    Placement::Visible
-                } else {
-                    Placement::Parked
-                };
+            let expected = if if plan.clip_partial == 2 {
+                left < plan.viewport.x + plan.viewport.width && right > plan.viewport.x
+            } else {
+                left >= plan.viewport.x && right <= plan.viewport.x + plan.viewport.width
+            } {
+                Placement::Visible
+            } else {
+                Placement::Parked
+            };
             if placement != expected {
                 return false;
             }

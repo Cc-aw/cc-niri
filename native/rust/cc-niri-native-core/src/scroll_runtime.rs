@@ -18,6 +18,7 @@ pub struct ScrollViewportRuntime {
     frame_offset: f64,
     completed: bool,
     fuzzy_zero: bool,
+    clip_partial: bool,
     windows: WindowRegistry,
 }
 impl ScrollViewportRuntime {
@@ -34,6 +35,7 @@ impl ScrollViewportRuntime {
             frame_offset: 0.0,
             completed: false,
             fuzzy_zero,
+            clip_partial: false,
             windows: WindowRegistry::default(),
         }
     }
@@ -67,6 +69,17 @@ impl ScrollViewportRuntime {
     pub fn epoch(&self) -> i64 {
         self.motion.sample(0).epoch
     }
+    pub fn clips_partial(&self) -> bool {
+        self.active() && self.clip_partial
+    }
+    pub fn input_blocked(&self, id: WindowId, x: f64, y: f64) -> bool {
+        self.clips_partial()
+            && self.columns.contains_key(&id)
+            && (x < self.viewport.x
+                || y < self.viewport.y
+                || x >= self.viewport.x + self.viewport.width
+                || y >= self.viewport.y + self.viewport.height)
+    }
     pub fn completed(&self) -> bool {
         self.completed
     }
@@ -79,6 +92,7 @@ impl ScrollViewportRuntime {
         self.visual_targets.clear();
         self.roles.clear();
         self.completed = false;
+        self.clip_partial = false;
         self.motion.snap(self.motion.sample(0).target);
     }
     pub fn remove(&mut self, id: WindowId) {
@@ -128,6 +142,7 @@ impl ScrollViewportRuntime {
             _ => return false,
         }
         let plan = validated.into_wire();
+        let clip_partial = plan.clip_partial == 2;
         let rect = plan.viewport;
         let target = plan.new_offset;
         let old_offset = plan.old_offset;
@@ -231,6 +246,7 @@ impl ScrollViewportRuntime {
         self.viewport = rect;
         self.frame_offset = self.motion.sample(now).current;
         self.completed = false;
+        self.clip_partial = clip_partial;
         true
     }
     pub fn cancel(&mut self, session: &Text, epoch: i64) {
@@ -325,6 +341,7 @@ mod tests {
             old_offset: from,
             new_offset: to,
             retarget_only: if from == to { 2 } else { 0 },
+            clip_partial: 0,
             viewport: Rect {
                 x: -1920.5,
                 y: 50.25,
@@ -385,6 +402,48 @@ mod tests {
         r.update_context(context("s", 1.0));
         let p = plan(&mut r, 0.0, 0.0, 1260.25);
         assert!(r.arm(p, 0, &HashMap::new()));
+    }
+    #[test]
+    fn full_half_partial_preserves_width_and_static_clip_until_retired() {
+        let mut r = ScrollViewportRuntime::new(true);
+        r.update_context(context("s", 1.0));
+        let mut p = plan(&mut r, 1.0, 0.0, 1260.25);
+        p.clip_partial = 2;
+        p.entries.truncate(2);
+        p.entries[0].pixel_width = 2512.5;
+        p.entries[0].new_placement = Placement::Visible;
+        p.entries[1].logical_x = 2520.5;
+        p.entries[1].old_placement = Placement::Parked;
+        let full = p.entries[0].window_id;
+        let half = p.entries[1].window_id;
+        let viewport = p.viewport;
+        let mut bad = p.clone();
+        bad.clip_partial = 0;
+        assert!(!r.arm(bad, 0, &HashMap::new()));
+        let mut bad = p.clone();
+        bad.clip_partial = 3;
+        assert!(!r.arm(bad, 0, &HashMap::new()));
+        assert!(r.arm(p, 0, &HashMap::new()));
+        let geometry = r.targets()[&full];
+        assert_eq!(geometry.width, viewport.width);
+        assert!(r.advance(10_000_000_000));
+        assert!(r.completed() && r.clips_partial());
+        assert_eq!(r.role(full), Some(WindowRole::Continuing));
+        assert_eq!(r.projection(full, geometry).unwrap().translation_x, 0.0);
+        let allocations = crate::allocation_checks::count(|| {
+            for _ in 0..1000 {
+                assert!(!r.input_blocked(full, viewport.x, viewport.y));
+                assert!(r.input_blocked(full, viewport.x - 1.0, viewport.y));
+                assert!(r.input_blocked(half, viewport.x + viewport.width, viewport.y));
+                assert!(!r.input_blocked(WindowId(u64::MAX), viewport.x - 1.0, viewport.y));
+            }
+        });
+        assert_eq!(allocations, 0);
+        let frozen = r.clone();
+        r.cancel(&Text::from_utf8("s"), 1);
+        assert!(!r.clips_partial());
+        assert!(!r.input_blocked(full, viewport.x - 1.0, viewport.y));
+        assert!(frozen.projection(full, geometry).is_some());
     }
     #[test]
     fn frame_operations_allocate_nothing() {

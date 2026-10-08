@@ -118,6 +118,36 @@ with tempfile.TemporaryDirectory(prefix="cc-niri-scroll-") as directory:
         forged = copy.deepcopy(returning)
         forged.update(epoch=2, retargetOnly="true")
         assert not call("PublishMotionPlan", forged), "untyped return flag accepted"
+        partial = copy.deepcopy(returning)
+        partial.update(epoch=2, oldScrollOffsetX=1260.0, newScrollOffsetX=1260.0, clipPartial=True)
+        partial["entries"][0].update(pixelWidth=2512)
+        partial["entries"][1].update(logicalX=2520)
+        malformed = copy.deepcopy(partial)
+        malformed["clipPartial"] = "true"
+        assert not call("PublishMotionPlan", malformed), "untyped partial flag accepted"
+        missing = copy.deepcopy(partial)
+        del missing["clipPartial"]
+        assert not call("PublishMotionPlan", missing), "partial placement requires explicit opt-in"
+        assert call("PublishMotionPlan", partial), "Full/half static clipping rejected"
+        drain(lambda: ("MotionPlanChanged", partial) in events)
+        assert call("PublishMotionPlan", partial), "partial snapshot not idempotent"
+        width = dict(protocol=1, type="WIDE_TO_PAIR", sessionId="reloaded", epoch=3,
+                     issuedAt=1002, side="right", transitionToken="partial-width",
+                     targetWindowUuid="b", viewport=partial["viewport"], entries=[
+                         dict(windowId="b", role="target", oldVisualRect=partial["viewport"],
+                              newVisualRect=dict(x=1284, y=50, width=1252, height=1320)),
+                         dict(windowId="a", role="neighbor", oldVisualRect=dict(x=-2496, y=50, width=2512, height=1320),
+                              newVisualRect=dict(x=-1236, y=50, width=2512, height=1320))])
+        clip = copy.deepcopy(partial)
+        clip["epoch"] = width["epoch"]
+        assert call("PublishMotionPlan", width)
+        assert call("PublishMotionPlan", clip), "width and clipping must share the layout epoch"
+        drain(lambda: ("MotionPlanChanged", clip) in events)
+        assert events[-2:] == [("MotionPlanChanged", width), ("MotionPlanChanged", clip)], "Legacy timeline must arrive before clipping"
+        assert call("ReportMotionComplete", dict(type="WIDE_TO_PAIR", sessionId="reloaded",
+                    transitionToken="partial-width", targetWindowUuid="b")), "clipping must preserve Legacy completion"
+        command = json.loads(str(bus.get_object(service, "/ScrollDock").get_dbus_method("TakePendingCommand", interface)()))
+        assert command["type"] == "finalize-contextual-wide-exit" and command["motionCompleted"]
         print("PASS isolated SCROLL DBus payload, FIFO authority, duplicate, workspace, restart and explicit return")
     finally:
         if server is not None:

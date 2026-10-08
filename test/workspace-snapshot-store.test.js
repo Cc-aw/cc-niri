@@ -17,11 +17,11 @@ const raw = {
 const expected = {
     workspaceId: "WS-A",
     columns: [
-        { uuid: "a", widthMode: "third", previousNonFullWidthMode: "third", persistentWide: true },
-        { uuid: "b", widthMode: "twoThirds", previousNonFullWidthMode: "twoThirds", persistentWide: false },
+        { uuid: "a", widthMode: "half", previousNonFullWidthMode: "half", persistentWide: true },
+        { uuid: "b", widthMode: "half", previousNonFullWidthMode: "half", persistentWide: false },
         { uuid: "c", widthMode: "half", previousNonFullWidthMode: "half", persistentWide: false },
     ],
-    focusedUuid: "b", viewportAnchor: { uuid: "a", delta: 12 },
+    focusedUuid: "b", viewportAnchor: { uuid: "a", delta: 0 },
     viewport: { mode: "wide", wideUuid: "b" },
     presentation: { mode: "maximized", windowUuid: "b" },
 };

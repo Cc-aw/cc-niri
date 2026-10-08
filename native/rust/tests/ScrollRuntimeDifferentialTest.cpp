@@ -178,7 +178,7 @@ void edgeFrames() {
 int main() {
     static_assert(sizeof(CcNiriScrollEntry)==40);
     static_assert(sizeof(CcNiriScrollContext)==64);
-    static_assert(sizeof(CcNiriScrollPlan)==176);
+    static_assert(sizeof(CcNiriScrollPlan)==184);
     static_assert(sizeof(CcNiriProjectionResult)==48);
     static_assert(sizeof(CcNiriScrollStatus)==24);
     malformed();historiesTest();edgeFrames();

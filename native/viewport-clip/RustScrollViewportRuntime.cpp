@@ -50,15 +50,24 @@ void RustScrollViewportRuntime::remove(const QString &id) {
 }
 bool RustScrollViewportRuntime::active() const { const auto result=cc_niri_scroll_status(m_handle);checkStatus(result.status);return result.active!=0; }
 bool RustScrollViewportRuntime::completed() const { const auto result=cc_niri_scroll_status(m_handle);checkStatus(result.status);return result.completed!=0; }
+bool RustScrollViewportRuntime::clipsPartial() const {
+    const auto result=cc_niri_scroll_status(m_handle); checkStatus(result.status); return (result.reserved & 1)!=0;
+}
+bool RustScrollViewportRuntime::inputBlocked(const QString &id, const QPointF &point) const {
+    const auto found=m_ids.constFind(id); if (found==m_ids.cend()) return false;
+    return accepted(cc_niri_scroll_input_blocked(m_handle,found.value(),point.x(),point.y()));
+}
 QString RustScrollViewportRuntime::contextText(std::uint32_t field) const {
     const auto result=cc_niri_scroll_context_text(m_handle,field); checkStatus(result.status);
     return QString::fromUtf16(reinterpret_cast<const char16_t*>(result.value.data),static_cast<qsizetype>(result.value.len));
 }
 QJsonObject RustScrollViewportRuntime::status() const {
     const auto result=cc_niri_scroll_status(m_handle); checkStatus(result.status);
-    return {{QStringLiteral("sessionId"),contextText(0)},{QStringLiteral("workspaceId"),contextText(1)},
+    QJsonObject status{{QStringLiteral("sessionId"),contextText(0)},{QStringLiteral("workspaceId"),contextText(1)},
         {QStringLiteral("targetOutput"),contextText(2)},{QStringLiteral("epoch"),static_cast<qint64>(result.epoch)},
         {QStringLiteral("active"),result.active!=0},{QStringLiteral("completed"),result.completed!=0}};
+    if (result.reserved & 1) status.insert(QStringLiteral("clipPartial"), true);
+    return status;
 }
 bool RustScrollViewportRuntime::advance(ViewportMotionBackend::TimePoint now) { return accepted(cc_niri_scroll_advance(m_handle,now.count())); }
 std::optional<ScrollProjection> RustScrollViewportRuntime::projection(const QString &id,const QRectF &geometry) const {

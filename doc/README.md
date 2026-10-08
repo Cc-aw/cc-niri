@@ -60,3 +60,5 @@ Rust Native Core 重构 R0–R7 已完成并归档到 `done/`。Spring、Viewpor
 Focus Ring 本轮开发已完成，优先阅读 `done/` 中的设计与 Phase 6 验收记录；额外 Phase 7 提案已取消实施。ViewOffset Spring 当前实现依据仍见其设计与阶段验收记录。
 Quickshell V2–V11 暂列后续，Clavis 旧文档作为背景参考。
 Partial Viewport 旧提案已被 Contextual Wide 取代，重新采用需要新的明确需求。
+
+Core UX P4–P6 与 Full 动画修复已实现、通过门禁并部署，记录见 [P3](../test/CORE_UX_P3_RESULTS.md)、[P4](../test/CORE_UX_P4_RESULTS.md)、[P5](../test/CORE_UX_P5_RESULTS.md)、[P6](../test/CORE_UX_P6_RESULTS.md)。Dockless 与 Bridge 命名清理留待 P7 / P8。

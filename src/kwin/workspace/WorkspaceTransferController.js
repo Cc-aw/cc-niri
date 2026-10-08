@@ -46,7 +46,8 @@ class WorkspaceTransferController {
         const changed = owner !== previous || !eligible;
         if (changed) {
             state.workspaceColumnPreference = Object.assign({}, entry);
-            this.cancelPending(window, reason);
+            // Unmanaged dialogs/transients must not retire the active strip's owner.
+            if (column || savedEntry || state.managedByScrollLayout) this.cancelPending(window, reason);
             // Restore opacity, script-owned minimization and accessible geometry
             // before removing the live column or assigning the new owner.
             this.releaseWindow(window, reason);

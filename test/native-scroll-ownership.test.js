@@ -22,4 +22,16 @@ const sleeping=fixture("continuing",left);sleeping.onCurrentDesktop=false;assert
 assert.equal(classify(fixture("incoming",left),right,left),"incoming","previous outgoing can re-enter without a physical parking jump");
 assert.equal(classify(fixture("outgoing",right),left,parking),null,"stale outgoing frame keeps fallback");
 assert.equal(readNativeScrollMarker({screen:output}),null);
+const width = { protocol: 1, type: "WIDE_TO_PAIR", epoch: 12, sessionId: "s",
+    issuedAt: Date.now(), role: "neighbor", entries: [{ role: "target" }, { role: "neighbor" }] };
+function paired(patch = {}) {
+    const native = fixture("continuing", right), read = native.data;
+    native.data = role => role === 1003 ? { ...width, ...patch } : read(role);
+    return native;
+}
+assert.equal(readNativeScrollMarker(paired()), null, "same epoch clip leaves Pair/Wide paint timeline in Script");
+for (const patch of [{ epoch: 11 }, { sessionId: "old" }, { protocol: 2 },
+    { type: "SCROLL" }, { role: "static" }, { issuedAt: Date.now() - 6000 }, { entries: [] }]) {
+    assert.ok(readNativeScrollMarker(paired(patch)), "unrelated or stale width marker cannot suppress Native ownership");
+}
 console.log("PASS native motion capability plus typed scoped frame ownership, Wide and fallback boundaries");

@@ -3,18 +3,55 @@
 // Native ACK means continuing/incoming ownership is installed before geometry changes.
 // Each callback is scoped to a layout epoch; a timeout also disarms that epoch.
 class ScrollPlanCommitGate {
-    constructor(options) { Object.assign(this, options); this.pending = null; this.activeEpoch = null; }
+    constructor(options) {
+        Object.assign(this, options);
+        this.pending = null; this.activeEpoch = null;
+        this.disarming = new Set(); this.idleCallbacks = [];
+        this.retainedEpochs = new Set();
+    }
     abort(epoch, callback = () => {}) {
-        try { this.disarm(epoch, callback); } catch (error) {
-            this.warn(`[SCROLL_PLAN] disarm unavailable ${error}`); callback();
+        const request = { epoch };
+        this.disarming.add(request);
+        const finish = () => {
+            if (!this.disarming.delete(request)) return;
+            try { callback(); } finally {
+                if (!this.disarming.size) this.idleCallbacks.splice(0).forEach(fn => fn());
+            }
+        };
+        try { this.disarm(epoch, finish); } catch (error) {
+            this.warn(`[SCROLL_PLAN] disarm unavailable ${error}`); finish();
+        }
+    }
+    whenIdle(callback) {
+        if (this.disarming.size) this.idleCallbacks.push(callback);
+        else callback();
+    }
+    releaseForWorkspace() {
+        if (this.pending) { this.clearTimer(this.pending.timer); this.pending = null; }
+        this.activeEpoch = null;
+        this.retainedEpochs.clear();
+        if (this.releaseDeferred) this.releaseDeferred();
+    }
+    retainForLegacy() {
+        // Keep the old viewport until Native has observed the replacement
+        // Pair/Wide plan. Retire its epochs only after that publish ACK.
+        if (this.releaseDeferred) this.releaseDeferred();
+        if (this.pending) {
+            this.clearTimer(this.pending.timer);
+            this.retainedEpochs.add(this.pending.plan.epoch);
+            this.pending = null;
         }
     }
     cancel() {
         if (this.cancelDeferred) this.cancelDeferred();
         const pending = this.pending;
         this.pending = null;
-        if (pending) { this.clearTimer(pending.timer); this.abort(pending.plan.epoch); }
-        if (this.activeEpoch !== null) { this.abort(this.activeEpoch); this.activeEpoch = null; }
+        if (pending) { this.clearTimer(pending.timer); this.retainedEpochs.add(pending.plan.epoch); }
+        if (this.activeEpoch !== null) this.retainedEpochs.add(this.activeEpoch);
+        this.activeEpoch = null;
+        const epochs = [...this.retainedEpochs];
+        this.retainedEpochs.clear();
+        epochs.forEach(epoch => this.abort(epoch));
     }
     schedule(plan, envelope, context) {
         if (this.pending) {

@@ -6,6 +6,21 @@ function createShortcutCatalog(actions) {
             defaultSequence: "Meta+K", handler: actions.workspacePrevious },
         { name: "CCScrollWorkspaceNext", description: "CC Scroll: Next Workspace",
             defaultSequence: "Meta+J", handler: actions.workspaceNext },
+        ...Array.from({ length: 9 }, (_, index) => {
+            const number = index + 1;
+            return { name: `CCScrollWorkspace${number}`, description: `CC Scroll: Workspace ${number}`,
+                defaultSequence: `Meta+${number}`, handler: () => actions.workspaceFocus(number) };
+        }),
+        { name: "CCScrollMoveColumnPreviousWorkspace", description: "CC Scroll: Move Column to Previous Workspace",
+            defaultSequence: "Meta+Shift+K", handler: actions.moveWorkspacePrevious },
+        { name: "CCScrollMoveColumnNextWorkspace", description: "CC Scroll: Move Column to Next Workspace",
+            defaultSequence: "Meta+Shift+J", handler: actions.moveWorkspaceNext },
+        ...Array.from({ length: 9 }, (_, index) => {
+            const number = index + 1;
+            return { name: `CCScrollMoveColumnWorkspace${number}`,
+                description: `CC Scroll: Move Column to Workspace ${number}`,
+                defaultSequence: `Meta+Ctrl+${number}`, handler: () => actions.moveWorkspaceNumber(number) };
+        }),
         {
             name: "CCScrollFocusPreviousColumn",
             description: "CC Scroll: Focus Previous Column",

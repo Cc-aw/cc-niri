@@ -11,6 +11,7 @@ class ContextualWideCoordinator {
         this.normalizeUuid = options.normalizeUuid;
         this.relayout = options.relayout;
         this.commitParking = options.commitParking;
+        this.commitHeld = options.commitHeld;
         this.departureState = options.departureState;
         this.setActiveWindow = options.setActiveWindow;
         this.setTimer = options.setTimer;
@@ -44,8 +45,7 @@ class ContextualWideCoordinator {
         // Effect pose. Park only after the compositor says Slide is idle.
         // A pending geometry ACK has no parkItem and remains an actual Pair.
         if (pending && pending.parkItem &&
-                state.viewport.mode === "wide-focus" &&
-                state.viewport.wideColumnId === pending.target.id &&
+                this.ownsPark(pending) &&
                 state.columns.includes(pending.target) &&
                 state.columns.includes(pending.neighbor)) {
             this.clearPendingTimer(pending);
@@ -171,6 +171,16 @@ class ContextualWideCoordinator {
         return this.pendingPark ? this.pendingPark.token : null;
     }
 
+    ownsPark(pending) {
+        const state = this.appState;
+        return pending.kind === "full"
+            ? pending.target.widthMode === "full" && state.viewport.mode === "pair" &&
+                state.presentation.mode === "normal" &&
+                state.columns[state.focusedColumnIndex] === pending.target
+            : state.viewport.mode === "wide-focus" &&
+                state.viewport.wideColumnId === pending.target.id;
+    }
+
     wideExitColumn() {
         const state = this.appState;
         return this.lastCommittedViewport.mode === "wide-focus" &&
@@ -181,11 +191,29 @@ class ContextualWideCoordinator {
             : null;
     }
 
-    prepareLayoutTransition(target) {
+    prepareLayoutTransition(target, widthTransition) {
         const state = this.appState;
         if (this.pendingExit && (state.viewport.mode !== "pair" ||
                 state.columns.indexOf(this.pendingExit.target) < 0)) {
             this.cancelExit();
+        }
+        if (widthTransition) {
+            this.releasePark();
+            if (widthTransition.column.widthMode === "full" && widthTransition.neighbor &&
+                    this.isFullyVisible(widthTransition.oldRect)) {
+                this.pendingPark = {
+                    kind: "full", token: String(this.nextParkToken++),
+                    target: widthTransition.column, neighbor: widthTransition.neighbor,
+                    expected: this.projectedRectForColumn(widthTransition.column),
+                    attempts: 0, scheduled: false,
+                };
+            }
+            return;
+        }
+        if (this.pendingPark && this.pendingPark.kind === "full") {
+            if (this.ownsPark(this.pendingPark) && state.columns.includes(this.pendingPark.target) &&
+                    state.columns.includes(this.pendingPark.neighbor)) return;
+            this.releasePark();
         }
         if (!target || state.viewport.mode !== "wide-focus") {
             this.releasePark();
@@ -213,8 +241,21 @@ class ContextualWideCoordinator {
             ` target=${target.id} neighbor=${neighbor.id}`);
     }
 
-    onPlanCommitted(plan, wideExitColumn, commitResult, activationWindow) {
+    preparePartialExit(plan) {
+        if (!plan.viewportMotion || plan.viewportMotion.type !== "WIDE_TO_PAIR" ||
+                !plan.windows.some(item => item.partial)) return null;
+        const target = plan.windows.find(item => item.columnId === plan.viewportMotion.targetColumnId);
+        this.pendingExit = { token: String(this.nextExitToken++), target: target.column,
+            expected: target.rect, attempts: 0, waitAttempts: 0, requireMotionComplete: true };
+        return this.pendingExit.token;
+    }
+
+    onPlanCommitted(plan, wideExitColumn, commitResult, activationWindow, options = {}) {
         const state = this.appState;
+        if (this.pendingExit && this.pendingExit.requireMotionComplete &&
+                options.nativeScroll && options.legacyMotion && commitResult.heldIncoming.length) {
+            this.pendingExit.heldPlan = plan;
+        }
         if (this.pendingPark && plan.viewportMotion &&
                 plan.viewportMotion.type === "PAIR_TO_WIDE" && plan.layoutSnapshots) {
             const neighbor = this.pendingPark.neighbor;
@@ -225,7 +266,8 @@ class ContextualWideCoordinator {
                 placement: "parked", rect: Object.assign({}, entry.realRect),
             });
         }
-        if (wideExitColumn && commitResult.heldIncoming.length) {
+        if (wideExitColumn && commitResult.heldIncoming.length &&
+                !(this.pendingExit && this.pendingExit.requireMotionComplete)) {
             this.clearPendingTimer(this.pendingExit);
             this.pendingExit = {
                 token: String(this.nextExitToken++), target: wideExitColumn,
@@ -274,13 +316,12 @@ class ContextualWideCoordinator {
         if (!pending || pending.token !== String(command.transitionToken) ||
                 (!command.motionCompleted &&
                  pending.commandId !== command.commandId) ||
-                state.viewport.mode !== "wide-focus" ||
-                state.viewport.wideColumnId !== pending.target.id ||
+                !this.ownsPark(pending) ||
                 state.columns.indexOf(pending.target) < 0) return false;
         this.clearPendingTimer(pending);
         if (command.motionCompleted) pending.motionCompleted = true;
         if (!this.sameRectNear(pending.target.window.frameGeometry,
-                this.presentationRect()) && pending.attempts <= this.maxAttempts) {
+                pending.expected || this.presentationRect()) && pending.attempts <= this.maxAttempts) {
             this.requestPark(pending, this.retryMs);
             return true;
         }
@@ -330,8 +371,12 @@ class ContextualWideCoordinator {
     finalizeExit(command) {
         const pending = this.pendingExit;
         if (!pending || pending.token !== String(command.transitionToken) ||
-                pending.commandId !== command.commandId) return false;
+                (!command.motionCompleted && pending.commandId !== command.commandId)) return false;
         this.clearPendingTimer(pending);
+        if (command.motionCompleted) pending.motionCompleted = true;
+        if (pending.requireMotionComplete && !pending.motionCompleted && pending.waitAttempts++ < 120) {
+            this.requestExit(pending); return true;
+        }
         if (!this.sameRectNear(pending.target.window.frameGeometry,
                 pending.expected) && pending.attempts <= this.maxAttempts) {
             this.requestExit(pending);
@@ -355,6 +400,11 @@ class ContextualWideCoordinator {
         const pending = this.pendingExit;
         if (!pending || pending.target.window !== window ||
                 !this.sameRectNear(window.frameGeometry, pending.expected)) return false;
+        if (pending.heldPlan && this.commitHeld) {
+            const plan = pending.heldPlan;
+            pending.heldPlan = null;
+            this.commitHeld(plan);
+        }
         this.requestExit(pending, 1);
         return true;
     }

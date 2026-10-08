@@ -1,7 +1,7 @@
 "use strict";
 
 /* cjs:start */
-const { normalizePreviousNonFullWidthMode } = require("../model/ColumnStore");
+const { normalizeColumnWidthMode, normalizePreviousNonFullWidthMode } = require("../model/ColumnStore");
 /* cjs:end */
 
 // Only plain, steady-state data crosses this boundary. Never retain live Columns,
@@ -25,8 +25,7 @@ function normalizeWorkspaceSnapshot(workspaceId, snapshot) {
         const uuid = workspaceSnapshotUuid(column && column.uuid);
         if (!uuid || seen.has(uuid)) continue;
         seen.add(uuid);
-        const widthMode = ["half", "third", "twoThirds", "full"].includes(column.widthMode)
-            ? column.widthMode : "half";
+        const widthMode = normalizeColumnWidthMode(column.widthMode);
         columns.push({
             uuid,
             widthMode,
@@ -43,6 +42,8 @@ function normalizeWorkspaceSnapshot(workspaceId, snapshot) {
     const anchorUuid = member(anchor && anchor.uuid);
     const validAnchor = anchorUuid && typeof anchor.delta === "number" &&
         Number.isFinite(anchor.delta) && anchor.delta >= 0;
+    const migratedWidths = (Array.isArray(source.columns) ? source.columns : []).some(column =>
+        column && ["third", "twoThirds"].includes(column.widthMode));
     const viewport = source.viewport || {};
     const wideUuid = member(viewport.wideUuid);
     const wide = ["wide", "wide-focus"].includes(viewport.mode) && wideUuid;
@@ -52,7 +53,7 @@ function normalizeWorkspaceSnapshot(workspaceId, snapshot) {
     return {
         workspaceId: id, columns,
         focusedUuid: member(source.focusedUuid),
-        viewportAnchor: validAnchor ? { uuid: anchorUuid, delta: anchor.delta } : null,
+        viewportAnchor: validAnchor ? { uuid: anchorUuid, delta: migratedWidths ? 0 : anchor.delta } : null,
         viewport: { mode: wide ? "wide" : "pair", wideUuid: wide ? wideUuid : null },
         presentation: {
             mode: presented ? presentation.mode : "normal",

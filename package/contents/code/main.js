@@ -4,11 +4,11 @@
 
 /* BEGIN GENERATED KWIN MODULES */
 // Generated from src/kwin/model/ColumnStore.js
-function normalizePreviousNonFullWidthMode(value, widthMode) {
-    const nonFull = ["third", "half", "twoThirds"];
-    return nonFull.includes(value) ? value
-        : nonFull.includes(widthMode) ? widthMode : "half";
-}
+// Fractional presets are deferred. Old snapshots migrate to the ordinary pair
+// width, including Full's remembered restoration width.
+function normalizeColumnWidthMode(value) { return value === "full" ? "full" : "half"; }
+
+function normalizePreviousNonFullWidthMode() { return "half"; }
 
 class ColumnStore {
     constructor(state, onMembershipChanged = () => {}) {
@@ -65,7 +65,7 @@ class ColumnStore {
         const column = {
             id: this.state.nextColumnId++,
             window,
-            widthMode,
+            widthMode: normalizeColumnWidthMode(widthMode),
             previousNonFullWidthMode: normalizePreviousNonFullWidthMode(previousNonFullWidthMode, widthMode),
             persistentWide: false,
             logicalX: 0,
@@ -196,8 +196,7 @@ function normalizeWorkspaceSnapshot(workspaceId, snapshot) {
         const uuid = workspaceSnapshotUuid(column && column.uuid);
         if (!uuid || seen.has(uuid)) continue;
         seen.add(uuid);
-        const widthMode = ["half", "third", "twoThirds", "full"].includes(column.widthMode)
-            ? column.widthMode : "half";
+        const widthMode = normalizeColumnWidthMode(column.widthMode);
         columns.push({
             uuid,
             widthMode,
@@ -214,6 +213,8 @@ function normalizeWorkspaceSnapshot(workspaceId, snapshot) {
     const anchorUuid = member(anchor && anchor.uuid);
     const validAnchor = anchorUuid && typeof anchor.delta === "number" &&
         Number.isFinite(anchor.delta) && anchor.delta >= 0;
+    const migratedWidths = (Array.isArray(source.columns) ? source.columns : []).some(column =>
+        column && ["third", "twoThirds"].includes(column.widthMode));
     const viewport = source.viewport || {};
     const wideUuid = member(viewport.wideUuid);
     const wide = ["wide", "wide-focus"].includes(viewport.mode) && wideUuid;
@@ -223,7 +224,7 @@ function normalizeWorkspaceSnapshot(workspaceId, snapshot) {
     return {
         workspaceId: id, columns,
         focusedUuid: member(source.focusedUuid),
-        viewportAnchor: validAnchor ? { uuid: anchorUuid, delta: anchor.delta } : null,
+        viewportAnchor: validAnchor ? { uuid: anchorUuid, delta: migratedWidths ? 0 : anchor.delta } : null,
         viewport: { mode: wide ? "wide" : "pair", wideUuid: wide ? wideUuid : null },
         presentation: {
             mode: presented ? presentation.mode : "normal",
@@ -488,6 +489,9 @@ class VirtualDesktopTopology {
         return index >= 0 ? this.ordered()[index + 1] || null : null;
     }
     byId(id) { return this.ordered().find(desktop => this.id(desktop) === id) || null; }
+    byNumber(number) {
+        return Number.isInteger(number) && number > 0 ? this.ordered()[number - 1] || null : null;
+    }
     affectsOutput(output, targetOutput) {
         return Boolean(targetOutput && (!output || output === targetOutput));
     }
@@ -595,7 +599,7 @@ class WorkspaceMountController {
         return order;
     }
 
-    hydrate(workspaceId, snapshot) {
+    hydrate(workspaceId, snapshot, focusedUuid = null) {
         const state = this.appState;
         const entries = this.reconcile(workspaceId, snapshot);
         state.activeWorkspaceId = workspaceId;
@@ -612,16 +616,19 @@ class WorkspaceMountController {
         });
         this.recomputeLayout();
         const kdeIndex = this.columnStore.indexOfWindow(this.getActiveWindow());
+        const requestedIndex = focusedUuid ? state.columns.findIndex(column =>
+            this.normalizeUuid(column.window.internalId) === focusedUuid) : -1;
+        const selectedIndex = requestedIndex >= 0 ? requestedIndex : kdeIndex;
         const savedIndex = snapshot ? state.columns.findIndex(column =>
             this.normalizeUuid(column.window.internalId) === snapshot.focusedUuid) : -1;
-        this.columnStore.focusIndex(kdeIndex >= 0 ? kdeIndex : savedIndex >= 0 ? savedIndex : 0);
+        this.columnStore.focusIndex(selectedIndex >= 0 ? selectedIndex : savedIndex >= 0 ? savedIndex : 0);
         const anchor = snapshot && snapshot.viewportAnchor;
         const anchorColumn = anchor && state.columns.find(column =>
             this.normalizeUuid(column.window.internalId) === anchor.uuid);
         state.scrollOffsetX = this.boundOffset(anchorColumn ? anchorColumn.logicalX + anchor.delta : 0);
         const focused = this.columnStore.focusedColumn();
         // Keep a valid saved anchor unless KDE selected a different Column.
-        if (focused && (!anchorColumn || (kdeIndex >= 0 && kdeIndex !== savedIndex))) this.ensureVisible(focused);
+        if (focused && (!anchorColumn || (selectedIndex >= 0 && selectedIndex !== savedIndex))) this.ensureVisible(focused);
         this.resetPresentation();
         // Snapshots store UUIDs, while newly mounted Columns receive fresh IDs.
         // Restore the saved viewport only when KDE still focuses that Wide owner.
@@ -635,13 +642,16 @@ class WorkspaceMountController {
         }
         this.restoreViewport(restoredViewport);
         this.relayout("workspace-mount");
+        // Explicit move-and-follow selects a live mounted Column. Commit its
+        // real target before activation; ordinary J/K keeps native focus policy.
+        if (requestedIndex >= 0) this.activateColumn(focused.window);
     }
 
-    mountPrepared(desktop, reason) {
-        return this.mount(desktop, reason, false, true);
+    mountPrepared(desktop, reason, focusedUuid = null) {
+        return this.mount(desktop, reason, false, true, focusedUuid);
     }
 
-    mount(desktop, reason = "workspace-switch", commit = true, prepared = false) {
+    mount(desktop, reason = "workspace-switch", commit = true, prepared = false, focusedUuid = null) {
         const state = this.appState;
         const id = this.topology.id(desktop);
         if (this.stopped || (state.workspaceSwitching && !prepared) || !state.enabled || !state.targetOutput || !id) return false;
@@ -652,7 +662,7 @@ class WorkspaceMountController {
             if (!prepared) this.capture();
             const snapshot = this.snapshots.get(id);
             this.unmount(false);
-            this.hydrate(id, snapshot);
+            this.hydrate(id, snapshot, focusedUuid);
             this.capture();
             if (commit) this.commitDock(reason);
             this.debug(`[cc-workspace] MOUNT id=${id} columns=${state.columns.length} reason=${reason}`);
@@ -721,6 +731,7 @@ class WorkspaceSwitchController {
         this.switchEpoch = 0;
         this.timer = null;
         this.stopped = false;
+        this.pendingRequest = null;
     }
 
     ready() {
@@ -731,6 +742,14 @@ class WorkspaceSwitchController {
     previous() { return this.request(-1); }
     next() { return this.request(1); }
 
+    focusNumber(number) {
+        if (this.stopped || this.phase !== "IDLE" || this.appState.workspaceSwitching ||
+                !Number.isInteger(number) || number < 1 || number > 9) return false;
+        // Numbers describe the current KDE order, never a cached workspace ID.
+        const target = this.topology.byNumber(number);
+        return target ? this.requestTo(target, { reason: "workspace-direct-shortcut" }) : false;
+    }
+
     request(direction) {
         if (this.stopped || this.phase !== "IDLE") return false;
         this.mount.refreshState();
@@ -738,13 +757,38 @@ class WorkspaceSwitchController {
         const current = this.topology.current(this.appState.targetOutput);
         const target = direction < 0 ? this.topology.previous(current) : this.topology.next(current);
         if (!target) return false; // Fixed topology, no wrapping or implicit creation.
-        const epoch = this.begin("workspace-shortcut");
+        return this.requestTo(target);
+    }
+
+    requestTo(target, options = {}) {
+        if (this.stopped || this.phase !== "IDLE") return false;
+        this.mount.refreshState();
+        if (!this.ready()) return false;
+        const targetId = this.topology.id(target);
+        if (!targetId || !this.topology.byId(targetId) ||
+                targetId === this.topology.id(this.topology.current(this.appState.targetOutput))) return false;
+        const request = { targetId, focusedUuid: options.focusedUuid || null,
+            onFinished: options.onFinished || (() => {}) };
+        this.pendingRequest = request;
+        const epoch = this.begin(options.reason || "workspace-shortcut");
         if (epoch === null) return false;
-        this.phase = "AWAITING_KWIN";
-        // Arm before requesting: KWin may emit the desktop signal synchronously.
+        // The same barrier and bounded timeout cover motion retirement,
+        // membership preparation and the native desktop request.
         try {
             this.timer = this.setTimer(() => this.finish(epoch, "workspace-timeout"), 400);
-            this.requestDesktop(target, this.appState.targetOutput);
+            const prepared = accepted => {
+                if (!this.valid(epoch) || this.phase !== "PREPARING" || this.pendingRequest !== request) return;
+                const desktop = this.topology.byId(targetId);
+                if (!accepted || !desktop) { this.finish(epoch, "workspace-prepare-aborted"); return; }
+                this.phase = "AWAITING_KWIN";
+                try { this.requestDesktop(desktop, this.appState.targetOutput); }
+                catch (error) {
+                    this.debug(`[cc-workspace] request failed: ${error}`);
+                    this.finish(epoch, "workspace-request-failed");
+                }
+            };
+            if (options.prepare) options.prepare(prepared);
+            else prepared(true);
         } catch (error) {
             this.debug(`[cc-workspace] request failed: ${error}`);
             this.finish(epoch, "workspace-request-failed");
@@ -780,16 +824,21 @@ class WorkspaceSwitchController {
         if (!this.valid(epoch) || this.phase === "MOUNTING") return false;
         this.clearTimeout();
         this.phase = "MOUNTING";
+        const request = this.pendingRequest;
+        let committed = false;
         try {
             // Preparation can emit another native switch. Hydrate the final KDE
             // authority before publishing one Dock generation for this transaction.
             for (let pass = 0; pass < 8; pass += 1) {
                 const desktop = this.topology.current(this.appState.targetOutput);
                 if (!this.topology.id(desktop)) throw new Error("workspace-current-desktop-unavailable");
-                if (!this.mount.mountPrepared(desktop, reason)) return false;
+                const focusedUuid = request && request.targetId === this.topology.id(desktop)
+                    ? request.focusedUuid : null;
+                if (!this.mount.mountPrepared(desktop, reason, focusedUuid)) return false;
                 if (!this.valid(epoch)) return false;
                 if (this.appState.activeWorkspaceId === this.topology.id(this.topology.current(this.appState.targetOutput))) {
                     this.mount.commitDock(reason);
+                    committed = true;
                     return true;
                 }
             }
@@ -801,6 +850,8 @@ class WorkspaceSwitchController {
             if (epoch === this.switchEpoch) {
                 this.phase = "IDLE";
                 this.appState.workspaceSwitching = false;
+                this.pendingRequest = null;
+                if (request) request.onFinished(committed ? this.appState.activeWorkspaceId : null);
             }
         }
     }
@@ -836,6 +887,9 @@ class WorkspaceSwitchController {
         this.clearTimeout();
         this.phase = "IDLE";
         this.appState.workspaceSwitching = false;
+        const request = this.pendingRequest;
+        this.pendingRequest = null;
+        if (request) request.onFinished(null);
     }
 }
 
@@ -886,7 +940,8 @@ class WorkspaceTransferController {
         const changed = owner !== previous || !eligible;
         if (changed) {
             state.workspaceColumnPreference = Object.assign({}, entry);
-            this.cancelPending(window, reason);
+            // Unmanaged dialogs/transients must not retire the active strip's owner.
+            if (column || savedEntry || state.managedByScrollLayout) this.cancelPending(window, reason);
             // Restore opacity, script-owned minimization and accessible geometry
             // before removing the live column or assigning the new owner.
             this.releaseWindow(window, reason);
@@ -956,6 +1011,120 @@ class WorkspaceTransferController {
         if (!this.stopped && !this.isProcessing() && this.canCommit()) this.commitDock("workspace-window-closed");
     }
     stop() { this.stopped = true; }
+}
+
+// Generated from src/kwin/workspace/WorkspaceMoveController.js
+// Command intent stays in JS. Native desktop membership, the existing transfer
+// reconciler and switch/mount transaction remain the source of truth.
+class WorkspaceMoveController {
+    constructor(options) {
+        Object.assign(this, options);
+        this.pending = null;
+        this.stopped = false;
+    }
+
+    activeColumn() {
+        if (this.stopped || this.pending || !this.mount.canUseActiveWorkspace() ||
+                this.switcher.phase !== "IDLE" || this.transfer.isProcessing()) return null;
+        const window = this.getActiveWindow();
+        if (!window || window.output !== this.appState.targetOutput ||
+                this.stateFor(window).floating ||
+                !this.windowPolicy.canJoinColumn(window) ||
+                !this.membership.belongsTo(window, this.appState.activeWorkspaceId)) return null;
+        const index = this.columnStore.indexOfWindow(window);
+        return index >= 0 ? this.appState.columns[index] : null;
+    }
+
+    movePrevious() { return this.moveRelative(-1); }
+    moveNext() { return this.moveRelative(1); }
+
+    moveNumber(number) {
+        if (!Number.isInteger(number) || number < 1 || number > 9) return false;
+        const target = this.topology.byNumber(number);
+        return target ? this.moveTo(this.topology.id(target)) : false;
+    }
+
+    moveRelative(direction) {
+        if (!this.activeColumn()) return false;
+        const current = this.topology.current(this.appState.targetOutput);
+        const target = direction < 0 ? this.topology.previous(current) : this.topology.next(current);
+        return target ? this.moveTo(this.topology.id(target)) : false;
+    }
+
+    moveTo(targetId) {
+        const column = this.activeColumn();
+        const target = this.topology.byId(targetId);
+        if (!column || !target || targetId === this.appState.activeWorkspaceId) return false;
+        const pending = { uuid: this.normalizeUuid(column.window.internalId),
+            sourceId: this.appState.activeWorkspaceId, targetId,
+            outputName: this.appState.targetOutput.name };
+        if (!pending.uuid) return false;
+        this.columnStore.focusColumn(column); // The actual active Column, even during a pending H/L ACK.
+        this.pending = pending;
+        const accepted = this.switcher.requestTo(target, {
+            reason: "workspace-column-move", focusedUuid: pending.uuid,
+            prepare: done => this.settleMotion(() => {
+                if (this.pending !== pending || this.stopped) { done(false); return; }
+                try { done(this.prepare(pending)); }
+                catch (error) {
+                    this.onFailure(error);
+                    done(false);
+                }
+            }),
+            onFinished: mountedId => this.finish(pending, mountedId),
+        });
+        if (!accepted && this.pending === pending) this.pending = null;
+        return accepted;
+    }
+
+    liveWindow(uuid) {
+        return this.getWindows().find(window => this.normalizeUuid(window.internalId) === uuid) || null;
+    }
+
+    prepare(pending) {
+        const state = this.appState;
+        const window = this.liveWindow(pending.uuid);
+        const target = this.topology.byId(pending.targetId);
+        if (!window || !target || !state.enabled || !state.targetOutput ||
+                state.targetOutput.name !== pending.outputName ||
+                this.topology.id(this.topology.current(state.targetOutput)) !== pending.sourceId ||
+                this.getActiveWindow() !== window || window.output !== state.targetOutput ||
+                !this.windowPolicy.canJoinColumn(window) ||
+                this.stateFor(window).floating ||
+                !this.membership.belongsTo(window, pending.sourceId) ||
+                this.columnStore.indexOfWindow(window) < 0) return false;
+        this.clearPresentation();
+        this.changeMembership(window, target);
+        // setDesktops can emit synchronously or queue its notification. Resolve
+        // the actual property through the same idempotent native transfer path.
+        const current = this.liveWindow(pending.uuid);
+        if (!current) return false;
+        this.transfer.onMembershipChanged(current, "workspace-column-move");
+        this.settleSourceLayout();
+        this.mount.capture(); // Capture the remaining right/left successor, not the moved owner.
+        if (!this.liveWindow(pending.uuid) || this.transfer.stopped ||
+                !this.topology.byId(pending.targetId) ||
+                !this.membership.belongsTo(current, pending.targetId)) return false;
+        if (this.snapshots.workspaceForWindow(pending.uuid) !== pending.targetId)
+            throw new Error("workspace-move-owner-mismatch");
+        const snapshot = this.snapshots.get(pending.targetId);
+        snapshot.focusedUuid = pending.uuid;
+        snapshot.viewportAnchor = { uuid: pending.uuid, delta: 0 };
+        snapshot.viewport = { mode: "pair", wideUuid: null };
+        snapshot.presentation = { mode: "normal", windowUuid: null };
+        this.snapshots.set(pending.targetId, snapshot);
+        return true;
+    }
+
+    finish(pending, mountedId) {
+        if (this.pending !== pending) return;
+        this.pending = null;
+        this.debug(`[cc-workspace] MOVE uuid=${pending.uuid} source=${pending.sourceId}` +
+            ` target=${pending.targetId} mounted=${mountedId || "<none>"}`);
+        if (!this.stopped) this.onSettled();
+    }
+
+    stop() { this.stopped = true; this.pending = null; }
 }
 
 // Generated from src/kwin/workspace/DynamicWorkspaceController.js
@@ -1271,13 +1440,6 @@ function computeSafeRect(screen, gaps) {
 function computeColumnWidth(mode, safeWidth, requestedInnerGap) {
     if (mode === "full") return Math.max(1, safeWidth);
     const gap = Math.min(requestedInnerGap, Math.max(0, safeWidth - 1));
-    if (mode === "third") {
-        return Math.max(1, Math.floor((safeWidth - 2 * gap) / 3));
-    }
-    if (mode === "twoThirds") {
-        const third = Math.max(1, Math.floor((safeWidth - 2 * gap) / 3));
-        return Math.max(1, safeWidth - gap - third);
-    }
     return Math.max(1, Math.floor((safeWidth - gap) / 2));
 }
 
@@ -1325,19 +1487,17 @@ class ColumnWidthController {
     }
 
     apply(column, widthMode, reason) {
-        const previous = column.widthMode === "full"
-            ? normalizePreviousNonFullWidthMode(column.previousNonFullWidthMode, "full")
-            : normalizePreviousNonFullWidthMode(column.widthMode, "half");
-        // Width changes replace strip geometry. Retire old motion ownership and
-        // presentations before committing a new layout, keeping Wide preference.
+        // Capture the real pair before changing strip widths. The existing
+        // presentation transaction owns only the paint/parking handoff.
+        const transition = this.captureLayout(column);
         this.cancelPending(reason);
         this.clearPresentation();
         column.widthMode = widthMode;
-        column.previousNonFullWidthMode = widthMode === "full" ? previous : widthMode;
+        column.previousNonFullWidthMode = "half";
         this.focusColumn(column);
         this.recomputeLogicalLayout();
         this.ensureColumnVisible(column);
-        this.relayout(reason);
+        this.relayout(reason, undefined, transition);
         this.commitState(reason);
         return true;
     }
@@ -1345,16 +1505,13 @@ class ColumnWidthController {
     cycle() {
         const column = this.activeColumn();
         if (!column) return false;
-        const modes = ["third", "half", "twoThirds", "full"];
-        const index = modes.indexOf(column.widthMode);
-        return this.apply(column, modes[(index + 1) % modes.length], "cycle-column-width");
+        return this.apply(column, column.widthMode === "full" ? "half" : "full", "cycle-column-width");
     }
 
     toggleFull() {
         const column = this.activeColumn();
         if (!column) return false;
-        const widthMode = column.widthMode === "full"
-            ? normalizePreviousNonFullWidthMode(column.previousNonFullWidthMode, "full") : "full";
+        const widthMode = column.widthMode === "full" ? "half" : "full";
         return this.apply(column, widthMode, "toggle-column-full");
     }
 }
@@ -1373,6 +1530,12 @@ function isRectFullyVisible(rect, viewport) {
     return Boolean(viewport && rect.x >= viewport.x && rect.y >= viewport.y &&
         rect.x + rect.width <= viewport.x + viewport.width &&
         rect.y + rect.height <= viewport.y + viewport.height);
+}
+
+function isRectVisible(rect, viewport) {
+    return Boolean(viewport && rect.width > 0 && rect.height > 0 &&
+        rect.x < viewport.x + viewport.width && rect.x + rect.width > viewport.x &&
+        rect.y < viewport.y + viewport.height && rect.y + rect.height > viewport.y);
 }
 
 // Generated from src/kwin/layout/Parking.js
@@ -1406,14 +1569,14 @@ function snapshotEntry(columnId, windowId, role, visualRect, realRect, placement
 }
 
 function buildWidePairSnapshots(motion, target, neighbor, options) {
-    if (!motion || !target || !neighbor) return null;
+    if (!motion || !target) return null;
     const entering = motion.type === "PAIR_TO_WIDE";
     const targetId = options.windowId(target);
-    const neighborId = options.windowId(neighbor);
-    const oldNeighborReal = entering
+    const neighborId = neighbor && options.windowId(neighbor);
+    const oldNeighborReal = !neighbor ? null : entering
         ? motion.neighbor.oldVisualRect
         : (neighbor.column.window.frameGeometry || options.neighborParkingRect);
-    const newNeighborReal = entering
+    const newNeighborReal = !neighbor ? null : entering
         ? options.neighborParkingRect
         : motion.neighbor.newVisualRect;
     const from = {
@@ -1421,20 +1584,18 @@ function buildWidePairSnapshots(motion, target, neighbor, options) {
         entries: [
             snapshotEntry(target.columnId, targetId, "target",
                 motion.target.oldVisualRect, motion.target.oldVisualRect, "visible"),
-            snapshotEntry(neighbor.columnId, neighborId, "neighbor",
-                motion.neighbor.oldVisualRect, oldNeighborReal,
-                entering ? "visible" : "isolated-hidden"),
-        ],
+        ].concat(neighbor ? [snapshotEntry(neighbor.columnId, neighborId, "neighbor",
+            motion.neighbor.oldVisualRect, oldNeighborReal,
+            entering ? "visible" : "isolated-hidden")] : []),
     };
     const to = {
         viewportMode: entering ? "wide-focus" : "pair",
         entries: [
             snapshotEntry(target.columnId, targetId, "target",
                 motion.target.newVisualRect, motion.target.newVisualRect, "visible"),
-            snapshotEntry(neighbor.columnId, neighborId, "neighbor",
-                motion.neighbor.newVisualRect, newNeighborReal,
-                entering ? "isolated-hidden" : "visible"),
-        ],
+        ].concat(neighbor ? [snapshotEntry(neighbor.columnId, neighborId, "neighbor",
+            motion.neighbor.newVisualRect, newNeighborReal,
+            entering ? "isolated-hidden" : "visible")] : []),
     };
     return { from, to };
 }
@@ -1474,7 +1635,9 @@ class MotionPlanCommitGate {
             if (!accepted) {
                 this.warn(`[MOTION_TX] plan handoff unavailable epoch=${plan.epoch}`);
             }
-            this.commit(plan, context, pending.activationWindow);
+            this.commit(plan, accepted ? context : Object.assign({}, context, {
+                motionFallback: true,
+            }), pending.activationWindow);
         });
         return pending;
     }
@@ -1497,18 +1660,55 @@ class MotionPlanCommitGate {
 // Native ACK means continuing/incoming ownership is installed before geometry changes.
 // Each callback is scoped to a layout epoch; a timeout also disarms that epoch.
 class ScrollPlanCommitGate {
-    constructor(options) { Object.assign(this, options); this.pending = null; this.activeEpoch = null; }
+    constructor(options) {
+        Object.assign(this, options);
+        this.pending = null; this.activeEpoch = null;
+        this.disarming = new Set(); this.idleCallbacks = [];
+        this.retainedEpochs = new Set();
+    }
     abort(epoch, callback = () => {}) {
-        try { this.disarm(epoch, callback); } catch (error) {
-            this.warn(`[SCROLL_PLAN] disarm unavailable ${error}`); callback();
+        const request = { epoch };
+        this.disarming.add(request);
+        const finish = () => {
+            if (!this.disarming.delete(request)) return;
+            try { callback(); } finally {
+                if (!this.disarming.size) this.idleCallbacks.splice(0).forEach(fn => fn());
+            }
+        };
+        try { this.disarm(epoch, finish); } catch (error) {
+            this.warn(`[SCROLL_PLAN] disarm unavailable ${error}`); finish();
+        }
+    }
+    whenIdle(callback) {
+        if (this.disarming.size) this.idleCallbacks.push(callback);
+        else callback();
+    }
+    releaseForWorkspace() {
+        if (this.pending) { this.clearTimer(this.pending.timer); this.pending = null; }
+        this.activeEpoch = null;
+        this.retainedEpochs.clear();
+        if (this.releaseDeferred) this.releaseDeferred();
+    }
+    retainForLegacy() {
+        // Keep the old viewport until Native has observed the replacement
+        // Pair/Wide plan. Retire its epochs only after that publish ACK.
+        if (this.releaseDeferred) this.releaseDeferred();
+        if (this.pending) {
+            this.clearTimer(this.pending.timer);
+            this.retainedEpochs.add(this.pending.plan.epoch);
+            this.pending = null;
         }
     }
     cancel() {
         if (this.cancelDeferred) this.cancelDeferred();
         const pending = this.pending;
         this.pending = null;
-        if (pending) { this.clearTimer(pending.timer); this.abort(pending.plan.epoch); }
-        if (this.activeEpoch !== null) { this.abort(this.activeEpoch); this.activeEpoch = null; }
+        if (pending) { this.clearTimer(pending.timer); this.retainedEpochs.add(pending.plan.epoch); }
+        if (this.activeEpoch !== null) this.retainedEpochs.add(this.activeEpoch);
+        this.activeEpoch = null;
+        const epochs = [...this.retainedEpochs];
+        this.retainedEpochs.clear();
+        epochs.forEach(epoch => this.abort(epoch));
     }
     schedule(plan, envelope, context) {
         if (this.pending) {
@@ -1593,6 +1793,58 @@ function adjacentPairWindow(windows, target, gap) {
             target.newProjectedRect.x) < 3)) || null;
 }
 
+function captureColumnWidthTransition(column, columns, safeRect, gap) {
+    const oldRect = copyRect(column.window.frameGeometry);
+    const neighbor = columns.find(candidate => {
+        if (candidate === column || candidate.window.minimized) return false;
+        const rect = candidate.window.frameGeometry;
+        return isRectVisible(rect, safeRect) &&
+            Math.abs(rect.y - oldRect.y) < 2 &&
+            Math.abs(rect.height - oldRect.height) < 2 &&
+            (Math.abs(rect.x - oldRect.x - oldRect.width - gap) < 3 ||
+             Math.abs(rect.x + rect.width + gap - oldRect.x) < 3);
+    }) || null;
+    return { column, oldRect, neighbor,
+        neighborRect: neighbor ? copyRect(neighbor.window.frameGeometry) : null };
+}
+
+function columnWidthMotionSnapshot(transition, windows, safeRect, gap) {
+    if (!transition || !isRectFullyVisible(transition.oldRect, safeRect)) return null;
+    const target = windows.find(item => item.column === transition.column);
+    if (!target || target.placement !== "visible") return null;
+    const entering = target.column.widthMode === "full";
+    const neighbor = entering
+        ? windows.find(item => item.column === transition.neighbor) || null
+        : adjacentPairWindow(windows, target, gap);
+    const pairRect = entering ? transition.oldRect : target.rect;
+    const wideRect = entering ? target.rect : transition.oldRect;
+    const pairNeighbor = neighbor && (entering
+        ? transition.neighborRect : neighbor.newProjectedRect);
+    const side = pairNeighbor
+        ? (pairNeighbor.x < pairRect.x ? "right" : "left")
+        : (pairRect.x + pairRect.width / 2 < safeRect.x + safeRect.width / 2
+            ? "left" : "right");
+    const virtualNeighbor = pairNeighbor && Object.assign({}, pairNeighbor, {
+        x: side === "right" ? wideRect.x - gap - pairNeighbor.width
+            : wideRect.x + wideRect.width + gap,
+    });
+    return {
+        target, neighbor,
+        motion: {
+            type: entering ? "PAIR_TO_WIDE" : "WIDE_TO_PAIR",
+            targetColumnId: target.columnId,
+            neighborColumnId: neighbor ? neighbor.columnId : null,
+            side, viewport: copyRect(safeRect),
+            target: { oldVisualRect: copyRect(transition.oldRect),
+                newVisualRect: copyRect(target.rect) },
+            neighbor: neighbor ? {
+                oldVisualRect: copyRect(entering ? pairNeighbor : virtualNeighbor),
+                newVisualRect: copyRect(entering ? virtualNeighbor : pairNeighbor),
+            } : null,
+        },
+    };
+}
+
 function viewportMotionSnapshot(type, target, neighbor, wideRect, gap) {
     if (!target || !neighbor || !wideRect) return null;
     const pairTarget = target.newProjectedRect;
@@ -1638,39 +1890,49 @@ function computeLayoutPlan(options) {
         retainedColumn,
         wideExitColumn,
         wideRect,
+        widthTransition,
     } = options;
-    const hasScrollTransaction = Boolean(!presentedColumn && scrollOffsets &&
+    const partialLayout = Boolean(options.clipPartial && !presentedColumn &&
+        columns.some(column => column.widthMode === "full"));
+    const visibility = partialLayout ? isRectVisible : isRectFullyVisible;
+    const offsetChanged = Boolean(!presentedColumn && scrollOffsets &&
         scrollOffsets.oldScrollOffsetX !== scrollOffsets.newScrollOffsetX);
-    const oldScrollOffsetX = hasScrollTransaction
+    const oldScrollOffsetX = offsetChanged
         ? scrollOffsets.oldScrollOffsetX
         : scrollOffsetX;
-    const newScrollOffsetX = hasScrollTransaction
+    const newScrollOffsetX = offsetChanged
         ? scrollOffsets.newScrollOffsetX
         : scrollOffsetX;
+    const hasPartialTarget = partialLayout && columns.some(column => {
+        const rect = projectColumnRect(column, safeRect, newScrollOffsetX);
+        return isRectVisible(rect, safeRect) && !isRectFullyVisible(rect, safeRect);
+    });
+    const hasScrollTransaction = offsetChanged || hasPartialTarget;
     let parkingIndex = 0;
 
-    const windows = columns.map(column => {
+    const windows = columns.map((column, index) => {
         const oldProjectedRect = projectColumnRect(column, safeRect, oldScrollOffsetX);
         const newProjectedRect = projectColumnRect(column, safeRect, newScrollOffsetX);
-        const oldPlacement = isRectFullyVisible(oldProjectedRect, safeRect)
+        const oldPlacement = visibility(oldProjectedRect, safeRect)
             ? "visible"
             : "parked";
-        const projectedPlacement = isRectFullyVisible(newProjectedRect, safeRect)
+        const projectedPlacement = visibility(newProjectedRect, safeRect)
             ? "visible"
             : "parked";
         const isPresented = presentedColumn === column;
-        const newPlacement = presentedColumn
+        const retainedForWidth = !presentedColumn && retainedColumn === column;
+        const newPlacement = retainedForWidth ? "visible" : presentedColumn
             ? (isPresented || (retainedColumn === column &&
                 projectedPlacement === "visible") ? "visible" : "parked")
             : projectedPlacement;
-        const visibleRect = isPresented ? copyRect(presentedRect) : newProjectedRect;
-        const rect = newPlacement === "visible"
-            ? visibleRect
-            : computeParkingRect(column, parkingIndex++, {
+        const visibleRect = retainedForWidth ? copyRect(column.window.frameGeometry)
+            : isPresented ? copyRect(presentedRect) : newProjectedRect;
+        const parkingRect = computeParkingRect(column, newPlacement === "parked" ? parkingIndex++ : index, {
                 baseX: parkingBaseX,
                 innerGap,
                 safeRect,
             });
+        const rect = newPlacement === "visible" ? visibleRect : parkingRect;
         const role = hasScrollTransaction
             ? transitionRole(oldPlacement, newPlacement)
             : "static";
@@ -1678,6 +1940,8 @@ function computeLayoutPlan(options) {
             column,
             columnId: column.id,
             placement: newPlacement,
+            partial: partialLayout && newPlacement === "visible" && !isRectFullyVisible(visibleRect, safeRect),
+            parkingRect,
             rect,
             projectedRect: newPlacement === "visible" ? visibleRect : newProjectedRect,
             oldProjectedRect: hasScrollTransaction ? oldProjectedRect : null,
@@ -1689,7 +1953,7 @@ function computeLayoutPlan(options) {
     });
 
     const deltaX = newScrollOffsetX - oldScrollOffsetX;
-    const scrollTransaction = hasScrollTransaction ? {
+    const scrollTransaction = hasScrollTransaction ? Object.assign({
         id: epoch,
         epoch,
         type: "SCROLL",
@@ -1712,15 +1976,17 @@ function computeLayoutPlan(options) {
             .map(motionWindowId),
         outgoing: windows.filter(item => item.transitionRole === "outgoing")
             .map(motionWindowId),
-    } : null;
+    }, partialLayout ? { clipPartial: true } : {},
+    oldScrollOffsetX === newScrollOffsetX ? { retargetOnly: true } : {}) : null;
 
+    const widthMotion = columnWidthMotionSnapshot(widthTransition, windows, safeRect, innerGap);
     const motionTargetColumn = wideExitColumn ||
         (retainedColumn ? presentedColumn : null);
-    const motionTarget = windows.find(item =>
+    const motionTarget = widthMotion ? widthMotion.target : windows.find(item =>
         item.column === motionTargetColumn) || null;
-    const motionNeighbor = motionTarget
+    const motionNeighbor = widthMotion ? widthMotion.neighbor : motionTarget
         ? adjacentPairWindow(windows, motionTarget, innerGap) : null;
-    const viewportMotion = motionTarget && motionNeighbor
+    const viewportMotion = widthMotion ? widthMotion.motion : motionTarget && motionNeighbor
         ? viewportMotionSnapshot(wideExitColumn ? "WIDE_TO_PAIR" :
             "PAIR_TO_WIDE", motionTarget, motionNeighbor,
             wideExitColumn
@@ -1734,7 +2000,7 @@ function computeLayoutPlan(options) {
     const layoutSnapshots = viewportMotion ? buildWidePairSnapshots(
         viewportMotion, motionTarget, motionNeighbor, {
             windowId: motionWindowId,
-            neighborParkingRect: computeParkingRect(motionNeighbor.column,
+            neighborParkingRect: motionNeighbor && computeParkingRect(motionNeighbor.column,
                 neighborParkingIndex, {
                     baseX: parkingBaseX,
                     innerGap,
@@ -1756,7 +2022,7 @@ function computeLayoutPlan(options) {
             newOpacity: layoutSnapshots.to.entries[index].placement ===
                 "isolated-hidden" ? 0 : 1,
         }));
-        viewportMotion.parkAfterComplete = viewportMotion.type === "PAIR_TO_WIDE"
+        viewportMotion.parkAfterComplete = motionNeighbor && viewportMotion.type === "PAIR_TO_WIDE"
             ? [motionWindowId(motionNeighbor)] : [];
     }
 
@@ -1764,7 +2030,8 @@ function computeLayoutPlan(options) {
         reason,
         epoch,
         scrollTransaction,
-        viewportMotion,
+        viewportMotion: viewportMotion
+            ? Object.assign({ viewport: copyRect(safeRect) }, viewportMotion) : null,
         layoutSnapshots,
         wideExitColumn: wideExitColumn || null,
         windows,
@@ -1784,7 +2051,8 @@ function computeLayoutPlan(options) {
 // offset while an earlier target is armed but its geometry is not committed.
 function createViewportScrollPlan(transaction, context) {
     if (!transaction || !context.workspaceId || !context.targetOutput) return null;
-    return Object.assign(transaction.retargetOnly ? { retargetOnly: true } : {}, {
+    return Object.assign(transaction.retargetOnly ? { retargetOnly: true } : {},
+        transaction.clipPartial ? { clipPartial: true } : {}, {
         protocol: 2,
         type: "SCROLL",
         epoch: transaction.epoch,
@@ -1816,6 +2084,22 @@ function prepareViewportReturnPlan(plan, offset, viewport) {
             direction: "none", deltaX: 0, oldScrollOffsetX: offset, newScrollOffsetX: offset,
             viewport: Object.assign({}, viewport), entries },
     });
+}
+
+// Width animation retains a neighbor's real frame while painting it toward a
+// virtual edge. Protect those planned real frames with a stationary clip;
+// the existing Pair/Wide effect continues to supply every paint transform.
+function createWidthViewportClipPlan(plan, context) {
+    if (!plan.viewportMotion || !plan.windows.some(item => item.partial)) return null;
+    const viewport = plan.viewportMotion.viewport;
+    const visible = plan.windows.filter(item => item.placement === "visible");
+    const offset = Math.max(0, ...visible.map(item => viewport.x - item.rect.x));
+    return createViewportScrollPlan({ epoch: plan.epoch, retargetOnly: true, clipPartial: true,
+        oldScrollOffsetX: offset, newScrollOffsetX: offset, viewport,
+        entries: visible.map(item => ({ windowId: String(item.column.window.internalId),
+            columnId: item.columnId, logicalX: item.rect.x - viewport.x + offset,
+            pixelWidth: item.rect.width, oldPlacement: "visible", newPlacement: "visible" })),
+    }, context);
 }
 
 // Generated from src/kwin/layout/GeometryCommitter.js
@@ -1872,8 +2156,10 @@ class GeometryCommitter {
             this.debug(`[MOTION_TX] BEGIN epoch=${plan.epoch}` +
                 ` type=${motion.type} target=${motion.targetColumnId}` +
                 ` neighbor=${motion.neighborColumnId} side=${motion.side}` +
-                ` neighborVisualStart=${this.rectText(motion.neighbor.oldVisualRect)}` +
-                ` neighborVisualEnd=${this.rectText(motion.neighbor.newVisualRect)}`);
+                (motion.neighbor
+                    ? ` neighborVisualStart=${this.rectText(motion.neighbor.oldVisualRect)}` +
+                        ` neighborVisualEnd=${this.rectText(motion.neighbor.newVisualRect)}`
+                    : ""));
         }
         if (transaction) {
             this.debug(`[MOTION_TX] BEGIN id=${transaction.id}` +
@@ -1881,7 +2167,10 @@ class GeometryCommitter {
                 ` direction=${transaction.direction} delta=${transaction.deltaX}` +
                 ` viewport=${this.rectText(transaction.viewport)}`);
         }
-        plan.commitOrder.forEach(item => {
+        plan.commitOrder.forEach(original => {
+            // A partial physical surface requires Native paint AND input clipping.
+            const item = original.partial && !options.nativeScroll
+                ? Object.assign({}, original, { placement: "parked", rect: original.parkingRect }) : original;
             const column = item.column;
             if (options.nativeScroll && item.placement === "parked" &&
                     (item.transitionRole === "outgoing" || this.stateFor(column.window).scrollPendingParkEpoch != null)) {
@@ -1987,12 +2276,20 @@ class DeferredScrollParking {
         }
         pending.paused = true;
     }
-    start(epoch, items) {
+    release() {
+        const pending = this.pending;
+        this.pause(); this.pending = null;
+        if (pending) pending.items.forEach(item => {
+            const state = this.getState ? this.getState(item.column.window) : this.stateFor(item.column.window);
+            if (state && state.scrollPendingParkEpoch === pending.epoch) state.scrollPendingParkEpoch = null;
+        });
+    }
+    start(epoch, items, partialItems = []) {
         // GeometryCommitter already transferred retained outgoing items and
         // released any incoming owner. Do not park the previous visual batch.
         this.pause();
         this.pending = null;
-        const pending = { epoch, items, context: this.context(), timer: null, watchdog: null, rescue: null };
+        const pending = { epoch, items, partialItems, context: this.context(), timer: null, watchdog: null, rescue: null };
         this.pending = pending;
         items.forEach(item => { this.stateFor(item.column.window).scrollPendingParkEpoch = epoch; });
         const poll = () => {
@@ -2006,7 +2303,12 @@ class DeferredScrollParking {
                     if (status && this.sameContext(pending.context) &&
                             ["sessionId", "workspaceId", "targetOutput"].every(key => status[key] === pending.context[key]) &&
                             status.epoch === epoch && status.completed === true && status.active === true) {
-                        this.cancel();
+                        if (status.clipPartial === true && partialItems.length) {
+                            // Settled clips retain their Native owner without a timer or repaint loop.
+                            this.pause();
+                            this.finalizeItems(pending, pending.items);
+                            pending.items = [];
+                        } else this.cancel();
                     } else {
                         pending.timer = this.setTimer(poll, 32);
                     }
@@ -2030,7 +2332,18 @@ class DeferredScrollParking {
         if (pending.timer) this.clearTimer(pending.timer);
         if (pending.watchdog) this.clearTimer(pending.watchdog);
         if (pending.rescue) this.clearTimer(pending.rescue);
-        pending.items.forEach(item => {
+        this.finalizeItems(pending, pending.items);
+        if (this.sameContext(pending.context)) pending.partialItems.forEach(item => {
+            const state = this.getState ? this.getState(item.column.window) : this.stateFor(item.column.window);
+            if (state && this.isCurrent(item.column) && state.managedByScrollLayout && !state.floating && !item.column.window.fullScreen)
+                this.finalize(Object.assign({}, item, { rect: item.parkingRect }));
+        });
+        if (disarm) {
+            try { this.disarm(pending.epoch, () => {}); } catch (_) { /* Layout can continue. */ }
+        }
+    }
+    finalizeItems(pending, items) {
+        items.forEach(item => {
             const state = this.getState ? this.getState(item.column.window) : this.stateFor(item.column.window);
             if (!state) return;
             if (state.scrollPendingParkEpoch !== pending.epoch) return;
@@ -2040,9 +2353,6 @@ class DeferredScrollParking {
                 this.finalize(item);
             }
         });
-        if (disarm) {
-            try { this.disarm(pending.epoch, () => {}); } catch (_) { /* Layout can continue. */ }
-        }
     }
 }
 
@@ -2424,6 +2734,21 @@ function createShortcutCatalog(actions) {
             defaultSequence: "Meta+K", handler: actions.workspacePrevious },
         { name: "CCScrollWorkspaceNext", description: "CC Scroll: Next Workspace",
             defaultSequence: "Meta+J", handler: actions.workspaceNext },
+        ...Array.from({ length: 9 }, (_, index) => {
+            const number = index + 1;
+            return { name: `CCScrollWorkspace${number}`, description: `CC Scroll: Workspace ${number}`,
+                defaultSequence: `Meta+${number}`, handler: () => actions.workspaceFocus(number) };
+        }),
+        { name: "CCScrollMoveColumnPreviousWorkspace", description: "CC Scroll: Move Column to Previous Workspace",
+            defaultSequence: "Meta+Shift+K", handler: actions.moveWorkspacePrevious },
+        { name: "CCScrollMoveColumnNextWorkspace", description: "CC Scroll: Move Column to Next Workspace",
+            defaultSequence: "Meta+Shift+J", handler: actions.moveWorkspaceNext },
+        ...Array.from({ length: 9 }, (_, index) => {
+            const number = index + 1;
+            return { name: `CCScrollMoveColumnWorkspace${number}`,
+                description: `CC Scroll: Move Column to Workspace ${number}`,
+                defaultSequence: `Meta+Ctrl+${number}`, handler: () => actions.moveWorkspaceNumber(number) };
+        }),
         {
             name: "CCScrollFocusPreviousColumn",
             description: "CC Scroll: Focus Previous Column",
@@ -2643,6 +2968,22 @@ class LayoutTransaction {
         const epoch = this.begin(reason);
         try {
             return callback(epoch);
+        } finally {
+            this.end(reason, epoch);
+        }
+    }
+
+    // Native ACK continues the already published epoch. Geometry/visibility
+    // signals need the same re-entry guard as a synchronous relayout.
+    resume(reason, epoch, callback) {
+        if (epoch !== this.epoch) return false;
+        if (this.depth === 0) {
+            this.activeReason = reason;
+            this.debug(`[cc-stability] COMMIT epoch=${epoch} reason=${reason}`);
+        }
+        this.depth += 1;
+        try {
+            return callback();
         } finally {
             this.end(reason, epoch);
         }
@@ -4265,6 +4606,7 @@ class ContextualWideCoordinator {
         this.normalizeUuid = options.normalizeUuid;
         this.relayout = options.relayout;
         this.commitParking = options.commitParking;
+        this.commitHeld = options.commitHeld;
         this.departureState = options.departureState;
         this.setActiveWindow = options.setActiveWindow;
         this.setTimer = options.setTimer;
@@ -4298,8 +4640,7 @@ class ContextualWideCoordinator {
         // Effect pose. Park only after the compositor says Slide is idle.
         // A pending geometry ACK has no parkItem and remains an actual Pair.
         if (pending && pending.parkItem &&
-                state.viewport.mode === "wide-focus" &&
-                state.viewport.wideColumnId === pending.target.id &&
+                this.ownsPark(pending) &&
                 state.columns.includes(pending.target) &&
                 state.columns.includes(pending.neighbor)) {
             this.clearPendingTimer(pending);
@@ -4425,6 +4766,16 @@ class ContextualWideCoordinator {
         return this.pendingPark ? this.pendingPark.token : null;
     }
 
+    ownsPark(pending) {
+        const state = this.appState;
+        return pending.kind === "full"
+            ? pending.target.widthMode === "full" && state.viewport.mode === "pair" &&
+                state.presentation.mode === "normal" &&
+                state.columns[state.focusedColumnIndex] === pending.target
+            : state.viewport.mode === "wide-focus" &&
+                state.viewport.wideColumnId === pending.target.id;
+    }
+
     wideExitColumn() {
         const state = this.appState;
         return this.lastCommittedViewport.mode === "wide-focus" &&
@@ -4435,11 +4786,29 @@ class ContextualWideCoordinator {
             : null;
     }
 
-    prepareLayoutTransition(target) {
+    prepareLayoutTransition(target, widthTransition) {
         const state = this.appState;
         if (this.pendingExit && (state.viewport.mode !== "pair" ||
                 state.columns.indexOf(this.pendingExit.target) < 0)) {
             this.cancelExit();
+        }
+        if (widthTransition) {
+            this.releasePark();
+            if (widthTransition.column.widthMode === "full" && widthTransition.neighbor &&
+                    this.isFullyVisible(widthTransition.oldRect)) {
+                this.pendingPark = {
+                    kind: "full", token: String(this.nextParkToken++),
+                    target: widthTransition.column, neighbor: widthTransition.neighbor,
+                    expected: this.projectedRectForColumn(widthTransition.column),
+                    attempts: 0, scheduled: false,
+                };
+            }
+            return;
+        }
+        if (this.pendingPark && this.pendingPark.kind === "full") {
+            if (this.ownsPark(this.pendingPark) && state.columns.includes(this.pendingPark.target) &&
+                    state.columns.includes(this.pendingPark.neighbor)) return;
+            this.releasePark();
         }
         if (!target || state.viewport.mode !== "wide-focus") {
             this.releasePark();
@@ -4467,8 +4836,21 @@ class ContextualWideCoordinator {
             ` target=${target.id} neighbor=${neighbor.id}`);
     }
 
-    onPlanCommitted(plan, wideExitColumn, commitResult, activationWindow) {
+    preparePartialExit(plan) {
+        if (!plan.viewportMotion || plan.viewportMotion.type !== "WIDE_TO_PAIR" ||
+                !plan.windows.some(item => item.partial)) return null;
+        const target = plan.windows.find(item => item.columnId === plan.viewportMotion.targetColumnId);
+        this.pendingExit = { token: String(this.nextExitToken++), target: target.column,
+            expected: target.rect, attempts: 0, waitAttempts: 0, requireMotionComplete: true };
+        return this.pendingExit.token;
+    }
+
+    onPlanCommitted(plan, wideExitColumn, commitResult, activationWindow, options = {}) {
         const state = this.appState;
+        if (this.pendingExit && this.pendingExit.requireMotionComplete &&
+                options.nativeScroll && options.legacyMotion && commitResult.heldIncoming.length) {
+            this.pendingExit.heldPlan = plan;
+        }
         if (this.pendingPark && plan.viewportMotion &&
                 plan.viewportMotion.type === "PAIR_TO_WIDE" && plan.layoutSnapshots) {
             const neighbor = this.pendingPark.neighbor;
@@ -4479,7 +4861,8 @@ class ContextualWideCoordinator {
                 placement: "parked", rect: Object.assign({}, entry.realRect),
             });
         }
-        if (wideExitColumn && commitResult.heldIncoming.length) {
+        if (wideExitColumn && commitResult.heldIncoming.length &&
+                !(this.pendingExit && this.pendingExit.requireMotionComplete)) {
             this.clearPendingTimer(this.pendingExit);
             this.pendingExit = {
                 token: String(this.nextExitToken++), target: wideExitColumn,
@@ -4528,13 +4911,12 @@ class ContextualWideCoordinator {
         if (!pending || pending.token !== String(command.transitionToken) ||
                 (!command.motionCompleted &&
                  pending.commandId !== command.commandId) ||
-                state.viewport.mode !== "wide-focus" ||
-                state.viewport.wideColumnId !== pending.target.id ||
+                !this.ownsPark(pending) ||
                 state.columns.indexOf(pending.target) < 0) return false;
         this.clearPendingTimer(pending);
         if (command.motionCompleted) pending.motionCompleted = true;
         if (!this.sameRectNear(pending.target.window.frameGeometry,
-                this.presentationRect()) && pending.attempts <= this.maxAttempts) {
+                pending.expected || this.presentationRect()) && pending.attempts <= this.maxAttempts) {
             this.requestPark(pending, this.retryMs);
             return true;
         }
@@ -4584,8 +4966,12 @@ class ContextualWideCoordinator {
     finalizeExit(command) {
         const pending = this.pendingExit;
         if (!pending || pending.token !== String(command.transitionToken) ||
-                pending.commandId !== command.commandId) return false;
+                (!command.motionCompleted && pending.commandId !== command.commandId)) return false;
         this.clearPendingTimer(pending);
+        if (command.motionCompleted) pending.motionCompleted = true;
+        if (pending.requireMotionComplete && !pending.motionCompleted && pending.waitAttempts++ < 120) {
+            this.requestExit(pending); return true;
+        }
         if (!this.sameRectNear(pending.target.window.frameGeometry,
                 pending.expected) && pending.attempts <= this.maxAttempts) {
             this.requestExit(pending);
@@ -4609,6 +4995,11 @@ class ContextualWideCoordinator {
         const pending = this.pendingExit;
         if (!pending || pending.target.window !== window ||
                 !this.sameRectNear(window.frameGeometry, pending.expected)) return false;
+        if (pending.heldPlan && this.commitHeld) {
+            const plan = pending.heldPlan;
+            pending.heldPlan = null;
+            this.commitHeld(plan);
+        }
         this.requestExit(pending, 1);
         return true;
     }
@@ -4977,6 +5368,7 @@ const workspacePersistence = new WorkspacePersistence({
 let workspaceMountController;
 let workspaceSwitchController;
 let workspaceTransferController;
+let workspaceMoveController;
 let dynamicWorkspaceController;
 let workspaceRecycleController;
 const runtimeLogger = new RuntimeLogger({
@@ -5037,6 +5429,8 @@ contextualWideCoordinator = new ContextualWideCoordinator({
     commitParking: item => geometryCommitter.commit({
         reason: "workspace-wide-settle", windows: [item], commitOrder: [item],
     }),
+    commitHeld: plan => commitLayoutPlan(plan, plan.wideExitColumn, null,
+        { nativeScroll: true, legacyMotion: true }),
     departureState: pending => {
         if (!mainScreenState.enabled) return "retired";
         const windows = workspace.windowList();
@@ -5107,8 +5501,30 @@ const motionPlanCommitGate = new MotionPlanCommitGate({
     publish: (envelope, callback) =>
         dockGateway.publishMotionPlan(envelope, callback),
     currentEpoch: () => layoutTransaction.currentEpoch(),
-    commit: (plan, context, activationWindow) =>
-        commitLayoutPlan(plan, context.wideExitColumn, activationWindow),
+    commit: (plan, context, activationWindow) => {
+        // Native now has the legacy viewport marker (or fallback will park
+        // partial surfaces). Transfer its clip before installing new geometry.
+        scrollPlanCommitGate.cancel();
+        if (!context.motionFallback) {
+            const envelope = createWidthViewportClipPlan(plan, {
+                workspaceId: mainScreenState.activeWorkspaceId,
+                targetOutput: mainScreenState.targetOutput.name,
+                issuedAt: Date.now(), normalizeUuid: normalizeWindowUuid,
+            });
+            if (envelope) {
+                // Arm paint/input clipping before exposing a Full neighbor.
+                // Its translation still shares the existing width timeline.
+                scrollPlanCommitGate.whenIdle(() => {
+                    if (layoutTransaction.currentEpoch() !== plan.epoch) return;
+                    scrollPlanCommitGate.schedule(plan, envelope,
+                        { wideExitColumn: context.wideExitColumn, legacyMotion: true });
+                    if (activationWindow) activateColumnWhenReady(activationWindow);
+                });
+                return;
+            }
+        }
+        commitLayoutPlan(plan, context.wideExitColumn, activationWindow);
+    },
     warn,
     timeoutMs: 150,
     setTimer: setRuntimeTimer,
@@ -5120,9 +5536,11 @@ const scrollPlanCommitGate = new ScrollPlanCommitGate({
     arm: (envelope, callback) => dockGateway.armScrollPlan(envelope, callback),
     disarm: (epoch, callback) => dockGateway.disarmScrollPlan(epoch, callback),
     cancelDeferred: () => deferredScrollParking.cancel(),
+    releaseDeferred: () => deferredScrollParking.release(),
     currentEpoch: () => layoutTransaction.currentEpoch(),
     commit: (plan, context, activationWindow) =>
-        commitLayoutPlan(plan, context.wideExitColumn, activationWindow, { nativeScroll: context.nativeScroll }),
+        commitLayoutPlan(plan, context.wideExitColumn, activationWindow,
+            { nativeScroll: context.nativeScroll, legacyMotion: context.legacyMotion }),
     timeoutMs: 150,
     setTimer: setRuntimeTimer,
     clearTimer: clearRuntimeTimer,
@@ -5162,6 +5580,7 @@ const recovery = new Recovery({
     parking: parkingManager,
     indexOfWindow: window => columnStore.indexOfWindow(window),
     beforeRestore: reason => {
+        if (workspaceMoveController) workspaceMoveController.stop();
         if (workspaceSwitchController) workspaceSwitchController.stop();
         if (workspaceTransferController) workspaceTransferController.stop();
         if (dynamicWorkspaceController) dynamicWorkspaceController.stop();
@@ -5350,9 +5769,11 @@ const dockScrollController = new DockScrollController({
 const columnWidthController = new ColumnWidthController({
     getAppState: () => mainScreenState,
     getActiveWindow: () => workspace.activeWindow,
+    captureLayout: column => captureColumnWidthTransition(column,
+        mainScreenState.columns, mainScreenState.safeRect, mainScreenState.innerGap),
     cancelPending: reason => {
         motionPlanCommitGate.cancel();
-        scrollPlanCommitGate.cancel();
+        scrollPlanCommitGate.retainForLegacy();
         contextualWideCoordinator.cancel();
         cancelPendingDockScroll(reason);
     },
@@ -5405,7 +5826,10 @@ workspaceMountController = new WorkspaceMountController({
     phases: { managed: ADOPTION_MANAGED, waitingWorkspace: ADOPTION_WAITING_WORKSPACE },
     cancelPending: reason => {
         motionPlanCommitGate.cancel();
-        scrollPlanCommitGate.cancel();
+        if (reason !== "workspace-stop" && reason !== "workspace-column-move" &&
+                deferredScrollParking.pending && deferredScrollParking.pending.partialItems.length)
+            scrollPlanCommitGate.releaseForWorkspace();
+        else scrollPlanCommitGate.cancel();
         cancelPendingDockScroll(reason);
         contextualViewport.cancelReveal();
         contextualWideCoordinator.cancelForWorkspace();
@@ -5419,6 +5843,7 @@ workspaceMountController = new WorkspaceMountController({
     boundOffset: offset => boundScrollOffset(offset, stripWidth(),
         mainScreenState.safeRect ? mainScreenState.safeRect.width : 0),
     ensureVisible: ensureColumnVisible,
+    activateColumn: activateColumnWhenReady,
     relayout,
     commitDock: commitDockState,
     releaseWindow: (window, reason) => releaseParkingOwnership(window, reason, true),
@@ -5477,6 +5902,43 @@ workspaceTransferController = new WorkspaceTransferController({
         warn(`[cc-workspace] transfer failed: ${error}`);
         emergencyRestoreAllWindows("workspace-transfer-failure");
     },
+});
+workspaceMoveController = new WorkspaceMoveController({
+    appState: mainScreenState,
+    mount: workspaceMountController,
+    switcher: workspaceSwitchController,
+    transfer: workspaceTransferController,
+    topology: virtualDesktopTopology,
+    membership: workspaceMembership,
+    snapshots: workspaceSnapshots,
+    columnStore,
+    windowPolicy,
+    stateFor,
+    normalizeUuid: normalizeWindowUuid,
+    getActiveWindow: () => workspace.activeWindow,
+    getWindows: () => workspace.windowList(),
+    settleMotion: callback => scrollPlanCommitGate.whenIdle(callback),
+    clearPresentation: () => {
+        contextualWideCoordinator.cancel();
+        clearPresentationState();
+        mainScreenState.prePresentationViewport = null;
+    },
+    changeMembership: (window, desktop) => { window.desktops = [desktop]; },
+    settleSourceLayout: () => {
+        recomputeLogicalLayout();
+        clampScrollOffset();
+        const focused = columnStore.focusedColumn();
+        if (focused) ensureColumnVisible(focused);
+    },
+    onSettled: () => {
+        dynamicWorkspaceController.request();
+        workspaceRecycleController.request();
+    },
+    onFailure: error => {
+        warn(`[cc-workspace] move failed: ${error}`);
+        emergencyRestoreAllWindows("workspace-move-failure");
+    },
+    debug,
 });
 dynamicWorkspaceController = new DynamicWorkspaceController({
     enabled: runtimeConfig.dynamicTrailingWorkspace,
@@ -5543,6 +6005,7 @@ const controllerComposition = new ControllerComposition({
     workspaceRecycle: workspaceRecycleController,
     dynamicWorkspace: dynamicWorkspaceController,
     workspaceTransfer: workspaceTransferController,
+    workspaceMove: workspaceMoveController,
     workspaceSwitch: workspaceSwitchController,
     workspaceMount: workspaceMountController,
     parking: parkingManager,
@@ -5562,7 +6025,7 @@ const controllerComposition = new ControllerComposition({
 }, [
     "focusRing", "parking", "geometry", "invariants", "transactions", "recovery",
     "adoption", "floating", "output", "fullscreen", "presentation", "columnWidth",
-    "dockGateway", "dockScroll", "reorder", "workspaceMount", "workspaceSwitch", "workspaceTransfer", "dynamicWorkspace", "workspaceRecycle",
+    "dockGateway", "dockScroll", "reorder", "workspaceMount", "workspaceSwitch", "workspaceTransfer", "workspaceMove", "dynamicWorkspace", "workspaceRecycle",
 ]);
 
 function debug(message) {
@@ -5865,7 +6328,7 @@ function endLayoutTransaction(reason, epoch) {
     layoutTransaction.end(reason, epoch);
 }
 
-function relayoutImpl(reason, scrollOffsets) {
+function relayoutImpl(reason, scrollOffsets, widthTransition) {
     if (!mainScreenState.enabled) {
         warn(`[cc-scroll] relayout skipped: disabled reason=${reason}`);
         return;
@@ -5876,8 +6339,9 @@ function relayoutImpl(reason, scrollOffsets) {
     recomputeLogicalLayout();
     clampScrollOffset();
     const presentedColumn = presentationColumn();
-    contextualWideCoordinator.prepareLayoutTransition(presentedColumn);
-    const wideExitColumn = contextualWideCoordinator.wideExitColumn();
+    contextualWideCoordinator.prepareLayoutTransition(presentedColumn, widthTransition);
+    const wideExitColumn = widthTransition && widthTransition.column.widthMode !== "full"
+        ? widthTransition.column : contextualWideCoordinator.wideExitColumn();
     if (scrollOffsets) scrollOffsets = Object.assign({}, scrollOffsets, {
         oldScrollOffsetX: scrollPlanCommitGate.baseOffset(scrollOffsets.oldScrollOffsetX),
     });
@@ -5895,6 +6359,8 @@ function relayoutImpl(reason, scrollOffsets) {
         retainedColumn: contextualWideCoordinator.retainedNeighbor(),
         wideExitColumn,
         wideRect: presentationController.wideRect(),
+        widthTransition,
+        clipPartial: true,
     });
     const directionalFocus = reason === "focus-next" || reason === "focus-previous";
     if (directionalFocus && !plan.viewportMotion && !plan.scrollTransaction && scrollPlanCommitGate.pending) {
@@ -5910,16 +6376,18 @@ function relayoutImpl(reason, scrollOffsets) {
     }
     if (plan.viewportMotion) {
         const motion = plan.viewportMotion;
+        const partialExitToken = contextualWideCoordinator.preparePartialExit(plan);
         const envelope = {
             epoch: plan.epoch,
             issuedAt: Date.now(),
             type: motion.type,
             side: motion.side,
+            viewport: motion.viewport,
             oldViewportMode: motion.oldViewportMode,
             newViewportMode: motion.newViewportMode,
             parkAfterComplete: motion.parkAfterComplete,
             transitionToken: motion.type === "PAIR_TO_WIDE"
-                ? contextualWideCoordinator.parkToken() : null,
+                ? contextualWideCoordinator.parkToken() : partialExitToken,
             targetWindowUuid: normalizeWindowUuid(
                 plan.windows.find(item => item.columnId ===
                     motion.targetColumnId).column.window.internalId),
@@ -5929,11 +6397,11 @@ function relayoutImpl(reason, scrollOffsets) {
                 newRealRect: plan.layoutSnapshots.to.entries[index].realRect,
             })),
         };
-        scrollPlanCommitGate.cancel();
+        scrollPlanCommitGate.retainForLegacy();
         motionPlanCommitGate.schedule(plan, envelope, { wideExitColumn });
         return;
     }
-    if (plan.scrollTransaction && (reason === "focus-next" || reason === "focus-previous")) {
+    if (plan.scrollTransaction && (directionalFocus || plan.scrollTransaction.clipPartial)) {
         const envelope = createViewportScrollPlan(plan.scrollTransaction, {
             workspaceId: mainScreenState.activeWorkspaceId,
             targetOutput: mainScreenState.targetOutput.name,
@@ -5943,6 +6411,8 @@ function relayoutImpl(reason, scrollOffsets) {
         if (envelope) {
             motionPlanCommitGate.cancel();
             deferredScrollParking.pause();
+            // Hydration installs new UUID membership before Bridge validates the plan.
+            if (reason === "workspace-mount") commitDockState(reason);
             scrollPlanCommitGate.schedule(plan, envelope, { wideExitColumn });
             return;
         }
@@ -5953,11 +6423,21 @@ function relayoutImpl(reason, scrollOffsets) {
 }
 
 function commitLayoutPlan(plan, wideExitColumn, activationWindow, options) {
-    if (!options || !options.nativeScroll) deferredScrollParking.cancel();
-    const commitResult = geometryCommitter.commit(plan, options);
-    if (options && options.nativeScroll) deferredScrollParking.start(plan.epoch, commitResult.pendingPark);
-    contextualWideCoordinator.onPlanCommitted(plan, wideExitColumn,
-        commitResult, activationWindow);
+    return layoutTransaction.resume(plan.reason, plan.epoch, () => {
+        const activeBeforeCommit = workspace.activeWindow;
+        if (!options || !options.nativeScroll) deferredScrollParking.cancel();
+        const commitResult = geometryCommitter.commit(plan, options);
+        if (options && options.nativeScroll) deferredScrollParking.start(plan.epoch, commitResult.pendingPark, plan.windows.filter(item => item.partial));
+        // A restored client can activate during unminimize. Preserve actual
+        // focus through this batch; explicit deferred activation is applied by
+        // the existing coordinator after its geometry readiness checks.
+        if (activeBeforeCommit && workspace.activeWindow !== activeBeforeCommit &&
+                !activeBeforeCommit.minimized && workspace.windowList().includes(activeBeforeCommit)) {
+            workspace.activeWindow = activeBeforeCommit;
+        }
+        contextualWideCoordinator.onPlanCommitted(plan, wideExitColumn,
+            commitResult, activationWindow, options);
+    });
 }
 
 function activateColumnWhenReady(window) {
@@ -5968,13 +6448,13 @@ function activateColumnWhenReady(window) {
     }
 }
 
-function relayout(reason, scrollOffsets) {
+function relayout(reason, scrollOffsets, widthTransition) {
     if (reason !== "workspace-mount" && workspaceTransferController &&
             workspaceTransferController.deferLayout()) return;
     if (reason !== "workspace-mount" && !workspaceMountController.canUseActiveWorkspace()) return;
     const epoch = beginLayoutTransaction(reason);
     try {
-        relayoutImpl(reason, scrollOffsets);
+        relayoutImpl(reason, scrollOffsets, widthTransition);
     } finally {
         endLayoutTransaction(reason, epoch);
     }
@@ -6885,6 +7365,10 @@ function onScreensChanged() {
 const shortcuts = createShortcutCatalog({
     workspacePrevious: () => workspaceSwitchController.previous(),
     workspaceNext: () => workspaceSwitchController.next(),
+    workspaceFocus: number => workspaceSwitchController.focusNumber(number),
+    moveWorkspacePrevious: () => workspaceMoveController.movePrevious(),
+    moveWorkspaceNext: () => workspaceMoveController.moveNext(),
+    moveWorkspaceNumber: number => workspaceMoveController.moveNumber(number),
     focusPrevious: () => runWorkspaceAction(() => focusRelativeColumn(-1)),
     focusNext: () => runWorkspaceAction(() => focusRelativeColumn(1)),
     cycleWidth: () => runWorkspaceAction(() => columnWidthController.cycle()),

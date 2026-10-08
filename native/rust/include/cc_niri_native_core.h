@@ -100,9 +100,10 @@ typedef struct {
     double protocol,epoch,issued_at,old_offset,new_offset;
     CcNiriU16View kind,session,workspace,output; CcNiriRect viewport;
     const CcNiriScrollEntry *entries; uint64_t entries_len;
-    CcNiriByteView fingerprint; uint32_t shape_valid,retarget_only;
-    /* retarget_only: 0 absent, 1 false, 2 true, 3 wrong JSON type */
+    CcNiriByteView fingerprint; uint32_t shape_valid,retarget_only,clip_partial;
+    /* retarget_only / clip_partial: 0 absent, 1 false, 2 true, 3 wrong JSON type */
 } CcNiriScrollPlan;
+/* reserved bit 0: active partial paint/input clipping, also after settlement. */
 typedef struct { int64_t epoch; uint32_t active,completed,status,reserved; } CcNiriScrollStatus;
 typedef struct { uint64_t value; uint32_t status,reserved; } CcNiriIdResult;
 typedef struct { CcNiriRect viewport; double translation_x; uint32_t active,status; } CcNiriProjectionResult;
@@ -117,6 +118,7 @@ CcNiriSpringBoolResult cc_niri_scroll_arm(CcNiriScroll *handle,const CcNiriScrol
 uint32_t cc_niri_scroll_cancel(CcNiriScroll *handle,CcNiriU16View session,int64_t epoch);
 uint32_t cc_niri_scroll_clear(CcNiriScroll *handle);
 uint32_t cc_niri_scroll_remove(CcNiriScroll *handle,uint64_t id);
+CcNiriSpringBoolResult cc_niri_scroll_input_blocked(const CcNiriScroll *handle,uint64_t window_id,double x,double y);
 CcNiriSpringBoolResult cc_niri_scroll_advance(CcNiriScroll *handle,int64_t now_ns);
 CcNiriScrollStatus cc_niri_scroll_status(const CcNiriScroll *handle);
 CcNiriTextResult cc_niri_scroll_context_text(const CcNiriScroll *handle,uint32_t field); /* session/workspace/output=0/1/2 */

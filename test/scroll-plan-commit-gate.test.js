@@ -61,3 +61,26 @@ unavailable.evaluate("scrollPlanCommitGate.pending.timer.timer").timeout.emit();
 assert.equal(unavailable.workspace.activeWindow, unavailable.a[2], "unavailable cancel endpoint has bounded fallback");
 const unavailableWrites = unavailable.writes(); unavailable.cancelAcks.at(-1)(); unavailable.nativeAcks[0](true);
 assert.equal(unavailable.writes(), unavailableWrites, "late cancellation ACK cannot recommit");
+
+const retained = [], retainedCommits = [], retainedArms = [];
+let handoffEpoch = 9;
+const handoff = new ScrollPlanCommitGate({
+    publish: (_plan, cb) => cb(true), arm: (_plan, cb) => retainedArms.push(cb),
+    disarm: (epoch, cb) => { retained.push(epoch); cb(); }, currentEpoch: () => handoffEpoch,
+    setTimer: cb => cb, clearTimer: () => {}, warn: () => {},
+    commit: plan => retainedCommits.push(plan.epoch), releaseDeferred: () => {},
+});
+handoff.activeEpoch = 8;
+handoff.schedule({ epoch: 9 }, {}, {});
+handoffEpoch = 10;
+handoff.retainForLegacy();
+assert.deepEqual(retained, [], "publishing a width plan must keep old and in-flight clipping");
+retainedArms[0](true);
+assert.deepEqual(retainedCommits, [], "late old arm ACK cannot commit the superseded width layout");
+handoff.cancel();
+assert.deepEqual(retained.sort(), [8, 9], "after legacy ACK both retained epochs retire before a cold width clip");
+handoff.cancel();
+assert.equal(retained.length, 2, "retirement is idempotent");
+handoff.activeEpoch = 10;
+handoff.retainForLegacy(); handoff.releaseForWorkspace(); handoff.cancel();
+assert.equal(retained.length, 2, "workspace release transfers the retained clip without cancelling a departure");

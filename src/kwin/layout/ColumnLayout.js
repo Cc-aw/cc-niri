@@ -3,13 +3,6 @@
 function computeColumnWidth(mode, safeWidth, requestedInnerGap) {
     if (mode === "full") return Math.max(1, safeWidth);
     const gap = Math.min(requestedInnerGap, Math.max(0, safeWidth - 1));
-    if (mode === "third") {
-        return Math.max(1, Math.floor((safeWidth - 2 * gap) / 3));
-    }
-    if (mode === "twoThirds") {
-        const third = Math.max(1, Math.floor((safeWidth - 2 * gap) / 3));
-        return Math.max(1, safeWidth - gap - third);
-    }
     return Math.max(1, Math.floor((safeWidth - gap) / 2));
 }
 

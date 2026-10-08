@@ -5,6 +5,7 @@
 #include "effect/effect.h"
 
 #include "ScrollViewportRuntimeBackend.h"
+#include "ScrollClipHandoff.h"
 #include <QSet>
 #include <QHash>
 #include <QString>
@@ -14,6 +15,7 @@
 namespace KWin
 {
 class WorkspaceSlideAdapter;
+class ViewportInputClip;
 
 class CcNiriViewportClipEffect : public Effect
 {
@@ -44,11 +46,14 @@ public Q_SLOTS:
     Q_SCRIPTABLE void CancelScrollPlan(const QString &json);
     Q_SCRIPTABLE QString GetScrollMotionStatus() const;
     Q_SCRIPTABLE bool WorkspaceTransitionActive() const;
+    Q_SCRIPTABLE QString GetViewportHitTest(double x, double y) const;
     Q_SCRIPTABLE void StartWorkspaceFrameCapture();
     Q_SCRIPTABLE QString GetWorkspaceFrameCapture() const;
 
 private:
     friend class WorkspaceSlideAdapter;
+    friend class ViewportInputClip;
+    std::unique_ptr<ViewportInputClip> m_inputClip;
     void paintClippedWindow(const RenderTarget &renderTarget, const RenderViewport &viewport,
         EffectWindow *window, int mask, const Region &deviceRegion, WindowPaintData &data);
     std::unique_ptr<WorkspaceSlideAdapter> m_workspaceSlide;
@@ -71,6 +76,13 @@ private:
     void updateScrollOwnership();
     void clearScrollState();
     CcNiri::ScrollViewportRuntimeBackend m_scrollRuntime;
+    CcNiri::ScrollClipHandoff m_scrollClipHandoff;
+    // Frozen Rust handles live only until the native workspace effect becomes idle.
+    QHash<QString, CcNiri::ScrollViewportRuntimeBackend> m_workspaceDepartures;
+    // Paint composition also preserves the real frame before a Wayland ACK
+    // starts the existing Script width animation. This is not another clock.
+    bool m_scrollPaintFromScript = false;
+    QHash<QString, bool> m_workspaceDepartureScriptPaint;
     bool m_scrollEndpointRegistered = false;
     void advertiseCapability(EffectWindow *window, bool available);
     void updateWindowMarker(EffectWindow *window);

@@ -34,7 +34,9 @@ class MotionPlanCommitGate {
             if (!accepted) {
                 this.warn(`[MOTION_TX] plan handoff unavailable epoch=${plan.epoch}`);
             }
-            this.commit(plan, context, pending.activationWindow);
+            this.commit(plan, accepted ? context : Object.assign({}, context, {
+                motionFallback: true,
+            }), pending.activationWindow);
         });
         return pending;
     }

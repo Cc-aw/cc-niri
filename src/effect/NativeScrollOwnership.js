@@ -1,7 +1,7 @@
 "use strict";
 
 /* cjs:start */
-const { CC_NIRI_SCROLL_OWNERSHIP_ROLE, CC_NIRI_SCROLL_MOTION_CAPABILITY_ROLE } = require("./MotionTokens");
+const { CC_NIRI_SCROLL_OWNERSHIP_ROLE, CC_NIRI_SCROLL_MOTION_CAPABILITY_ROLE, CC_NIRI_MOTION_PLAN_ROLE } = require("./MotionTokens");
 const { sameSize, rectNear, parked, visibleSlot } = require("./MotionClassifier");
 /* cjs:end */
 
@@ -19,6 +19,16 @@ function readNativeScrollMarker(window) {
             !["continuing", "incoming", "outgoing"].includes(marker.role) ||
             ![marker.x, marker.y, marker.width, marker.height].every(Number.isFinite) ||
             marker.width <= 0 || marker.height <= 0) return null;
+    // A width transition can arm Native clipping at the same epoch without
+    // handing its established Pair/Wide paint timeline to the Scroll Spring.
+    const width = window.data(CC_NIRI_MOTION_PLAN_ROLE);
+    if (width && width.protocol === 1 && width.epoch === marker.epoch &&
+            width.sessionId === marker.sessionId &&
+            ["PAIR_TO_WIDE", "WIDE_TO_PAIR"].includes(width.type) &&
+            ["target", "neighbor"].includes(width.role) &&
+            width.entries && (width.entries.length === 1 || width.entries.length === 2) &&
+            Number.isFinite(Number(width.issuedAt)) &&
+            Math.abs(Date.now() - Number(width.issuedAt)) <= 5000) return null;
     return marker;
 }
 

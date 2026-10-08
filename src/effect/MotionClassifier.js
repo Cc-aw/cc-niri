@@ -69,6 +69,9 @@ function presentationTransition(oldGeometry, newGeometry, screenRect) {
 
 function wideExitNeighborMatches(wide, neighborRect, innerGap) {
     if (!wide || !wide.pairRect || !neighborRect) return false;
+    if (wide.snapshot && wide.snapshot.neighbor) {
+        return rectNear(neighborRect, wide.snapshot.neighbor.newVisualRect);
+    }
     const neighborSide = wide.side === "left" ? "right" : "left";
     const expectedX = neighborSide === "right"
         ? wide.pairRect.x + wide.pairRect.width + innerGap

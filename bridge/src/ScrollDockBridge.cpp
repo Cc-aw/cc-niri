@@ -204,7 +204,7 @@ bool ScrollDockBridge::PublishMotionPlan(const QString &json)
             plan.value(QStringLiteral("issuedAt")).toInteger(-1) < 0 ||
             (type != QStringLiteral("WIDE_TO_PAIR") &&
              type != QStringLiteral("PAIR_TO_WIDE")) ||
-            entries.size() != 2) {
+            (entries.size() != 1 && entries.size() != 2)) {
         qCWarning(logBridge) << "rejecting motion plan schema";
         return false;
     }
@@ -217,6 +217,10 @@ bool ScrollDockBridge::PublishMotionPlan(const QString &json)
             return false;
         }
     }
+    // A solo Full column uses the same presentation transaction, without an
+    // invented neighbor. Two-window Pair/Wide envelopes remain unchanged.
+    if (entries.size() == 1 && entries.first().toObject()
+            .value(QStringLiteral("role")).toString() != QStringLiteral("target")) return false;
     m_lastMotionToken = type == QStringLiteral("PAIR_TO_WIDE")
         ? plan.value(QStringLiteral("transitionToken")).toString() : QString();
     m_lastMotionTarget = type == QStringLiteral("PAIR_TO_WIDE")
@@ -237,17 +241,19 @@ bool ScrollDockBridge::ReportMotionComplete(const QString &json)
         .toString();
     if (completion.value(QStringLiteral("sessionId")).toString() != m_sessionId ||
             m_sessionId.isEmpty() || token.isEmpty() || target.isEmpty() ||
-            completion.value(QStringLiteral("type")).toString() !=
-                QStringLiteral("PAIR_TO_WIDE")) {
+            (completion.value(QStringLiteral("type")).toString() != QStringLiteral("PAIR_TO_WIDE") &&
+             completion.value(QStringLiteral("type")).toString() != QStringLiteral("WIDE_TO_PAIR"))) {
         return false;
     }
     const QJsonObject command{
         {QStringLiteral("protocol"), 1},
         {QStringLiteral("commandId"), m_sessionId +
-            QStringLiteral("-wide-motion-complete-") + token},
+            (completion.value(QStringLiteral("type")).toString() == QStringLiteral("WIDE_TO_PAIR")
+                ? QStringLiteral("-wide-exit-motion-complete-") : QStringLiteral("-wide-motion-complete-")) + token},
         {QStringLiteral("sessionId"), m_sessionId},
         {QStringLiteral("baseGeneration"), m_generation},
-        {QStringLiteral("type"), QStringLiteral("finalize-contextual-wide")},
+        {QStringLiteral("type"), completion.value(QStringLiteral("type")).toString() == QStringLiteral("WIDE_TO_PAIR")
+            ? QStringLiteral("finalize-contextual-wide-exit") : QStringLiteral("finalize-contextual-wide")},
         {QStringLiteral("transitionToken"), token},
         {QStringLiteral("windowUuid"), target},
         {QStringLiteral("motionCompleted"), true},

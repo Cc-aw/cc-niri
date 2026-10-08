@@ -64,7 +64,7 @@ Object.defineProperty(workspace, "activeWindow", { get: () => activeWindow, set:
     workspace.windowActivated.emit(window);
 } });
 const context = vm.createContext({ workspace, QTimer: Timer,
-    readConfig: (key, fallback) => key === "DebugLogging" ? true : fallback,
+    readConfig: (key, fallback) => ["DebugLogging", "EnableDockIntegration"].includes(key) ? true : fallback,
     registerShortcut: (name, _description, _sequence, handler) => shortcuts.set(name, handler), console: { info: message => logs.push(message), warn: message => logs.push(message) },
     callDBus: (_service, _path, _interface, method, ...args) => {
         const callback = args.at(-1);

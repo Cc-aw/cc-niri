@@ -7,7 +7,7 @@ function fixture() {
     const persistence = new WorkspacePersistence({ snapshots, hasDesktop: id => ["A", "B", "C"].includes(id) });
     return { snapshots, persistence };
 }
-const a = { id: "A", columns: [{ uuid: "a2", widthMode: "third", persistentWide: true }, { uuid: "a1" }],
+const a = { id: "A", columns: [{ uuid: "a2", widthMode: "full", persistentWide: true }, { uuid: "a1" }],
     focusedUuid: "a2", viewportAnchor: { uuid: "a1", delta: 40 } };
 const b = { id: "B", columns: [{ uuid: "b1" }], focusedUuid: "b1" };
 const state = { protocol: 2, sessionId: "old", generation: 30, workspaceId: "B", targetOutput: "eDP-1",

@@ -24,6 +24,9 @@ class VirtualDesktopTopology {
         return index >= 0 ? this.ordered()[index + 1] || null : null;
     }
     byId(id) { return this.ordered().find(desktop => this.id(desktop) === id) || null; }
+    byNumber(number) {
+        return Number.isInteger(number) && number > 0 ? this.ordered()[number - 1] || null : null;
+    }
     affectsOutput(output, targetOutput) {
         return Boolean(targetOutput && (!output || output === targetOutput));
     }

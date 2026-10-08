@@ -36,6 +36,22 @@ class LayoutTransaction {
         }
     }
 
+    // Native ACK continues the already published epoch. Geometry/visibility
+    // signals need the same re-entry guard as a synchronous relayout.
+    resume(reason, epoch, callback) {
+        if (epoch !== this.epoch) return false;
+        if (this.depth === 0) {
+            this.activeReason = reason;
+            this.debug(`[cc-stability] COMMIT epoch=${epoch} reason=${reason}`);
+        }
+        this.depth += 1;
+        try {
+            return callback();
+        } finally {
+            this.end(reason, epoch);
+        }
+    }
+
     isActive() {
         return this.depth > 0;
     }

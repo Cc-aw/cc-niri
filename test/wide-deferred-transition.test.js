@@ -19,7 +19,7 @@ assert.ok(mainSource.includes("contextualViewport.select(column"));
 assert.ok(mainSource.includes("source: wideStepDirection ? FocusSource.DIRECTIONAL"));
 
 const parkSource = coordinatorSource.slice(
-    coordinatorSource.indexOf("prepareLayoutTransition(target)"),
+    coordinatorSource.indexOf("prepareLayoutTransition(target,"),
     coordinatorSource.indexOf("requestExit(pending"));
 assert.ok(parkSource.includes("RETAIN_PAIR_NEIGHBOR"));
 assert.ok(parkSource.includes("sameRectNear(pending.target.window.frameGeometry"));

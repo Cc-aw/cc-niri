@@ -36,3 +36,8 @@ console.log("PASS scoped native completion, deferred parking, stale callbacks an
 f=fixture();f.controller.start(1,[f.item]);f.timers[0].callback();const pausedReply=f.replies[0];const oldWatchdog=f.timers.find(t=>t.ms===3500);f.controller.pause();pausedReply(f.complete());oldWatchdog.callback();assert.equal(f.finalized.length,0,"paused previous epoch cannot finalize during new ACK");
 f.controller.start(2,[f.item]);assert.equal(f.state.scrollPendingParkEpoch,2);assert.equal(f.finalized.length,0,"pending ownership transfers without parking");
 f.timers.at(-2).callback();f.replies.at(-1)(f.complete(2));assert.equal(f.finalized.length,1,"only latest native epoch parks retained outgoing");
+
+f=fixture();f.controller.start(1,[f.item]);f.controller.release();
+assert.equal(f.finalized.length,0,"workspace release preserves departing physical frames");
+assert.equal(f.state.scrollPendingParkEpoch,null,"sleeping workspace does not retain a retired JS park owner");
+assert.equal(f.disarmed.length,0,"native workspace renderer freezes the clip independently");

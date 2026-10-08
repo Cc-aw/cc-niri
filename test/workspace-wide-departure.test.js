@@ -8,7 +8,7 @@ const { createRuntime } = require("./helpers/workspace-runtime");
 // then settle the sleeping workspace through the compositor-idle gate.
 for (const side of [0, 1]) for (const acknowledged of [false, true]) {
     for (const departure of ["J", "K", "native", "rejected"]) {
-        const r = createRuntime({ HoldWorkspaceTransitionAck: true });
+        const r = createRuntime({ HoldWorkspaceTransitionAck: true, HoldWidthAck: true });
         const fromB = departure === "K";
         if (fromB) r.nativeSwitch(1, r.b[0]);
         const source = fromB ? r.b : r.a;
@@ -100,7 +100,7 @@ for (const side of [0, 1]) for (const acknowledged of [false, true]) {
 // Returning, moving, closing or stopping while an idle query is in flight
 // must invalidate its permission to write the old neighbor's geometry.
 for (const change of ["return", "move", "close", "close-owner", "stop"]) {
-    const r = createRuntime({ HoldWorkspaceTransitionAck: true });
+    const r = createRuntime({ HoldWorkspaceTransitionAck: true, HoldWidthAck: true });
     r.evaluate("toggleFocusWide(workspace.activeWindow)"); r.motionAcks.at(-1)(true);
     r.nativeSwitch(1, r.b[0]);
     const pending = [...r.evaluate("contextualWideCoordinator.departures")][0];
