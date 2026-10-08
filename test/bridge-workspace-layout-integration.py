@@ -35,7 +35,7 @@ def call(dest, path, method, *args):
     return subprocess.check_output(["gdbus", "call", "--session", "--dest", dest,
         "--object-path", path, "--method", method, *args], text=True, stderr=subprocess.DEVNULL).strip()
 def ensure(count):
-    return call("org.cc.ScrollDockBridge", "/ScrollDock", "org.cc.ScrollDockBridge1.EnsureVerticalDesktopLayout", str(count))
+    return call("org.cc.CCNiriBridge", "/CCNiriBridge", "org.cc.CCNiriBridge1.EnsureVerticalDesktopLayout", str(count))
 def rows():
     return call("org.kde.KWin", "/VirtualDesktopManager", "org.freedesktop.DBus.Properties.Get",
         "org.kde.KWin.VirtualDesktopManager", "rows")
@@ -46,7 +46,7 @@ with tempfile.TemporaryDirectory(prefix="cc-niri-layout-") as directory:
     try:
         for _ in range(100):
             try:
-                call("org.cc.ScrollDockBridge", "/ScrollDock", "org.cc.ScrollDockBridge1.GetState")
+                call("org.cc.CCNiriBridge", "/CCNiriBridge", "org.cc.CCNiriBridge1.GetState")
                 break
             except subprocess.CalledProcessError:
                 time.sleep(.02)
@@ -64,7 +64,7 @@ with tempfile.TemporaryDirectory(prefix="cc-niri-layout-") as directory:
         assert ensure(5) == "(true,)"
         assert "uint32 5" in rows()
         assert ensure(5) == "(true,)", "already vertical is idempotent"
-        assert call("org.cc.ScrollDockBridge", "/ScrollDock", "org.cc.ScrollDockBridge1.GetState") == "('',)"
+        assert call("org.cc.CCNiriBridge", "/CCNiriBridge", "org.cc.CCNiriBridge1.GetState") == "('',)"
         print("PASS isolated DBus vertical desktop rows, unsigned variant, stale count, idempotence and unavailable KWin")
     finally:
         if mock:

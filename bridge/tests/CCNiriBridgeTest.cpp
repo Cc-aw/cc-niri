@@ -1,4 +1,4 @@
-#include "ScrollDockBridge.h"
+#include "CCNiriBridge.h"
 #include <QCoreApplication>
 #include <QTemporaryDir>
 #include <QJsonDocument>
@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
     QJsonObject state{{"protocol", 2}, {"sessionId", "old"}, {"generation", 10}, {"targetOutput", "eDP-1"},
         {"workspaceId", "B"}, {"columns", active}, {"workspaces", QJsonArray{a, b}}};
     {
-        ScrollDockBridge bridge(nullptr, cache); CHECK(bridge.GetState().isEmpty());
+        CCNiriBridge bridge(nullptr, cache); CHECK(bridge.GetState().isEmpty());
         CHECK(bridge.PublishState(json(state))); CHECK(bridge.lastSaveSucceeded()); CHECK(QFile::exists(cache));
         const QString previous = bridge.GetState();
         for (const QJsonArray &workspaces : {QJsonArray{a, a, b}, QJsonArray{a},
@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
         CHECK(QJsonDocument::fromJson(bridge.TakePendingCommand().toUtf8()).object()["protocol"].toInt() == 1);
     }
     {
-        ScrollDockBridge restarted(nullptr, cache);
+        CCNiriBridge restarted(nullptr, cache);
         CHECK(QJsonDocument::fromJson(restarted.GetState().toUtf8()).object()["workspaces"].toArray().size() == 2);
         CHECK(!restarted.RequestEmergencyRestore()); // Cached data is not a live KWin session.
         state["sessionId"] = "new"; state["generation"] = 1;
@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
     }
     {
         QFile file(cache); CHECK(file.open(QIODevice::WriteOnly)); file.write("broken"); file.close();
-        ScrollDockBridge broken(nullptr, cache); CHECK(broken.GetState().isEmpty());
+        CCNiriBridge broken(nullptr, cache); CHECK(broken.GetState().isEmpty());
         QJsonObject legacy{{"protocol", 1}, {"sessionId", "legacy"}, {"generation", 1}, {"columns", active}};
         CHECK(broken.PublishState(json(legacy))); CHECK(!broken.GetState().isEmpty());
     }
@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
         fullState["columns"] = fullColumns;
         fullState["workspaces"] = QJsonArray{a, QJsonObject{{"id", "B"}, {"columns", fullColumns}}};
         {
-            ScrollDockBridge full(nullptr, fullCache);
+            CCNiriBridge full(nullptr, fullCache);
             CHECK(full.PublishState(json(fullState))); CHECK(full.lastSaveSucceeded());
             QFile saved(fullCache); CHECK(saved.open(QIODevice::ReadOnly));
             CHECK(QJsonDocument::fromJson(saved.readAll()).object() == fullState);
@@ -63,13 +63,13 @@ int main(int argc, char **argv) {
             CHECK(!full.PublishState(json(mismatch)));
             CHECK(QJsonDocument::fromJson(full.GetState().toUtf8()).object() == fullState);
         }
-        ScrollDockBridge fullRestarted(nullptr, fullCache);
+        CCNiriBridge fullRestarted(nullptr, fullCache);
         CHECK(QJsonDocument::fromJson(fullRestarted.GetState().toUtf8()).object() == fullState);
         CHECK(!fullRestarted.RequestEmergencyRestore());
     }
     {
         // Persistence failure must not freeze live Dock updates.
-        ScrollDockBridge unwritable(nullptr, directory.path());
+        CCNiriBridge unwritable(nullptr, directory.path());
         CHECK(unwritable.PublishState(json(state))); CHECK(!unwritable.lastSaveSucceeded()); CHECK(!unwritable.GetState().isEmpty());
     }
     qInfo("PASS native Bridge protocol 2 validation, disk restart, corruption and protocol 1 commands");

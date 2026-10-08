@@ -62,8 +62,8 @@ assert.ok(!r.logs.some(line => /INVARIANT_FAIL|FAIL_SAFE/.test(line)));
 console.log("PASS explicit SCROLL plans preserve existing geometry/focus and workspace barriers");
 
 const missing = createRuntime();
-missing.evaluate(`const originalInvoke = dockGateway.invoke;
-    dockGateway.invoke = function(...args) {
+missing.evaluate(`const originalInvoke = runtimeBridge.invoke;
+    runtimeBridge.invoke = function(...args) {
         if (args[3] === "PublishMotionPlan") throw new Error("Bridge unavailable");
         return originalInvoke(...args);
     };`);

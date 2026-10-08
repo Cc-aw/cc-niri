@@ -21,7 +21,7 @@ function fixture() {
     const controller = new ReorderController({
         getAppState: () => appState,
         normalizeUuid: value => String(value || "").toLowerCase(),
-        rejectDockCommand: reason => calls.push(["reject", reason]),
+        rejectRuntimeCommand: reason => calls.push(["reject", reason]),
         cancelDockScroll: reason => calls.push(["cancel", reason]),
         getFocusedColumn: () =>
             appState.columns[appState.focusedColumnIndex] || null,
@@ -39,7 +39,7 @@ function fixture() {
         },
         relayout: (...args) => calls.push(["relayout", ...args]),
         getGeneration: () => 7,
-        commitDockState: reason => calls.push(["commit", reason]),
+        commitRuntimeState: reason => calls.push(["commit", reason]),
         getActiveWindow: () => activeWindow,
         indexOfWindow: window => appState.columns.findIndex(
             column => column.window === window
@@ -80,7 +80,7 @@ function fixture() {
         commandId: "reorder-1",
         order: ["c", "a", "b"],
     };
-    assert.equal(controller.applyDockCommand(command), true);
+    assert.equal(controller.applyRuntimeCommand(command), true);
     assert.deepEqual(appState.columns, [columns[2], columns[0], columns[1]]);
     assert.equal(appState.focusedColumnIndex, 2,
         "Dock reorder preserves the focused Column object");
@@ -103,7 +103,7 @@ for (const [order, reason] of [
     [["a", "b", "missing"], "invalid-column-set"],
 ]) {
     const { controller, calls } = fixture();
-    assert.equal(controller.applyDockCommand({ commandId: "bad", order }), false);
+    assert.equal(controller.applyRuntimeCommand({ commandId: "bad", order }), false);
     assert.deepEqual(calls, [["reject", reason]]);
 }
 
@@ -154,9 +154,9 @@ const mainSource = fs.readFileSync(
 );
 const dockWrapper = mainSource.slice(
     mainSource.indexOf("function handleDockReorderCommand"),
-    mainSource.indexOf("function applyPendingDockCommand")
+    mainSource.indexOf("function applyPendingRuntimeCommand")
 );
-assert.ok(dockWrapper.includes("reorderController.applyDockCommand(command)"));
+assert.ok(dockWrapper.includes("reorderController.applyRuntimeCommand(command)"));
 const keyboardWrapper = mainSource.slice(
     mainSource.indexOf("function moveFocusedColumn"),
     mainSource.indexOf("function detachColumnToFloating")

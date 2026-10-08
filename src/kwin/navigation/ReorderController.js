@@ -4,7 +4,7 @@ class ReorderController {
     constructor(options) {
         this.getAppState = options.getAppState;
         this.normalizeUuid = options.normalizeUuid;
-        this.rejectDockCommand = options.rejectDockCommand;
+        this.rejectRuntimeCommand = options.rejectRuntimeCommand;
         this.cancelDockScroll = options.cancelDockScroll;
         this.getFocusedColumn = options.getFocusedColumn;
         this.reorderColumns = options.reorderColumns;
@@ -12,7 +12,7 @@ class ReorderController {
         this.ensureColumnVisible = options.ensureColumnVisible;
         this.relayout = options.relayout;
         this.getGeneration = options.getGeneration;
-        this.commitDockState = options.commitDockState;
+        this.commitRuntimeState = options.commitRuntimeState;
         this.getActiveWindow = options.getActiveWindow;
         this.indexOfWindow = options.indexOfWindow;
         this.focusIndex = options.focusIndex;
@@ -21,9 +21,9 @@ class ReorderController {
         this.debug = options.debug;
     }
 
-    applyDockCommand(command) {
+    applyRuntimeCommand(command) {
         if (!Array.isArray(command.order)) {
-            this.rejectDockCommand("invalid-column-order");
+            this.rejectRuntimeCommand("invalid-column-order");
             return false;
         }
         const appState = this.getAppState();
@@ -35,7 +35,7 @@ class ReorderController {
         if (requested.length !== current.length ||
                 requestedSet.size !== requested.length ||
                 requested.some(uuid => !uuid || !currentSet.has(uuid))) {
-            this.rejectDockCommand("invalid-column-set");
+            this.rejectRuntimeCommand("invalid-column-set");
             return false;
         }
 
@@ -56,7 +56,7 @@ class ReorderController {
         });
         this.debug(`[cc-dock] APPLY command=${command.commandId}` +
             ` generation=${this.getGeneration()} columns=${requested.length}`);
-        this.commitDockState("dock-reorder");
+        this.commitRuntimeState("dock-reorder");
         return true;
     }
 
@@ -84,7 +84,7 @@ class ReorderController {
         this.relayout(reason);
         this.debug(`[cc-scroll] MOVE column=${focusedColumn.id}` +
             ` from=${oldIndex} to=${nextIndex}`);
-        this.commitDockState(reason);
+        this.commitRuntimeState(reason);
         return true;
     }
 }

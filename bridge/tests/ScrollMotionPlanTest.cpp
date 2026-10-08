@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
-#include "ScrollDockBridge.h"
+#include "CCNiriBridge.h"
 #include <QCoreApplication>
 #include <QTemporaryDir>
 #include <QJsonArray>
@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     qputenv("DBUS_SESSION_BUS_ADDRESS", "unix:path=/nonexistent-cc-niri-scroll-test");
     QCoreApplication app(argc, argv);
     QTemporaryDir dir;
-    ScrollDockBridge bridge(nullptr, dir.filePath("state.json"));
+    CCNiriBridge bridge(nullptr, dir.filePath("state.json"));
     const QJsonArray columns{QJsonObject{{"uuid", "a"}}, QJsonObject{{"uuid", "b"}}, QJsonObject{{"uuid", "c"}}};
     QJsonObject state{{"protocol", 2}, {"sessionId", "live"}, {"generation", 0}, {"workspaceId", "desktop-a"},
         {"targetOutput", "eDP-1"}, {"columns", columns}, {"workspaces", QJsonArray{QJsonObject{{"id", "desktop-a"}, {"columns", columns}}}}};
@@ -29,7 +29,7 @@ int main(int argc, char **argv)
                               entry("c", 3, 2520, "parked", "visible")}}};
     int emitted = 0;
     QJsonObject received;
-    QObject::connect(&bridge, &ScrollDockBridge::MotionPlanChanged, [&](const QString &value) {
+    QObject::connect(&bridge, &CCNiriBridge::MotionPlanChanged, [&](const QString &value) {
         ++emitted;
         received = QJsonDocument::fromJson(value.toUtf8()).object();
     });

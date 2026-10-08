@@ -170,7 +170,7 @@ class WorkspaceMountController {
             this.unmount(false);
             this.hydrate(id, snapshot, focusedUuid);
             this.capture();
-            if (commit) this.commitDock(reason);
+            if (commit) this.commitState(reason);
             this.debug(`[cc-workspace] MOUNT id=${id} columns=${state.columns.length} reason=${reason}`);
             return true;
         } catch (error) {

@@ -112,13 +112,13 @@ assert.equal(evaluate('columnStore.focusedColumn().window') , a[0], "layout acti
 assert.equal(JSON.stringify(a.map(window => window.frameGeometry)), beforeGeometry, "focus-ring does not change geometry");
 evaluate(`endLayoutTransaction("test-owner-change", ${epoch})`);
 workspace.activeWindow = a[0];
-const dockGeneration = evaluate('dockGateway.generation()');
+const dockGeneration = evaluate('runtimeBridge.generation()');
 nativeLoaded = false;
 shortcuts.get("CCScrollToggleFloating")();
 nativeLoaded = true;
 shortcuts.get("CCScrollPublishFocusRingState")();
 assert.deepEqual(eligibility.at(-1).windows, [secondId], "native-on gets fresh detached membership without Dock cache");
-assert.equal(evaluate('dockGateway.generation()'), dockGeneration+1, "eligibility resend does not commit Dock generation");
+assert.equal(evaluate('runtimeBridge.generation()'), dockGeneration+1, "eligibility resend does not commit Dock generation");
 shortcuts.get("CCScrollToggleFloating")();
 assert.deepEqual(eligibility.at(-1).windows, [firstId,secondId]);
 // Native desktop authority changes before the mount; controller sends disabled
@@ -133,7 +133,7 @@ assert.ok(eligibility.slice(beforeSwitch).some(snapshot => !snapshot.enabled));
 const previousEligibility = eligibility.at(-1).generation;
 const previousDock = published.length;
 // Simulate a lost Bridge call. Eligibility uses only the native endpoint.
-evaluate('dockGateway.invoke = () => {}');
+evaluate('runtimeBridge.invoke = () => {}');
 shortcuts.get("CCScrollPublishFocusRingState")();
 assert.ok(eligibility.at(-1).generation > previousEligibility);
 assert.equal(published.length, previousDock);

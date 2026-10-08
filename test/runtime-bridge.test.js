@@ -1,7 +1,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const { DockGateway } = require("../src/kwin/integration/DockGateway");
+const { RuntimeBridge } = require("../src/kwin/integration/RuntimeBridge");
 
 function fixture() {
     const invocations = [];
@@ -14,7 +14,7 @@ function fixture() {
         presentation: { windowUuid: null, mode: "normal" },
         columns: [{ uuid: "focused", widthMode: "half" }],
     };
-    const gateway = new DockGateway({
+    const gateway = new RuntimeBridge({
         invoke: (...args) => invocations.push(args),
         service: "org.test.Bridge",
         path: "/Bridge",
@@ -168,12 +168,12 @@ const applicationSource = mainSource.slice(
 assert.equal(applicationSource.includes("dockSessionId"), false);
 assert.equal(applicationSource.includes("dockGeneration"), false);
 assert.equal(applicationSource.includes("callDBus("), false,
-    "business code sends Bridge traffic through DockGateway");
+    "business code sends Bridge traffic through RuntimeBridge");
 assert.ok(applicationSource.includes(
-    "return dockGateway.takePendingCommand()"
+    "return runtimeBridge.takePendingCommand()"
 ));
 
-console.log("PASS DockGateway owns session, generation, schema, and transport");
+console.log("PASS RuntimeBridge owns session, generation, schema, and transport");
 
 {
     const { gateway, snapshot } = fixture();

@@ -193,7 +193,7 @@ const source = fs.readFileSync(
     path.join(__dirname, "../src/kwin/lifecycle/FullscreenController.js"),
     "utf8"
 );
-assert.equal(source.includes("commitDockState"), false);
+assert.equal(source.includes("commitRuntimeState"), false);
 assert.equal(source.includes("setPresentationMode"), false);
 assert.equal(/adoptionPhase\s*=(?!=)/u.test(source), false,
     "FullscreenController delegates Adoption state changes");

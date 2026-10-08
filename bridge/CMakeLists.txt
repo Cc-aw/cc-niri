@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 include("${CMAKE_CURRENT_LIST_DIR}/../cmake/CCNiriToolchain.cmake")
 cc_niri_select_cxx_compiler()
-project(cc-scroll-dock-bridge VERSION 0.1.0 LANGUAGES CXX)
+project(cc-niri-bridge VERSION 0.1.0 LANGUAGES CXX)
 cc_niri_check_cxx_compiler()
 
 include(GNUInstallDirs)
@@ -15,21 +15,26 @@ include(CTest)
 add_subdirectory(../native/rust rust-core)
 include("${CMAKE_CURRENT_LIST_DIR}/../native/common/NativeCore.cmake")
 
-qt_add_executable(cc-scroll-dock-bridge
+qt_add_executable(cc-niri-bridge
     src/main.cpp
-    src/ScrollDockBridge.cpp
-    src/ScrollDockBridge.h
+    src/CCNiriBridge.cpp
+    src/CCNiriBridge.h
+    src/LegacyScrollDockAdaptor.cpp
+    src/LegacyScrollDockAdaptor.h
 )
 
-target_link_libraries(cc-scroll-dock-bridge PRIVATE Qt6::Core Qt6::DBus cc-niri-native-adapters)
+target_link_libraries(cc-niri-bridge PRIVATE Qt6::Core Qt6::DBus cc-niri-native-adapters)
 
-install(TARGETS cc-scroll-dock-bridge
+install(TARGETS cc-niri-bridge
     RUNTIME DESTINATION "${CMAKE_INSTALL_LIBEXECDIR}"
 )
 
+install(PROGRAMS compat/cc-scroll-dock-bridge
+    DESTINATION "${CMAKE_INSTALL_LIBEXECDIR}")
+
 if(BUILD_TESTING)
     qt_add_executable(cc-scroll-motion-plan-tests
-        tests/ScrollMotionPlanTest.cpp src/ScrollDockBridge.cpp src/ScrollDockBridge.h)
+        tests/ScrollMotionPlanTest.cpp src/CCNiriBridge.cpp src/CCNiriBridge.h)
     target_include_directories(cc-scroll-motion-plan-tests PRIVATE src)
     target_link_libraries(cc-scroll-motion-plan-tests PRIVATE Qt6::Core Qt6::DBus cc-niri-native-adapters)
     add_test(NAME scroll-motion-protocol COMMAND cc-scroll-motion-plan-tests)
@@ -50,9 +55,9 @@ if(BUILD_TESTING)
     add_test(NAME kwin-javascript-syntax COMMAND cc-niri-kwin-syntax-tests
         "${CMAKE_CURRENT_SOURCE_DIR}/../package/contents/code/main.js"
         "${CMAKE_CURRENT_SOURCE_DIR}/../effect/contents/code/main.js")
-    qt_add_executable(cc-scroll-dock-bridge-tests
-        tests/ScrollDockBridgeTest.cpp src/ScrollDockBridge.cpp src/ScrollDockBridge.h)
-    target_include_directories(cc-scroll-dock-bridge-tests PRIVATE src)
-    target_link_libraries(cc-scroll-dock-bridge-tests PRIVATE Qt6::Core Qt6::DBus cc-niri-native-adapters)
-    add_test(NAME workspace-persistence COMMAND cc-scroll-dock-bridge-tests)
+    qt_add_executable(cc-niri-bridge-tests
+        tests/CCNiriBridgeTest.cpp src/CCNiriBridge.cpp src/CCNiriBridge.h)
+    target_include_directories(cc-niri-bridge-tests PRIVATE src)
+    target_link_libraries(cc-niri-bridge-tests PRIVATE Qt6::Core Qt6::DBus cc-niri-native-adapters)
+    add_test(NAME workspace-persistence COMMAND cc-niri-bridge-tests)
 endif()

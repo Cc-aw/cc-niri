@@ -19,6 +19,7 @@ class RuntimeLogger {
     classify(message, requestedCategory) {
         if (requestedCategory) return requestedCategory;
         if (/^\[cc-adoption\]/.test(message)) return "adoption";
+        if (/^\[cc-bridge\]/.test(message)) return "bridge";
         if (/^\[cc-dock\]/.test(message)) return "dock";
         if (/^\[cc-presentation\]/.test(message)) return "presentation";
         if (/^\[cc-stability\].*EMERGENCY_RESTORE/.test(message)) return "recovery";

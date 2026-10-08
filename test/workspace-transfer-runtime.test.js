@@ -15,7 +15,7 @@ function check(r) {
 }
 {
     const r = createRuntime();
-    r.evaluate("mainScreenState.columns[4].widthMode = 'full'; mainScreenState.columns[4].persistentWide = true; recomputeLogicalLayout(); publishDockState('save-preference')");
+    r.evaluate("mainScreenState.columns[4].widthMode = 'full'; mainScreenState.columns[4].persistentWide = true; recomputeLogicalLayout(); publishRuntimeState('save-preference')");
     assert.equal(r.a[4].opacity, 0); assert.equal(r.a[4].minimized, true);
     const focus = r.workspace.activeWindow;
     r.move(r.a[4], ["B"]);

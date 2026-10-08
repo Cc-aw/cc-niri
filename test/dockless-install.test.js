@@ -26,9 +26,12 @@ if(command==='kwriteconfig6'){
 for (const name of ["gdbus", "cargo", "rustc", "node", "kpackagetool6", "kwriteconfig6", "kreadconfig6", "cmake", "find", "python3", "install", "kbuildsycoca6", "systemctl"])
     fs.writeFileSync(path.join(bin, name), mock, { mode: 0o755 });
 fs.mkdirSync(path.join(temp, "build/bridge"), { recursive: true });
-fs.writeFileSync(path.join(temp, "build/bridge/cc-scroll-dock-bridge"), mock, { mode: 0o755 });
+fs.writeFileSync(path.join(temp, "build/bridge/cc-niri-bridge"), mock, { mode: 0o755 });
 fs.writeFileSync(path.join(temp, "cc-niri"), mock, { mode: 0o755 });
 function run(args, dockSetting) {
+    const legacyUnit = path.join(home, ".config/systemd/user/cc-scroll-dock-bridge.service");
+    fs.mkdirSync(path.dirname(legacyUnit), { recursive: true });
+    fs.writeFileSync(legacyUnit, "old independent Bridge unit");
     fs.writeFileSync(log, "");
     fs.writeFileSync(config, JSON.stringify({ "Script-cc-niri-maximize/GapBottom": "60",
         ...(dockSetting === undefined ? {} : { "Script-cc-niri-maximize/EnableDockIntegration": dockSetting }) }));
@@ -37,6 +40,7 @@ function run(args, dockSetting) {
             INSTALL_LOG: log, INSTALL_CONFIG: config },
     });
     return { ...result, calls: fs.readFileSync(log, "utf8").trim().split("\n").filter(Boolean).map(line => JSON.parse(line)),
+        legacyUnitExists: fs.existsSync(legacyUnit),
         settings: JSON.parse(fs.readFileSync(config, "utf8")) };
 }
 function checkCore(result) {
@@ -48,11 +52,17 @@ function checkCore(result) {
     }
     for (const call of cmake.filter(call => call.includes("-S")))
         assert.ok(call.includes("-DCMAKE_CXX_COMPILER=/usr/bin/g++"), "optional installation preserves the toolchain guard");
-    const save = result.calls.findIndex(call => call[0] === "cc-scroll-dock-bridge" && call.includes("--save-current-state"));
+    const save = result.calls.findIndex(call => call[0] === "cc-niri-bridge" && call.includes("--save-current-state"));
     const stop = result.calls.findIndex(call => call[0] === "cc-niri" && call.includes("stop"));
     const install = result.calls.findIndex(call => call[0] === "python3");
     const start = result.calls.findIndex(call => call[0] === "cc-niri" && call.includes("start"));
     assert.ok(save >= 0 && save < stop && stop < install && install < start);
+    assert.equal(result.legacyUnitExists, false, "old independent unit is retired after saving and stopping");
+    const unitInstall = result.calls.findIndex(call => call[0] === "install" && call.some(arg => arg.endsWith("systemd/cc-niri-bridge.service")));
+    const bridgeStart = result.calls.findIndex(call => call[0] === "systemctl" && call.includes("enable") && call.includes("cc-niri-bridge.service"));
+    assert.ok(unitInstall > stop && bridgeStart > unitInstall && bridgeStart < start);
+    assert.equal(result.calls.some(call => call[0] === "systemctl" && call.includes("cc-scroll-dock-bridge.service")), false,
+        "installer starts one canonical unit, not two independent services");
     assert.equal(result.settings["Script-cc-niri-maximize/GapBottom"], "60");
     assert.ok(result.calls.some(call => call[0] === "kpackagetool6" && call.includes("--type=KWin/Script")));
     assert.ok(result.calls.some(call => call[0] === "kpackagetool6" && call.includes("--type=KWin/Effect")));
@@ -74,6 +84,7 @@ try {
     for (const args of [["--help"], ["--bad-option"]]) {
         const result = run(args); assert.equal(result.status, args[0] === "--help" ? 0 : 2);
         assert.deepEqual(result.calls, [], "help / rejected options cannot mutate the desktop");
+        assert.equal(result.legacyUnitExists, true);
     }
 } finally { fs.rmSync(temp, { recursive: true, force: true }); }
 console.log("PASS P7 installer: default core-only and explicit Dock paths, compiler selection, lifecycle order, existing Dock/settings preservation and no default Plasma restart");

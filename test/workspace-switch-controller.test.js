@@ -10,7 +10,7 @@ function fixture() {
     const mount = { stopped: false, refreshState() {},
         cancelPending() { events.push("cancel"); }, capture() { events.push(`capture:${state.activeWorkspaceId}`); },
         mountPrepared(desktop) { assert.equal(state.workspaceSwitching, true); events.push(`mount:${desktop.id}`); state.activeWorkspaceId = desktop.id; return true; },
-        commitDock() { events.push("dock"); }, pruneSnapshots() { events.push("prune"); } };
+        commitState() { events.push("dock"); }, pruneSnapshots() { events.push("prune"); } };
     const topology = new VirtualDesktopTopology({ getDesktops: () => desktops, getCurrentDesktop: () => current });
     const controller = new WorkspaceSwitchController({ appState: state, mount, topology,
         requestDesktop(desktop, screen) { assert.equal(screen, output); requests.push(desktop); },

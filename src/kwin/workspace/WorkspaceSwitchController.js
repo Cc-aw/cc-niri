@@ -104,7 +104,7 @@ class WorkspaceSwitchController {
         let committed = false;
         try {
             // Preparation can emit another native switch. Hydrate the final KDE
-            // authority before publishing one Dock generation for this transaction.
+            // authority before publishing one runtime generation for this transaction.
             for (let pass = 0; pass < 8; pass += 1) {
                 const desktop = this.topology.current(this.appState.targetOutput);
                 if (!this.topology.id(desktop)) throw new Error("workspace-current-desktop-unavailable");
@@ -113,7 +113,7 @@ class WorkspaceSwitchController {
                 if (!this.mount.mountPrepared(desktop, reason, focusedUuid)) return false;
                 if (!this.valid(epoch)) return false;
                 if (this.appState.activeWorkspaceId === this.topology.id(this.topology.current(this.appState.targetOutput))) {
-                    this.mount.commitDock(reason);
+                    this.mount.commitState(reason);
                     committed = true;
                     return true;
                 }

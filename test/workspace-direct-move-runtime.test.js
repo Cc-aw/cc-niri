@@ -30,7 +30,7 @@ for (const index of [0, 1, 4]) for (const full of [false, true]) for (const numb
     r.workspace.activeWindow = window;
     if (full) r.shortcuts.get("CCScrollToggleColumnFull")();
     r.state.columns.find(c => c.window === window).persistentWide = true;
-    r.evaluate("commitDockState('direct-move-preference')");
+    r.evaluate("commitRuntimeState('direct-move-preference')");
     const preference = snapshot(r, "A").columns.find(c => c.uuid === window.internalId);
     const membership = r.workspace.windowList().filter(w => w !== window).map(w => [w.internalId, Array.from(w.desktops, d => d.id)]);
     const generation = r.published.at(-1).generation, target = r.desktops[number - 1].id;

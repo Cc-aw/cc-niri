@@ -664,7 +664,7 @@ class WorkspaceMountController {
             this.unmount(false);
             this.hydrate(id, snapshot, focusedUuid);
             this.capture();
-            if (commit) this.commitDock(reason);
+            if (commit) this.commitState(reason);
             this.debug(`[cc-workspace] MOUNT id=${id} columns=${state.columns.length} reason=${reason}`);
             return true;
         } catch (error) {
@@ -828,7 +828,7 @@ class WorkspaceSwitchController {
         let committed = false;
         try {
             // Preparation can emit another native switch. Hydrate the final KDE
-            // authority before publishing one Dock generation for this transaction.
+            // authority before publishing one runtime generation for this transaction.
             for (let pass = 0; pass < 8; pass += 1) {
                 const desktop = this.topology.current(this.appState.targetOutput);
                 if (!this.topology.id(desktop)) throw new Error("workspace-current-desktop-unavailable");
@@ -837,7 +837,7 @@ class WorkspaceSwitchController {
                 if (!this.mount.mountPrepared(desktop, reason, focusedUuid)) return false;
                 if (!this.valid(epoch)) return false;
                 if (this.appState.activeWorkspaceId === this.topology.id(this.topology.current(this.appState.targetOutput))) {
-                    this.mount.commitDock(reason);
+                    this.mount.commitState(reason);
                     committed = true;
                     return true;
                 }
@@ -990,7 +990,7 @@ class WorkspaceTransferController {
                 if (this.canCommit() && !this.isProcessing()) this.adoption.onMembershipChanged(window, reason);
                 else this.adoption.begin(window, reason);
             }
-            if (!this.isProcessing() && this.canCommit()) this.commitDock(reason);
+            if (!this.isProcessing() && this.canCommit()) this.commitState(reason);
             return true;
         } catch (error) {
             this.stop();
@@ -1008,7 +1008,7 @@ class WorkspaceTransferController {
         this.snapshots.removeWindow(uuid);
     }
     commitClosed() {
-        if (!this.stopped && !this.isProcessing() && this.canCommit()) this.commitDock("workspace-window-closed");
+        if (!this.stopped && !this.isProcessing() && this.canCommit()) this.commitState("workspace-window-closed");
     }
     stop() { this.stopped = true; }
 }
@@ -2409,6 +2409,7 @@ class RuntimeLogger {
     classify(message, requestedCategory) {
         if (requestedCategory) return requestedCategory;
         if (/^\[cc-adoption\]/.test(message)) return "adoption";
+        if (/^\[cc-bridge\]/.test(message)) return "bridge";
         if (/^\[cc-dock\]/.test(message)) return "dock";
         if (/^\[cc-presentation\]/.test(message)) return "presentation";
         if (/^\[cc-stability\].*EMERGENCY_RESTORE/.test(message)) return "recovery";
@@ -2729,106 +2730,62 @@ class RuntimeLifecycle {
 }
 
 // Generated from src/kwin/runtime/ShortcutCatalog.js
+// Persistent action IDs and user bindings stay stable. Canonical IPC actions
+// have no default key; the legacy queue action keeps its existing F11 binding.
 function createShortcutCatalog(actions) {
-    return [
-        { name: "CCScrollWorkspacePrevious", description: "CC Scroll: Previous Workspace",
-            defaultSequence: "Meta+K", handler: actions.workspacePrevious },
-        { name: "CCScrollWorkspaceNext", description: "CC Scroll: Next Workspace",
-            defaultSequence: "Meta+J", handler: actions.workspaceNext },
+    const entry = (group, name, description, defaultSequence, handler) =>
+        ({ group, name, description, defaultSequence, handler });
+    const workspace = [
+        entry("Workspace", "CCScrollWorkspacePrevious", "CC Scroll: Previous Workspace", "Meta+K", actions.workspacePrevious),
+        entry("Workspace", "CCScrollWorkspaceNext", "CC Scroll: Next Workspace", "Meta+J", actions.workspaceNext),
         ...Array.from({ length: 9 }, (_, index) => {
             const number = index + 1;
-            return { name: `CCScrollWorkspace${number}`, description: `CC Scroll: Workspace ${number}`,
-                defaultSequence: `Meta+${number}`, handler: () => actions.workspaceFocus(number) };
+            return entry("Workspace", `CCScrollWorkspace${number}`, `CC Scroll: Workspace ${number}`,
+                `Meta+${number}`, () => actions.workspaceFocus(number));
         }),
-        { name: "CCScrollMoveColumnPreviousWorkspace", description: "CC Scroll: Move Column to Previous Workspace",
-            defaultSequence: "Meta+Shift+K", handler: actions.moveWorkspacePrevious },
-        { name: "CCScrollMoveColumnNextWorkspace", description: "CC Scroll: Move Column to Next Workspace",
-            defaultSequence: "Meta+Shift+J", handler: actions.moveWorkspaceNext },
-        ...Array.from({ length: 9 }, (_, index) => {
-            const number = index + 1;
-            return { name: `CCScrollMoveColumnWorkspace${number}`,
-                description: `CC Scroll: Move Column to Workspace ${number}`,
-                defaultSequence: `Meta+Ctrl+${number}`, handler: () => actions.moveWorkspaceNumber(number) };
-        }),
-        {
-            name: "CCScrollFocusPreviousColumn",
-            description: "CC Scroll: Focus Previous Column",
-            defaultSequence: "Meta+H",
-            handler: actions.focusPrevious,
-        },
-        {
-            name: "CCScrollFocusNextColumn",
-            description: "CC Scroll: Focus Next Column",
-            defaultSequence: "Meta+L",
-            handler: actions.focusNext,
-        },
-        {
-            name: "CCScrollCycleColumnWidth",
-            description: "CC Scroll: Cycle Column Width",
-            defaultSequence: "Meta+R",
-            handler: actions.cycleWidth,
-        },
-        {
-            name: "CCScrollToggleColumnFull",
-            description: "CC Scroll: Toggle Column Full Width",
-            defaultSequence: "Meta+F",
-            handler: actions.toggleFull,
-        },
-        {
-            name: "CCScrollToggleFocusWide",
-            description: "CC Scroll: Toggle Focus Wide",
-            defaultSequence: "Meta+Z",
-            handler: actions.toggleWide,
-        },
-        {
-            name: "CCScrollMoveColumnLeft",
-            description: "CC Scroll: Move Column Left",
-            defaultSequence: "Meta+Shift+H",
-            handler: actions.moveLeft,
-        },
-        {
-            name: "CCScrollMoveColumnRight",
-            description: "CC Scroll: Move Column Right",
-            defaultSequence: "Meta+Shift+L",
-            handler: actions.moveRight,
-        },
-        {
-            name: "CCScrollToggleFloating",
-            description: "CC Scroll: Toggle Floating",
-            defaultSequence: "Meta+Shift+Return",
-            handler: actions.toggleFloating,
-        },
-        {
-            name: "CCScrollToggleFloatingKeypad",
-            description: "CC Scroll: Toggle Floating Keypad Enter",
-            defaultSequence: "Meta+Shift+Enter",
-            handler: actions.toggleFloating,
-        },
-        {
-            name: "CCScrollPublishFocusRingState",
-            description: "CC Scroll: Publish Focus Ring Eligibility",
-            defaultSequence: "",
-            handler: actions.publishFocusRingState,
-        },
-        {
-            name: "CCScrollPublishDockState",
-            description: "CC Scroll: Publish Dock State",
-            defaultSequence: "",
-            handler: actions.publishDockState,
-        },
-        {
-            name: "CCScrollApplyDockCommand",
-            description: "CC Scroll: Apply Dock Command",
-            defaultSequence: "Meta+Ctrl+Alt+Shift+F11",
-            handler: actions.applyDockCommand,
-        },
-        {
-            name: "CCScrollEmergencyRestore",
-            description: "CC Scroll: Emergency Restore Parked Windows",
-            defaultSequence: "Meta+Ctrl+Alt+Shift+F12",
-            handler: actions.emergencyRestore,
-        },
     ];
+    const workspaceMove = [
+        entry("Column Move", "CCScrollMoveColumnPreviousWorkspace", "CC Scroll: Move Column to Previous Workspace", "Meta+Shift+K", actions.moveWorkspacePrevious),
+        entry("Column Move", "CCScrollMoveColumnNextWorkspace", "CC Scroll: Move Column to Next Workspace", "Meta+Shift+J", actions.moveWorkspaceNext),
+        ...Array.from({ length: 9 }, (_, index) => {
+            const number = index + 1;
+            return entry("Column Move", `CCScrollMoveColumnWorkspace${number}`, `CC Scroll: Move Column to Workspace ${number}`,
+                `Meta+Ctrl+${number}`, () => actions.moveWorkspaceNumber(number));
+        }),
+    ];
+    const focus = [
+        entry("Column Focus", "CCScrollFocusPreviousColumn", "CC Scroll: Focus Previous Column", "Meta+H", actions.focusPrevious),
+        entry("Column Focus", "CCScrollFocusNextColumn", "CC Scroll: Focus Next Column", "Meta+L", actions.focusNext),
+    ];
+    const width = [
+        entry("Column Width", "CCScrollCycleColumnWidth", "CC Scroll: Cycle Column Width", "Meta+R", actions.cycleWidth),
+        entry("Column Width", "CCScrollToggleColumnFull", "CC Scroll: Toggle Column Full Width", "Meta+F", actions.toggleFull),
+    ];
+    const presentation = [
+        entry("Presentation", "CCScrollToggleFocusWide", "CC Scroll: Toggle Focus Wide", "Meta+Z", actions.toggleWide),
+    ];
+    const reorder = [
+        entry("Column Move", "CCScrollMoveColumnLeft", "CC Scroll: Move Column Left", "Meta+Shift+H", actions.moveLeft),
+        entry("Column Move", "CCScrollMoveColumnRight", "CC Scroll: Move Column Right", "Meta+Shift+L", actions.moveRight),
+    ];
+    const floating = [
+        entry("Floating", "CCScrollToggleFloating", "CC Scroll: Toggle Floating", "Meta+Shift+Return", actions.toggleFloating),
+        entry("Floating", "CCScrollToggleFloatingKeypad", "CC Scroll: Toggle Floating Keypad Enter", "Meta+Shift+Enter", actions.toggleFloating),
+    ];
+    const runtime = [
+        entry("Debug", "CCScrollPublishFocusRingState", "CC Scroll: Publish Focus Ring Eligibility", "", actions.publishFocusRingState),
+        entry("Debug", "CCScrollPublishRuntimeState", "CC Scroll: Publish Runtime State", "", actions.publishRuntimeState),
+        entry("Debug", "CCScrollApplyRuntimeCommand", "CC Scroll: Apply Runtime Command", "", actions.applyRuntimeCommand),
+    ];
+    const compatibility = [
+        entry("Compatibility", "CCScrollPublishDockState", "CC Scroll: Publish Dock State", "", actions.publishRuntimeState),
+        entry("Compatibility", "CCScrollApplyDockCommand", "CC Scroll: Apply Dock Command", "Meta+Ctrl+Alt+Shift+F11", actions.applyRuntimeCommand),
+    ];
+    const recovery = [
+        entry("Debug", "CCScrollEmergencyRestore", "CC Scroll: Emergency Restore Parked Windows", "Meta+Ctrl+Alt+Shift+F12", actions.emergencyRestore),
+    ];
+    return [].concat(workspace, workspaceMove, focus, width, presentation, reorder,
+        floating, runtime, compatibility, recovery);
 }
 
 // Generated from src/kwin/runtime/ControllerComposition.js
@@ -3966,8 +3923,8 @@ class FullscreenController {
     }
 }
 
-// Generated from src/kwin/integration/DockGateway.js
-class DockGateway {
+// Generated from src/kwin/integration/RuntimeBridge.js
+class RuntimeBridge {
     constructor(options) {
         this.invoke = options.invoke;
         this.service = options.service;
@@ -4022,7 +3979,7 @@ class DockGateway {
             this.interfaceName,
             "PublishState",
             JSON.stringify(envelope),
-            accepted => this.debug(`[cc-dock] PUBLISH reason=${reason}` +
+            accepted => this.debug(`[cc-bridge] PUBLISH reason=${reason}` +
                 ` generation=${this.generationValue}` +
                 ` columns=${envelope.columns.length} accepted=${accepted}`)
         );
@@ -4076,7 +4033,7 @@ class DockGateway {
     }
 
     reject(command, reason) {
-        this.warn(`[cc-dock] REJECT reason=${reason}`);
+        this.warn(`[cc-bridge] REJECT reason=${reason}`);
         return this.publish(this.snapshotProvider(), `reject-${reason}`);
     }
 
@@ -4301,7 +4258,7 @@ class PresentationController {
         this.relayout = options.relayout;
         this.getActiveWindow = options.getActiveWindow;
         this.setActiveWindow = options.setActiveWindow;
-        this.commitDockState = options.commitDockState;
+        this.commitRuntimeState = options.commitRuntimeState;
         this.debug = options.debug;
     }
 
@@ -4439,7 +4396,7 @@ class PresentationController {
         }
         this.debug(`[cc-presentation] SET mode=${mode} uuid=${normalizedUuid}` +
             ` reason=${reason}`);
-        this.commitDockState(reason);
+        this.commitRuntimeState(reason);
         return true;
     }
 
@@ -5021,8 +4978,8 @@ class DockScrollController {
         this.stepMs = options.stepMs;
         this.clearPresentation = options.clearPresentation;
         this.normalPresentationMode = options.normalPresentationMode;
-        this.commitDockState = options.commitDockState;
-        this.publishDockState = options.publishDockState;
+        this.commitRuntimeState = options.commitRuntimeState;
+        this.publishRuntimeState = options.publishRuntimeState;
         this.focusIndex = options.focusIndex;
         this.transitionFocused = options.transitionFocused;
         this.setActiveWindow = options.setActiveWindow;
@@ -5131,9 +5088,9 @@ class DockScrollController {
         this.debug(`[cc-dock] SCROLL_COMPLETE token=${pending.token}` +
             ` index=${index} offset=${offset} caption=${column.window.caption}`);
         if (presentationChanged) {
-            this.commitDockState(`${pending.reason}-presentation`);
+            this.commitRuntimeState(`${pending.reason}-presentation`);
         } else {
-            this.publishDockState(pending.reason);
+            this.publishRuntimeState(pending.reason);
         }
         return true;
     }
@@ -5179,7 +5136,7 @@ class DockScrollController {
         if (appState.presentation.mode !== this.normalPresentationMode ||
                 (appState.viewport && appState.viewport.mode !== "pair")) {
             this.clearPresentation();
-            this.commitDockState(`${reason}-clear-presentation`);
+            this.commitRuntimeState(`${reason}-clear-presentation`);
         }
 
         const pending = {
@@ -5206,7 +5163,7 @@ class ReorderController {
     constructor(options) {
         this.getAppState = options.getAppState;
         this.normalizeUuid = options.normalizeUuid;
-        this.rejectDockCommand = options.rejectDockCommand;
+        this.rejectRuntimeCommand = options.rejectRuntimeCommand;
         this.cancelDockScroll = options.cancelDockScroll;
         this.getFocusedColumn = options.getFocusedColumn;
         this.reorderColumns = options.reorderColumns;
@@ -5214,7 +5171,7 @@ class ReorderController {
         this.ensureColumnVisible = options.ensureColumnVisible;
         this.relayout = options.relayout;
         this.getGeneration = options.getGeneration;
-        this.commitDockState = options.commitDockState;
+        this.commitRuntimeState = options.commitRuntimeState;
         this.getActiveWindow = options.getActiveWindow;
         this.indexOfWindow = options.indexOfWindow;
         this.focusIndex = options.focusIndex;
@@ -5223,9 +5180,9 @@ class ReorderController {
         this.debug = options.debug;
     }
 
-    applyDockCommand(command) {
+    applyRuntimeCommand(command) {
         if (!Array.isArray(command.order)) {
-            this.rejectDockCommand("invalid-column-order");
+            this.rejectRuntimeCommand("invalid-column-order");
             return false;
         }
         const appState = this.getAppState();
@@ -5237,7 +5194,7 @@ class ReorderController {
         if (requested.length !== current.length ||
                 requestedSet.size !== requested.length ||
                 requested.some(uuid => !uuid || !currentSet.has(uuid))) {
-            this.rejectDockCommand("invalid-column-set");
+            this.rejectRuntimeCommand("invalid-column-set");
             return false;
         }
 
@@ -5258,7 +5215,7 @@ class ReorderController {
         });
         this.debug(`[cc-dock] APPLY command=${command.commandId}` +
             ` generation=${this.getGeneration()} columns=${requested.length}`);
-        this.commitDockState("dock-reorder");
+        this.commitRuntimeState("dock-reorder");
         return true;
     }
 
@@ -5286,7 +5243,7 @@ class ReorderController {
         this.relayout(reason);
         this.debug(`[cc-scroll] MOVE column=${focusedColumn.id}` +
             ` from=${oldIndex} to=${nextIndex}`);
-        this.commitDockState(reason);
+        this.commitRuntimeState(reason);
         return true;
     }
 }
@@ -5323,9 +5280,9 @@ const ADOPTION_MANAGED = "managed";
 const ADOPTION_FLOATING = "floating";
 const ADOPTION_POLICY_FLOATING = "policy-floating";
 const ADOPTION_IGNORED = "ignored";
-const DOCK_BRIDGE_SERVICE = "org.cc.ScrollDockBridge";
-const DOCK_BRIDGE_PATH = "/ScrollDock";
-const DOCK_BRIDGE_INTERFACE = "org.cc.ScrollDockBridge1";
+const RUNTIME_BRIDGE_SERVICE = "org.cc.CCNiriBridge";
+const RUNTIME_BRIDGE_PATH = "/CCNiriBridge";
+const RUNTIME_BRIDGE_INTERFACE = "org.cc.CCNiriBridge1";
 
 const mainScreenState = {
     activeWorkspaceId: null,
@@ -5386,13 +5343,13 @@ const outputTopology = new OutputTopology({
 });
 const innerGap = runtimeConfig.primary.inner;
 let contextualWideCoordinator;
-const dockGateway = new DockGateway({
+const runtimeBridge = new RuntimeBridge({
     snapshotProtocol: 2,
     invoke: callDBus,
-    service: DOCK_BRIDGE_SERVICE,
-    path: DOCK_BRIDGE_PATH,
-    interfaceName: DOCK_BRIDGE_INTERFACE,
-    snapshotProvider: createDockSnapshot,
+    service: RUNTIME_BRIDGE_SERVICE,
+    path: RUNTIME_BRIDGE_PATH,
+    interfaceName: RUNTIME_BRIDGE_INTERFACE,
+    snapshotProvider: createRuntimeSnapshot,
     handlers: Object.assign({
         "emergency-restore": () => emergencyRestoreAllWindows("bridge-unload"),
         "finalize-contextual-wide": command =>
@@ -5423,7 +5380,7 @@ const startupLayout = new StartupLayout({
 });
 contextualWideCoordinator = new ContextualWideCoordinator({
     appState: mainScreenState,
-    gateway: dockGateway,
+    gateway: runtimeBridge,
     projectedRectForColumn,
     isFullyVisible: isFullyVisibleInSafeRect,
     sameRectNear,
@@ -5503,7 +5460,7 @@ const layoutTransaction = new LayoutTransaction({
 });
 const motionPlanCommitGate = new MotionPlanCommitGate({
     publish: (envelope, callback) =>
-        dockGateway.publishMotionPlan(envelope, callback),
+        runtimeBridge.publishMotionPlan(envelope, callback),
     currentEpoch: () => layoutTransaction.currentEpoch(),
     commit: (plan, context, activationWindow) => {
         // Native now has the legacy viewport marker (or fallback will park
@@ -5536,9 +5493,9 @@ const motionPlanCommitGate = new MotionPlanCommitGate({
 });
 
 const scrollPlanCommitGate = new ScrollPlanCommitGate({
-    publish: (envelope, callback) => dockGateway.publishMotionPlan(envelope, callback),
-    arm: (envelope, callback) => dockGateway.armScrollPlan(envelope, callback),
-    disarm: (epoch, callback) => dockGateway.disarmScrollPlan(epoch, callback),
+    publish: (envelope, callback) => runtimeBridge.publishMotionPlan(envelope, callback),
+    arm: (envelope, callback) => runtimeBridge.armScrollPlan(envelope, callback),
+    disarm: (epoch, callback) => runtimeBridge.disarmScrollPlan(epoch, callback),
     cancelDeferred: () => deferredScrollParking.cancel(),
     releaseDeferred: () => deferredScrollParking.release(),
     currentEpoch: () => layoutTransaction.currentEpoch(),
@@ -5555,10 +5512,10 @@ const deferredScrollParking = new DeferredScrollParking({
     stateFor,
     getState: window => states.get(window),
     isCurrent: column => mainScreenState.enabled && mainScreenState.columns.includes(column),
-    context: () => ({ sessionId: dockGateway.sessionId(), workspaceId: mainScreenState.activeWorkspaceId,
+    context: () => ({ sessionId: runtimeBridge.sessionId(), workspaceId: mainScreenState.activeWorkspaceId,
         targetOutput: mainScreenState.targetOutput ? mainScreenState.targetOutput.name : "" }),
-    status: callback => dockGateway.scrollMotionStatus(callback),
-    disarm: (epoch, callback) => dockGateway.disarmScrollPlan(epoch, callback),
+    status: callback => runtimeBridge.scrollMotionStatus(callback),
+    disarm: (epoch, callback) => runtimeBridge.disarmScrollPlan(epoch, callback),
     finalize: item => {
         geometryCommitter.commitGeometry(item.column, item.rect, "scroll-finalize");
         parkingManager.setVisibility(item.column.window, false);
@@ -5742,7 +5699,7 @@ const presentationController = new PresentationController({
     relayout,
     getActiveWindow: () => workspace.activeWindow,
     setActiveWindow: activateColumnWhenReady,
-    commitDockState,
+    commitRuntimeState,
     debug,
 });
 const dockScrollController = runtimeConfig.dockIntegration ? new DockScrollController({
@@ -5754,13 +5711,13 @@ const dockScrollController = runtimeConfig.dockIntegration ? new DockScrollContr
     isFullyVisible: isFullyVisibleInSafeRect,
     projectedRectForColumn,
     requestDeferred: (command, delayMs, callback) =>
-        dockGateway.requestDeferred(command, delayMs, callback),
-    getSessionId: () => dockGateway.sessionId(),
+        runtimeBridge.requestDeferred(command, delayMs, callback),
+    getSessionId: () => runtimeBridge.sessionId(),
     stepMs: DOCK_SCROLL_STEP_MS,
     clearPresentation: clearPresentationState,
     normalPresentationMode: PRESENTATION_NORMAL,
-    commitDockState,
-    publishDockState,
+    commitRuntimeState,
+    publishRuntimeState,
     focusIndex: index => columnStore.focusIndex(index),
     transitionFocused: relayoutFocusedColumnTransition,
     isActivationDeferred: () => contextualWideCoordinator.isActivationDeferred(),
@@ -5790,20 +5747,20 @@ const columnWidthController = new ColumnWidthController({
     recomputeLogicalLayout,
     ensureColumnVisible,
     relayout,
-    commitState: commitDockState,
+    commitState: commitRuntimeState,
 });
 const reorderController = new ReorderController({
     getAppState: () => mainScreenState,
     normalizeUuid: normalizeWindowUuid,
-    rejectDockCommand,
+    rejectRuntimeCommand,
     cancelDockScroll: cancelPendingDockScroll,
     getFocusedColumn: () => columnStore.focusedColumn(),
     reorderColumns: columns => columnStore.reorder(columns),
     recomputeLogicalLayout,
     ensureColumnVisible,
     relayout,
-    getGeneration: () => dockGateway.generation(),
-    commitDockState,
+    getGeneration: () => runtimeBridge.generation(),
+    commitRuntimeState,
     getActiveWindow: () => workspace.activeWindow,
     indexOfWindow: window => columnStore.indexOfWindow(window),
     focusIndex: index => columnStore.focusIndex(index),
@@ -5849,7 +5806,7 @@ workspaceMountController = new WorkspaceMountController({
     ensureVisible: ensureColumnVisible,
     activateColumn: activateColumnWhenReady,
     relayout,
-    commitDock: commitDockState,
+    commitState: commitRuntimeState,
     releaseWindow: (window, reason) => releaseParkingOwnership(window, reason, true),
     onFailure: error => {
         warn(`[cc-workspace] mount failed: ${error}`);
@@ -5901,7 +5858,7 @@ workspaceTransferController = new WorkspaceTransferController({
         relayout(reason);
     },
     canCommit: () => scrollLayoutInitialized && workspaceMountController.canUseActiveWorkspace(),
-    commitDock: commitDockState,
+    commitState: commitRuntimeState,
     onFailure: error => {
         warn(`[cc-workspace] transfer failed: ${error}`);
         emergencyRestoreAllWindows("workspace-transfer-failure");
@@ -5956,7 +5913,7 @@ dynamicWorkspaceController = new DynamicWorkspaceController({
     occupancy: workspaceOccupancy,
     createDesktop: typeof workspace.createDesktop === "function"
         ? (position, name) => workspace.createDesktop(position, name) : null,
-    ensureVerticalLayout: count => dockGateway.ensureVerticalDesktopLayout(
+    ensureVerticalLayout: count => runtimeBridge.ensureVerticalDesktopLayout(
         count, accepted => {
             if (!accepted) warn("[cc-workspace] vertical desktop layout not confirmed");
         }),
@@ -5967,7 +5924,7 @@ dynamicWorkspaceController = new DynamicWorkspaceController({
 });
 workspaceRecycleController = new WorkspaceRecycleController({
     enabled: runtimeConfig.dynamicTrailingWorkspace && runtimeConfig.autoRecycleWorkspaces,
-    transitionStatus: callback => dockGateway.workspaceTransitionStatus(callback),
+    transitionStatus: callback => runtimeBridge.workspaceTransitionStatus(callback),
     isReady: () => scrollLayoutInitialized && workspaceMountController.canUseActiveWorkspace() &&
         !workspaceTransferController.isProcessing() && dynamicWorkspaceController.pendingTopology === null,
     getDesktopIds: () => virtualDesktopTopology.ordered().map(desktop => virtualDesktopTopology.id(desktop)),
@@ -5981,7 +5938,7 @@ workspaceRecycleController = new WorkspaceRecycleController({
     } : null,
     onRemoved: id => {
         workspaceSnapshots.remove(id);
-        commitDockState("workspace-recycle");
+        commitRuntimeState("workspace-recycle");
         dynamicWorkspaceController.request();
     },
     ensureVerticalLayout: count => dynamicWorkspaceController.ensureVerticalLayout(count),
@@ -6023,12 +5980,12 @@ const controllerComposition = new ControllerComposition(Object.assign({
     fullscreen: fullscreenController,
     presentation: presentationController,
     columnWidth: columnWidthController,
-    dockGateway,
+    runtimeBridge,
     reorder: reorderController,
 }, dockScrollController ? { dockScroll: dockScrollController } : {}), [
     "focusRing", "parking", "geometry", "invariants", "transactions", "recovery",
     "adoption", "floating", "output", "fullscreen", "presentation", "columnWidth",
-    "dockGateway", "reorder", "workspaceMount", "workspaceSwitch", "workspaceTransfer", "workspaceMove", "dynamicWorkspace", "workspaceRecycle",
+    "runtimeBridge", "reorder", "workspaceMount", "workspaceSwitch", "workspaceTransfer", "workspaceMove", "dynamicWorkspace", "workspaceRecycle",
 ]);
 
 function debug(message) {
@@ -6043,7 +6000,7 @@ function normalizeWindowUuid(value) {
     return String(value || "").toLowerCase().replace(/^\{/, "").replace(/\}$/, "");
 }
 
-function createDockSnapshot() {
+function createRuntimeSnapshot() {
     const focusedColumn = mainScreenState.columns[mainScreenState.focusedColumnIndex] || null;
     const wideColumn = contextualViewport.column();
     const anchorColumn = mainScreenState.columns.reduce((anchor, column) =>
@@ -6075,20 +6032,20 @@ function createDockSnapshot() {
     });
 }
 
-function publishDockState(reason) {
+function publishRuntimeState(reason) {
     focusRingController.publish();
     if (workspaceTransferController && workspaceTransferController.isProcessing()) return null;
-    return dockGateway.publish(createDockSnapshot(), reason);
+    return runtimeBridge.publish(createRuntimeSnapshot(), reason);
 }
 
-function commitDockState(reason) {
+function commitRuntimeState(reason) {
     focusRingController.publish();
     if (workspaceTransferController && workspaceTransferController.isProcessing()) return null;
-    return dockGateway.commit(createDockSnapshot(), reason);
+    return runtimeBridge.commit(createRuntimeSnapshot(), reason);
 }
 
-function rejectDockCommand(reason) {
-    return dockGateway.reject(null, reason);
+function rejectRuntimeCommand(reason) {
+    return runtimeBridge.reject(null, reason);
 }
 
 function handleDockPresentationCommand(command) {
@@ -6098,7 +6055,7 @@ function handleDockPresentationCommand(command) {
         normalizeWindowUuid(item.window.internalId) === windowUuid);
     if (!column || column.window.output !== mainScreenState.targetOutput ||
             !isPresentationMode(mode)) {
-        rejectDockCommand("invalid-presentation-target");
+        rejectRuntimeCommand("invalid-presentation-target");
         return false;
     }
     return setPresentationMode(windowUuid, mode, "dock-presentation");
@@ -6110,14 +6067,14 @@ function handleDockFocusCommand(command) {
         normalizeWindowUuid(item.window.internalId) === windowUuid);
     const column = index >= 0 ? mainScreenState.columns[index] : null;
     if (!column || column.window.output !== mainScreenState.targetOutput) {
-        rejectDockCommand("invalid-focus-target");
+        rejectRuntimeCommand("invalid-focus-target");
         return false;
     }
     return beginDockScroll(column, "dock-focus-right");
 }
 
 function handleDockReorderCommand(command) {
-    return reorderController.applyDockCommand(command);
+    return reorderController.applyRuntimeCommand(command);
 }
 
 function runWorkspaceAction(action) {
@@ -6125,8 +6082,8 @@ function runWorkspaceAction(action) {
     return action();
 }
 
-function applyPendingDockCommand() {
-    return dockGateway.takePendingCommand();
+function applyPendingRuntimeCommand() {
+    return runtimeBridge.takePendingCommand();
 }
 
 function rectCopy(rect) {
@@ -6415,7 +6372,7 @@ function relayoutImpl(reason, scrollOffsets, widthTransition) {
             motionPlanCommitGate.cancel();
             deferredScrollParking.pause();
             // Hydration installs new UUID membership before Bridge validates the plan.
-            if (reason === "workspace-mount") commitDockState(reason);
+            if (reason === "workspace-mount") commitRuntimeState(reason);
             scrollPlanCommitGate.schedule(plan, envelope, { wideExitColumn });
             return;
         }
@@ -6653,7 +6610,7 @@ function removeColumn(window, reason, activateSuccessor = true) {
     if (!workspaceMountController.canUseActiveWorkspace()) return;
     if (!mainScreenState.columns.length) {
         mainScreenState.scrollOffsetX = 0;
-        commitDockState(reason);
+        commitRuntimeState(reason);
         return;
     }
 
@@ -6683,7 +6640,7 @@ function removeColumn(window, reason, activateSuccessor = true) {
         ` index=${index} focused=${removedFocusedColumn}` +
         ` next=${nextFocusedColumn ? nextFocusedColumn.id : "<none>"}` +
         ` reason=${reason}`);
-    commitDockState(reason);
+    commitRuntimeState(reason);
 }
 
 function initializeScrollLayout(previousState) {
@@ -6749,7 +6706,7 @@ function adoptNewWindowAsColumn(window, reason, focusNew = true) {
     });
     debug(`[cc-scroll] ADOPT_NEW index=${insertionIndex}` +
         ` focused=${focusNew} caption=${window.caption}`);
-    commitDockState(reason);
+    commitRuntimeState(reason);
     return true;
 }
 
@@ -6834,8 +6791,8 @@ function onWindowActivatedForScrollLayout(window) {
         true
     );
     debug(`[cc-scroll] FOCUS_ACTIVE index=${index} caption=${window.caption}`);
-    if (presentationChanged) commitDockState("focus-selected-presentation");
-    else publishDockState("window-activated");
+    if (presentationChanged) commitRuntimeState("focus-selected-presentation");
+    else publishRuntimeState("window-activated");
 }
 
 function focusRelativeColumn(delta) {
@@ -6858,7 +6815,7 @@ function focusRelativeColumn(delta) {
             newScrollOffsetX: offset,
         });
         activateColumnWhenReady(focused.window);
-        commitDockState("directional-focused-to-wide");
+        commitRuntimeState("directional-focused-to-wide");
         return;
     }
     contextualViewport.cancelReveal();
@@ -6887,10 +6844,10 @@ function focusRelativeColumn(delta) {
     activateColumnWhenReady(column.window);
     debug(`[cc-scroll] FOCUS from=${oldIndex} to=${nextIndex}`);
     if (presentationChanged) {
-        commitDockState(delta < 0 ? "focus-previous-presentation" :
+        commitRuntimeState(delta < 0 ? "focus-previous-presentation" :
             "focus-next-presentation");
     } else {
-        publishDockState(delta < 0 ? "focus-previous" : "focus-next");
+        publishRuntimeState(delta < 0 ? "focus-previous" : "focus-next");
     }
 }
 
@@ -7366,8 +7323,8 @@ const shortcuts = createShortcutCatalog({
     moveRight: () => runWorkspaceAction(() => moveFocusedColumn(1)),
     toggleFloating: () => runWorkspaceAction(() => toggleFloating(workspace.activeWindow)),
     publishFocusRingState: () => focusRingController.publish(true),
-    publishDockState: () => publishDockState("bridge-request"),
-    applyDockCommand: applyPendingDockCommand,
+    publishRuntimeState: () => publishRuntimeState("bridge-request"),
+    applyRuntimeCommand: applyPendingRuntimeCommand,
     emergencyRestore: () => emergencyRestoreAllWindows("external-unload"),
 });
 
@@ -7403,7 +7360,7 @@ const app = new CCNiri({
         },
         connectManagedGeometry,
         initializeScrollLayout,
-        readPreviousState: callback => dockGateway.readPreviousState(callback),
+        readPreviousState: callback => runtimeBridge.readPreviousState(callback),
         setTimer: setRuntimeTimer,
         clearTimer: clearRuntimeTimer,
         markInitialized: value => {
@@ -7415,7 +7372,7 @@ const app = new CCNiri({
         },
         registerShortcut,
         shortcuts,
-        commitInitialState: () => commitDockState("script-start"),
+        commitInitialState: () => commitRuntimeState("script-start"),
     },
     onStarted: () => {
         focusRingController.start();

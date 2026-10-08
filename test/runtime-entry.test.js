@@ -22,12 +22,21 @@ const actions = {
     moveRight: () => calls.push("moveRight"),
     toggleFloating: () => calls.push("toggleFloating"),
     publishFocusRingState: () => calls.push("publishFocusRingState"),
-    publishDockState: () => calls.push("publishDockState"),
-    applyDockCommand: () => calls.push("applyDockCommand"),
+    publishRuntimeState: () => calls.push("publishRuntimeState"),
+    applyRuntimeCommand: () => calls.push("applyRuntimeCommand"),
     emergencyRestore: () => calls.push("emergencyRestore"),
 };
 const catalog = createShortcutCatalog(actions);
-assert.equal(catalog.length, 35);
+assert.equal(new Set(catalog.map(item => item.name)).size, catalog.length);
+assert.ok(catalog.every(item => item.group));
+for (const [canonical, legacy] of [["CCScrollPublishRuntimeState", "CCScrollPublishDockState"],
+    ["CCScrollApplyRuntimeCommand", "CCScrollApplyDockCommand"]]) {
+    const current = catalog.find(item => item.name === canonical);
+    const old = catalog.find(item => item.name === legacy);
+    assert.equal(current.handler, old.handler, "legacy IPC actions forward to the same handler");
+    assert.equal(current.defaultSequence, "", "new IPC names cannot steal an existing user binding");
+}
+assert.equal(catalog.length, 37);
 assert.deepEqual(catalog.map(item => item.defaultSequence), [
     "Meta+K", "Meta+J",
     ...Array.from({ length: 9 }, (_, index) => `Meta+${index + 1}`),
@@ -44,6 +53,8 @@ assert.deepEqual(catalog.map(item => item.defaultSequence), [
     "Meta+Shift+Enter",
     "",
     "",
+    "",
+    "",
     "Meta+Ctrl+Alt+Shift+F11",
     "Meta+Ctrl+Alt+Shift+F12",
 ]);
@@ -52,8 +63,8 @@ assert.deepEqual(calls, [
     "workspacePrevious", "workspaceNext", ...Array.from({ length: 9 }, (_, index) => `workspaceFocus:${index + 1}`),
     "moveWorkspacePrevious", "moveWorkspaceNext", ...Array.from({ length: 9 }, (_, index) => `moveWorkspaceNumber:${index + 1}`),
     "focusPrevious", "focusNext", "cycleWidth", "toggleFull", "toggleWide", "moveLeft", "moveRight",
-    "toggleFloating", "toggleFloating", "publishFocusRingState", "publishDockState",
-    "applyDockCommand", "emergencyRestore",
+    "toggleFloating", "toggleFloating", "publishFocusRingState", "publishRuntimeState",
+    "applyRuntimeCommand", "publishRuntimeState", "applyRuntimeCommand", "emergencyRestore",
 ]);
 
 function signal() {

@@ -206,3 +206,17 @@ P7 布局 / 配置 UI 部署、安装哈希、Native 字节与原设置 / 面板
 早期未通过的焦点 / restart / 临时客户端接管夹具及最终修正见 [P7 记录](CORE_UX_P7_RESULTS.md)，生产 policy 没有因测试改变。用户动画观感与长期 Dockless 日常 smoke 待反馈；受控实机不代表这些人工与长期项已通过。
 
 最终门禁 `/tmp/cc-niri-core-ux-p7-native-final.log`，部署 `/tmp/cc-niri-core-ux-p7-deploy.log`，实机 `/tmp/cc-niri-core-ux-p7-live-complete.log`，证据在备份下 `p7-live-complete/`；备份与仅 P7 回滚 `/tmp/cc-niri-redeploy-20261007-xkjiy97y/rollback-p7.py` 保留当前布局、KDE 配置与 Native。本轮未提交 Git；P8 与分数列宽延期保持。
+
+2026-10-08 用户确认“p7没问题”：P7 用户实机 / 日常 smoke 验收通过，进入 P8；不扩大为 P8 或性能验收。
+
+## 2026-10-08 Core UX P8 Bridge 命名与清理
+
+通用 C++ `CCNiriBridge` / JS `RuntimeBridge`、`cc-niri-bridge` 程序 / unit 与 `org.cc.CCNiriBridge` / `/CCNiriBridge` / `org.cc.CCNiriBridge1` 已部署。旧 D-Bus adaptor、systemd Alias、可执行 shim 和队列快捷键仅转发到同一状态 / 队列 / session，当前布局、Clip 与可选 Plasmoid 使用 canonical 端点。原快照协议 / 状态路径、35 个用户 action ID / 默认绑定、Rust policy / FFI / ABI 和动画参数保持；快捷键按功能分组，两个新 IPC action 默认无绑定。安装先保存旧 live 数据再切换，默认不安装 Dock / 不重启 Plasma。
+
+99 JS、Rust fmt / locked clippy / 31 单测、Bridge 16 / Clip 15 / Ring 22 CTest、5 隔离 D-Bus（含新旧共享 authority / queue / signals、旧动画协议、升级 fallback / duplicate rejection）、Plasmoid / Qt JS / 生产边界通过。Core Debug / Release 各 11、umbrella Debug 26 与 Golden differential、无测试生产 Bridge / 两插件构建 / 无 reference target、GNU 16 接受 / 非 GNU / GCC 15 / 17 / 其他 C++ 路径拒绝通过。未额外运行伪 Rust / Cargo 版本 configure 拒绝矩阵，本轮工具链策略没有改动。
+
+配套安装 / staged 字节、新旧服务同一 Id / MainPID / D-Bus owner、用户设置 / 面板 / membership / 偏好核验通过。UTC 09:10:56–09:11:29 无 Plasma / Dock 受控实机通过 canonical / legacy unit 重启重连、H/L、R/F、Wide、Floating、J/K、数字 / 相对移动、restart persistence、Rust Ring / 副屏隔离与 generic emergency。临时窗口关闭，原布局、焦点、拓扑 / 输出 / 设置、Native 字节与面板恢复核对通过；KWin PID 2050 保持，无新增 invariant / fail-safe / JS 错误 / completion timeout / Rust panic。P8 用户视觉 / 日常 smoke 待反馈，未测 FPS / GPU / 长期压力。
+
+详情见 [P8 记录](CORE_UX_P8_RESULTS.md)。门禁 `/tmp/cc-niri-core-ux-p8-native.log`，部署 / 实机 `/tmp/cc-niri-core-ux-p8-{deploy,live}.log`；证据与仅 P8 回滚 `/tmp/cc-niri-redeploy-20261007-8hid5usc/rollback-p8.py` 保留当前持久布局、KDE 设置与面板。本轮未提交 Git；Core UX 其余专项与总日常验收仍按设计 DOD，分数列宽继续延期。
+
+2026-10-08 用户反馈“我测试没问题 帮我提交了吧”：P8 用户实机 / 日常 smoke 验收通过。此前待反馈为部署历史，性能与长期压力未测限制保持。提交按依赖整理为已验收 Core 基线（P3 Full 修复与 P4–P6 共享事务）、P7 Dockless、P8 Bridge 兼容迁移；这些提交是当前整理，不伪造历史阶段提交。

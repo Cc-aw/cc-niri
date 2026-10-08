@@ -66,7 +66,7 @@ private:
 
 private Q_SLOTS:
     void onMotionPlanChanged(const QString &json);
-    void onDockStateChanged(const QString &json);
+    void onRuntimeStateChanged(const QString &json);
     void observeScrollPlan(const QJsonObject &plan);
     void onMotionParked(const QString &json);
 
@@ -113,7 +113,7 @@ private:
     bool m_frameEventsTruncated = false;
 
     CcNiri::NativeScrollPlanSequence m_scrollPlanObserver;
-    bool m_receivedDockStateSignal = false;
+    bool m_receivedRuntimeStateSignal = false;
     QSet<EffectWindow *> m_activeWindows;
     QSet<EffectWindow *> m_motionPlanWindows;
     QSet<QString> m_loggedDeviceClips;

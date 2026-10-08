@@ -42,7 +42,7 @@ const controllerSource = mainSource.slice(
 assert.ok(controllerSource.includes("adoptionAttempts += 1"));
 assert.ok(controllerSource.includes("this.adoptWindow(window, reason, true)"),
     "a runtime window is inserted beside the focused column exactly once");
-assert.equal(controllerSource.includes("commitDockState"), false,
+assert.equal(controllerSource.includes("commitRuntimeState"), false,
     "AdoptionController does not publish Dock state directly");
 assert.equal(controllerSource.includes("setPresentationMode"), false,
     "AdoptionController does not own Presentation state");

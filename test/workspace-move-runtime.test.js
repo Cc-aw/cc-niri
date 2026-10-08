@@ -33,7 +33,7 @@ for (const index of [0, 1, 4]) for (const full of [false, true]) {
     r.workspace.activeWindow = window;
     if (full) r.shortcuts.get("CCScrollToggleColumnFull")();
     column(r, window).persistentWide = true;
-    r.evaluate("commitDockState('fixture-width')");
+    r.evaluate("commitRuntimeState('fixture-width')");
     const preference = snapshot(r, "A").columns.find(c => c.uuid === window.internalId);
     const expectedSuccessor = r.a[index === 4 ? 3 : index + 1].internalId;
     const generation = r.published.at(-1).generation;

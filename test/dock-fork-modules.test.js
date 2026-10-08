@@ -25,7 +25,7 @@ const cmake = fs.readFileSync(
 assert.match(main, /TaskManagerApplet\.DockController/);
 assert.match(main, /property alias dockController: ccDockController/);
 for (const protocolDetail of [
-    "org.cc.ScrollDockBridge",
+    "org.cc.CCNiriBridge",
     "JSON.parse",
     "set-column-order",
     "set-presentation-mode",
@@ -39,7 +39,7 @@ for (const protocolDetail of [
 assert.match(state, /function parse\(json\)/);
 assert.match(state, /property string sessionId/);
 assert.match(state, /property int generation/);
-assert.match(bridge, /org\.cc\.ScrollDockBridge/);
+assert.match(bridge, /org\.cc\.CCNiriBridge/);
 assert.match(bridge, /DBus\.SignalWatcher/);
 assert.match(order, /tasksModel\.move\(currentRow, targetRow\)/);
 assert.match(order, /type: "set-column-order"/);
@@ -58,7 +58,7 @@ assert.equal(mouse.includes("tasks.dockUserReorderEnabled"), false,
     "drag movement cannot depend on the removed pre-Phase-10 property");
 assert.match(menu, /tasksRoot\.dockController\.requestPresentationMode/);
 for (const source of [task, mouse, menu]) {
-    assert.equal(source.includes("org.cc.ScrollDockBridge"), false);
+    assert.equal(source.includes("org.cc.CCNiriBridge"), false);
 }
 
 for (const component of [

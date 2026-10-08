@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+# Legacy executable entry; never start a second implementation.
+exec "$(dirname -- "$0")/cc-niri-bridge" "$@"

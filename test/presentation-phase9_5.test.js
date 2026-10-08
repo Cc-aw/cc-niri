@@ -58,10 +58,10 @@ const mainSource = fs.readFileSync(
 const effectSource = fs.readFileSync(
     path.join(__dirname, "../effect/contents/code/main.js"), "utf8"
 );
-assert.ok(mainSource.includes('name: "CCScrollCycleColumnWidth"'),
+assert.ok(mainSource.includes('"CCScrollCycleColumnWidth"'),
     "Meta+R now controls persistent column width, rather than the retired presentation action");
 assert.ok(!mainSource.includes('"Meta+W"'));
-assert.ok(mainSource.includes('name: "CCScrollToggleColumnFull"'),
+assert.ok(mainSource.includes('"CCScrollToggleColumnFull"'),
     "Meta+F now toggles persistent Full, rather than the retired presentation action");
 assert.ok(mainSource.includes('"Meta+Z"'),
     "Focus Wide has the requested Meta+Z toggle");

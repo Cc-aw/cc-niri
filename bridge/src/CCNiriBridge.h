@@ -6,13 +6,13 @@
 #include <QString>
 #include "../../src/protocol/ViewportScrollPlan.h"
 
-class ScrollDockBridge final : public QObject
+class CCNiriBridge final : public QObject
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "org.cc.ScrollDockBridge1")
+    Q_CLASSINFO("D-Bus Interface", "org.cc.CCNiriBridge1")
 
 public:
-    explicit ScrollDockBridge(QObject *parent = nullptr, const QString &statePath = QString());
+    explicit CCNiriBridge(QObject *parent = nullptr, const QString &statePath = QString());
     bool lastSaveSucceeded() const { return m_lastSaveSucceeded; }
 
 public Q_SLOTS:

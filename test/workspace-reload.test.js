@@ -35,9 +35,9 @@ function runtime(currentIndex, specifications) {
     return { evaluate, state: evaluate("mainScreenState"), switchTo(index) { const previous = current; current = desktops[index]; workspace.currentDesktopChanged.emit(previous, current, output); } };
 }
 const first = runtime(0, [["a0", 0], ["a1", 0], ["a2", 0], ["b0", 1], ["b1", 1]]);
-first.evaluate("columnStore.reorder([mainScreenState.columns[2], mainScreenState.columns[0], mainScreenState.columns[1]]); mainScreenState.columns[0].persistentWide = true; mainScreenState.columns[0].widthMode = 'full'; recomputeLogicalLayout(); mainScreenState.scrollOffsetX = 200; publishDockState('save-a')");
+first.evaluate("columnStore.reorder([mainScreenState.columns[2], mainScreenState.columns[0], mainScreenState.columns[1]]); mainScreenState.columns[0].persistentWide = true; mainScreenState.columns[0].widthMode = 'full'; recomputeLogicalLayout(); mainScreenState.scrollOffsetX = 200; publishRuntimeState('save-a')");
 first.switchTo(1);
-first.evaluate("columnStore.reorder([mainScreenState.columns[1], mainScreenState.columns[0]]); mainScreenState.columns[0].persistentWide = true; columnStore.focusIndex(0); publishDockState('save-b')");
+first.evaluate("columnStore.reorder([mainScreenState.columns[1], mainScreenState.columns[0]]); mainScreenState.columns[0].persistentWide = true; columnStore.focusIndex(0); publishRuntimeState('save-b')");
 const persisted = JSON.parse(saved);
 assert.equal(persisted.protocol, 2); assert.equal(persisted.workspaceId, "B");
 assert.deepEqual(persisted.workspaces.find(w => w.id === "A").columns.map(c => c.uuid), ["a2", "a0", "a1"]);

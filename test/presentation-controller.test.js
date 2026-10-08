@@ -77,7 +77,7 @@ function fixture(overrides = {}) {
             activeWindow = target;
             calls.push(["activate", target]);
         },
-        commitDockState: reason => calls.push(["commit", reason]),
+        commitRuntimeState: reason => calls.push(["commit", reason]),
         debug: message => calls.push(["debug", message]),
         ...overrides.options,
     };

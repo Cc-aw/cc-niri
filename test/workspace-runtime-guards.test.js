@@ -105,7 +105,7 @@ Object.assign(context, {
     isFullyVisibleInSafeRect: () => false, normalizeWindowUuid: () => "sticky-uuid",
     states, ADOPTION_UNTRACKED: "untracked", ADOPTION_FLOATING: "floating",
     adoptionController: { transition: (window, state, phase) => { state.adoptionPhase = phase; } },
-    commitDockState: () => {},
+    commitRuntimeState: () => {},
     columnStore: { focusedColumn: () => appState.columns[0], removeWindow: () => {
         appState.columns = []; appState.focusedColumnIndex = -1;
     } },

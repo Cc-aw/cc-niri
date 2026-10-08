@@ -14,8 +14,8 @@ class DockScrollController {
         this.stepMs = options.stepMs;
         this.clearPresentation = options.clearPresentation;
         this.normalPresentationMode = options.normalPresentationMode;
-        this.commitDockState = options.commitDockState;
-        this.publishDockState = options.publishDockState;
+        this.commitRuntimeState = options.commitRuntimeState;
+        this.publishRuntimeState = options.publishRuntimeState;
         this.focusIndex = options.focusIndex;
         this.transitionFocused = options.transitionFocused;
         this.setActiveWindow = options.setActiveWindow;
@@ -124,9 +124,9 @@ class DockScrollController {
         this.debug(`[cc-dock] SCROLL_COMPLETE token=${pending.token}` +
             ` index=${index} offset=${offset} caption=${column.window.caption}`);
         if (presentationChanged) {
-            this.commitDockState(`${pending.reason}-presentation`);
+            this.commitRuntimeState(`${pending.reason}-presentation`);
         } else {
-            this.publishDockState(pending.reason);
+            this.publishRuntimeState(pending.reason);
         }
         return true;
     }
@@ -172,7 +172,7 @@ class DockScrollController {
         if (appState.presentation.mode !== this.normalPresentationMode ||
                 (appState.viewport && appState.viewport.mode !== "pair")) {
             this.clearPresentation();
-            this.commitDockState(`${reason}-clear-presentation`);
+            this.commitRuntimeState(`${reason}-clear-presentation`);
         }
 
         const pending = {

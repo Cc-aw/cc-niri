@@ -30,7 +30,9 @@
 
 安装器无需 root，默认编译并安装 KWin Script、动画与裁剪 Effect 和 D-Bus Bridge，重载 KWin 组件。默认不安装 Dock 或重启 Plasma Shell，保留已安装 Dock 及已有集成设置。
 
-需要可选的 `CC Scroll Tasks` 时使用 `./install.sh --with-dock`，同时安装 Dock、启用集成并重启 Plasma Shell。Bridge 始终负责持久化、动画消息和恢复；键盘操作、Focus Ring 与启动恢复独立于 Dock。Bridge 的现有服务名与协议保留，命名清理属于后续 P8。
+需要可选的 `CC Scroll Tasks` 时使用 `./install.sh --with-dock`，同时安装 Dock、启用集成并重启 Plasma Shell。CC-Niri Bridge 始终负责持久化、动画消息和恢复；键盘操作、Focus Ring 与启动恢复独立于 Dock。
+
+P8 通用服务为 `cc-niri-bridge.service`，程序为 `cc-niri-bridge`，D-Bus 使用 `org.cc.CCNiriBridge` / `/CCNiriBridge` / `org.cc.CCNiriBridge1`。旧服务名是同一 systemd unit 的别名，旧 D-Bus 端点和队列快捷键继续转发到同一实例；已安装 Dock 可继续连接。快照协议与 `cc-niri/workspaces.json` 路径保持，升级先保存旧服务数据再切换。验证与回滚见 [P8 记录](test/CORE_UX_P8_RESULTS.md)。
 
 日常控制无需重新编译或重启 Plasma Shell：
 

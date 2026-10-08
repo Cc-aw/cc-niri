@@ -94,7 +94,7 @@ if ${WITH_DOCK}; then
 fi
 
 # Preserve protocol 1/2 data before stopping the old Bridge during an upgrade.
-"${BRIDGE_BUILD_DIR}/cc-scroll-dock-bridge" --save-current-state
+"${BRIDGE_BUILD_DIR}/cc-niri-bridge" --save-current-state
 "${SCRIPT_DIR}/cc-niri" stop
 python3 "${SCRIPT_DIR}/tools/install-native-clip.py" \
     "${NATIVE_CLIP_BUILD_DIR}" "${HOME}/.local"
@@ -109,12 +109,14 @@ fi
 install -Dm755 "${SCRIPT_DIR}/cc-niri" "${HOME}/.local/bin/cc-niri"
 command -v kbuildsycoca6 >/dev/null && kbuildsycoca6 --noincremental >/dev/null
 
+# Retire the independent old unit before enabling its canonical service alias.
+rm -f -- "${HOME}/.config/systemd/user/cc-scroll-dock-bridge.service"
 install -Dm644 \
-    "${BRIDGE_DIR}/systemd/cc-scroll-dock-bridge.service" \
-    "${HOME}/.config/systemd/user/cc-scroll-dock-bridge.service"
+    "${BRIDGE_DIR}/systemd/cc-niri-bridge.service" \
+    "${HOME}/.config/systemd/user/cc-niri-bridge.service"
 systemctl --user daemon-reload
-systemctl --user enable --now cc-scroll-dock-bridge.service
-systemctl --user restart cc-scroll-dock-bridge.service
+systemctl --user enable --now cc-niri-bridge.service
+systemctl --user restart cc-niri-bridge.service
 
 
 if kpackagetool6 --type=KWin/Script --list | grep -Fxq "${PLUGIN_ID}"; then

@@ -1,6 +1,6 @@
 "use strict";
 
-class DockGateway {
+class RuntimeBridge {
     constructor(options) {
         this.invoke = options.invoke;
         this.service = options.service;
@@ -55,7 +55,7 @@ class DockGateway {
             this.interfaceName,
             "PublishState",
             JSON.stringify(envelope),
-            accepted => this.debug(`[cc-dock] PUBLISH reason=${reason}` +
+            accepted => this.debug(`[cc-bridge] PUBLISH reason=${reason}` +
                 ` generation=${this.generationValue}` +
                 ` columns=${envelope.columns.length} accepted=${accepted}`)
         );
@@ -109,7 +109,7 @@ class DockGateway {
     }
 
     reject(command, reason) {
-        this.warn(`[cc-dock] REJECT reason=${reason}`);
+        this.warn(`[cc-bridge] REJECT reason=${reason}`);
         return this.publish(this.snapshotProvider(), `reject-${reason}`);
     }
 
@@ -187,5 +187,5 @@ class DockGateway {
 }
 
 /* cjs:start */
-module.exports = { DockGateway };
+module.exports = { RuntimeBridge };
 /* cjs:end */

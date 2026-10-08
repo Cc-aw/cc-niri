@@ -12,9 +12,9 @@ const mainSource = fs.readFileSync(
 const installSource = fs.readFileSync(path.join(root, "install.sh"), "utf8");
 const uninstallSource = fs.readFileSync(path.join(root, "uninstall.sh"), "utf8");
 const bridgeHeader = fs.readFileSync(
-    path.join(root, "bridge/src/ScrollDockBridge.h"), "utf8");
+    path.join(root, "bridge/src/CCNiriBridge.h"), "utf8");
 const bridgeSource = fs.readFileSync(
-    path.join(root, "bridge/src/ScrollDockBridge.cpp"), "utf8");
+    path.join(root, "bridge/src/CCNiriBridge.cpp"), "utf8");
 
 assert.ok(mainSource.includes("function looksLikeInheritedParking(window)"));
 assert.ok(mainSource.includes("Number(window.opacity) <= 0 && window.minimized"),
@@ -113,7 +113,7 @@ assert.ok(mainSource.includes(
 ));
 assert.ok(mainSource.includes("this.handlers[command.type](command)"));
 assert.ok(bridgeHeader.includes("bool RequestEmergencyRestore();"));
-assert.ok(bridgeSource.includes("ScrollDockBridge::RequestEmergencyRestore()"));
+assert.ok(bridgeSource.includes("CCNiriBridge::RequestEmergencyRestore()"));
 const controlSource = fs.readFileSync(path.join(root, "cc-niri"), "utf8");
 for (const source of [installSource, uninstallSource]) {
     assert.ok(source.includes('"${SCRIPT_DIR}/cc-niri" stop'),

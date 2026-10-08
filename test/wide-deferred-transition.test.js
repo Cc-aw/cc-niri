@@ -6,7 +6,7 @@ const root = path.join(__dirname, "..");
 const mainSource = fs.readFileSync(
     path.join(root, "package/contents/code/main.js"), "utf8");
 const bridgeSource = fs.readFileSync(
-    path.join(root, "bridge/src/ScrollDockBridge.cpp"), "utf8");
+    path.join(root, "bridge/src/CCNiriBridge.cpp"), "utf8");
 const nativeSource = fs.readFileSync(
     path.join(root, "native/viewport-clip/ViewportClipEffect.cpp"), "utf8");
 const coordinatorSource = fs.readFileSync(
@@ -37,17 +37,17 @@ assert.ok(exitSource.includes("sameRectNear(pending.target.window.frameGeometry"
 assert.ok(exitSource.includes('this.relayout("contextual-wide-exit-ack"'));
 assert.ok(bridgeSource.includes('QStringLiteral("finalize-contextual-wide")'));
 assert.ok(bridgeSource.includes('QStringLiteral("finalize-contextual-wide-exit")'));
-assert.ok(bridgeSource.includes("bool ScrollDockBridge::PublishMotionPlan("));
+assert.ok(bridgeSource.includes("bool CCNiriBridge::PublishMotionPlan("));
 assert.ok(bridgeSource.includes("Q_EMIT MotionPlanChanged("));
-assert.ok(bridgeSource.includes("bool ScrollDockBridge::ReportMotionComplete("));
-assert.ok(bridgeSource.includes("bool ScrollDockBridge::ReportMotionParked("));
+assert.ok(bridgeSource.includes("bool CCNiriBridge::ReportMotionComplete("));
+assert.ok(bridgeSource.includes("bool CCNiriBridge::ReportMotionParked("));
 assert.ok(bridgeSource.includes("Q_EMIT MotionParked("));
 assert.ok(nativeSource.includes("window->setData(MotionPlanDataRole, marker)"));
 assert.ok(nativeSource.includes("void CcNiriViewportClipEffect::onMotionParked("));
 assert.ok(nativeSource.includes("effects->addRepaintFull()"));
-assert.ok(mainSource.includes("dockGateway.publishMotionPlan(envelope"));
+assert.ok(mainSource.includes("runtimeBridge.publishMotionPlan(envelope"));
 assert.ok(coordinatorSource.includes("if (command.motionCompleted) pending.motionCompleted = true"));
-assert.ok(mainSource.indexOf("dockGateway.publishMotionPlan(envelope") <
+assert.ok(mainSource.indexOf("runtimeBridge.publishMotionPlan(envelope") <
     mainSource.indexOf("commitLayoutPlan(plan, wideExitColumn,"),
 "the native Effect receives the plan before geometry changes");
 

@@ -46,15 +46,17 @@ if (native) {
     }
     run("Bridge native build", "cmake", ["--build", "build/bridge"]);
     run("Bridge native persistence tests", "ctest", ["--test-dir", "build/bridge", "--output-on-failure"]);
-    run("Bridge isolated DBus restart tests", "dbus-run-session", ["--", "python3", "test/bridge-persistence-integration.py", "build/bridge/cc-scroll-dock-bridge"]);
-    run("Bridge isolated vertical workspace tests", "dbus-run-session", ["--", "python3", "test/bridge-workspace-layout-integration.py", "build/bridge/cc-scroll-dock-bridge"]);
-    run("Bridge isolated SCROLL protocol tests", "dbus-run-session", ["--", "python3", "test/bridge-scroll-plan-integration.py", "build/bridge/cc-scroll-dock-bridge"]);
+    run("Bridge isolated DBus restart tests", "dbus-run-session", ["--", "python3", "test/bridge-persistence-integration.py", "build/bridge/cc-niri-bridge"]);
+    run("Bridge isolated vertical workspace tests", "dbus-run-session", ["--", "python3", "test/bridge-workspace-layout-integration.py", "build/bridge/cc-niri-bridge"]);
+    run("Bridge isolated SCROLL protocol tests", "dbus-run-session", ["--", "python3", "test/bridge-scroll-plan-integration.py", "build/bridge/cc-niri-bridge"]);
+    run("Bridge isolated legacy motion tests", "dbus-run-session", ["--", "python3", "test/bridge-scroll-plan-integration.py", "build/bridge/cc-niri-bridge", "--legacy"]);
+    run("Bridge isolated legacy compatibility tests", "dbus-run-session", ["--", "python3", "test/bridge-compatibility-integration.py", "build/bridge/cc-niri-bridge"]);
     run("Viewport clip native build", "cmake", ["--build", "build/native-viewport-clip"]);
     run("Viewport clip workspace barrier tests", "ctest", ["--test-dir", "build/native-viewport-clip", "--output-on-failure"]);
     run("Focus ring native build", "cmake", ["--build", "build/native-focus-ring"]);
     run("Focus ring ownership and scene tests", "ctest", ["--test-dir", "build/native-focus-ring", "--output-on-failure"]);
     run("Rust production architecture boundary", "python3", ["tools/check-native-boundary.py",
-        "build/bridge/cc-scroll-dock-bridge",
+        "build/bridge/cc-niri-bridge",
         "build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
         "build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so"]);
     run("Plasmoid native build", "cmake", ["--build", "build/plasmoid"]);

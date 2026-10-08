@@ -6,9 +6,9 @@ const root = path.join(__dirname, "..");
 const mainSource = fs.readFileSync(
     path.join(root, "package/contents/code/main.js"), "utf8");
 const bridgeHeader = fs.readFileSync(
-    path.join(root, "bridge/src/ScrollDockBridge.h"), "utf8");
+    path.join(root, "bridge/src/CCNiriBridge.h"), "utf8");
 const bridgeSource = fs.readFileSync(
-    path.join(root, "bridge/src/ScrollDockBridge.cpp"), "utf8");
+    path.join(root, "bridge/src/CCNiriBridge.cpp"), "utf8");
 const controllerSource = fs.readFileSync(
     path.join(root, "src/kwin/navigation/DockScrollController.js"), "utf8");
 

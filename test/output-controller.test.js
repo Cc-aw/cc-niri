@@ -174,7 +174,7 @@ const source = fs.readFileSync(
     path.join(__dirname, "../src/kwin/lifecycle/OutputController.js"),
     "utf8"
 );
-assert.equal(source.includes("commitDockState"), false);
+assert.equal(source.includes("commitRuntimeState"), false);
 assert.equal(source.includes("setPresentationMode"), false);
 assert.equal(/adoptionPhase\s*=(?!=)/u.test(source), false,
     "OutputController delegates adoption transitions to its owner");

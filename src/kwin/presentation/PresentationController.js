@@ -19,7 +19,7 @@ class PresentationController {
         this.relayout = options.relayout;
         this.getActiveWindow = options.getActiveWindow;
         this.setActiveWindow = options.setActiveWindow;
-        this.commitDockState = options.commitDockState;
+        this.commitRuntimeState = options.commitRuntimeState;
         this.debug = options.debug;
     }
 
@@ -157,7 +157,7 @@ class PresentationController {
         }
         this.debug(`[cc-presentation] SET mode=${mode} uuid=${normalizedUuid}` +
             ` reason=${reason}`);
-        this.commitDockState(reason);
+        this.commitRuntimeState(reason);
         return true;
     }
 

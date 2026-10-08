@@ -1,4 +1,4 @@
-#include "ScrollDockBridge.h"
+#include "CCNiriBridge.h"
 
 #include <QDir>
 #include <QFile>
@@ -16,7 +16,7 @@
 #include <QDBusPendingCall>
 #include <QDBusVariant>
 
-Q_LOGGING_CATEGORY(logBridge, "cc.scroll.dock.bridge")
+Q_LOGGING_CATEGORY(logBridge, "cc.niri.bridge")
 
 namespace
 {
@@ -89,12 +89,12 @@ void wakeKWinCommandPump()
         QStringLiteral("/component/kwin"),
         QStringLiteral("org.kde.kglobalaccel.Component"),
         QStringLiteral("invokeShortcut"));
-    message << QStringLiteral("CCScrollApplyDockCommand");
+    message << QStringLiteral("CCScrollApplyRuntimeCommand");
     QDBusConnection::sessionBus().asyncCall(message);
 }
 }
 
-ScrollDockBridge::ScrollDockBridge(QObject *parent, const QString &statePath)
+CCNiriBridge::CCNiriBridge(QObject *parent, const QString &statePath)
     : QObject(parent)
     , m_statePath(statePath.isEmpty()
         ? QStandardPaths::writableLocation(QStandardPaths::GenericStateLocation) + QStringLiteral("/cc-niri/workspaces.json")
@@ -115,7 +115,7 @@ ScrollDockBridge::ScrollDockBridge(QObject *parent, const QString &statePath)
     m_lastState = QString::fromUtf8(document.toJson(QJsonDocument::Compact));
 }
 
-bool ScrollDockBridge::PublishState(const QString &json)
+bool CCNiriBridge::PublishState(const QString &json)
 {
     QJsonParseError error;
     if (json.toUtf8().size() > MaxStateBytes) return false;
@@ -165,7 +165,7 @@ bool ScrollDockBridge::PublishState(const QString &json)
     return true;
 }
 
-bool ScrollDockBridge::PublishMotionPlan(const QString &json)
+bool CCNiriBridge::PublishMotionPlan(const QString &json)
 {
     if (json.toUtf8().size() > CcNiri::MaxMotionPlanBytes) return false;
     QJsonParseError error;
@@ -230,7 +230,7 @@ bool ScrollDockBridge::PublishMotionPlan(const QString &json)
     return true;
 }
 
-bool ScrollDockBridge::ReportMotionComplete(const QString &json)
+bool CCNiriBridge::ReportMotionComplete(const QString &json)
 {
     const QJsonDocument document = QJsonDocument::fromJson(json.toUtf8());
     if (!document.isObject()) return false;
@@ -262,7 +262,7 @@ bool ScrollDockBridge::ReportMotionComplete(const QString &json)
         QJsonDocument(command).toJson(QJsonDocument::Compact)));
 }
 
-bool ScrollDockBridge::ReportMotionParked(const QString &json)
+bool CCNiriBridge::ReportMotionParked(const QString &json)
 {
     const QJsonDocument document = QJsonDocument::fromJson(json.toUtf8());
     if (!document.isObject()) return false;
@@ -284,7 +284,7 @@ bool ScrollDockBridge::ReportMotionParked(const QString &json)
     return true;
 }
 
-bool ScrollDockBridge::EnsureVerticalDesktopLayout(int expectedCount)
+bool CCNiriBridge::EnsureVerticalDesktopLayout(int expectedCount)
 {
     if (expectedCount <= 0) return false;
     const auto bus = QDBusConnection::sessionBus();
@@ -312,17 +312,17 @@ bool ScrollDockBridge::EnsureVerticalDesktopLayout(int expectedCount)
     return bus.call(message, QDBus::Block, 1000).type() == QDBusMessage::ReplyMessage;
 }
 
-QString ScrollDockBridge::GetState() const
+QString CCNiriBridge::GetState() const
 {
     return m_lastState;
 }
 
-bool ScrollDockBridge::RequestReorder(const QString &json)
+bool CCNiriBridge::RequestReorder(const QString &json)
 {
     return RequestCommand(json);
 }
 
-bool ScrollDockBridge::RequestCommand(const QString &json)
+bool CCNiriBridge::RequestCommand(const QString &json)
 {
     QJsonParseError error;
     const QJsonDocument document = QJsonDocument::fromJson(json.toUtf8(), &error);
@@ -385,7 +385,7 @@ bool ScrollDockBridge::RequestCommand(const QString &json)
     return true;
 }
 
-bool ScrollDockBridge::RequestDeferredCommand(const QString &json, int delayMs)
+bool CCNiriBridge::RequestDeferredCommand(const QString &json, int delayMs)
 {
     QJsonParseError error;
     const QJsonDocument document = QJsonDocument::fromJson(json.toUtf8(), &error);
@@ -426,7 +426,7 @@ bool ScrollDockBridge::RequestDeferredCommand(const QString &json, int delayMs)
     return true;
 }
 
-bool ScrollDockBridge::RequestEmergencyRestore()
+bool CCNiriBridge::RequestEmergencyRestore()
 {
     if (m_sessionId.isEmpty() || m_generation < 0) {
         qCWarning(logBridge) << "cannot request emergency restore without KWin state";
@@ -445,7 +445,7 @@ bool ScrollDockBridge::RequestEmergencyRestore()
         QJsonDocument(command).toJson(QJsonDocument::Compact)));
 }
 
-QString ScrollDockBridge::TakePendingCommand()
+QString CCNiriBridge::TakePendingCommand()
 {
     if (m_pendingCommands.isEmpty()) return {};
     const QString command = m_pendingCommands.dequeue();

@@ -60,15 +60,21 @@ for (const config of [{}, { EnableDockIntegration: false }]) {
     assert.ok(r.traffic.some(c => c.method === "PublishMotionPlan"));
     assert.ok(r.nativeArms.length > 0);
     check(r); check(reloaded);
-    const gateway = reloaded.evaluate("dockGateway");
+    const gateway = reloaded.evaluate("runtimeBridge");
     reloaded.queueCommand(gateway.commandEnvelope({ type: "emergency-restore", commandId: "dockless-stop" }));
-    shortcut(reloaded, "ApplyDockCommand"); // Retained generic transport entry, including CLI stop.
+    shortcut(reloaded, "ApplyRuntimeCommand"); // Retained generic transport entry, including CLI stop.
     assert.equal(reloaded.state.enabled, false);
     assert.equal(reloaded.workspace.windowList().every(w => !w.minimized && w.opacity === 1), true);
     assert.equal(reloaded.evaluate("workspaceMoveController.pending"), null);
 }
 {
-    const r = fixture(), gateway = r.evaluate("dockGateway");
+    const r = fixture(), gateway = r.evaluate("runtimeBridge");
+    const generation = gateway.generation();
+    shortcut(r, "PublishRuntimeState");
+    const canonical = JSON.stringify(r.published.at(-1));
+    shortcut(r, "PublishDockState");
+    assert.equal(JSON.stringify(r.published.at(-1)), canonical);
+    assert.equal(gateway.generation(), generation, "compatibility state resend has no second generation");
     for (const command of [
         { type: "focus-column-right", windowUuid: "a4" },
         { type: "set-column-order", order: ["a4", "a3", "a2", "a1", "a0"] },
@@ -84,20 +90,27 @@ for (const config of [{}, { EnableDockIntegration: false }]) {
     check(r);
 }
 {
+    const r = fixture(), bridge = r.evaluate("runtimeBridge");
+    r.queueCommand(bridge.commandEnvelope({ type: "emergency-restore", commandId: "legacy-recovery" }));
+    shortcut(r, "ApplyDockCommand");
+    assert.equal(r.state.enabled, false, "pre-P8 command-pump shortcut remains a generic recovery alias");
+    assert.equal(r.workspace.windowList().every(w => !w.minimized), true);
+}
+{
     const r = fixture(); shortcut(r, "ToggleFocusWide"); r.motionAcks.at(-1)(true);
     const pending = r.evaluate("contextualWideCoordinator.pendingPark");
-    const gateway = r.evaluate("dockGateway"), neighbor = pending.neighbor.window;
+    const gateway = r.evaluate("runtimeBridge"), neighbor = pending.neighbor.window;
     r.queueCommand(gateway.commandEnvelope({ type: "finalize-contextual-wide",
         commandId: pending.commandId, transitionToken: pending.token, motionCompleted: true }));
-    shortcut(r, "PublishDockState"); // Same generic state-resend entry for Bridge reconnect.
-    shortcut(r, "ApplyDockCommand");
+    shortcut(r, "PublishRuntimeState"); // Same generic state-resend entry for Bridge reconnect.
+    shortcut(r, "ApplyRuntimeCommand");
     assert.equal(r.evaluate("contextualWideCoordinator.pendingPark"), null);
     assert.equal(neighbor.minimized, true, "core Wide completion still parks the neighbor without Dock integration");
     assert.ok(r.traffic.some(c => c.method === "ReportMotionParked"));
     check(r);
 }
 {
-    const r = fixture({ EnableDockIntegration: true }), gateway = r.evaluate("dockGateway");
+    const r = fixture({ EnableDockIntegration: true }), gateway = r.evaluate("runtimeBridge");
     assert.ok(r.evaluate("dockScrollController"));
     assert.equal(r.evaluate("controllerComposition.names().includes('dockScroll')"), true);
     assert.equal(gateway.dispatch(gateway.commandEnvelope({ type: "set-column-order", commandId: "opt-in-order",
@@ -106,7 +119,7 @@ for (const config of [{}, { EnableDockIntegration: false }]) {
     assert.equal(gateway.dispatch(gateway.commandEnvelope({ type: "focus-column-right", commandId: "opt-in-focus", windowUuid: "a4" })), true);
     assert.equal(r.evaluate("dockScrollController.hasPending()"), true);
     for (let i = 0; r.evaluate("dockScrollController.hasPending()"); ++i) {
-        assert.ok(i < 10); r.queueCommand(r.deferred.at(-1)); shortcut(r, "ApplyDockCommand");
+        assert.ok(i < 10); r.queueCommand(r.deferred.at(-1)); shortcut(r, "ApplyRuntimeCommand");
     }
     assert.equal(r.workspace.activeWindow, r.a[4]);
     assert.equal(gateway.dispatch(gateway.commandEnvelope({ type: "set-presentation-mode", commandId: "opt-in-wide", windowUuid: "a4", mode: "wide" })), true);

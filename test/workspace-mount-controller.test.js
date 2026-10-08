@@ -57,7 +57,7 @@ function fixture() {
             assert.ok(["pair", "wide-focus"].includes(state.viewport.mode)); assert.equal(state.presentation.mode, "normal");
             events.push("relayout");
         },
-        commitDock: () => events.push("dock"),
+        commitState: () => events.push("dock"),
         releaseWindow: (window, reason) => events.push(`release:${window.internalId}:${reason}`),
         onFailure: error => { throw error; }, debug: () => {},
     });

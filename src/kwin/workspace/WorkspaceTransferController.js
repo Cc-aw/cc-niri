@@ -96,7 +96,7 @@ class WorkspaceTransferController {
                 if (this.canCommit() && !this.isProcessing()) this.adoption.onMembershipChanged(window, reason);
                 else this.adoption.begin(window, reason);
             }
-            if (!this.isProcessing() && this.canCommit()) this.commitDock(reason);
+            if (!this.isProcessing() && this.canCommit()) this.commitState(reason);
             return true;
         } catch (error) {
             this.stop();
@@ -114,7 +114,7 @@ class WorkspaceTransferController {
         this.snapshots.removeWindow(uuid);
     }
     commitClosed() {
-        if (!this.stopped && !this.isProcessing() && this.canCommit()) this.commitDock("workspace-window-closed");
+        if (!this.stopped && !this.isProcessing() && this.canCommit()) this.commitState("workspace-window-closed");
     }
     stop() { this.stopped = true; }
 }

@@ -264,36 +264,36 @@ CcNiriViewportClipEffect::CcNiriViewportClipEffect()
                 }
             });
     const bool connected = QDBusConnection::sessionBus().connect(
-        QStringLiteral("org.cc.ScrollDockBridge"),
-        QStringLiteral("/ScrollDock"),
-        QStringLiteral("org.cc.ScrollDockBridge1"),
+        QStringLiteral("org.cc.CCNiriBridge"),
+        QStringLiteral("/CCNiriBridge"),
+        QStringLiteral("org.cc.CCNiriBridge1"),
         QStringLiteral("MotionPlanChanged"),
         this, SLOT(onMotionPlanChanged(QString)));
     if (!connected) {
         qCWarning(CC_NIRI_VIEWPORT_CLIP) << "motion plan signal unavailable";
     }
     const bool parkedConnected = QDBusConnection::sessionBus().connect(
-        QStringLiteral("org.cc.ScrollDockBridge"),
-        QStringLiteral("/ScrollDock"),
-        QStringLiteral("org.cc.ScrollDockBridge1"),
+        QStringLiteral("org.cc.CCNiriBridge"),
+        QStringLiteral("/CCNiriBridge"),
+        QStringLiteral("org.cc.CCNiriBridge1"),
         QStringLiteral("MotionParked"),
         this, SLOT(onMotionParked(QString)));
     if (!parkedConnected) {
         qCWarning(CC_NIRI_VIEWPORT_CLIP) << "motion parked signal unavailable";
     }
     const bool stateConnected = QDBusConnection::sessionBus().connect(
-        QStringLiteral("org.cc.ScrollDockBridge"), QStringLiteral("/ScrollDock"),
-        QStringLiteral("org.cc.ScrollDockBridge1"), QStringLiteral("StateChanged"),
-        this, SLOT(onDockStateChanged(QString)));
+        QStringLiteral("org.cc.CCNiriBridge"), QStringLiteral("/CCNiriBridge"),
+        QStringLiteral("org.cc.CCNiriBridge1"), QStringLiteral("StateChanged"),
+        this, SLOT(onRuntimeStateChanged(QString)));
     if (!stateConnected) qCWarning(CC_NIRI_VIEWPORT_CLIP) << "scroll observer state signal unavailable";
     const auto request = QDBusMessage::createMethodCall(
-        QStringLiteral("org.cc.ScrollDockBridge"), QStringLiteral("/ScrollDock"),
-        QStringLiteral("org.cc.ScrollDockBridge1"), QStringLiteral("GetState"));
+        QStringLiteral("org.cc.CCNiriBridge"), QStringLiteral("/CCNiriBridge"),
+        QStringLiteral("org.cc.CCNiriBridge1"), QStringLiteral("GetState"));
     auto *watcher = new QDBusPendingCallWatcher(QDBusConnection::sessionBus().asyncCall(request), this);
     connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, watcher]() {
         const QDBusPendingReply<QString> reply = *watcher;
         // A state signal received during the query is newer than this reply.
-        if (!reply.isError() && !m_receivedDockStateSignal) onDockStateChanged(reply.value());
+        if (!reply.isError() && !m_receivedRuntimeStateSignal) onRuntimeStateChanged(reply.value());
         watcher->deleteLater();
     });
     qCInfo(CC_NIRI_VIEWPORT_CLIP) << "[VIEWPORT_CLIP_NATIVE] READY scrollRuntimeBackend=" << CcNiri::scrollRuntimeBackendName();
@@ -413,9 +413,9 @@ void CcNiriViewportClipEffect::onMotionPlanChanged(const QString &json)
     }
 }
 
-void CcNiriViewportClipEffect::onDockStateChanged(const QString &json)
+void CcNiriViewportClipEffect::onRuntimeStateChanged(const QString &json)
 {
-    m_receivedDockStateSignal = true;
+    m_receivedRuntimeStateSignal = true;
     const auto document = QJsonDocument::fromJson(json.toUtf8());
     if (!document.isObject() || !m_scrollPlanObserver.updateContext(document.object())) m_scrollPlanObserver = {};
     m_inputClip->restore();
@@ -754,9 +754,9 @@ void CcNiriViewportClipEffect::forwardMotionCompletion(EffectWindow *window)
     }
     window->setData(MotionCompleteDataRole, QVariant());
     QDBusMessage message = QDBusMessage::createMethodCall(
-        QStringLiteral("org.cc.ScrollDockBridge"),
-        QStringLiteral("/ScrollDock"),
-        QStringLiteral("org.cc.ScrollDockBridge1"),
+        QStringLiteral("org.cc.CCNiriBridge"),
+        QStringLiteral("/CCNiriBridge"),
+        QStringLiteral("org.cc.CCNiriBridge1"),
         QStringLiteral("ReportMotionComplete"));
     message << QString::fromUtf8(QJsonDocument::fromVariant(completion)
         .toJson(QJsonDocument::Compact));

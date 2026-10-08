@@ -16,9 +16,9 @@ Item {
     function requestState(): void {
         if (!registered) return;
         DBus.SessionBus.asyncCall({
-            service: "org.cc.ScrollDockBridge",
-            path: "/ScrollDock",
-            iface: "org.cc.ScrollDockBridge1",
+            service: "org.cc.CCNiriBridge",
+            path: "/CCNiriBridge",
+            iface: "org.cc.CCNiriBridge1",
             member: "GetState",
             arguments: [],
             signature: "()"
@@ -33,9 +33,9 @@ Item {
 
     function requestReorder(command, rejected): void {
         DBus.SessionBus.asyncCall({
-            service: "org.cc.ScrollDockBridge",
-            path: "/ScrollDock",
-            iface: "org.cc.ScrollDockBridge1",
+            service: "org.cc.CCNiriBridge",
+            path: "/CCNiriBridge",
+            iface: "org.cc.CCNiriBridge1",
             member: "RequestReorder",
             arguments: [JSON.stringify(command)],
             signature: "(s)"
@@ -54,9 +54,9 @@ Item {
 
     function requestCommand(command, rejectionMessage, failureMessage, rejected): void {
         DBus.SessionBus.asyncCall({
-            service: "org.cc.ScrollDockBridge",
-            path: "/ScrollDock",
-            iface: "org.cc.ScrollDockBridge1",
+            service: "org.cc.CCNiriBridge",
+            path: "/CCNiriBridge",
+            iface: "org.cc.CCNiriBridge1",
             member: "RequestCommand",
             arguments: [JSON.stringify(command)],
             signature: "(s)"
@@ -76,7 +76,7 @@ Item {
     DBus.DBusServiceWatcher {
         id: serviceWatcher
         busType: DBus.BusType.Session
-        watchedService: "org.cc.ScrollDockBridge"
+        watchedService: "org.cc.CCNiriBridge"
         onRegisteredChanged: {
             if (registered) root.becameAvailable();
         }
@@ -84,9 +84,9 @@ Item {
 
     DBus.SignalWatcher {
         busType: DBus.BusType.Session
-        service: "org.cc.ScrollDockBridge"
-        path: "/ScrollDock"
-        iface: "org.cc.ScrollDockBridge1"
+        service: "org.cc.CCNiriBridge"
+        path: "/CCNiriBridge"
+        iface: "org.cc.CCNiriBridge1"
         enabled: serviceWatcher.registered
 
         function dbusStateChanged(json) {

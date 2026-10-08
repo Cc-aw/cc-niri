@@ -1,6 +1,6 @@
 # CC-Niri Core UX 下一阶段实施设计
 
-实施状态（2026-10-08，按用户最新要求收缩范围）：P1 Compact Safe Area、P2 Persistent Full Column 保留；P3 当前只提供 **half ↔ full（50% ↔ 100%）**，Meta+R / Meta+F 均切换这两档，并复用既有 Pair/Wide 动画事务、Scale / Translation、Native 裁剪与邻窗停放；Full 仍是持久列宽，逻辑 viewport 保持 pair，不新增时钟；用户已确认本次 half / Full 动画实机验收通过。**third / twoThirds 与 niri resize 协调开发暂缓**，对应实验实现已撤下，旧快照中的 third / twoThirds 与恢复记忆迁移为 half，并清除迁移工作区的分数视口偏移。下文四档宽度与动画设计属于延期目标，不代表当前生产行为。原因：用户实机报告在 Zed 输入与 J 切换时左侧部分窗口消失。详见 [P1](../../test/CORE_UX_P1_RESULTS.md)、[P2](../../test/CORE_UX_P2_RESULTS.md)、[P3](../../test/CORE_UX_P3_RESULTS.md) 记录。P4 已通过用户实机验收，P5–P7 已实现并部署，P8 尚未实施；本文继续保留在 `todo/`，下文“当前基线”记录设计编写时的 70px 默认值。
+实施状态（2026-10-08，按用户最新要求收缩范围）：P1 Compact Safe Area、P2 Persistent Full Column 保留；P3 当前只提供 **half ↔ full（50% ↔ 100%）**，Meta+R / Meta+F 均切换这两档，并复用既有 Pair/Wide 动画事务、Scale / Translation、Native 裁剪与邻窗停放；Full 仍是持久列宽，逻辑 viewport 保持 pair，不新增时钟；用户已确认本次 half / Full 动画实机验收通过。**third / twoThirds 与 niri resize 协调开发暂缓**，对应实验实现已撤下，旧快照中的 third / twoThirds 与恢复记忆迁移为 half，并清除迁移工作区的分数视口偏移。下文四档宽度与动画设计属于延期目标，不代表当前生产行为。原因：用户实机报告在 Zed 输入与 J 切换时左侧部分窗口消失。详见 [P1](../../test/CORE_UX_P1_RESULTS.md)、[P2](../../test/CORE_UX_P2_RESULTS.md)、[P3](../../test/CORE_UX_P3_RESULTS.md) 记录。P4 已通过用户实机验收，P5–P8 已实现并部署；P7 用户验收通过，P8 用户实机 / 日常验收通过；本文继续保留在 `todo/`，下文“当前基线”记录设计编写时的 70px 默认值。
 
 P4（2026-10-07）：新增正式 `WorkspaceMoveController`，Meta+Shift+J/K 移动主屏实际活动的受管列并跟随，复用 WorkspaceSwitch / Transfer / Mount；保留列宽、恢复记忆与 Wide 偏好，等待旧 Native Scroll disarm ACK 后才修改 KDE membership，挂载目标并提交几何后聚焦移动的列。源工作区快照优先右邻、否则左邻；沿用 W8/W9 的原生 ID 与回收保护。完整门禁通过：94 JS、30 Rust、Bridge 16 / Clip 15 / Ring 22 CTest、3 隔离 D-Bus、Plasmoid 与生产边界。已按 save-state / stop / upgrade / start 部署布局包，Native 产物与原设置保持。首次部署时会话锁屏；用户随后反馈“实机验收通过 进入下一阶段”，P4 用户实机验收通过。该反馈不代表 FPS / GPU 或长期压力测量。详见 [P4 记录](../../test/CORE_UX_P4_RESULTS.md)。
 
@@ -10,7 +10,9 @@ Full / half 可见性修复（2026-10-07）：聚焦相邻 half 时，Full 窗�
 
 P6（2026-10-08）：Meta+Ctrl+1…9 将主屏实际活动的受管列移到当前 KDE 顺序中的已存在目标并跟随、聚焦；复用 P5 编号查询与 P4 的完整 moveTo 事务，保留 half / Full、恢复宽度及 Wide 偏好。在途目标固定 ID，当前 / 缺失目标 no-op，不由快捷键创建桌面。完整门禁通过：97 JS、31 Rust、fmt / locked clippy、Bridge 16 / Clip 15 / Ring 22 CTest、3 隔离 D-Bus、Plasmoid 与生产边界。布局包已部署，九键均无冲突且 owner 已核对；自动实机通过移动 / 返回、Full / Wide、滚动中断、Ring、重启与原状态恢复。主副屏、Native 安装字节、KWin PID 与设置保持。用户视觉验收待反馈，未测 FPS；详见 [P6 记录](../../test/CORE_UX_P6_RESULTS.md)。
 
-P7（2026-10-08）：`EnableDockIntegration` 默认关闭，Dock UI 命令与 planner 为可选；通用 Bridge 的状态 / 动画 / Wide 完成 / 恢复入口继续保留。默认安装不构建或安装 Plasmoid、不重启 Plasma Shell；`--with-dock` 显式启用，已有包、配置和面板保持。99 JS、31 Rust、fmt / locked clippy、Bridge 16 / Clip 15 / Ring 22 CTest、3 隔离 D-Bus、Plasmoid 与生产边界通过，布局包与配置 UI 已部署。无 Plasma / Dock 的受控实机矩阵与原状态恢复核验通过，用户动画观感与日常 smoke 待反馈，详见 [P7 记录](../../test/CORE_UX_P7_RESULTS.md)。P8 保留 Bridge 命名 / 清理范围。
+P7（2026-10-08）：`EnableDockIntegration` 默认关闭，Dock UI 命令与 planner 为可选；通用 Bridge 的状态 / 动画 / Wide 完成 / 恢复入口继续保留。默认安装不构建或安装 Plasmoid、不重启 Plasma Shell；`--with-dock` 显式启用，已有包、配置和面板保持。99 JS、31 Rust、fmt / locked clippy、Bridge 16 / Clip 15 / Ring 22 CTest、3 隔离 D-Bus、Plasmoid 与生产边界通过，布局包与配置 UI 已部署。无 Plasma / Dock 的受控实机矩阵与原状态恢复核验通过；用户随后反馈“p7没问题 开始p8”，P7 用户验收通过，详见 [P7 记录](../../test/CORE_UX_P7_RESULTS.md)。
+
+P8（2026-10-08）：通用 `CCNiriBridge` / `RuntimeBridge`、`cc-niri-bridge.service` 与 canonical D-Bus 已部署，旧 service / endpoint / queue shortcut 为同实例兼容入口；快照、状态路径、用户快捷键和动画 policy 保持。快捷键按功能分组，完整门禁（99 JS / 31 Rust / 5 隔离 D-Bus）、Core Debug / Release、umbrella、无测试生产边界与无 Dock 实机状态 / 重连矩阵通过。用户已确认 P8 视觉 / 日常验收通过，详见 [P8 记录](../../test/CORE_UX_P8_RESULTS.md)。
 
 ## 1. 文档目的
 
@@ -1103,7 +1105,7 @@ fullRect.width = safeRect.width
 
 Dock 已不再作为主要 UI，因此其逻辑不应继续成为 Layout 核心依赖。
 
-P7 已实现：Dock planner 与四类 UI 命令由 `EnableDockIntegration` 显式开启，默认关闭。通用 Bridge、快照、动画完成、Recovery 与 Ring 保留。默认安装 Core，`--with-dock` 安装并启用可选集成；不删除已有面板或 applet。完整门禁与部署通过，实机范围见 [P7 记录](../../test/CORE_UX_P7_RESULTS.md)。Bridge 原有名称、端点与 generic queue 快捷键保留至 P8。
+P7 已实现：Dock planner 与四类 UI 命令由 `EnableDockIntegration` 显式开启，默认关闭。通用 Bridge、快照、动画完成、Recovery 与 Ring 保留。默认安装 Core，`--with-dock` 安装并启用可选集成；不删除已有面板或 applet。完整门禁与部署通过，实机范围见 [P7 记录](../../test/CORE_UX_P7_RESULTS.md)。P8 已使用通用名称与端点，旧 generic queue 快捷键 / D-Bus 保留为同实例兼容入口，详见 [P8 记录](../../test/CORE_UX_P8_RESULTS.md)。
 
 ---
 
@@ -1128,6 +1130,8 @@ Bridge != Dock
 ---
 
 # 37. 目标架构
+
+P8 已落地目标中的通用 `CCNiriBridge`，兼容入口只转发同实例的状态 / 队列 / 信号，不增加 authority。下列“当前”为设计编写时基线。
 
 当前：
 
@@ -1242,6 +1246,8 @@ optional
 ```text
 ShortcutCatalog.js
 ```
+
+P8 已按以下功能组织目录；原用户 action ID / 默认键保持，新 runtime IPC action 无默认键，旧 Dock IPC action 为同 handler 兼容别名。
 
 按功能分组：
 
@@ -1873,6 +1879,8 @@ move-and-follow 正确
 
 P7 已在 Plasma Shell 进程与 D-Bus owner 完全退出时通过下列受控实机状态核验，另验证通用 Bridge 紧急恢复；原布局、实际焦点、配置和面板恢复核对通过。用户动画观感与长期日常 smoke 待反馈，范围与证据见 [P7 记录](../../test/CORE_UX_P7_RESULTS.md)。
 
+P7 已获用户确认，P8 重命名后另通过服务新旧名字重连与无 Dock 受控矩阵；P8 人工观感与日常 smoke 已获用户确认。
+
 关闭/移除 Dock 后运行：
 
 ```text
@@ -1977,16 +1985,16 @@ Width mode
 - [x] Full Column 在新 Safe Area 下正确
 - [ ] Focus Ring 在底部正确显示
 - [x] Dock 不再是核心功能依赖（P7 默认无 planner / UI handler，生产包回归通过）
-- [x] Bridge 保留通用 persistence / IPC（名称、端点与 ABI 保留，P8 后续清理）
+- [x] Bridge 保留通用 persistence / IPC（P8 通用名称已部署，旧端点兼容、协议 / ABI 保持）
 - [x] Dockless 模式完整可用（P7 核心、门禁与无 Plasma / Dock 受控实机矩阵通过，人工 / 日常验收见 P7 记录）
 - [x] Workspace Snapshot backward compatible
-- [ ] 自动测试全部通过
-- [ ] `node tools/check.js --native` 通过
-- [ ] Rust Native 门禁通过
+- [x] 自动测试全部通过（当前收缩范围；P8 完整门禁通过）
+- [x] `node tools/check.js --native` 通过（P8）
+- [x] Rust Native 门禁通过（P8 Core Debug / Release、Golden differential / 生产边界通过）
 - [ ] 实机 Full 验收通过
 - [x] 实机 Workspace Move 验收通过（P4 用户已确认）
 - [ ] Dynamic Workspace 验收通过
-- [ ] Dockless 日常 smoke 通过
+- [x] Dockless 日常 smoke 通过（P7 用户已确认；P8 人工日常复验也已通过）
 - [ ] 无新增 `INVARIANT_FAIL`
 - [ ] 无新增 `FAIL_SAFE`
 - [ ] 无 KWin crash

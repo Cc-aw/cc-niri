@@ -22,6 +22,7 @@ command -v kwriteconfig6 >/dev/null || {
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 "${SCRIPT_DIR}/cc-niri" stop
 systemctl --user disable --now cc-scroll-dock-bridge.service >/dev/null 2>&1 || true
+systemctl --user disable --now cc-niri-bridge.service >/dev/null 2>&1 || true
 
 RESTORE_GEOMETRY_CHANGE=false
 RESTORE_SQUASH=false

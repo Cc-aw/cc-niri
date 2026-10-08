@@ -16,8 +16,11 @@ dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 bus = dbus.SessionBus()
 context = GLib.MainContext.default()
 binary = str(Path(sys.argv[1]).resolve())
-service = "org.cc.ScrollDockBridge"
-interface = "org.cc.ScrollDockBridge1"
+service = "org.cc.CCNiriBridge"
+interface = "org.cc.CCNiriBridge1"
+object_path = "/CCNiriBridge"
+if "--legacy" in sys.argv[2:]:
+    service, interface, object_path = "org.cc.ScrollDockBridge", "org.cc.ScrollDockBridge1", "/ScrollDock"
 events = []
 
 
@@ -53,7 +56,7 @@ with tempfile.TemporaryDirectory(prefix="cc-niri-scroll-") as directory:
     def call(method, value):
         assert server.poll() is None
         assert int(bus.call_blocking("org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus", "GetConnectionUnixProcessID", "s", (service,))) == server.pid
-        return bool(bus.get_object(service, "/ScrollDock").get_dbus_method(method, interface)(json.dumps(value)))
+        return bool(bus.get_object(service, object_path).get_dbus_method(method, interface)(json.dumps(value)))
 
     def stop():
         global server
@@ -66,7 +69,7 @@ with tempfile.TemporaryDirectory(prefix="cc-niri-scroll-") as directory:
         for name in ["StateChanged", "MotionPlanChanged"]:
             bus.add_signal_receiver(lambda value, kind=name: events.append((kind, json.loads(str(value)))),
                                     signal_name=name, dbus_interface=interface,
-                                    bus_name=service, path="/ScrollDock")
+                                    bus_name=service, path=object_path)
         columns = [{"uuid": key} for key in ["a", "b", "c"]]
         state = dict(protocol=2, sessionId="live", generation=0, workspaceId="A", targetOutput="eDP-1",
                      columns=columns, workspaces=[dict(id="A", columns=columns)])
@@ -146,7 +149,7 @@ with tempfile.TemporaryDirectory(prefix="cc-niri-scroll-") as directory:
         assert events[-2:] == [("MotionPlanChanged", width), ("MotionPlanChanged", clip)], "Legacy timeline must arrive before clipping"
         assert call("ReportMotionComplete", dict(type="WIDE_TO_PAIR", sessionId="reloaded",
                     transitionToken="partial-width", targetWindowUuid="b")), "clipping must preserve Legacy completion"
-        command = json.loads(str(bus.get_object(service, "/ScrollDock").get_dbus_method("TakePendingCommand", interface)()))
+        command = json.loads(str(bus.get_object(service, object_path).get_dbus_method("TakePendingCommand", interface)()))
         assert command["type"] == "finalize-contextual-wide-exit" and command["motionCompleted"]
         print("PASS isolated SCROLL DBus payload, FIFO authority, duplicate, workspace, restart and explicit return")
     finally:

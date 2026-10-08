@@ -66,7 +66,7 @@ function setup(wideIndex, offset, focusedIndex) {
                 focused: state.focusedColumnIndex, plan });
         },
         activateColumnWhenReady: window => { context.workspace.activeWindow = window; },
-        publishDockState: () => {}, commitDockState: () => {}, debug: () => {},
+        publishRuntimeState: () => {}, commitRuntimeState: () => {}, debug: () => {},
     });
     vm.runInContext([
         runtimeFunction("cancelPendingDockScroll"),

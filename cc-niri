@@ -7,7 +7,8 @@ CLIP_ID=cc-niri-viewport-clip
 RING_ID=cc-niri-focus-ring
 RING_GROUP=CCNiriFocusRing
 RING_PATH="${HOME}/.local/lib64/qt6/plugins/kwin/effects/plugins/${RING_ID}.so"
-SERVICE=cc-scroll-dock-bridge.service
+SERVICE=cc-niri-bridge.service
+LEGACY_SERVICE=cc-scroll-dock-bridge.service
 COMPAT_GROUP=CCNiriCompatibility
 INSTALLED_MAIN="${XDG_DATA_HOME:-${HOME}/.local/share}/kwin/scripts/${PLUGIN_ID}/contents/code/main.js"
 
@@ -32,10 +33,16 @@ restore_parked_windows() {
     # still exists, before unloading either the script, effects, or Bridge.
     local reply
     if ! shortcut CCScrollEmergencyRestore >/dev/null 2>&1; then
-        reply="$(gdbus call --session --dest org.cc.ScrollDockBridge --object-path /ScrollDock \
-            --method org.cc.ScrollDockBridge1.RequestEmergencyRestore 2>/dev/null || true)"
+        reply="$(gdbus call --session --dest org.cc.CCNiriBridge --object-path /CCNiriBridge \
+            --method org.cc.CCNiriBridge1.RequestEmergencyRestore 2>/dev/null || true)"
+        if [[ "$reply" != '(true,)' ]]; then
+            reply="$(gdbus call --session --dest org.cc.ScrollDockBridge --object-path /ScrollDock \
+                --method org.cc.ScrollDockBridge1.RequestEmergencyRestore 2>/dev/null || true)"
+        fi
         [[ "$reply" == '(true,)' ]] || fail 'Cannot request window recovery; keeping the script loaded.'
-        shortcut CCScrollApplyDockCommand >/dev/null || fail 'Cannot invoke window recovery; keeping the script loaded.'
+        shortcut CCScrollApplyRuntimeCommand >/dev/null ||
+            shortcut CCScrollApplyDockCommand >/dev/null ||
+            fail 'Cannot invoke window recovery; keeping the script loaded.'
     fi
     sleep 0.3
 }
@@ -215,6 +222,7 @@ stop_niri() {
     compatibility stop
     kwin /KWin org.kde.KWin.reconfigure >/dev/null
     systemctl --user disable --now "$SERVICE" >/dev/null 2>&1 || true
+    systemctl --user disable --now "$LEGACY_SERVICE" >/dev/null 2>&1 || true
     echo 'cc-niri stopped; parked windows restored.'
 }
 

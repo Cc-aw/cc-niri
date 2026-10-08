@@ -107,7 +107,7 @@ const beforeAwait = geometryWrites;
 const focusBeforeAwait = state.focusedColumnIndex;
 for (const name of ["CCScrollFocusNextColumn", "CCScrollToggleFocusWide", "CCScrollMoveColumnRight", "CCScrollToggleFloating",
     "CCScrollCycleColumnWidth", "CCScrollToggleColumnFull"]) shortcuts.get(name)();
-evaluate("dockGateway.dispatch(dockGateway.commandEnvelope({type: 'set-presentation-mode', commandId: 'await-wide', windowUuid: 'a0', mode: PRESENTATION_WIDE}))");
+evaluate("runtimeBridge.dispatch(runtimeBridge.commandEnvelope({type: 'set-presentation-mode', commandId: 'await-wide', windowUuid: 'a0', mode: PRESENTATION_WIDE}))");
 assert.equal(geometryWrites, beforeAwait); assert.equal(state.focusedColumnIndex, focusBeforeAwait);
 assert.equal(state.viewport.mode, "pair");
 assert.equal(a[0].desktops[0].id, "A");
@@ -158,7 +158,7 @@ assert.equal(published.at(-1).workspaceId, "B");
 assert.equal(evaluate("invariantChecker.errors().length"), 0);
 pendingCommand = JSON.stringify(deferred.at(-1));
 const beforeStale = geometryWrites;
-evaluate("applyPendingDockCommand()");
+evaluate("applyPendingRuntimeCommand()");
 assert.equal(geometryWrites, beforeStale, "stale Dock command cannot commit old geometry in the new workspace");
 assert.deepEqual(ids(), ["b0", "b1"]);
 nativeSwitch(0, a[0]);

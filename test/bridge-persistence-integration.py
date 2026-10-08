@@ -14,8 +14,8 @@ with tempfile.TemporaryDirectory(prefix="cc-niri-bridge-") as directory:
     server = None
 
     def call(method, *arguments):
-        result = subprocess.check_output(["gdbus", "call", "--session", "--dest", "org.cc.ScrollDockBridge",
-            "--object-path", "/ScrollDock", "--method", "org.cc.ScrollDockBridge1." + method, *arguments], text=True, stderr=subprocess.DEVNULL).strip()
+        result = subprocess.check_output(["gdbus", "call", "--session", "--dest", "org.cc.CCNiriBridge",
+            "--object-path", "/CCNiriBridge", "--method", "org.cc.CCNiriBridge1." + method, *arguments], text=True, stderr=subprocess.DEVNULL).strip()
         if result == "(true,)": return True
         if result == "(false,)": return False
         return ast.literal_eval(result)[0]

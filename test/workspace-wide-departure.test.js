@@ -31,8 +31,8 @@ for (const side of [0, 1]) for (const acknowledged of [false, true]) {
         // transform is exposed on an unparked neighbor.
         let reports = 0;
         let handoff;
-        const report = r.evaluate("dockGateway.reportMotionParked.bind(dockGateway)");
-        r.evaluate("dockGateway").reportMotionParked = (data, callback) => {
+        const report = r.evaluate("runtimeBridge.reportMotionParked.bind(runtimeBridge)");
+        r.evaluate("runtimeBridge").reportMotionParked = (data, callback) => {
             ++reports;
             handoff = { opacity: neighbor.opacity, minimized: neighbor.minimized,
                 neighbor: { ...neighbor.frameGeometry }, owner: { ...owner.frameGeometry },

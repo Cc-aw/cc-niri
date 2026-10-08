@@ -36,7 +36,7 @@ var controller = new WorkspaceTransferController({
  stateFor: () => ({workspaceOwnerId:'A'}), getColumn: () => null,
  membership: {ownerId: () => 'A'}, topology: {byId: () => true},
  windowPolicy: {canJoinColumn: () => false}, cancelPending() {}, releaseWindow() {},
- canCommit: () => true, commitDock() {},
+ canCommit: () => true, commitState() {},
  adoption: {onMembershipChanged() {}, begin() {}},
  onFailure(error) { throw error; }
 });

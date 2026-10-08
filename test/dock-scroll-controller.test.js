@@ -61,8 +61,8 @@ function fixture() {
             appState.presentation = { windowUuid: null, mode: "normal" };
         },
         normalPresentationMode: "normal",
-        commitDockState: reason => calls.push(["commit", reason]),
-        publishDockState: reason => calls.push(["publish", reason]),
+        commitRuntimeState: reason => calls.push(["commit", reason]),
+        publishRuntimeState: reason => calls.push(["publish", reason]),
         focusIndex: index => {
             appState.focusedColumnIndex = index;
             calls.push(["focus", index]);
