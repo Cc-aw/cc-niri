@@ -85,6 +85,7 @@ private:
     void syncScrollOutput();
     void captureScrollLifecycle(uint32_t kind, qint64 epoch);
     void requestRepaintFull();
+    void requestScrollContinuationRepaint();
     CcNiri::AnimationProfile m_animationProfile = CcNiri::AnimationProfile::Stable;
     bool m_invalidAnimationProfile = false;
     CcNiri::AnimationFrameContext m_scrollFrameContext;
@@ -96,7 +97,7 @@ private:
     qint64 m_scrollBoundEpoch = -1;
     struct ScrollPaintPass {
         QPointer<LogicalOutput> output;
-        bool real = false, recorded = false;
+        bool real = false, recorded = false, sampled = false;
         uint64_t revision = 0, serial = 0;
         qint64 predictedNs = 0, sampleNs = 0;
         double refreshHz = 0;
@@ -105,12 +106,15 @@ private:
     std::array<ScrollPaintPass, 32> m_scrollPaintPasses;
     size_t m_scrollPaintDepth = 0;
     CcNiri::ScrollFrameCapture m_scrollCapture;
+    uint64_t m_scrollOutputRepaintRequests = 0, m_scrollContinuousFullRequests = 0;
+    uint64_t m_scrollRepaintFallbackFullRequests = 0;
     struct ScrollCaptureOutput {
         QPointer<LogicalOutput> output;
         QString name;
         uint64_t token = 0;
         double refreshHz = 0, scale = 1;
         uint64_t fullRepaintRequests = 0;
+        uint64_t targetRepaintRequests = 0;
     };
     std::vector<ScrollCaptureOutput> m_scrollCaptureOutputs;
     uint64_t captureOutputToken(LogicalOutput *output) const;

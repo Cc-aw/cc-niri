@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     QCoreApplication app(argc, argv);
     QImage image(3840, 2160, QImage::Format_ARGB32_Premultiplied); RenderTarget target(&image);
     const RectF safe(24, 50, 1872, 960);
-    for (qreal scale : {1.0, 1.25, 1.5, 2.0}) {
+    for (qreal scale : {1.0, 1.25, 1.5, 1.75, 2.0}) {
         RenderViewport viewport(RectF(0, 0, 1920, 1080), scale, target, QPoint());
         Item window; window.setGeometry(RectF(964, 50, 932, 960));
         Item content(&window); content.setSize(window.size());

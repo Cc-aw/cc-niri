@@ -31,11 +31,11 @@ int main(int argc,char **argv) {
     Item window; Item content(&window); FocusRingItem ring;
     QImage image(3840,2160,QImage::Format_ARGB32_Premultiplied); RenderTarget target(&image);
     FocusRingCaptureRenderer renderer; int samples=0;
-    for(qreal s : {1.0,1.25,1.5,2.0}) {
-        RenderViewport viewport(RectF(0,0,1920,1080),s,target,QPoint(7,11));
+    for(qreal s : {1.0,1.25,1.5,1.75,2.0}) for (qreal origin : {-1920.0,0.0,2560.0}) {
+        RenderViewport viewport(RectF(origin,-120,1920,1080),s,target,QPoint(7,11));
         for(qreal fraction : {0.0,0.25,0.5,0.75})
         for(qreal width : {931.0,932.0,932.4}) for(qreal sx : {0.713,0.9999,1.0,1.0001,1.317}) {
-            const QSizeF size(width,701); window.setGeometry(RectF(24+fraction,50+fraction/2,size.width(),size.height()));
+            const QSizeF size(width,701); window.setGeometry(RectF(origin+24+fraction,-70+fraction/2,size.width(),size.height()));
             content.setSize(size); check(ring.attach(&window,&content,size,BorderRadius(12)),"attach");
             WindowPaintData data; data.setXScale(sx); data.setYScale(sx==1?1:0.973);
             data.setXTranslation(fraction); data.setYTranslation(-fraction);

@@ -647,7 +647,8 @@ QString CcNiriViewportClipEffect::GetScrollFrameCapture() const
         outputs.append(QJsonObject{{QStringLiteral("token"), qint64(entry.token)},
             {QStringLiteral("name"), entry.name}, {QStringLiteral("refreshHz"), entry.refreshHz},
             {QStringLiteral("scale"), entry.scale}, {QStringLiteral("removed"), entry.output.isNull()},
-            {QStringLiteral("fullRepaintRequests"), qint64(entry.fullRepaintRequests)}});
+            {QStringLiteral("fullRepaintRequests"), qint64(entry.fullRepaintRequests)},
+            {QStringLiteral("targetRepaintRequests"), qint64(entry.targetRepaintRequests)}});
     }
     const auto atMs = [this](qint64 ns) { return double(ns - m_scrollCapture.startNs) / 1000000.0; };
     for (size_t i = 0; i < m_scrollCapture.frameCount; ++i) {
@@ -685,8 +686,11 @@ QString CcNiriViewportClipEffect::GetScrollFrameCapture() const
         {QStringLiteral("positionUnit"), QStringLiteral("logical-px")},
         {QStringLiteral("velocityUnit"), QStringLiteral("logical-px-per-second")},
         {QStringLiteral("clockDomain"), QStringLiteral("steady-clock-monotonic-relative-ms")},
-        {QStringLiteral("repaintScope"), QStringLiteral("ViewportClipEffect-full-requests-excludes-workspace-adapter")},
+        {QStringLiteral("repaintScope"), QStringLiteral("ViewportClipEffect-full-events-and-profile-dependent-continuation-excludes-workspace-adapter")},
         {QStringLiteral("repaintFullRequests"), qint64(m_scrollCapture.repaintFullCount)},
+        {QStringLiteral("repaintOutputRequests"), qint64(m_scrollCapture.repaintOutputCount)},
+        {QStringLiteral("continuousRepaintFullRequests"), qint64(m_scrollCapture.continuousFullCount)},
+        {QStringLiteral("continuousRepaintFallbackFullRequests"), qint64(m_scrollCapture.fallbackFullCount)},
         {QStringLiteral("outputs"), outputs}, {QStringLiteral("paintedFrames"), frames},
         {QStringLiteral("presentations"), presentations}, {QStringLiteral("lifecycle"), lifecycles}}).toJson(QJsonDocument::Compact));
 }
@@ -713,6 +717,11 @@ QString CcNiriViewportClipEffect::GetScrollMotionStatus() const
         : (m_scrollFrameContext.fallback() == CcNiri::ClockFallback::None
             ? QStringLiteral("predicted-presentation") : QStringLiteral("steady-clock-fallback")));
     status.insert(QStringLiteral("scrollTargetOutput"), m_scrollTargetName);
+    status.insert(QStringLiteral("scrollRepaintScope"), m_animationProfile == CcNiri::AnimationProfile::Smooth60
+        ? QStringLiteral("target-output-continuation") : QStringLiteral("full-continuation"));
+    status.insert(QStringLiteral("scrollOutputRepaintRequests"), qint64(m_scrollOutputRepaintRequests));
+    status.insert(QStringLiteral("scrollContinuousFullRepaintRequests"), qint64(m_scrollContinuousFullRequests));
+    status.insert(QStringLiteral("scrollRepaintFallbackFullRequests"), qint64(m_scrollRepaintFallbackFullRequests));
     status.insert(QStringLiteral("scrollRetargetPolicy"), m_animationProfile == CcNiri::AnimationProfile::Smooth60 && !m_scrollRuntime.clipsPartial()
         ? QStringLiteral("bounded-last-painted-position-and-velocity") : QStringLiteral("last-painted-position-zero-velocity"));
     const auto tuning = m_scrollRuntime.tuningStatus(m_animationProfile == CcNiri::AnimationProfile::Smooth60);
@@ -888,7 +897,39 @@ void CcNiriViewportClipEffect::requestRepaintFull()
             for (auto &entry : m_scrollCaptureOutputs) if (entry.output) ++entry.fullRepaintRequests;
         }
     }
-    effects->addRepaintFull(); // A1 deliberately retains the stable damage scope.
+    effects->addRepaintFull(); // Event damage and stable continuation stay conservative.
+}
+void CcNiriViewportClipEffect::requestScrollContinuationRepaint()
+{
+    CcNiri::ScrollRepaintPass facts;
+    const bool tracked = m_scrollPaintDepth && m_scrollPaintDepth <= m_scrollPaintPasses.size();
+    if (tracked) {
+        const auto &pass = m_scrollPaintPasses[m_scrollPaintDepth - 1];
+        facts = {reinterpret_cast<uintptr_t>(pass.output.data()), pass.revision, pass.real, pass.sampled};
+    }
+    // LogicalOutput is lifetime guarded. Request the whole output, including
+    // background, shadow and Ring, using KWin's logical-coordinate damage API.
+    const Rect damage = m_scrollTargetOutput ? m_scrollTargetOutput->geometry() : Rect();
+    const auto scope = CcNiri::scrollContinuationRepaint(m_animationProfile,
+        m_scrollRuntime.active() && !m_scrollRuntime.completed(),
+        reinterpret_cast<uintptr_t>(m_scrollTargetOutput.data()), m_scrollRevision,
+        !damage.isEmpty(), tracked ? &facts : nullptr);
+    if (scope == CcNiri::ScrollRepaintScope::None) return;
+    const bool full = scope != CcNiri::ScrollRepaintScope::TargetOutput;
+    const bool fallback = scope == CcNiri::ScrollRepaintScope::ConservativeFull;
+    if (full) ++m_scrollContinuousFullRequests; else ++m_scrollOutputRepaintRequests;
+    if (fallback) ++m_scrollRepaintFallbackFullRequests;
+    if (m_scrollCapture.recording) {
+        const auto now = motionNow().count();
+        m_scrollCapture.expire(now);
+        if (m_scrollCapture.active(now)) {
+            if (full) ++m_scrollCapture.continuousFullCount; else ++m_scrollCapture.repaintOutputCount;
+            if (fallback) ++m_scrollCapture.fallbackFullCount;
+            if (!full) for (auto &entry : m_scrollCaptureOutputs)
+                if (entry.output == m_scrollTargetOutput) ++entry.targetRepaintRequests;
+        }
+    }
+    if (full) requestRepaintFull(); else effects->addRepaint(damage);
 }
 void CcNiriViewportClipEffect::prePaintScreen(ScreenPrePaintData &data)
 {
@@ -924,7 +965,7 @@ void CcNiriViewportClipEffect::prePaintScreen(ScreenPrePaintData &data)
             pass.sampleNs = decision.timeNs;
             pass.fallback = decision.fallback;
             if (decision.advance) {
-                m_scrollRuntime.prepareFrame(CcNiri::ViewportMotionBackend::TimePoint(decision.timeNs),
+                pass.sampled = m_scrollRuntime.prepareFrame(CcNiri::ViewportMotionBackend::TimePoint(decision.timeNs),
                     pass.real && pass.output == m_scrollTargetOutput,
                     data.screen ? data.screen->scale() : 0, pass.refreshHz);
                 ++m_scrollFrameSerial;
@@ -951,7 +992,7 @@ void CcNiriViewportClipEffect::postPaintScreen()
 {
     effects->postPaintScreen();
     m_workspaceSlide->postPaintScreen();
-    if (m_scrollRuntime.active() && !m_scrollRuntime.completed()) requestRepaintFull();
+    requestScrollContinuationRepaint();
     if (m_scrollPaintDepth) --m_scrollPaintDepth;
     if (!m_scrollPaintDepth) m_scrollFrameContext.endPass();
 }

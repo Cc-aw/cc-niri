@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     FocusRingCaptureRenderer renderer;
     int samples = 0;
     qreal maxCommitMatrixDelta = 0;
-    for (const qreal scale : {1.0, 1.5, 2.0}) for (bool reverse : {false, true}) {
+    for (const qreal scale : {1.0, 1.25, 1.5, 1.75, 2.0}) for (bool reverse : {false, true}) {
         RenderViewport viewport(RectF(0, 0, 1920, 1080), scale, target, QPoint());
         CcNiri::ScrollRuntimeTestBackend runtime;
         check(runtime.updateContext({{QStringLiteral("protocol"), 2}, {QStringLiteral("sessionId"), QStringLiteral("ring-test")},

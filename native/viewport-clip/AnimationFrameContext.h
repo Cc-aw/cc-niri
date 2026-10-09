@@ -12,6 +12,26 @@ inline AnimationProfile animationProfile(std::string_view value)
     return value == "smooth60" ? AnimationProfile::Smooth60 : AnimationProfile::Stable;
 }
 enum class ClockFallback : uint32_t { None, MissingPrediction, InvalidPrediction, RegressedPrediction };
+enum class ScrollRepaintScope { None, Full, TargetOutput, ConservativeFull };
+struct ScrollRepaintPass {
+    uintptr_t output = 0;
+    uint64_t revision = 0;
+    bool real = false, sampled = false;
+};
+// Platform paint routing only. Sampling/epoch authority remains in the existing
+// frame context and Rust runtime; this never advances or completes a motion.
+inline ScrollRepaintScope scrollContinuationRepaint(AnimationProfile profile, bool unfinished,
+    uintptr_t target, uint64_t revision, bool validGeometry, const ScrollRepaintPass *pass)
+{
+    if (!unfinished) return ScrollRepaintScope::None;
+    if (profile == AnimationProfile::Stable) return ScrollRepaintScope::Full;
+    // An untracked overflow pass cannot prove a safe output damage boundary.
+    if (!pass) return ScrollRepaintScope::ConservativeFull;
+    if (!pass->real || pass->revision != revision) return ScrollRepaintScope::None;
+    if (!target) return ScrollRepaintScope::ConservativeFull;
+    if (pass->output != target || !pass->sampled) return ScrollRepaintScope::None;
+    return validGeometry ? ScrollRepaintScope::TargetOutput : ScrollRepaintScope::ConservativeFull;
+}
 struct AnimationFrameDecision {
     int64_t timeNs = 0;
     bool advance = false;

@@ -17,6 +17,15 @@ capture = {"version": 1, "active": False, "truncated": False, "repaintFullReques
  "lifecycle": [{"kind": 1, "output": 1, "epoch": 1, "revision": 1, "atMs": 40}]}
 r = analyze(capture)
 p, m = r["presentationStats"][0], r["trajectoryStats"][0]
+assert r["repaintOutputRequests"] is None and p["targetRepaintRequests"] is None
+assert r["continuousRepaintFullRequests"] is None and r["continuousRepaintFallbackFullRequests"] is None
+capture.update(repaintOutputRequests=12, continuousRepaintFullRequests=0, continuousRepaintFallbackFullRequests=0)
+capture["outputs"][0]["targetRepaintRequests"] = 12
+capture["outputs"].append({"token": 2, "name": "HDMI-A-1", "refreshHz": 60, "targetRepaintRequests": 0})
+r = analyze(capture)
+assert r["repaintOutputRequests"] == 12 and r["continuousRepaintFullRequests"] == 0
+assert r["continuousRepaintFallbackFullRequests"] == 0
+assert [p["targetRepaintRequests"] for p in r["presentationStats"]] == [12, 0]
 assert p["sampleCount"] == 6 and p["invalidIntervals"] == 2
 assert p["p50Ms"] == 20 and p["p95Ms"] == 29 and p["maxMs"] == 30
 assert p["longIntervals"] == 1 and p["longIntervalThresholdMs"] == 25

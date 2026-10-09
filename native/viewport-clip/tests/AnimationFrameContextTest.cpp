@@ -86,6 +86,47 @@ static std::vector<double> trajectory(double hz, bool jitter, bool secondary, bo
 }
 int main()
 {
+    // Exercise continuation routing with the real frame cache, not an
+    // independent repaint clock. Primary / secondary and recursive work share
+    // one revision; only the pass that prepared it asks for its next frame.
+    {
+        AnimationFrameContext frames;
+        frames.bind(1, 7, 0);
+        auto prepare = [&](uintptr_t output, int64_t predicted, bool real, bool nested = false) {
+            const auto decision = frames.select(output, real, true, predicted, predicted - 1, 11, nested);
+            return ScrollRepaintPass{output, 7, real, decision.advance};
+        };
+        auto route = [&](const ScrollRepaintPass &pass) {
+            return scrollContinuationRepaint(AnimationProfile::Smooth60, true, 1, 7, true, &pass);
+        };
+        auto primary = prepare(1, 20, true);
+        auto secondary = prepare(2, 20, true);
+        auto nested = prepare(1, 30, true, true);
+        check(route(secondary) == ScrollRepaintScope::None && route(nested) == ScrollRepaintScope::None,
+            "secondary and nested postPaint never duplicate target damage");
+        check(route(primary) == ScrollRepaintScope::TargetOutput, "prepared primary requests target-only continuation");
+        check(route(prepare(1, 20, true)) == ScrollRepaintScope::None, "same output frame never requests twice");
+        check(route(prepare(1, 40, false)) == ScrollRepaintScope::None, "offscreen capture cannot schedule output damage");
+        frames.bind(2, 8, 40);
+        check(scrollContinuationRepaint(AnimationProfile::Smooth60, true, 2, 8, true, &primary) == ScrollRepaintScope::None,
+            "retarget output/revision invalidates an outer postPaint");
+        const auto next = frames.select(2, true, true, 40, 39, 12);
+        ScrollRepaintPass changed{2, 8, true, next.advance};
+        check(scrollContinuationRepaint(AnimationProfile::Smooth60, true, 2, 8, true, &changed) == ScrollRepaintScope::TargetOutput,
+            "new target same timestamp schedules its own output");
+        check(scrollContinuationRepaint(AnimationProfile::Smooth60, false, 2, 8, true, &changed) == ScrollRepaintScope::None,
+            "painted completion/cancel stops continuation without releasing ownership");
+        check(scrollContinuationRepaint(AnimationProfile::Smooth60, true, 2, 8, false, &changed) == ScrollRepaintScope::ConservativeFull,
+            "invalid output geometry uses explicit conservative damage");
+        check(scrollContinuationRepaint(AnimationProfile::Smooth60, true, 0, 8, false, &changed) == ScrollRepaintScope::ConservativeFull,
+            "missing lifetime binding falls back safely");
+        check(scrollContinuationRepaint(AnimationProfile::Smooth60, true, 2, 8, true, nullptr) == ScrollRepaintScope::ConservativeFull,
+            "untracked nesting overflow retains conservative damage");
+        check(scrollContinuationRepaint(AnimationProfile::Stable, true, 2, 8, true, &secondary) == ScrollRepaintScope::Full,
+            "stable preserves per-pass full continuation");
+        check(scrollContinuationRepaint(AnimationProfile::Smooth60, false, 0, 9, false, nullptr) == ScrollRepaintScope::None,
+            "output removal/stop idle never requests fallback repaint");
+    }
     static_assert(sizeof(CcNiriScrollRetargetStatus)==120);
     check(cc_niri_scroll_retarget_status(nullptr).status==CC_NIRI_FFI_INVALID_HANDLE,"retarget query null ABI");
     for (int64_t delay : {30'000'000LL,60'000'000LL,120'000'000LL}) {

@@ -32,6 +32,9 @@ def analyze(capture):
         "truncated": capture["truncated"], "captureActive": capture["active"],
         "association": "output-only-no-paint-to-present-join",
         "repaintFullRequests": capture["repaintFullRequests"],
+        "repaintOutputRequests": capture.get("repaintOutputRequests"),
+        "continuousRepaintFullRequests": capture.get("continuousRepaintFullRequests"),
+        "continuousRepaintFallbackFullRequests": capture.get("continuousRepaintFallbackFullRequests"),
         "repaintScope": capture["repaintScope"], "presentationStats": [], "trajectoryStats": [],
     }
     for token in sorted(set(outputs) | set(presented)):
@@ -52,6 +55,7 @@ def analyze(capture):
             "longIntervalThresholdMs": threshold,
             "longIntervals": sum(dt > threshold for dt in valid) if threshold is not None else None,
             "fullRepaintRequests": output.get("fullRepaintRequests"),
+            "targetRepaintRequests": output.get("targetRepaintRequests"),
         })
     for (token, epoch, revision, profile), rows in sorted(painted.items()):
         origin = rows[0]["initialX"]

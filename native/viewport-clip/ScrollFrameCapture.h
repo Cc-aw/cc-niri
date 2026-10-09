@@ -33,6 +33,7 @@ public:
         ++captureId;
         startNs = now; deadlineNs = now + 10'000'000'000LL;
         frameCount = presentationCount = lifecycleCount = repaintFullCount = 0;
+        repaintOutputCount = continuousFullCount = fallbackFullCount = 0;
         truncated = false;
         recording = true;
     }
@@ -53,6 +54,7 @@ public:
     std::array<ScrollCaptureLifecycle, 128> lifecycles{};
     size_t frameCount = 0, presentationCount = 0, lifecycleCount = 0;
     uint64_t repaintFullCount = 0;
+    uint64_t repaintOutputCount = 0, continuousFullCount = 0, fallbackFullCount = 0;
     uint64_t captureId = 0;
     int64_t startNs = 0, deadlineNs = 0;
     bool truncated = false;
