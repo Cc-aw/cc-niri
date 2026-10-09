@@ -2,7 +2,7 @@
 
 日期：2026-10-09。分支：feat/animation-60hz。基线：f0849b1（A5）。生产代码提交：11a6197；部署与实机验收未再修改生产代码。
 
-F1 仅做静态分层。保留 #7FC8FF、唯一真实 Native owner、JS Ring v1 eligibility 与发布 authority、fullscreen / off-on / 对象生命周期。边框配置为 1.5 logical px / alpha=0.85；外缘柔光支持半径为 5.5 logical px，初版 alpha=0.15，用户反馈后的修正为 alpha=0.18，并从清晰边框的外缘开始柔和衰减。没有焦点淡入淡出、收敛、持续 pulse 或新动画时钟；H/L、J/K、Spring 参数和布局未改。
+F1 仅做静态分层。保留 #7FC8FF、唯一真实 Native owner、JS Ring v1 eligibility 与发布 authority、fullscreen / off-on / 对象生命周期。当前边框配置为 1.5 logical px / alpha=0.85；柔光从清晰边框外缘向外衰减 7 logical px，峰值 alpha=0.35，总支持范围 8.5 logical px（历次参数与用户反馈见末节）。没有焦点淡入淡出、收敛、持续 pulse 或新动画时钟；H/L、J/K、Spring 参数和布局未改。
 
 ## 渲染与边界
 
@@ -63,4 +63,22 @@ F1 不实现 F2 focus fade / F3 gain convergence / F4 timeline / F5 edge weighti
 
 仅做一次静态实机检查：一个自有临时 Konsole 客户端、一张 Spectacle 合成截图、1 秒空闲观测，没有重复 H/L、J/K、resize、Wide、fullscreen 或 off-on 测试。截图 `short-glow-check/f1-desktop.png`（统一 2× 导出栅格）及四角裁剪 `cc-niri-f1-glow-corners.png` 可见细线外连续的浅蓝柔光，四角衰减连续。空闲期间 glowRasterizations 不增加，Scroll paint / full / target repaint 均为 0；无 KWin 相关错误。临时客户端关闭后，原窗口 geometry / membership / minimized / fullscreen、实际与 Bridge 焦点、viewport anchor、列状态、桌面 ID / 每输出桌面、输出、配置与组件全部核验恢复，见 `short-glow-check/restoration-success.json`。截图检查不代表用户已接受视觉强度，也未量化 GPU 时间或其他 scale 的实机显示效果。
 
-本次窄回滚入口为该修正版备份中的 `rollback-component.sh`，通过 stop → 恢复初版 immutable Ring `216770cc8b23e4cf7b8b73d69d84e12173def313161acf3d298aa43ba715274f` discovery 绑定 → start 回退；不覆盖用户配置 / 工作区。源码可回退 `ea9ddef`。F1 柔光修正已完成门禁、部署与一次静态检查，后续阶段等待用户视觉反馈。
+本次窄回滚入口为该修正版备份中的 `rollback-component.sh`，通过 stop → 恢复初版 immutable Ring `216770cc8b23e4cf7b8b73d69d84e12173def313161acf3d298aa43ba715274f` discovery 绑定 → start 回退；不覆盖用户配置 / 工作区。源码可回退 `ea9ddef`。这次实现通过门禁、部署与静态功能检查，但用户继续反馈“还是看不到，完全没有柔光”，视觉强度仍未验收通过。
+
+## 第二次反馈：正常比例下的柔光辨识
+
+先在用户实际活动窗口（DP-1、frame x=1284 / y=50 / 1252×1382）保留相同场景，抓取 Ring on / off 两张合成截图，逐边比较边框外 100 个采样位置的 RGB 中位差。0.18 版本四边均有合成差异，因此不是加载旧插件或光晕被完全裁掉：顶部距窗口外缘 2.75 logical px 的蓝通道中位差约 19/255，3.75 px 约 8/255，4.75 px 约 1/255。有效区域狭窄且与壁纸 / 阴影融合，前次仅根据放大截图认定可见不足以代表用户正常比例体验。对照期间未移动窗口，on / off 后原焦点、视口、窗口状态与配置核验恢复。
+
+修正保留细边框与颜色，将柔光的衰减宽度定义为边框外缘之后 7 logical px，总支持范围为 1.5+7=8.5，峰值 alpha 从 0.18 提高到 0.35。强度超出初始文档的建议区间，依据连续两次实机“看不到”的反馈调整；清晰线仍是主要焦点标记。沿用 smoothstep 衰减、轮廓外绘制、有限小纹理和静态缓存，没有 blur framebuffer / 持续动画。
+
+damage 保守外扩为 9 logical px，但共享 Native viewport reservation 保留原 6 logical px。首轮检查发现如果也扩到 9，会在 8px 列间距场景中暴露完全屏外窗口的细边框 / 应用像素，因此将 damage 与 viewport reservation 分开，保留既有 clipped device region / occlusion。滚动 / 部分窗口视口中柔光可被原有 Native clip 限定；不扩大窗口内容的可绘制区域。自动检查覆盖此屏外行为、五档缩放 / 圆角 / 同帧几何、边框外 1px 和 3px 处的有效 alpha，以及缓存 / damage / 生命周期。
+
+源码提交 `43b9420`。最终 `node tools/check.js --native` 通过，包含 Rust 1.99.0 fmt / clippy --locked --workspace --all-targets -D warnings / cargo test --locked --workspace（52 tests）、100 JS、Bridge 17 / Clip 16 / Ring 23 CTest、冻结差分、生产边界与 plasmoid 构建。显式 `/usr/bin/g++` 配置既有 Ring 构建树。首轮屏外裁剪失败与最终修正通过日志均在 `build/focus-f1-halo/`；没有通过放宽屏外断言规避失败。本轮未改 Core / FFI / Qt 转换 / CMake / 动画时钟，未重复 Core Debug / Release、umbrella、编译器拒绝或动画实机场景矩阵。
+
+部署备份为 `/home/cc/.local/state/cc-niri/backups/focus-f1-halo-20261009-200306`（0700），保留快照 / 配置 / immutable 组件路径 / 用户设计文档 / 执行脚本 / 回滚。save-state → stop 成功恢复 parked windows → immutable Ring install → start；新 Ring canonical/hash 为 `c6bbaf8e63e65ac065d82c5604f8d26ed6ad77c70b33cb05260060aa1fc0f86e`。查询确认 `glowRadius=7`、`glowExtent=8.5`、`glowAlpha=0.35`、`paintOutset=9`、`viewportOutset=6`；KWin PID 2050，其他组件与配置保持一致。OS 仍禁止读取 KWin maps，进程映射文件 hash 未独立确认，安装 hash / reload / 新参数已核对。
+
+部署后只对当前实际活动窗口（frame x=24 / y=50 / 2512×1382）做 Ring on / off 同场景截图，没有创建测试窗口或重复键盘场景。Spectacle 统一 2× 导出栅格，原截图和逐边 100 点中位差在 `actual-window-check/`。顶部距窗口外缘 2.75 / 3.75 / 4.75 / 5.75 logical px 的蓝通道中位差分别约 50 / 37 / 27 / 18；左、右、下也保留连续衰减，支持范围外约 9px 的差异基本为零。前后两版采样的活动窗口和几何不同，各自的 on / off 为相同窗口 / 相同场景；不将两版数值当作完全匹配背景的 A/B 比率。检查实际四角，并将裁剪按 2× 导出 / 150% 输出的比例缩小用于观察，当前光晕外扩及色彩差异明显增强；没有将该检查当作用户视觉验收或物理像素计量。
+
+Ring reload 后 1 秒空闲：纹理 rasterizations 不增加，Scroll paint / full / target repaint 均为零，无相关 KWin 错误。全部原窗口 geometry / membership / minimized / fullscreen、实际与 Bridge 焦点、viewport anchor / columns、原桌面 ID / 输出桌面 / 显示配置、插件与配置核验恢复，见 `actual-window-check/restoration-success.json`。运行中未替换 Clip、Bridge 或 JS，没有扩展生产动画或窗口内容的裁剪范围。
+
+窄回滚为本备份的 `rollback-component.sh`：stop → 仅恢复旧 0.18 版本 `f7634ae301e6ff00f7541bdce41ad20210e8b6bf2ec862d2ece3ca749b772ff4` 的 immutable Ring discovery → start；不整体覆写配置 / 工作区。源码可回退 `43b9420`。本版已完成实现、必要门禁、部署和当前用户窗口静态核对，视觉强度等待用户反馈，暂不进入 F2。
