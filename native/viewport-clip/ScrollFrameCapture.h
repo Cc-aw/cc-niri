@@ -14,6 +14,7 @@ struct ScrollCaptureFrame {
     double initialPosition = 0;
     int64_t startNs = 0;
     AnimationProfile profile = AnimationProfile::Stable;
+    double initialVelocity = 0;
 };
 struct ScrollCapturePresentation { uint64_t output = 0; int64_t timeNs = 0; };
 struct ScrollCaptureLifecycle {
@@ -21,6 +22,8 @@ struct ScrollCaptureLifecycle {
     int64_t epoch = -1, timeNs = 0;
     // 0 arm, 1 cancel request, 2 context update, 3 clear / reconfigure / output removal.
     uint32_t kind = 0;
+    double initialVelocity = 0, savedVelocity = 0, brakeMs = 0, brakeDistance = 0;
+    uint32_t strategy = 0, reason = 0;
 };
 // Opt-in, fixed-capacity telemetry; no clocks, scheduling, JSON or allocations.
 class ScrollFrameCapture {

@@ -33,11 +33,14 @@ bool RustScrollViewportRuntime::updateContext(const QJsonObject &state) {
     const ProtocolAdapter::ScrollContext decoded(state);
     return accepted(cc_niri_scroll_update_context(m_handle,&decoded.dto));
 }
-bool RustScrollViewportRuntime::arm(const QJsonObject &plan,ViewportMotionBackend::TimePoint now,const QHash<QString,QRectF> &frames) {
+bool RustScrollViewportRuntime::arm(const QJsonObject &plan,ViewportMotionBackend::TimePoint now,const QHash<QString,QRectF> &frames,bool smooth) {
     const ProtocolAdapter::ScrollPlan decoded(plan,[this](const QString &id) { return intern(id); });
     std::vector<CcNiriWindowFrame> physical; physical.reserve(frames.size());
     for (auto it=frames.cbegin();it!=frames.cend();++it) physical.push_back({intern(it.key()),rect(it.value())});
-    return accepted(cc_niri_scroll_arm(m_handle,&decoded.dto,now.count(),physical.data(),physical.size()));
+    return accepted(cc_niri_scroll_arm_with_policy(m_handle,&decoded.dto,now.count(),physical.data(),physical.size(),smooth));
+}
+CcNiriScrollRetargetStatus RustScrollViewportRuntime::retargetStatus() const {
+    const auto result=cc_niri_scroll_retarget_status(m_handle);checkStatus(result.status);return result;
 }
 void RustScrollViewportRuntime::cancel(const QString &session,qint64 epoch) { checkStatus(cc_niri_scroll_cancel(m_handle,text(session),epoch)); }
 void RustScrollViewportRuntime::clear() { checkStatus(cc_niri_scroll_clear(m_handle)); }

@@ -10,6 +10,7 @@ pub fn rust_core_version() -> &'static str {
 
 pub mod viewport_motion;
 
+pub mod scroll_retarget;
 pub mod scroll_runtime;
 
 pub mod focus_ring;

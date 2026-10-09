@@ -25,8 +25,9 @@ static QJsonObject context()
 static QJsonObject plan(int epoch, double from, double to)
 {
     QJsonArray entries;
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 5; ++i) {
         const auto visible = [i](double offset) { return i * 108 >= offset && i * 108 + 100 <= offset + 208; };
+        if (!visible(from) && !visible(to)) continue;
         entries.append(QJsonObject{{QStringLiteral("windowId"), QString::number(i)}, {QStringLiteral("columnId"), i},
             {QStringLiteral("logicalX"), i * 108}, {QStringLiteral("pixelWidth"), 100},
             {QStringLiteral("oldPlacement"), visible(from) ? QStringLiteral("visible") : QStringLiteral("parked")},
@@ -37,6 +38,7 @@ static QJsonObject plan(int epoch, double from, double to)
         {QStringLiteral("targetOutput"), QStringLiteral("DP-1")}, {QStringLiteral("epoch"), epoch},
         {QStringLiteral("issuedAt"), 1}, {QStringLiteral("oldScrollOffsetX"), from},
         {QStringLiteral("newScrollOffsetX"), to}, {QStringLiteral("entries"), entries},
+        {QStringLiteral("retargetOnly"), from == to},
         {QStringLiteral("viewport"), QJsonObject{{QStringLiteral("x"), -300.5}, {QStringLiteral("y"), 50.25},
             {QStringLiteral("width"), 208}, {QStringLiteral("height"), 800}}}};
 }
@@ -84,6 +86,22 @@ static std::vector<double> trajectory(double hz, bool jitter, bool secondary, bo
 }
 int main()
 {
+    static_assert(sizeof(CcNiriScrollRetargetStatus)==120);
+    check(cc_niri_scroll_retarget_status(nullptr).status==CC_NIRI_FFI_INVALID_HANDLE,"retarget query null ABI");
+    for (int64_t delay : {30'000'000LL,60'000'000LL,120'000'000LL}) {
+        RustScrollViewportRuntime runtime;
+        check(runtime.updateContext(context()) && runtime.arm(plan(1,0,108),ViewportMotionBackend::TimePoint(0),{},true),"smooth production FFI arm");
+        check(runtime.prepareFrame(ViewportMotionBackend::TimePoint(delay)),"smooth prepare");
+        auto anchor=runtime.frameSample();check(runtime.markPainted(anchor.epoch,anchor.time_ns),"smooth painted anchor");
+        check(runtime.prepareFrame(ViewportMotionBackend::TimePoint(delay+20'000'000)),"unpainted future");
+        check(runtime.arm(plan(2,108,216),ViewportMotionBackend::TimePoint(delay-1),{},true),"actual arm forwards smooth policy");
+        auto origin=runtime.originSample();auto status=runtime.retargetStatus();
+        check(origin.position==anchor.position && origin.velocity==anchor.velocity && origin.time_ns==anchor.time_ns,"production x0/v0/time use one painted sample");
+        check(status.carried==1 && status.strategy==1 && status.degraded==0,"carry counters from Rust");
+        check(runtime.arm(plan(3,216,216),ViewportMotionBackend::TimePoint(delay+1),{},true),"same target accepts epoch");
+        check(runtime.retargetStatus().kept==1,"same target keeps trajectory");
+        check(runtime.role(QStringLiteral("0"))==QStringLiteral("outgoing"),"keep still owns outgoing");
+    }
     check(animationProfile("stable") == AnimationProfile::Stable && animationProfile("smooth60") == AnimationProfile::Smooth60
         && animationProfile("garbage") == AnimationProfile::Stable, "typed profile and invalid fallback");
     for (double hz : {59.94, 60.0, 120.0, 144.0}) {

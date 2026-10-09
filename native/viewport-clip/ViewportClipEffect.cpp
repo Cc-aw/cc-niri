@@ -505,7 +505,7 @@ bool CcNiriViewportClipEffect::ArmScrollPlan(const QString &json)
         const auto painted = m_scrollRuntime.frameSample(true);
         if (painted.valid) startTime = std::max(startTime, CcNiri::ViewportMotionBackend::TimePoint(painted.time_ns));
     }
-    if (!m_scrollRuntime.arm(plan, startTime, frames)) return false;
+    if (!m_scrollRuntime.arm(plan, startTime, frames, m_animationProfile == CcNiri::AnimationProfile::Smooth60)) return false;
     if (m_scrollRuntime.status().value(QStringLiteral("epoch")).toInteger() != m_scrollBoundEpoch)
         m_scrollEventTime = eventTime.count();
     syncScrollOutput();
@@ -659,7 +659,7 @@ QString CcNiriViewportClipEffect::GetScrollFrameCapture() const
             {QStringLiteral("scale"), r.scale}, {QStringLiteral("refreshHz"), r.refreshHz},
             {QStringLiteral("fallback"), int(r.fallback)}, {QStringLiteral("numericalCompleted"), r.completed},
             {QStringLiteral("ownershipActive"), r.ownership}, {QStringLiteral("initialX"), r.initialPosition},
-            {QStringLiteral("startMs"), atMs(r.startNs)},
+            {QStringLiteral("startMs"), atMs(r.startNs)}, {QStringLiteral("initialVelocity"), r.initialVelocity},
             {QStringLiteral("profile"), r.profile == CcNiri::AnimationProfile::Smooth60 ? QStringLiteral("smooth60") : QStringLiteral("stable")}});
     }
     for (size_t i = 0; i < m_scrollCapture.presentationCount; ++i) {
@@ -669,7 +669,10 @@ QString CcNiriViewportClipEffect::GetScrollFrameCapture() const
     for (size_t i = 0; i < m_scrollCapture.lifecycleCount; ++i) {
         const auto &r = m_scrollCapture.lifecycles[i];
         lifecycles.append(QJsonObject{{QStringLiteral("output"), qint64(r.output)}, {QStringLiteral("revision"), qint64(r.revision)},
-            {QStringLiteral("epoch"), qint64(r.epoch)}, {QStringLiteral("atMs"), atMs(r.timeNs)}, {QStringLiteral("kind"), int(r.kind)}});
+            {QStringLiteral("epoch"), qint64(r.epoch)}, {QStringLiteral("atMs"), atMs(r.timeNs)}, {QStringLiteral("kind"), int(r.kind)},
+            {QStringLiteral("retargetStrategy"), int(r.strategy)}, {QStringLiteral("retargetReason"), int(r.reason)},
+            {QStringLiteral("initialVelocity"), r.initialVelocity}, {QStringLiteral("savedVelocity"), r.savedVelocity},
+            {QStringLiteral("brakeMs"), r.brakeMs}, {QStringLiteral("brakeDistance"), r.brakeDistance}});
     }
     return QString::fromUtf8(QJsonDocument(QJsonObject{
         {QStringLiteral("version"), 1}, {QStringLiteral("durationMs"), 10000},
@@ -708,7 +711,8 @@ QString CcNiriViewportClipEffect::GetScrollMotionStatus() const
         : (m_scrollFrameContext.fallback() == CcNiri::ClockFallback::None
             ? QStringLiteral("predicted-presentation") : QStringLiteral("steady-clock-fallback")));
     status.insert(QStringLiteral("scrollTargetOutput"), m_scrollTargetName);
-    status.insert(QStringLiteral("scrollRetargetPolicy"), QStringLiteral("last-painted-position-zero-velocity"));
+    status.insert(QStringLiteral("scrollRetargetPolicy"), m_animationProfile == CcNiri::AnimationProfile::Smooth60 && !m_scrollRuntime.clipsPartial()
+        ? QStringLiteral("bounded-last-painted-position-and-velocity") : QStringLiteral("last-painted-position-zero-velocity"));
     status.insert(QStringLiteral("scrollSpringStiffness"), 800);
     status.insert(QStringLiteral("scrollVisualSettlePhysicalPx"), QJsonValue());
     status.insert(QStringLiteral("workspaceRetargetPolicy"), QStringLiteral("last-painted-position-quintic-zero-velocity"));
@@ -717,7 +721,21 @@ QString CcNiriViewportClipEffect::GetScrollMotionStatus() const
         {QStringLiteral("missingPrediction"), qint64(m_scrollFrameContext.fallbackCount(CcNiri::ClockFallback::MissingPrediction))},
         {QStringLiteral("invalidPrediction"), qint64(m_scrollFrameContext.fallbackCount(CcNiri::ClockFallback::InvalidPrediction))},
         {QStringLiteral("regressedPrediction"), qint64(m_scrollFrameContext.fallbackCount(CcNiri::ClockFallback::RegressedPrediction))}});
-    status.insert(QStringLiteral("retargetDegradedCount"), QJsonValue()); // A2 is not implemented.
+    const auto retarget = m_scrollRuntime.retargetStatus();
+    const char *strategies[] = {"rest", "carry", "brake", "reset", "keep"};
+    const char *reasons[] = {"none", "no-brake-space", "invalid-math", "coverage"};
+    status.insert(QStringLiteral("retargetDegradedCount"), qint64(retarget.degraded));
+    status.insert(QStringLiteral("retargetCarriedCount"), qint64(retarget.carried));
+    status.insert(QStringLiteral("retargetBrakedCount"), qint64(retarget.braked));
+    status.insert(QStringLiteral("retargetKeptCount"), qint64(retarget.kept));
+    status.insert(QStringLiteral("retargetDegradedReasons"), QJsonObject{{QStringLiteral("noBrakeSpace"), qint64(retarget.no_space)},
+        {QStringLiteral("invalidMath"), qint64(retarget.invalid_math)}, {QStringLiteral("coverage"), qint64(retarget.coverage)}});
+    status.insert(QStringLiteral("lastRetarget"), QJsonObject{
+        {QStringLiteral("strategy"), QString::fromLatin1(retarget.strategy < 5 ? strategies[retarget.strategy] : "invalid")},
+        {QStringLiteral("reason"), QString::fromLatin1(retarget.reason < 4 ? reasons[retarget.reason] : "invalid")},
+        {QStringLiteral("initialVelocity"), retarget.initial_velocity}, {QStringLiteral("savedVelocity"), retarget.saved_velocity},
+        {QStringLiteral("brakeMs"), retarget.brake_ms}, {QStringLiteral("brakeDistance"), retarget.brake_distance},
+        {QStringLiteral("lower"), retarget.lower}, {QStringLiteral("upper"), retarget.upper}});
     return QString::fromUtf8(QJsonDocument(status).toJson(QJsonDocument::Compact));
 }
 
@@ -841,7 +859,9 @@ uint64_t CcNiriViewportClipEffect::captureOutputToken(LogicalOutput *output) con
 void CcNiriViewportClipEffect::captureScrollLifecycle(uint32_t kind, qint64 epoch)
 {
     if (!m_scrollCapture.recording) return;
-    m_scrollCapture.lifecycle({captureOutputToken(m_scrollTargetOutput.data()), m_scrollRevision, epoch, motionNow().count(), kind});
+    const auto r = kind == 0 ? m_scrollRuntime.retargetStatus() : CcNiriScrollRetargetStatus{};
+    m_scrollCapture.lifecycle({captureOutputToken(m_scrollTargetOutput.data()), m_scrollRevision, epoch, motionNow().count(), kind,
+        r.initial_velocity, r.saved_velocity, r.brake_ms, r.brake_distance, r.strategy, r.reason});
 }
 void CcNiriViewportClipEffect::requestRepaintFull()
 {
@@ -1087,7 +1107,7 @@ void CcNiriViewportClipEffect::paintClippedWindow(const RenderTarget &renderTarg
                         m_scrollCapture.record({pass.serial, captureOutputToken(pass.output), pass.revision,
                             sample.epoch, m_scrollEventTime, pass.predictedNs, sample.time_ns, now,
                             sample.position, sample.velocity, sample.target, viewport.scale(), pass.refreshHz,
-                            pass.fallback, sample.completed != 0, m_scrollRuntime.active(), origin.position, origin.time_ns, m_animationProfile});
+                            pass.fallback, sample.completed != 0, m_scrollRuntime.active(), origin.position, origin.time_ns, m_animationProfile, origin.velocity});
                         m_scrollCapturedSerial = pass.serial;
                     }
                 }

@@ -115,6 +115,19 @@ uint32_t cc_niri_scroll_copy(CcNiriScroll *destination,const CcNiriScroll *sourc
 CcNiriIdResult cc_niri_scroll_intern(CcNiriScroll *handle,CcNiriU16View name);
 CcNiriSpringBoolResult cc_niri_scroll_update_context(CcNiriScroll *handle,const CcNiriScrollContext *context);
 CcNiriSpringBoolResult cc_niri_scroll_arm(CcNiriScroll *handle,const CcNiriScrollPlan *plan,int64_t now_ns,const CcNiriWindowFrame *frames,uint64_t frames_len);
+/* Explicit policy for one accepted arm: 0 legacy, 1 bounded painted velocity.
+ * Other values return INVALID_DTO. JS wire protocol and layout authority stay
+ * unchanged; partial Script-painted plans keep the legacy motion policy. */
+CcNiriSpringBoolResult cc_niri_scroll_arm_with_policy(CcNiriScroll *handle,const CcNiriScrollPlan *plan,int64_t now_ns,const CcNiriWindowFrame *frames,uint64_t frames_len,uint32_t smooth);
+typedef struct {
+    uint64_t degraded,carried,braked,kept,no_space,invalid_math,coverage;
+    double initial_velocity,saved_velocity,brake_ms,brake_distance,lower,upper;
+    uint32_t strategy,reason,status,reserved;
+} CcNiriScrollRetargetStatus;
+/* strategy: rest/carry/brake/reset/keep=0..4; reset reason:
+ * none/no-brake-space/invalid-math/coverage=0..3. Counts last the handle lifetime.
+ * Shared read, no time sampling or allocation; null returns INVALID_HANDLE. */
+CcNiriScrollRetargetStatus cc_niri_scroll_retarget_status(const CcNiriScroll *handle);
 uint32_t cc_niri_scroll_cancel(CcNiriScroll *handle,CcNiriU16View session,int64_t epoch);
 uint32_t cc_niri_scroll_clear(CcNiriScroll *handle);
 uint32_t cc_niri_scroll_remove(CcNiriScroll *handle,uint64_t id);

@@ -70,10 +70,18 @@ def analyze(capture):
         left_censored = rows[0]["startMs"] < 0
         cancel = next((r["atMs"] for r in capture["lifecycle"] if r["kind"] == 1
                        and r["epoch"] == epoch and r["revision"] == revision and r["output"] == token), None)
+        arm = next((r for r in capture["lifecycle"] if r["kind"] == 0
+                    and r["epoch"] == epoch and r["revision"] == revision and r["output"] == token), {})
         report["trajectoryStats"].append({
             "output": token, "epoch": epoch, "revision": revision, "profile": profile,
             "paintedSamples": len(rows), "scaleChanged": changed_scale,
             "startedBeforeCapture": left_censored,
+            "initialVelocity": rows[0].get("initialVelocity"),
+            "retargetStrategy": arm.get("retargetStrategy"), "retargetReason": arm.get("retargetReason"),
+            "savedVelocity": arm.get("savedVelocity"), "brakeMs": arm.get("brakeMs"),
+            "brakeDistance": arm.get("brakeDistance"),
+            "firstPhysicalStepFromArmAnchorPx": abs(rows[0]["x"] - origin) * rows[0]["scale"]
+                if not left_censored and arm.get("retargetStrategy") != 4 else None,
             "maxPhysicalStepPx": max(steps, default=None),
             "maxLogicalSpeedPxPerSec": max(abs(r["v"]) for r in rows),
             "firstVisiblePaintResponseMs": first_visible["paintMs"] - first_visible["eventMs"] if first_visible and not left_censored else None,

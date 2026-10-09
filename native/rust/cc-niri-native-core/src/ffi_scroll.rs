@@ -228,16 +228,87 @@ pub unsafe extern "C" fn cc_niri_scroll_arm(
     frames: *const FfiWindowFrame,
     frames_len: u64,
 ) -> FfiSpringBoolResult {
+    unsafe { cc_niri_scroll_arm_with_policy(handle, plan, now, frames, frames_len, 0) }
+}
+/// # Safety
+/// Same live exclusive handle and borrowed DTO buffers as cc_niri_scroll_arm.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_arm_with_policy(
+    handle: *mut ScrollHandle,
+    plan: *const FfiPlan,
+    now: i64,
+    frames: *const FfiWindowFrame,
+    frames_len: u64,
+    smooth: u32,
+) -> FfiSpringBoolResult {
     bool_result((|| {
         let h = unsafe { handle.as_mut() }.ok_or(INVALID_HANDLE)?;
+        if smooth > 1 {
+            return Err(INVALID_DTO);
+        }
         let p = unsafe { plan.as_ref() }.ok_or(INVALID_DTO)?;
         let p = unsafe { decode_plan(p)? };
         let frames: HashMap<_, _> = unsafe { slice(frames, frames_len)? }
             .iter()
             .map(|f| (WindowId(f.window_id), f.rect.into()))
             .collect();
-        Ok(h.0.arm(p, now, &frames))
+        Ok(h.0.arm_with_policy(p, now, &frames, smooth != 0))
     })())
+}
+#[repr(C)]
+#[derive(Default)]
+pub struct FfiRetargetStatus {
+    degraded: u64,
+    carried: u64,
+    braked: u64,
+    kept: u64,
+    no_space: u64,
+    invalid_math: u64,
+    coverage: u64,
+    initial_velocity: f64,
+    saved_velocity: f64,
+    brake_ms: f64,
+    brake_distance: f64,
+    lower: f64,
+    upper: f64,
+    strategy: u32,
+    reason: u32,
+    status: u32,
+    reserved: u32,
+}
+/// # Safety
+/// Live shared handle; returns a value DTO without sampling time or allocation.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_retarget_status(
+    handle: *const ScrollHandle,
+) -> FfiRetargetStatus {
+    let Some(h) = (unsafe { handle.as_ref() }) else {
+        return FfiRetargetStatus {
+            status: INVALID_HANDLE,
+            ..Default::default()
+        };
+    };
+    let r = h.0.retarget_stats();
+    let d = r.last;
+    FfiRetargetStatus {
+        degraded: r.degraded,
+        carried: r.carried,
+        braked: r.braked,
+        kept: r.kept,
+        no_space: r.reasons[1],
+        invalid_math: r.reasons[2],
+        coverage: r.reasons[3],
+        initial_velocity: d.initial_velocity,
+        saved_velocity: d.saved_velocity,
+        brake_ms: d.brake_ns as f64 / 1e6,
+        brake_distance: d.brake_distance,
+        lower: d.lower,
+        upper: d.upper,
+        strategy: d.strategy as u32,
+        reason: d.reason as u32,
+        status: OK,
+        reserved: 0,
+    }
 }
 /// # Safety
 /// Live exclusively-borrowed handle and borrowed UTF-16 input.
@@ -581,6 +652,8 @@ mod tests {
                 INVALID_HANDLE
             );
             assert_eq!(cc_niri_scroll_frame_sample(null, 0).status, INVALID_HANDLE);
+            assert_eq!(cc_niri_scroll_retarget_status(null).status, INVALID_HANDLE);
+            assert_eq!(std::mem::size_of::<FfiRetargetStatus>(), 120);
             assert_eq!(cc_niri_scroll_status(null).status, INVALID_HANDLE);
             assert_eq!(
                 cc_niri_scroll_input_blocked(null, 1, 0.0, 0.0).status,
@@ -598,6 +671,11 @@ mod tests {
             );
             let h = cc_niri_scroll_create(1);
             assert_eq!(cc_niri_scroll_frame_sample(h, 3).status, INVALID_DTO);
+            assert_eq!(
+                cc_niri_scroll_arm_with_policy(h, std::ptr::null(), 0, std::ptr::null(), 0, 2)
+                    .status,
+                INVALID_DTO
+            );
             assert_eq!(cc_niri_scroll_prepare_frame(h, -1).value, 0);
             assert_eq!(cc_niri_scroll_mark_painted(h, 0, 0).value, 0);
             assert_eq!(
@@ -714,6 +792,7 @@ mod tests {
                         1
                     );
                     std::hint::black_box(cc_niri_scroll_frame_sample(h, 1));
+                    std::hint::black_box(cc_niri_scroll_retarget_status(h));
                 }
             });
             assert_eq!(allocations, 0);

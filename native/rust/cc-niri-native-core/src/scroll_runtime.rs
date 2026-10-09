@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 //! Scroll authority, shared motion and projection. No platform objects or clock reads.
 pub use crate::native_protocol::*;
+use crate::scroll_retarget::{MotionBounds, ResetReason, RetargetDecision, RetargetStrategy};
 use crate::spring::SpringParams;
 use crate::viewport_motion::{MotionKind, MotionSample, ViewportMotion};
 use std::collections::HashMap;
@@ -9,6 +10,32 @@ use std::collections::HashMap;
 pub struct ScrollFrameSample {
     pub motion: MotionSample,
     pub time_ns: i64,
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct RetargetStats {
+    pub degraded: u64,
+    pub carried: u64,
+    pub braked: u64,
+    pub kept: u64,
+    pub reasons: [u64; 4],
+    pub last: RetargetDecision,
+}
+impl RetargetStats {
+    fn record(&mut self, decision: RetargetDecision) {
+        match decision.strategy {
+            RetargetStrategy::Carry => self.carried = self.carried.saturating_add(1),
+            RetargetStrategy::Brake => self.braked = self.braked.saturating_add(1),
+            RetargetStrategy::Keep => self.kept = self.kept.saturating_add(1),
+            RetargetStrategy::Reset => {
+                self.degraded = self.degraded.saturating_add(1);
+                let count = &mut self.reasons[decision.reason as usize];
+                *count = count.saturating_add(1);
+            }
+            RetargetStrategy::Rest => {}
+        }
+        self.last = decision;
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -32,6 +59,8 @@ pub struct ScrollViewportRuntime {
     fuzzy_zero: bool,
     clip_partial: bool,
     windows: WindowRegistry,
+    smooth_motion: bool,
+    retarget: RetargetStats,
 }
 impl ScrollViewportRuntime {
     pub fn new(fuzzy_zero: bool) -> Self {
@@ -53,6 +82,8 @@ impl ScrollViewportRuntime {
             fuzzy_zero,
             clip_partial: false,
             windows: WindowRegistry::default(),
+            smooth_motion: false,
+            retarget: RetargetStats::default(),
         }
     }
     // Stable per-runtime tokens avoid string conversion/allocation on projection.
@@ -158,6 +189,15 @@ impl ScrollViewportRuntime {
         valid_scroll_plan(plan, &self.windows)
     }
     pub fn arm(&mut self, plan: ScrollPlan, now: i64, frames: &HashMap<WindowId, Rect>) -> bool {
+        self.arm_with_policy(plan, now, frames, false)
+    }
+    pub fn arm_with_policy(
+        &mut self,
+        plan: ScrollPlan,
+        now: i64,
+        frames: &HashMap<WindowId, Rect>,
+        smooth: bool,
+    ) -> bool {
         let Ok(mut validated) = ValidatedScrollPlan::new(plan, &self.windows) else {
             return false;
         };
@@ -256,29 +296,90 @@ impl ScrollViewportRuntime {
             self.clear();
             return false;
         }
-        if !self.motion.start(
-            if continuing {
-                self.anchor_offset
+        let from = if continuing {
+            self.anchor_offset
+        } else {
+            old_offset
+        };
+        // Context switches clear samples before arm; same-frame targets keep
+        // reusing the same painted sample, even when its epoch is older.
+        let carry =
+            continuing && self.smooth_motion && smooth && !self.clip_partial && !clip_partial;
+        let painted = self.painted_sample.filter(|_| carry);
+        let start_time = if now >= 0 {
+            painted.map_or(now, |s| now.max(s.time_ns))
+        } else {
+            now
+        };
+        let use_smooth = smooth && !clip_partial;
+        let mut kept = false;
+        let decision = if use_smooth {
+            // Held window footprints define extra camera travel; the adapter
+            // neither supplies nor invents a second workspace/layout boundary.
+            let lower = visual_targets
+                .values()
+                .map(|r| r.x - rect.x + target)
+                .fold(f64::INFINITY, f64::min);
+            let upper = visual_targets
+                .values()
+                .map(|r| r.x - rect.x + target + r.width - rect.width)
+                .fold(f64::NEG_INFINITY, f64::max);
+            let bounds = MotionBounds {
+                lower,
+                upper,
+                reverse_limit: rect.width * 0.02,
+            };
+            if carry && self.motion.can_keep_curve(target, bounds) {
+                if !self.motion.keep_curve(epoch, start_time) {
+                    return false;
+                }
+                kept = true;
+                RetargetDecision {
+                    strategy: RetargetStrategy::Keep,
+                    reason: ResetReason::None,
+                    lower,
+                    upper,
+                    ..self.retarget.last
+                }
             } else {
-                old_offset
-            },
-            target,
-            epoch,
-            now,
-        ) {
-            return false;
-        }
+                let velocity = painted
+                    .filter(|s| s.motion.kind == MotionKind::Animation)
+                    .map_or(0.0, |s| s.motion.velocity);
+                let Some(decision) = self
+                    .motion
+                    .start_bounded(from, target, velocity, bounds, epoch, start_time)
+                else {
+                    return false;
+                };
+                decision
+            }
+        } else {
+            if !self.motion.start(from, target, epoch, now) {
+                return false;
+            }
+            RetargetDecision::default()
+        };
         self.columns = columns;
         self.visual_targets = visual_targets;
         self.source_frames = source_frames;
         self.roles = roles;
         self.viewport = rect;
-        let origin = ScrollFrameSample {
-            motion: self.motion.sample(now),
-            time_ns: now,
+        let origin = if kept {
+            let mut origin = self.origin_sample.expect("active motion has an origin");
+            origin.motion.epoch = epoch;
+            origin
+        } else {
+            ScrollFrameSample {
+                motion: self.motion.sample(start_time),
+                time_ns: start_time,
+            }
         };
         self.origin_sample = Some(origin);
-        self.frame_offset = origin.motion.current;
+        self.frame_offset = if kept {
+            self.anchor_offset
+        } else {
+            origin.motion.current
+        };
         self.anchor_offset = self.frame_offset;
         self.frame_sample = None;
         if !continuing {
@@ -286,6 +387,8 @@ impl ScrollViewportRuntime {
         }
         self.completed = false;
         self.clip_partial = clip_partial;
+        self.smooth_motion = use_smooth;
+        self.retarget.record(decision);
         true
     }
     pub fn cancel(&mut self, session: &Text, epoch: i64) {
@@ -328,6 +431,9 @@ impl ScrollViewportRuntime {
     }
     pub fn origin_sample(&self) -> Option<ScrollFrameSample> {
         self.origin_sample
+    }
+    pub fn retarget_stats(&self) -> RetargetStats {
+        self.retarget
     }
     pub fn prepare_frame(&mut self, now: i64) -> bool {
         if !self.active() || now < 0 || self.frame_sample.is_some_and(|s| now < s.time_ns) {
@@ -471,6 +577,156 @@ mod tests {
         assert_eq!(r.role(outgoing), Some(WindowRole::Outgoing));
         r.cancel(&Text::from_utf8("s"), 2);
         assert!(!r.active() && r.frame_sample(true).is_none());
+    }
+    fn smooth_arm(r: &mut ScrollViewportRuntime, epoch: f64, from: f64, to: f64, now: i64) {
+        let p = plan(r, epoch, from, to);
+        assert!(r.arm_with_policy(p, now, &HashMap::new(), true));
+    }
+    fn painted(r: &mut ScrollViewportRuntime, now: i64) -> ScrollFrameSample {
+        assert!(r.prepare_frame(now));
+        assert!(r.mark_painted(r.epoch(), now));
+        r.frame_sample(true).unwrap()
+    }
+    fn close(a: f64, b: f64) {
+        assert!(
+            (a - b).abs() <= 1e-8 + 1e-10 * b.abs().max(1.0),
+            "{a} != {b}"
+        );
+    }
+    #[test]
+    fn smooth_production_arm_preserves_painted_velocity_and_same_frame_anchor() {
+        for delay in [30_000_000, 60_000_000, 120_000_000] {
+            let mut r = ScrollViewportRuntime::new(true);
+            r.update_context(context("s", 1.0));
+            smooth_arm(&mut r, 1.0, 0.0, 1260.25, 0);
+            let anchor = painted(&mut r, delay);
+            // A pending future sample must not leak into either x0 or v0.
+            assert!(r.prepare_frame(delay + 50_000_000));
+            smooth_arm(&mut r, 2.0, 1260.25, 2520.5, delay - 1);
+            let start = r.origin_sample().unwrap();
+            close(start.motion.current, anchor.motion.current);
+            close(start.motion.velocity, anchor.motion.velocity);
+            assert_eq!(start.time_ns, anchor.time_ns);
+            assert_eq!(r.retarget.last.strategy, RetargetStrategy::Carry);
+            smooth_arm(&mut r, 3.0, 2520.5, 3780.75, delay + 1);
+            let start = r.origin_sample().unwrap();
+            close(start.motion.current, anchor.motion.current);
+            close(start.motion.velocity, anchor.motion.velocity);
+            assert_eq!(r.retarget.carried, 2);
+            let outgoing = r.intern(Text::from_utf8("0"));
+            assert_eq!(r.role(outgoing), Some(WindowRole::Outgoing));
+            painted(&mut r, 4_000_000_000);
+            assert!(r.completed() && r.active());
+            r.cancel(&Text::from_utf8("s"), 3);
+            assert!(!r.active());
+        }
+    }
+    #[test]
+    fn smooth_reverse_brakes_within_the_held_region_without_sample_clamping() {
+        for delay in [20_000_000, 50_000_000, 130_000_000, 250_000_000] {
+            let mut r = ScrollViewportRuntime::new(true);
+            r.update_context(context("s", 1.0));
+            smooth_arm(&mut r, 1.0, 0.0, 1260.25, 0);
+            let anchor = painted(&mut r, delay);
+            smooth_arm(&mut r, 2.0, 1260.25, 0.0, delay);
+            let start = r.origin_sample().unwrap();
+            close(start.motion.current, anchor.motion.current);
+            close(start.motion.velocity, anchor.motion.velocity);
+            assert_ne!(r.retarget.last.strategy, RetargetStrategy::Reset);
+            let d = r.retarget.last;
+            assert!(d.brake_ns <= 50_000_000);
+            if delay <= 50_000_000 {
+                assert_eq!(d.strategy, RetargetStrategy::Brake);
+            }
+            for step in 0..=1000 {
+                let value = r.motion.sample(delay + step * 1_000_000);
+                assert!(
+                    value.current >= 0.0 && value.current <= anchor.motion.current + 2512.5 * 0.02
+                );
+            }
+            if d.brake_ns > 0 {
+                let left = r.motion.sample(delay + d.brake_ns - 1);
+                let right = r.motion.sample(delay + d.brake_ns);
+                close(left.current, right.current);
+                assert!(left.velocity.abs() < 0.01 && right.velocity == 0.0);
+            }
+        }
+    }
+    #[test]
+    fn same_target_updates_epoch_and_entries_without_restarting_the_curve() {
+        let mut r = ScrollViewportRuntime::new(true);
+        r.update_context(context("s", 1.0));
+        smooth_arm(&mut r, 1.0, 0.0, 1260.25, 0);
+        let anchor = painted(&mut r, 60_000_000);
+        let before = r.motion.clone();
+        smooth_arm(&mut r, 2.0, 1260.25, 1260.25, 70_000_000);
+        assert_eq!(r.retarget.last.strategy, RetargetStrategy::Keep);
+        assert_eq!(r.retarget.kept, 1);
+        close(r.frame_offset, anchor.motion.current);
+        assert_eq!(r.origin_sample().unwrap().time_ns, 0);
+        for now in [70_000_000, 80_000_000, 100_000_000, 300_000_000] {
+            close(r.motion.sample(now).current, before.sample(now).current);
+            close(r.motion.sample(now).velocity, before.sample(now).velocity);
+            assert_eq!(r.motion.sample(now).epoch, 2);
+        }
+        let duplicate = plan(&mut r, 2.0, 1260.25, 1260.25);
+        assert!(r.arm_with_policy(duplicate, 71_000_000, &HashMap::new(), true));
+        assert_eq!(r.retarget.kept, 1);
+        let bad = plan(&mut r, 1.0, 1260.25, 0.0);
+        assert!(!r.arm_with_policy(bad, 72_000_000, &HashMap::new(), true));
+        assert_eq!(r.epoch(), 2);
+    }
+    #[test]
+    fn closing_a_held_edge_window_records_a_safe_velocity_reset() {
+        let mut r = ScrollViewportRuntime::new(true);
+        r.update_context(context("s", 1.0));
+        smooth_arm(&mut r, 1.0, 0.0, 1260.25, 0);
+        let anchor = painted(&mut r, 50_000_000);
+        let removed = r.intern(Text::from_utf8("0"));
+        r.remove(removed);
+        smooth_arm(&mut r, 2.0, 1260.25, 2520.5, 50_000_000);
+        close(
+            r.origin_sample().unwrap().motion.current,
+            anchor.motion.current,
+        );
+        assert_eq!(r.origin_sample().unwrap().motion.velocity, 0.0);
+        assert_eq!(r.retarget.last.reason, ResetReason::Coverage);
+        assert_eq!(r.retarget.degraded, 1);
+        assert_eq!(r.retarget.reasons[3], 1);
+        r.cancel(&Text::from_utf8("s"), 2);
+        assert_eq!(r.retarget_stats().degraded, 1);
+    }
+    #[test]
+    fn no_painted_frame_context_changes_and_script_partial_never_inherit_velocity() {
+        let mut r = ScrollViewportRuntime::new(true);
+        r.update_context(context("s", 1.0));
+        smooth_arm(&mut r, 1.0, 0.0, 1260.25, 0);
+        r.prepare_frame(50_000_000);
+        smooth_arm(&mut r, 2.0, 1260.25, 2520.5, 10_000_000);
+        assert_eq!(r.origin_sample().unwrap().motion.velocity, 0.0);
+        painted(&mut r, 60_000_000);
+        let mut partial = plan(&mut r, 3.0, 2520.5, 1260.25);
+        partial.clip_partial = 2;
+        assert!(r.arm_with_policy(partial, 60_000_000, &HashMap::new(), true));
+        assert_eq!(r.origin_sample().unwrap().motion.velocity, 0.0);
+        let mut changed = context("s", 2.0);
+        changed.output = Text::from_utf8("DP-2");
+        assert!(r.update_context(changed));
+        assert!(!r.active());
+        let mut p = plan(&mut r, 4.0, 0.0, 1260.25);
+        p.output = Text::from_utf8("DP-2");
+        assert!(r.arm_with_policy(p, 70_000_000, &HashMap::new(), true));
+        assert_eq!(r.origin_sample().unwrap().motion.velocity, 0.0);
+        let removed = r.intern(Text::from_utf8("0"));
+        r.remove(removed); // Window removal leaves other ownership valid.
+        let allocations = crate::allocation_checks::count(|| {
+            for now in 1..500 {
+                r.prepare_frame(now * 1_000_000);
+                r.mark_painted(r.epoch(), now * 1_000_000);
+                std::hint::black_box(r.retarget_stats());
+            }
+        });
+        assert_eq!(allocations, 0);
     }
     #[test]
     fn unpainted_first_frame_and_invalid_times_preserve_the_static_anchor() {

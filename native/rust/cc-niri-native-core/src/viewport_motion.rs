@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 //! Position-continuous motion with the legacy epoch and monotonic-time barriers.
 use crate::native_protocol::Epoch;
+use crate::scroll_retarget::{self, Brake, MotionBounds, RetargetDecision};
 use crate::spring::{Spring, SpringParams};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -27,6 +28,8 @@ pub struct ViewportMotion {
     target: f64,
     epoch: Epoch,
     started_at: i64,
+    brake: Option<Brake>,
+    curve_range: Option<(f64, f64)>,
 }
 
 impl ViewportMotion {
@@ -40,6 +43,8 @@ impl ViewportMotion {
             target: 0.0,
             epoch: Epoch::NONE,
             started_at: 0,
+            brake: None,
+            curve_range: None,
         }
     }
     pub fn start(&mut self, from: f64, target: f64, epoch: i64, now: i64) -> bool {
@@ -61,11 +66,66 @@ impl ViewportMotion {
         self.target = target;
         self.epoch = Epoch(epoch);
         self.started_at = now;
+        self.brake = None;
+        self.curve_range = None;
         self.kind = if from == target {
             MotionKind::Static
         } else {
             MotionKind::Animation
         };
+        true
+    }
+    // Scroll smooth60 entry only. Legacy start / retarget retain their oracle.
+    pub fn start_bounded(
+        &mut self,
+        from: f64,
+        target: f64,
+        velocity: f64,
+        bounds: MotionBounds,
+        epoch: i64,
+        now: i64,
+    ) -> Option<RetargetDecision> {
+        if epoch < 0 || Epoch(epoch) <= self.epoch || now < 0 || now < self.started_at {
+            return None;
+        }
+        let planned = scroll_retarget::plan(from, target, velocity, bounds, self.params)?;
+        self.curve_range = if let Some(brake) = planned.brake {
+            Some((
+                from.min(target).min(brake.end()),
+                from.max(target).max(brake.end()),
+            ))
+        } else {
+            scroll_retarget::critical_range(
+                from,
+                target,
+                planned.decision.initial_velocity,
+                self.params,
+            )
+        };
+        self.spring = planned.spring;
+        self.brake = planned.brake;
+        self.from = from;
+        self.target = target;
+        self.epoch = Epoch(epoch);
+        self.started_at = now;
+        self.kind = if from == target && planned.decision.initial_velocity == 0.0 {
+            MotionKind::Static
+        } else {
+            MotionKind::Animation
+        };
+        Some(planned.decision)
+    }
+    pub fn can_keep_curve(&self, target: f64, bounds: MotionBounds) -> bool {
+        self.target == target
+            && self
+                .curve_range
+                .is_some_and(|(low, high)| bounds.contains(low) && bounds.contains(high))
+    }
+    pub fn keep_curve(&mut self, epoch: i64, now: i64) -> bool {
+        if epoch < 0 || Epoch(epoch) <= self.epoch || now < 0 || now < self.started_at {
+            return false;
+        }
+        self.epoch = Epoch(epoch);
         true
     }
     pub fn retarget(&mut self, target: f64, epoch: i64, now: i64) -> bool {
@@ -101,7 +161,11 @@ impl ViewportMotion {
         if elapsed >= Self::MAX_SPRING_TIME_NS {
             return completed;
         }
-        let value = self.spring.sample(elapsed);
+        let value = match self.brake {
+            Some(brake) if elapsed < brake.duration_ns => brake.sample(elapsed),
+            Some(brake) => self.spring.sample(elapsed - brake.duration_ns),
+            None => self.spring.sample(elapsed),
+        };
         if self.spring.is_settled(value) {
             return completed;
         }
@@ -118,6 +182,8 @@ impl ViewportMotion {
             return false;
         }
         self.kind = MotionKind::Static;
+        self.brake = None;
+        self.curve_range = None;
         true
     }
     pub fn snap(&mut self, offset: f64) -> bool {
@@ -127,6 +193,8 @@ impl ViewportMotion {
         self.from = offset;
         self.target = offset;
         self.kind = MotionKind::Static;
+        self.brake = None;
+        self.curve_range = None;
         // Preserve epoch and time barriers, including after cancellation.
         true
     }

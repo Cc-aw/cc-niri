@@ -12,7 +12,8 @@ public:
     RustScrollViewportRuntime &operator=(const RustScrollViewportRuntime &other);
     ~RustScrollViewportRuntime();
     bool updateContext(const QJsonObject &state);
-    bool arm(const QJsonObject &plan, ViewportMotionBackend::TimePoint now, const QHash<QString,QRectF> &frames = {});
+    bool arm(const QJsonObject &plan, ViewportMotionBackend::TimePoint now, const QHash<QString,QRectF> &frames = {}, bool smooth = false);
+    CcNiriScrollRetargetStatus retargetStatus() const;
     void cancel(const QString &session,qint64 epoch);
     void clear();
     void remove(const QString &id);
