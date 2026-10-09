@@ -6,6 +6,7 @@ namespace KWin {
 FocusRingPaintFrame::FocusRingPaintFrame(Item *owner, Item *attachment, int mask, const Region &deviceRegion, const WindowPaintData &data, const RectF &inner, const BorderOutline &outline, const CcNiriRingFrame &coreState)
     : m_owner(owner), m_attachment(attachment), m_innerRect(inner), m_outline(outline), m_position(owner->position()), m_transform(owner->transform()),
       m_itemOpacity(coreState.item_opacity), m_mask(mask), m_deviceRegion(deviceRegion), m_data(data), m_coreState(coreState) {
+    m_viewportContext = ScopedViewportPaintContext::snapshot(owner);
     // The ring owns its sRGB material. Window and effect opacity still apply
     // once each; application brightness/saturation must not tint the border.
     m_data.setBrightness(1);

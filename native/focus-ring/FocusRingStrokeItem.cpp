@@ -78,7 +78,10 @@ bool FocusRingStrokeItem::update(const FocusRingStrokeMetrics &m, const BorderOu
     const qreal inset=std::clamp(glowInset,qreal(0),t);
     const auto glowColor = [&](qreal distance) {
         const qreal u=t>inset ? std::clamp((distance-inset)/(t-inset),qreal(0),qreal(1)) : qreal(0);
-        QColor color=outline.color(); color.setAlphaF(color.alphaF()*(1-u*u*(3-2*u)));
+        // Three sigma support, normalized to reach zero at the finite edge.
+        const qreal tail=std::exp(-4.5);
+        const qreal alpha=(std::exp(-4.5*u*u)-tail)/(1-tail);
+        QColor color=outline.color(); color.setAlphaF(color.alphaF()*alpha);
         return color;
     };
     const QPainterPath inner=strokeContour(m);
@@ -86,7 +89,7 @@ bool FocusRingStrokeItem::update(const FocusRingStrokeMetrics &m, const BorderOu
     const QPainterPath stroke=stroker.createStroke(inner).subtracted(inner);
     // Only tiny corner textures are rasterized. Nested outside contours use
     // source replacement, so their alpha never accumulates into a bright band.
-    constexpr int GlowSteps = 16;
+    constexpr int GlowSteps = 32;
     std::array<QPainterPath, GlowSteps> glowBands;
     if (m_softGlow) for (int i=0; i<GlowSteps; ++i) {
         stroker.setWidth(2*t*(i+1)/GlowSteps);

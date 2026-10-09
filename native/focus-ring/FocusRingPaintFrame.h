@@ -6,6 +6,7 @@
 #include <QPointer>
 #include <optional>
 #include "FocusRingCoreBackend.h"
+#include "../common/ViewportPaintClip.h"
 
 namespace KWin {
 // A local value for one paintWindow call. No clock, layout target, or cached
@@ -24,6 +25,10 @@ public:
     qreal itemOpacity() const { return m_itemOpacity; }
     int mask() const { return m_mask; }
     const Region &deviceRegion() const { return m_deviceRegion; }
+    bool hasViewportContext() const { return m_viewportContext.has_value(); }
+    Region decorationRegion(qreal padding, qreal scale) const {
+        return m_viewportContext ? m_viewportContext->decorationRegion(padding, scale) : m_deviceRegion;
+    }
     const WindowPaintData &paintData() const { return m_data; }
     const CcNiriRingFrame &coreState() const { return m_coreState; }
 private:
@@ -37,6 +42,7 @@ private:
     qreal m_itemOpacity;
     int m_mask;
     Region m_deviceRegion;
+    std::optional<ViewportPaintContext> m_viewportContext;
     WindowPaintData m_data;
     CcNiriRingFrame m_coreState;
 };

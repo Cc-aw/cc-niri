@@ -25,6 +25,8 @@ public:
 public Q_SLOTS:
     Q_SCRIPTABLE QString GetFocusRingStatus() const;
     Q_SCRIPTABLE bool PublishEligibility(const QString &json);
+    // Transient rendering diagnostic; never changes focus, layout or config.
+    Q_SCRIPTABLE bool SetGlowOnlyDiagnostic(bool enabled);
 private:
     void requestEligibility();
     void watchWindow(EffectWindow *window);
@@ -39,5 +41,7 @@ private:
     bool m_endpointRegistered = false;
     FocusRingCornerStyle m_cornerStyle;
     quint64 m_drawCount = 0;
+    quint64 m_separateGlowClipDrawCount = 0;
+    bool m_glowOnlyDiagnostic = false;
 };
 }

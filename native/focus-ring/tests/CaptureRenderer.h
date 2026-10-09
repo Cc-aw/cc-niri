@@ -26,6 +26,13 @@ inline QMatrix4x4 focusRingItemMatrix(Item *item, const WindowPaintData &data, q
 // context. The live compositor still has to validate its final pixels.
 class FocusRingCaptureRenderer : public ItemRenderer {
 public:
+    struct Draw {
+        Region region;
+        QMatrix4x4 matrix;
+        qreal opacity;
+        std::function<bool(Item *)> filter;
+    };
+    QList<Draw> draws;
     std::unique_ptr<Texture> createTexture(GraphicsBuffer *, const std::shared_ptr<SyncReleasePoint> &) override { std::cerr << "FAIL CPU capture renderer cannot upload textures\n"; std::abort(); }
     std::unique_ptr<Texture> createTexture(const QImage &) override { std::cerr << "FAIL CPU capture renderer cannot upload textures\n"; std::abort(); }
     std::unique_ptr<NinePatch> createNinePatch(const QImage &) override { return {}; }
@@ -34,13 +41,14 @@ public:
     std::unique_ptr<Atlas> createAtlas(const QList<QImage> &) override { return {}; }
     void renderBackground(const RenderTarget &, const RenderViewport &, const Region &) override {}
     void renderItem(const RenderTarget &, const RenderViewport &viewport, Item *root, int mask, const Region &region,
-        const WindowPaintData &data, const std::function<bool(Item *)> &, const std::function<bool(Item *)> &) override {
+        const WindowPaintData &data, const std::function<bool(Item *)> &filter, const std::function<bool(Item *)> &) override {
         ++calls; lastRoot = root; lastMask = mask; lastRegion = region;
         opacity = data.opacity(); brightness = data.brightness(); saturation = data.saturation();
         matrix = data.toMatrix(viewport.scale());
         sceneMatrix = focusRingItemMatrix(root, data, viewport.scale());
         rootPosition = root->position(); rootTransform = root->transform(); rootOpacity = root->opacity();
         effectiveOpacity = data.opacity() * root->opacity();
+        draws.append({region,sceneMatrix,effectiveOpacity,filter});
     }
     int calls = 0, lastMask = 0;
     Item *lastRoot = nullptr;

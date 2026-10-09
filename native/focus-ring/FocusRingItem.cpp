@@ -57,7 +57,7 @@ std::optional<FocusRingPaintFrame> FocusRingItem::capture(int mask, const Region
     return FocusRingPaintFrame::capture(m_parent.data(), m_paintRoot.data(), mask, region, data, m_sourceInner, m_sourceOutline);
 }
 bool FocusRingItem::paint(ItemRenderer *renderer, const RenderTarget &target, const RenderViewport &viewport,
-        const FocusRingPaintFrame &frame) {
+        const FocusRingPaintFrame &frame, bool glowOnly) {
     if (!attached() || !m_parent || frame.owner() != m_parent.data() || !renderer
         || frame.attachment() != m_paintRoot.data() || frame.deviceRegion().isEmpty()) return false;
     // Preserve the window's state at entry to this paint call, even if nested
@@ -90,7 +90,17 @@ bool FocusRingItem::paint(ItemRenderer *renderer, const RenderTarget &target, co
     }
     const auto damage=CcNiri::FocusRingCore::damage(frame.coreState().inner,glowMetrics->numeric());
     m_damage->setGeometry(RectF(damage.x,damage.y,damage.width,damage.height));
-    renderer->renderItem(target, viewport, m_paintRoot, frame.mask(), frame.deviceRegion(), frame.paintData(), {}, {});
+    const Region glowRegion = frame.decorationRegion(GlowExtent, viewport.scale());
+    if (!glowOnly && glowRegion == frame.deviceRegion()) {
+        renderer->renderItem(target, viewport, m_paintRoot, frame.mask(), frame.deviceRegion(), frame.paintData(), {}, {});
+    } else {
+        // Render filters skip a subtree without changing Item visibility or
+        // scheduling another repaint. Both passes retain the frozen root.
+        renderer->renderItem(target, viewport, m_paintRoot, frame.mask(), glowRegion, frame.paintData(),
+            [this](Item *item) { return item == m_border || item == m_stroke; }, {});
+        if (!glowOnly) renderer->renderItem(target, viewport, m_paintRoot, frame.mask(), frame.deviceRegion(), frame.paintData(),
+            [this](Item *item) { return item == m_glow; }, {});
+    }
     return true;
 }
 void FocusRingItem::clear() {

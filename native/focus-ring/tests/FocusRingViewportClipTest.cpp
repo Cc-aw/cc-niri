@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #include "../FocusRingItem.h"
 #include "../FocusRingPaintFrame.h"
+#include "../FocusRingStrokeItem.h"
 #include "../../common/ViewportPaintClip.h"
 #include "CaptureRenderer.h"
 #include <QCoreApplication>
@@ -61,6 +62,42 @@ int main(int argc, char **argv) {
         const Region tiny(viewport.mapToDeviceCoordinates(RectF(1300, 60, 10, 10)).rounded());
         check(viewportPaintClip(&window, viewport, safe, tiny) == tiny, "small damage remains small");
         check(viewportPaintClip(&window, viewport, safe, Region()).isEmpty(), "empty damage stays empty");
+        // Capture the Clip adapter's original region and viewport, then
+        // paint after the stack scope ends. Only the halo can use more room.
+        std::optional<FocusRingPaintFrame> haloFrame;
+        {
+            const ScopedViewportPaintContext outer(&window,viewport,safe,restricted);
+            const auto captured=ring.capture(Effect::PAINT_WINDOW_TRANSFORMED,restrictedClip,data);
+            check(captured.has_value(),"capture decoration paint context");
+            haloFrame.emplace(*captured);
+            {
+                const ScopedViewportPaintContext nested(&window,viewport,safe,tiny);
+                check(ScopedViewportPaintContext::snapshot(&window)->deviceRegion==tiny,"nested paint has its own original region");
+            }
+            check(ScopedViewportPaintContext::snapshot(&window)->deviceRegion==restricted,"nested scope restores the enclosing region");
+        }
+        check(!window.property(ViewportPaintContextProperty).isValid(),"no stack pointer remains after viewport paint scope");
+        const int count=renderer.calls;
+        check(haloFrame && ring.paint(&renderer,target,viewport,*haloFrame) && renderer.calls==count+2,"halo and crisp line render through separate clips");
+        const int haloPixels=std::ceil(FocusRingItem::GlowExtent*scale);
+        const Region expectedHalo=restricted & baseClip.adjusted(-haloPixels,-haloPixels,haloPixels,haloPixels);
+        const auto &haloDraw=renderer.draws[renderer.draws.size()-2];
+        const auto &lineDraw=renderer.draws.back();
+        check(haloDraw.region==expectedHalo && lineDraw.region==restrictedClip,"only halo expands the viewport; crisp line preserves the window clip");
+        check(haloDraw.region.contains(QPoint(centerX,baseClip.top()-10*scale)) && !lineDraw.region.contains(QPoint(centerX,baseClip.top()-10*scale)),"diffuse light outside the old six-pixel clip is actually submitted for rendering");
+        check((haloDraw.region & (top|leftBand|rightBand)).isEmpty(),"halo never paints through original compositor occlusion");
+        check(haloDraw.matrix==lineDraw.matrix && haloDraw.opacity==lineDraw.opacity,"both clips use the same frozen render transform and opacity");
+        check(haloDraw.filter(ring.border()) && !haloDraw.filter(ring.glow()) && !haloDraw.filter(ring.paintRoot())
+            && lineDraw.filter(ring.glow()) && !lineDraw.filter(ring.border()),"layer filters skip the opposite subtree without visibility changes");
+        const int diagnosticCount=renderer.calls;
+        check(ring.paint(&renderer,target,viewport,*haloFrame,true) && renderer.calls==diagnosticCount+1
+            && renderer.draws.back().filter(ring.border()),"glow-only diagnostic draws no crisp border");
+        check(ring.border()->isVisible() && ring.glow()->isVisible(),"render filters leave cached Item visibility intact");
+        {
+            const ScopedViewportPaintContext partial(&window,viewport,safe,tiny);
+            const auto small=ring.capture(0,tiny,data);
+            check(small && small->decorationRegion(FocusRingItem::GlowExtent,scale)==tiny,"halo retains small damage rather than requesting a full output");
+        }
         ring.clear();
         check(!window.property(ViewportDecorationPaddingProperty).isValid(), "no stale padding after Ring clears");
         check(viewportPaintClip(&window, viewport, safe, screen) == legacy, "off/unload restores original clip");
@@ -74,5 +111,17 @@ int main(int argc, char **argv) {
     second.setProperty(ViewportDecorationPaddingProperty, 2.0); padding.clear();
     check(second.property(ViewportDecorationPaddingProperty).toDouble() == 2, "clear respects replacement by another owner");
     auto *dead = new Item; padding.attach(dead, 3); delete dead; padding.clear();
+    Item unadorned;
+    QImage image2(1920,1080,QImage::Format_ARGB32_Premultiplied); RenderTarget target2(&image2);
+    RenderViewport viewport2(RectF(0,0,1920,1080),1,target2,QPoint());
+    {
+        const ScopedViewportPaintContext skipped(&unadorned,viewport2,safe,Region::infinite());
+        check(!ScopedViewportPaintContext::snapshot(&unadorned),"unadorned windows install no paint context");
+    }
+    auto *destroyed=new Item; destroyed->setProperty(ViewportDecorationPaddingProperty,6);
+    {
+        const ScopedViewportPaintContext guarded(destroyed,viewport2,safe,Region::infinite());
+        delete destroyed;
+    }
     std::cout << "PASS all four border strips, bounded viewport outsets, scale, occlusion and reservation lifetime\n";
 }

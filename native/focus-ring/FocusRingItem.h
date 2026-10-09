@@ -22,7 +22,7 @@ public:
     void clear();
     std::optional<FocusRingPaintFrame> capture(int mask, const Region &region, const WindowPaintData &data) const;
     bool paint(ItemRenderer *renderer, const RenderTarget &target, const RenderViewport &viewport,
-        const FocusRingPaintFrame &frame);
+        const FocusRingPaintFrame &frame, bool glowOnly = false);
     bool attached() const { return m_damage && m_paintRoot && m_border && m_glow; }
     Item *damageItem() const { return m_damage.data(); }
     Item *paintRoot() const { return m_paintRoot.data(); }
@@ -30,12 +30,12 @@ public:
     FocusRingStrokeItem *glow() const;
     static constexpr qreal Width = 1.5;
     static constexpr qreal BorderAlpha = 0.85;
-    // Soft falloff measured from the crisp border's outside edge.
-    static constexpr qreal GlowRadius = 7.0;
-    static constexpr qreal GlowExtent = Width + GlowRadius;
-    static constexpr qreal GlowAlpha = 0.35;
+    // Gaussian sigma; retain three sigma of falloff outside the crisp line.
+    static constexpr qreal GlowRadius = 6.0;
+    static constexpr qreal GlowExtent = Width + 3 * GlowRadius;
+    static constexpr qreal GlowAlpha = 0.45;
     // Covers the largest native-pixel rounding of the soft outer extent.
-    static constexpr qreal PaintOutset = 9.0;
+    static constexpr qreal PaintOutset = 20.0;
     // Keep the existing viewport reservation: the shared clip also applies
     // to application pixels, so growing it past the column gap exposes a
     // parked window. The halo respects that native clip during movement.

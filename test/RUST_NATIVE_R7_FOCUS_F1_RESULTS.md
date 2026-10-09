@@ -81,4 +81,4 @@ damage 保守外扩为 9 logical px，但共享 Native viewport reservation 保�
 
 Ring reload 后 1 秒空闲：纹理 rasterizations 不增加，Scroll paint / full / target repaint 均为零，无相关 KWin 错误。全部原窗口 geometry / membership / minimized / fullscreen、实际与 Bridge 焦点、viewport anchor / columns、原桌面 ID / 输出桌面 / 显示配置、插件与配置核验恢复，见 `actual-window-check/restoration-success.json`。运行中未替换 Clip、Bridge 或 JS，没有扩展生产动画或窗口内容的裁剪范围。
 
-窄回滚为本备份的 `rollback-component.sh`：stop → 仅恢复旧 0.18 版本 `f7634ae301e6ff00f7541bdce41ad20210e8b6bf2ec862d2ece3ca749b772ff4` 的 immutable Ring discovery → start；不整体覆写配置 / 工作区。源码可回退 `43b9420`。本版已完成实现、必要门禁、部署和当前用户窗口静态核对，视觉强度等待用户反馈，暂不进入 F2。
+窄回滚为本备份的 `rollback-component.sh`：stop → 仅恢复旧 0.18 版本 `f7634ae301e6ff00f7541bdce41ad20210e8b6bf2ec862d2ece3ca749b772ff4` 的 immutable Ring discovery → start；不整体覆写配置 / 工作区。源码可回退 `43b9420`。用户仍反馈“还是看不到柔光，只能看到很细很细的蓝色边框”，本版视觉未通过，暂不进入 F2。后续改为高斯衰减并分离柔光 clip，进度见 [渲染路径修正](RUST_NATIVE_R7_FOCUS_GLOW_PIPELINE_RESULTS.md)。

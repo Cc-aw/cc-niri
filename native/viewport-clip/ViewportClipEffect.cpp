@@ -1149,6 +1149,8 @@ void CcNiriViewportClipEffect::paintClippedWindow(const RenderTarget &renderTarg
         const auto rect = departure ? projection->viewport.translated(0, data.yTranslation()) : projection->viewport;
         const Region clipped = viewportPaintClip(window->windowItem(), viewport,
             RectF(rect.x(), rect.y(), rect.width(), rect.height()), deviceRegion);
+        const ScopedViewportPaintContext decorationContext(window->windowItem(), viewport,
+            RectF(rect.x(), rect.y(), rect.width(), rect.height()), deviceRegion);
         effects->paintWindow(renderTarget, viewport, window, mask | PAINT_WINDOW_TRANSFORMED, clipped, data);
         if (track && !departure && sample.valid && !clipped.isEmpty()) {
             auto &pass = m_scrollPaintPasses[passIndex];
@@ -1212,6 +1214,7 @@ void CcNiriViewportClipEffect::paintClippedWindow(const RenderTarget &renderTarg
     }
 
     const Region clipped = viewportPaintClip(window->windowItem(), viewport, logicalClip, deviceRegion);
+    const ScopedViewportPaintContext decorationContext(window->windowItem(), viewport, logicalClip, deviceRegion);
     effects->paintWindow(renderTarget, viewport, window, mask, clipped, data);
     const QVariantMap motion = window->data(MotionPlanDataRole).toMap();
     if (marker.value(QStringLiteral("role")).toString() ==

@@ -69,6 +69,13 @@ bool CcNiriFocusRingEffect::PublishEligibility(const QString &json) {
     refresh();
     return accepted;
 }
+bool CcNiriFocusRingEffect::SetGlowOnlyDiagnostic(bool enabled) {
+    if (m_glowOnlyDiagnostic != enabled) {
+        m_glowOnlyDiagnostic = enabled;
+        if (m_ring.damageItem()) m_ring.damageItem()->scheduleRepaint(m_ring.damageItem()->rect());
+    }
+    return true;
+}
 void CcNiriFocusRingEffect::watchWindow(EffectWindow *window) {
     if (!window || m_watched.contains(window)) return;
     m_watched.insert(window);
@@ -141,7 +148,10 @@ void CcNiriFocusRingEffect::paintWindow(const RenderTarget &target, const Render
     effects->paintWindow(target, viewport, window, mask, region, data);
     if (!frame || m_owner != window || !eligible(window)) return;
     auto *scene = window->windowItem()->scene();
-    if (scene && m_ring.paint(scene->renderer(), target, viewport, *frame)) ++m_drawCount;
+    if (scene && m_ring.paint(scene->renderer(), target, viewport, *frame, m_glowOnlyDiagnostic)) {
+        ++m_drawCount;
+        if (frame->hasViewportContext()) ++m_separateGlowClipDrawCount;
+    }
 }
 bool CcNiriFocusRingEffect::isActive() const { return m_ring.attached() && eligible(m_owner.data()); }
 bool CcNiriFocusRingEffect::blocksDirectScanout() const { return isActive(); }
@@ -161,6 +171,7 @@ QString CcNiriFocusRingEffect::GetFocusRingStatus() const {
         {QStringLiteral("strokeGeometry"), QStringLiteral("paint-frame-fixed-width")},
         {QStringLiteral("pixelAlignment"), QStringLiteral("native-child-rounding-compensated")},
         {QStringLiteral("drawCount"), double(m_drawCount)},
+        {QStringLiteral("separateGlowClipDrawCount"), double(m_separateGlowClipDrawCount)},
         {QStringLiteral("windowOpacity"), m_owner ? m_owner->opacity() : 0.0},
         {QStringLiteral("active"), isActive()},
         {QStringLiteral("windowUuid"), m_owner ? windowId(m_owner.data()) : QString()},
@@ -172,7 +183,9 @@ QString CcNiriFocusRingEffect::GetFocusRingStatus() const {
         {QStringLiteral("glowRadius"), FocusRingItem::GlowRadius},
         {QStringLiteral("glowExtent"), FocusRingItem::GlowExtent},
         {QStringLiteral("glowAlpha"), FocusRingItem::GlowAlpha},
-        {QStringLiteral("glowFalloff"), QStringLiteral("border-edge-smoothstep")},
+        {QStringLiteral("glowFalloff"), QStringLiteral("gaussian-three-sigma")},
+        {QStringLiteral("glowClip"), QStringLiteral("separate-viewport-native-occlusion")},
+        {QStringLiteral("glowOnlyDiagnostic"), m_glowOnlyDiagnostic},
         {QStringLiteral("paintOutset"), FocusRingItem::PaintOutset},
         {QStringLiteral("viewportOutset"), FocusRingItem::ViewportOutset},
         {QStringLiteral("glowRasterizations"), m_ring.glow() ? m_ring.glow()->rasterizations() : 0},
