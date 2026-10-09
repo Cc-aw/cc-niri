@@ -34,12 +34,15 @@ bool same(const FocusRingStrokeMetrics &a, const FocusRingStrokeMetrics &b) {
         && a.thickness == b.thickness && a.body == b.body && a.radii == b.radii;
 }
 }
-std::optional<FocusRingStrokeMetrics> FocusRingStrokeMetrics::fromFrame(const FocusRingPaintFrame &frame, qreal scale) {
+std::optional<FocusRingStrokeMetrics> FocusRingStrokeMetrics::fromFrame(const FocusRingPaintFrame &frame, qreal scale,
+        qreal layerWidth, bool localGeometry) {
     // Platform matrix composition requires a finite, positive device scale.
     if(!std::isfinite(scale) || scale<=0) return std::nullopt;
     auto matrix = frame.paintData().toMatrix(scale);
     matrix.scale(scale,scale); matrix *= QMatrix4x4(frame.transform()); matrix.scale(1/scale,1/scale);
+    if (localGeometry) matrix.setToIdentity();
     CcNiriRingInput input{}; input.frame=frame.coreState(); input.device_scale=scale;
+    if (layerWidth > 0) input.frame.thickness = layerWidth;
     for(int i=0;i<4;++i) for(int j=0;j<4;++j) input.matrix[4*i+j]=matrix(i,j);
     const auto result=CcNiri::FocusRingCore::metrics(input);
     if(result.status || !result.valid) return std::nullopt;
@@ -57,7 +60,7 @@ CcNiriRingMetrics FocusRingStrokeMetrics::numeric() const {
     for(int i=0;i<4;++i) { m.radii[2*i]=radii[i].width(); m.radii[2*i+1]=radii[i].height(); }
     return m;
 }
-FocusRingStrokeItem::FocusRingStrokeItem(Item *parent) : Item(parent) {
+FocusRingStrokeItem::FocusRingStrokeItem(Item *parent, bool softGlow) : Item(parent), m_softGlow(softGlow) {
     for (auto &patch : m_patches) { patch = new StrokePatch(this); patch->setParent(this); }
 }
 FocusRingStrokeItem::~FocusRingStrokeItem() { for (auto *patch : m_patches) delete patch; }
@@ -71,6 +74,14 @@ bool FocusRingStrokeItem::update(const FocusRingStrokeMetrics &m, const BorderOu
     const QPainterPath inner=strokeContour(m);
     QPainterPathStroker stroker; stroker.setWidth(2*t); stroker.setJoinStyle(Qt::RoundJoin);
     const QPainterPath stroke=stroker.createStroke(inner).subtracted(inner);
+    // Only tiny corner textures are rasterized. Nested outside contours use
+    // source replacement, so their alpha never accumulates into a bright band.
+    constexpr int GlowSteps = 16;
+    std::array<QPainterPath, GlowSteps> glowBands;
+    if (m_softGlow) for (int i=0; i<GlowSteps; ++i) {
+        stroker.setWidth(2*t*(i+1)/GlowSteps);
+        glowBands[i]=stroker.createStroke(inner).subtracted(inner);
+    }
     QImage solid(1,1,QImage::Format_ARGB32_Premultiplied); solid.fill(outline.color());
     for(int i=0;i<8;++i) {
         auto *patch=m_patches[i];
@@ -91,7 +102,29 @@ bool FocusRingStrokeItem::update(const FocusRingStrokeMetrics &m, const BorderOu
             QPainter painter(&pixels); painter.setRenderHint(QPainter::Antialiasing);
             // Map the exact patch extent onto its small native texture.
             painter.scale(pixels.width()/rect.width(),pixels.height()/rect.height());
-            painter.translate(-rect.topLeft()); painter.fillPath(stroke,outline.color()); painter.end();
+            painter.translate(-rect.topLeft());
+            if (m_softGlow) {
+                painter.setCompositionMode(QPainter::CompositionMode_Source);
+                for (int band=GlowSteps-1; band>=0; --band) {
+                    const qreal u=(band+0.5)/GlowSteps;
+                    QColor color=outline.color(); color.setAlphaF(color.alphaF()*(1-u)*(1-u));
+                    painter.fillPath(glowBands[band],color);
+                }
+            } else painter.fillPath(stroke,outline.color());
+            painter.end();
+            patch->setImage(pixels); ++m_rasterizations;
+        } else if (m_softGlow) {
+            // Long straight edges stretch a one-pixel-wide gradient; no
+            // window-sized texture, blur pass or persistent animation exists.
+            const bool horizontal=i==4 || i==6;
+            const int extent=std::max(1,int(std::ceil(t*m.deviceScale)));
+            QImage pixels(horizontal?1:extent,horizontal?extent:1,QImage::Format_ARGB32_Premultiplied);
+            for (int d=0; d<extent; ++d) {
+                qreal u=(d+0.5)/extent;
+                if (i==4 || i==7) u=1-u;
+                QColor color=outline.color(); color.setAlphaF(color.alphaF()*(1-u)*(1-u));
+                pixels.setPixel(horizontal?0:d,horizontal?d:0,qPremultiply(color.rgba()));
+            }
             patch->setImage(pixels); ++m_rasterizations;
         } else if(patch->image().isNull() || m_color!=outline.color()) patch->setImage(solid);
     }

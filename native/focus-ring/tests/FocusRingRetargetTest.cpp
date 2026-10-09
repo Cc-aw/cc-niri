@@ -132,8 +132,8 @@ public:
             check(region.contains(QPoint(std::floor(body.left() - scale), y)), "left stroke survives viewport boundary during retarget");
         if (body.right() <= base.right() && body.right() > base.left() + 20 * scale)
             check(region.contains(QPoint(std::ceil(body.right() + scale) - 1, y)), "right stroke survives viewport boundary during retarget");
-        if (body.right() < base.left() - 6 * scale || body.left() > base.right() + 6 * scale) {
-            const auto outline = expected.mapRect(QRectF(-3 * scale, -3 * scale, 938 * scale, 966 * scale));
+        if (body.right() < base.left() - 2*FocusRingItem::PaintOutset * scale || body.left() > base.right() + 2*FocusRingItem::PaintOutset * scale) {
+            const auto outline = expected.mapRect(QRectF(-FocusRingItem::PaintOutset * scale, -FocusRingItem::PaintOutset * scale, (932+2*FocusRingItem::PaintOutset) * scale, (960+2*FocusRingItem::PaintOutset) * scale));
             check((Region(RectF(outline).rounded()) & region).isEmpty(), "fully parked border remains invisible during retarget");
         }
         const auto role = runtime.role(id);

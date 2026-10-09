@@ -71,8 +71,8 @@ int main(int argc, char **argv) {
                     "border receives exact native opacity and effect fade");
                 check(renderer.brightness == 1 && renderer.saturation == 1 && ring.damageItem()->quads().isEmpty(),
                     "moving border remains outside application capture and color modulation");
-                const auto outlineBounds = renderer.sceneMatrix.mapRect(QRectF(-3 * scale, -3 * scale,
-                    938 * scale, 966 * scale));
+                const auto outlineBounds = renderer.sceneMatrix.mapRect(QRectF(-FocusRingItem::Width * scale, -FocusRingItem::Width * scale,
+                    (932+2*FocusRingItem::Width) * scale, (960+2*FocusRingItem::Width) * scale));
                 const Region visible = Region(RectF(outlineBounds).rounded()) & renderer.lastRegion;
                 // Check the actual horizontal stroke bands, not only whether
                 // some part of the border intersects a clip (side strips alone

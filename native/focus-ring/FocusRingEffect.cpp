@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #include "FocusRingEffect.h"
 #include "FocusRingPaintFrame.h"
+#include "FocusRingStrokeItem.h"
 #include "core/output.h"
 #include "effect/effecthandler.h"
 #include "scene/windowitem.h"
@@ -147,7 +148,7 @@ bool CcNiriFocusRingEffect::blocksDirectScanout() const { return isActive(); }
 QString CcNiriFocusRingEffect::GetFocusRingStatus() const {
     return QString::fromUtf8(QJsonDocument(QJsonObject{
         {QStringLiteral("coreBackend"), QString::fromLatin1(CcNiri::FocusRingCoreBackendName)},
-        {QStringLiteral("phase"), QStringLiteral("hidpi")},
+        {QStringLiteral("phase"), QStringLiteral("layered-f1")},
         {QStringLiteral("eligibilitySource"), QStringLiteral("layout-script")},
         {QStringLiteral("eligibilityEnabled"), m_context.enabled},
         {QStringLiteral("nativeProtocolBackend"), QString::fromLatin1(CcNiri::FocusRingProtocolBackendName)},
@@ -166,7 +167,13 @@ QString CcNiriFocusRingEffect::GetFocusRingStatus() const {
         {QStringLiteral("targetOutput"), m_context.output}, {QStringLiteral("workspaceId"), m_context.workspace},
         {QStringLiteral("cornerSource"), m_cornerStyle.source()},
         {QStringLiteral("cornerRadius"), m_ring.attached() ? m_ring.border()->outline().radius().topLeft() : 0.0},
-        {QStringLiteral("width"), FocusRingItem::Width}, {QStringLiteral("color"), QStringLiteral("#7FC8FF")}
+        {QStringLiteral("width"), FocusRingItem::Width}, {QStringLiteral("color"), QStringLiteral("#7FC8FF")},
+        {QStringLiteral("borderAlpha"), FocusRingItem::BorderAlpha},
+        {QStringLiteral("glowRadius"), FocusRingItem::GlowRadius},
+        {QStringLiteral("glowAlpha"), FocusRingItem::GlowAlpha},
+        {QStringLiteral("paintOutset"), FocusRingItem::PaintOutset},
+        {QStringLiteral("glowRasterizations"), m_ring.glow() ? m_ring.glow()->rasterizations() : 0},
+        {QStringLiteral("focusAnimation"), false}
     }).toJson(QJsonDocument::Compact));
 }
 }

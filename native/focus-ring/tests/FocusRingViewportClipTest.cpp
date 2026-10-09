@@ -19,8 +19,8 @@ int main(int argc, char **argv) {
         Item content(&window); content.setSize(window.size());
         FocusRingItem ring;
         check(ring.attach(&window, &content, window.size(), BorderRadius(12)), "attach incoming scene owner without shadow");
-        check(window.property(ViewportDecorationPaddingProperty).toDouble() == FocusRingItem::Width,
-            "production Ring reserves its actual stroke extent");
+        check(window.property(ViewportDecorationPaddingProperty).toDouble() == FocusRingItem::PaintOutset,
+            "production Ring reserves its full glow extent");
         const Region screen(viewport.mapToDeviceCoordinates(RectF(0, 0, 1920, 1080)).rounded());
         const Region top(viewport.mapToDeviceCoordinates(RectF(1200, 47, 120, 3)).rounded());
         const Region bottom(viewport.mapToDeviceCoordinates(RectF(1200, 1010, 120, 3)).rounded());
@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
         check((legacy & top).isEmpty() && (legacy & bottom).isEmpty(), "old clip reproduces missing horizontal strokes");
         const auto clip = viewportPaintClip(&window, viewport, safe, screen);
         check((clip & top) == top && (clip & bottom) == bottom, "incoming top and bottom strokes survive first scrolling paint");
-        const int stroke = std::ceil(FocusRingItem::Width * scale);
+        const int stroke = std::ceil(FocusRingItem::PaintOutset * scale);
         const int centerX = std::round(1300 * scale);
         check(clip.contains(QPoint(centerX, baseClip.top() - stroke))
             && clip.contains(QPoint(centerX, baseClip.bottom() + stroke - 1)),

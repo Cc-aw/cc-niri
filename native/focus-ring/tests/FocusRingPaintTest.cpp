@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #include "../FocusRingItem.h"
 #include "../FocusRingPaintFrame.h"
+#include "../FocusRingStrokeItem.h"
 #include "CaptureRenderer.h"
 #include <QCoreApplication>
 #include <cstdlib>
@@ -21,12 +22,47 @@ int main(int argc, char **argv) {
         return frame && ring.paint(renderer, target, viewport, *frame);
     };
     check(ring.damageItem()->quads().isEmpty(), "application capture receives no colored quads");
-    check(ring.paintRoot()->childItems().size() == 1 && ring.paintRoot()->childItems().front() == ring.border(),
-        "isolated paint contains only border, no app contents or shadow");
+    check(ring.paintRoot()->childItems().size() == 2 && ring.glow()->parentItem()==ring.paintRoot()
+        && ring.glow()->softGlow() && ring.border()->z()>ring.glow()->z(),
+        "isolated paint contains glow then crisp border, no app contents or shadow");
     check(ring.paintRoot()->opacity() == 1 && ring.border()->opacity() == 1, "isolated nodes do not inherit application capture opacity");
     QImage image(1920, 1080, QImage::Format_ARGB32_Premultiplied); RenderTarget target(&image);
     const Region clip(Rect(24, 50, 1872, 960));
     FocusRingCaptureRenderer renderer;
+    // Inspect actual raster pixels at every supported scale. The glow must
+    // fade outwards, stay weak, and never fill the application surface.
+    for (qreal scale : {1.0,1.25,1.5,1.75,2.0}) {
+        RenderViewport viewport(RectF(0,0,1920,1080),scale,target,QPoint());
+        WindowPaintData identity;
+        check(paintRing(&renderer,target,viewport,0,Region::infinite(),identity),"static layered draw");
+        auto *glow=ring.glow();
+        check(glow && glow->isVisible() && glow->colorDescription()==ColorDescription::sRGB,"independent sRGB glow");
+        const auto &patches=glow->patches();
+        for (int i=0; i<8; ++i) {
+            const auto &pixels=patches[i]->image();
+            check(!pixels.isNull() && pixels.width()<64 && pixels.height()<64,"bounded glow textures");
+            for (int y=0;y<pixels.height();++y) for (int x=0;x<pixels.width();++x)
+                check(qAlpha(pixels.pixel(x,y))<=39,"glow alpha never exceeds .15");
+            if (i>=4) {
+                const bool horizontal=i==4 || i==6;
+                const int n=horizontal?pixels.height():pixels.width();
+                const auto sample=[&](int d){return qAlpha(pixels.pixel(horizontal?0:d,horizontal?d:0));};
+                const bool reversed=i==4 || i==7;
+                check(sample(reversed?n-1:0)>20 && sample(reversed?0:n-1)<=1,"soft edges fade to transparent");
+                for (int d=1;d<n;++d) check(reversed?sample(d)>=sample(d-1):sample(d)<=sample(d-1),"monotonic glow falloff");
+                check(horizontal?pixels.width()==1:pixels.height()==1,"straight glow uses one-pixel strip");
+            }
+        }
+        // The corner inside the rounded body is transparent, while its
+        // outside arc receives glow. Same frozen frame reuses all pixels.
+        const auto &corner=patches[0]->image();
+        check(qAlpha(corner.pixel(corner.width()-1,corner.height()-1))==0,"glow does not fill client area");
+        const int rasterizations=glow->rasterizations();
+        const auto cache=corner.cacheKey();
+        window.setPosition(window.position()+QPointF(.25,-.25));
+        check(paintRing(&renderer,target,viewport,0,Region::infinite(),identity),"translation follows owner");
+        check(glow->rasterizations()==rasterizations && glow->patches()[0]->image().cacheKey()==cache,"translation and idle reuse glow textures");
+    }
     WindowPaintData data; data.setXTranslation(-230); data.setYTranslation(10);
     data.setXScale(0.85); data.setYScale(1.1); data.setOpacity(0.8); data.setBrightness(0.25); data.setSaturation(0.1);
     const int mask = Effect::PAINT_WINDOW_TRANSFORMED;
@@ -39,7 +75,8 @@ int main(int argc, char **argv) {
         check(qAbs(renderer.effectiveOpacity - window.opacity() * data.opacity()) < 1e-9, "native item opacity and effect fade each apply exactly once");
         check(renderer.brightness == 1 && renderer.saturation == 1, "stable material bypasses application color modulation");
         check(data.brightness() == 0.25 && data.saturation() == 0.1, "application paint data unchanged");
-        check(ring.border()->outline().color() == QColor(QStringLiteral("#7FC8FF")) &&
+        check(ring.border()->outline().color().rgb() == QColor(QStringLiteral("#7FC8FF")).rgb()
+            && qAbs(ring.border()->outline().color().alphaF()-.85)<.001 &&
             ring.border()->colorDescription() == ColorDescription::sRGB, "constant independent sRGB material");
     }
     window.setPosition(QPointF(100, 70));

@@ -15,7 +15,7 @@ static void check(bool value, const char *name) {
 static bool close(qreal a, qreal b) { return qAbs(a-b) < 0.001; }
 static FocusRingStrokeItem *stroke(FocusRingItem &ring) {
     for (auto *child : ring.paintRoot()->childItems())
-        if (auto *result = dynamic_cast<FocusRingStrokeItem *>(child)) return result;
+        if (auto *result = dynamic_cast<FocusRingStrokeItem *>(child); result && !result->softGlow()) return result;
     return nullptr;
 }
 // Image alpha at a logical point in the actual small corner texture.
@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
     QImage image(3840,2160,QImage::Format_ARGB32_Premultiplied); RenderTarget target(&image);
     const Region clip(Rect(21,47,1878,966)); FocusRingCaptureRenderer renderer;
     int samples = 0, scaled = 0;
-    for (const qreal deviceScale : {1.0,1.25,1.5,2.0}) {
+    for (const qreal deviceScale : {1.0,1.25,1.5,1.75,2.0}) {
         RenderViewport viewport(RectF(0,0,1920,1080),deviceScale,target,QPoint());
         for (const auto &entry : document.array()) {
             const auto object=entry.toObject(), geometry=object.value(QStringLiteral("target")).toObject();
@@ -55,15 +55,19 @@ int main(int argc, char **argv) {
             check(renderer.sceneMatrix == focusRingItemMatrix(&window,data,deviceScale), "same window frame root matrix");
             check(renderer.lastRegion==clip && close(renderer.effectiveOpacity,0.56) && renderer.brightness==1 && renderer.saturation==1,
                 "preserve device clip, both opacities, independent material");
-            const qreal expected = std::round(3*deviceScale);
+            const qreal expected = std::round(FocusRingItem::Width*deviceScale);
             auto *item=stroke(ring);
-            if (data.xScale()!=1 || data.yScale()!=1) {
+            const auto metrics=FocusRingStrokeMetrics::fromFrame(*frame,deviceScale);
+            check(metrics.has_value(),"valid native frame metrics");
+            // KWin uses float matrices: a near-unit JS scale can become exact
+            // identity after native composition, notably at 175%.
+            if (metrics->compensated) {
                 ++scaled;
                 // This deliberately fails against the original scaled native border.
                 if (!item || !item->isVisible()) {
                     check(close(ring.border()->outline().thickness()*deviceScale*data.xScale(),expected)
                         && close(ring.border()->outline().thickness()*deviceScale*data.yScale(),expected),
-                        "animated border must retain device-rounded 3px width");
+                        "animated border must retain device-rounded crisp width");
                 }
                 check(item && item->isVisible() && !ring.border()->isVisible(), "only compensated stroke visible");
                 auto compensated=renderer.sceneMatrix; compensated.scale(deviceScale,deviceScale);
@@ -80,7 +84,6 @@ int main(int argc, char **argv) {
                 for (int i : {5,7}) check(close(patches[i]->size().width()*deviceScale,expected), "left-right fixed physical thickness");
                 check(close(item->size().width(),std::round(size.width()*deviceScale)*data.xScale()/deviceScale)
                     && close(item->size().height(),std::round(size.height()*deviceScale)*data.yScale()/deviceScale), "body follows this frame size");
-                const auto metrics=FocusRingStrokeMetrics::fromFrame(*frame,deviceScale);
                 check(metrics && close(metrics->radii[0].width(),12*data.xScale()) && close(metrics->radii[0].height(),12*data.yScale()),
                     "round window corners follow nonuniform scale");
                 // Mid-arc: outward normal of an ellipse, not radial direction.
@@ -88,8 +91,9 @@ int main(int argc, char **argv) {
                 const QPointF boundary(rx*(1-k),ry*(1-k));
                 QPointF normal(-k/rx,-k/ry); normal /= std::hypot(normal.x(),normal.y());
                 const qreal half=metrics->thickness/2;
-                check(alpha(patches[0],boundary+normal*half)>180, "elliptical corner stroke is present");
-                check(alpha(patches[0],boundary-normal*half)<40, "corner stroke does not cover window contents");
+                check(alpha(patches[0],boundary+normal*half)>80, "thin antialiased elliptical corner stroke is present");
+                check(alpha(patches[0],boundary-normal*(metrics->thickness+1/deviceScale))<40,
+                    "corner stroke is transparent inside the body beyond its antialias pixel");
                 check(alpha(patches[0],boundary+normal*(metrics->thickness+2/deviceScale))<40, "corner stroke does not exceed outside width");
                 for (int i : {4,5,6,7}) {
                     const auto quads=patches[i]->quads();
@@ -103,10 +107,12 @@ int main(int argc, char **argv) {
                 const int rasters=item->rasterizations(); const auto cacheKey=patches[0]->image().cacheKey();
                 for(int repeat=0;repeat<3;++repeat) check(ring.paint(&renderer,target,viewport,*frame), "repaint unchanged frame");
                 check(item->rasterizations()==rasters && patches[0]->image().cacheKey()==cacheKey, "unchanged frame reuses corner pixels");
-                check(close(ring.damageItem()->position().x()*data.xScale()*deviceScale,-expected), "damage includes fixed-width left edge");
+                check(close(ring.damageItem()->position().x()*data.xScale()*deviceScale,-std::round(FocusRingItem::GlowRadius*deviceScale)), "damage includes fixed-width glow extent");
             } else {
                 check(ring.border()->isVisible() && (!item || !item->isVisible()), "static path restored after animation");
-                check(RectF(ring.damageItem()->position(),ring.damageItem()->size())==ring.border()->outline().inflate(frame->innerRect()), "static damage restored");
+                const auto glowMetrics=FocusRingStrokeMetrics::fromFrame(*frame,deviceScale,FocusRingItem::GlowRadius);
+                const auto bounds=CcNiri::FocusRingCore::damage(frame->coreState().inner,glowMetrics->numeric());
+                check(RectF(ring.damageItem()->position(),ring.damageItem()->size())==RectF(bounds.x,bounds.y,bounds.width,bounds.height), "static damage covers glow after animation");
             }
             check(window.size()==size && ring.damageItem()->quads().isEmpty(), "source geometry and no-draw marker preserved");
             ++samples;
