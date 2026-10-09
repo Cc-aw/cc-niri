@@ -170,9 +170,11 @@ QString CcNiriFocusRingEffect::GetFocusRingStatus() const {
         {QStringLiteral("width"), FocusRingItem::Width}, {QStringLiteral("color"), QStringLiteral("#7FC8FF")},
         {QStringLiteral("borderAlpha"), FocusRingItem::BorderAlpha},
         {QStringLiteral("glowRadius"), FocusRingItem::GlowRadius},
+        {QStringLiteral("glowExtent"), FocusRingItem::GlowExtent},
         {QStringLiteral("glowAlpha"), FocusRingItem::GlowAlpha},
         {QStringLiteral("glowFalloff"), QStringLiteral("border-edge-smoothstep")},
         {QStringLiteral("paintOutset"), FocusRingItem::PaintOutset},
+        {QStringLiteral("viewportOutset"), FocusRingItem::ViewportOutset},
         {QStringLiteral("glowRasterizations"), m_ring.glow() ? m_ring.glow()->rasterizations() : 0},
         {QStringLiteral("focusAnimation"), false}
     }).toJson(QJsonDocument::Compact));

@@ -78,13 +78,13 @@ int main(int argc,char **argv) {
             const auto damage=RectF(ring.damageItem()->position(),ring.damageItem()->size());
             check(damage.left()*s*sx<=-thickness+0.002 && damage.top()*s*data.yScale()<=-thickness+0.002,"device-rounded stroke is damaged");
             auto *glow=ring.glow();
-            const auto gm=FocusRingStrokeMetrics::fromFrame(*frame,s,FocusRingItem::GlowRadius);
+            const auto gm=FocusRingStrokeMetrics::fromFrame(*frame,s,FocusRingItem::GlowExtent);
             check(glow && gm && near(glow->size().width()*s,w) && near(glow->size().height()*s,h),"glow body uses the same native window bounds");
             const auto gmatrix=childMatrix(renderer.sceneMatrix,glow,s);
             auto gtop=deviceBounds(gmatrix,glow->patches()[4],s);
             auto gright=deviceBounds(gmatrix,glow->patches()[5],s);
             check(near(gtop.bottom(),origin.y()) && near(gright.left(),origin.x()+w),"soft layer and crisp edge share the same inner contour");
-            check(near(gtop.height(),std::round(FocusRingItem::GlowRadius*s)) && near(gright.width(),std::round(FocusRingItem::GlowRadius*s)),"glow keeps a bounded device extent while the window scales");
+            check(near(gtop.height(),std::round(FocusRingItem::GlowExtent*s)) && near(gright.width(),std::round(FocusRingItem::GlowExtent*s)),"glow keeps a bounded device extent while the window scales");
             const int glowRasters=glow->rasterizations();
             check(ring.paint(&renderer,target,viewport,*frame) && glow->rasterizations()==glowRasters,"unchanged frame reuses both layer caches");
             check(window.size()==size,"window geometry preserved"); ++samples;

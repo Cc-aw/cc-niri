@@ -30,10 +30,16 @@ public:
     FocusRingStrokeItem *glow() const;
     static constexpr qreal Width = 1.5;
     static constexpr qreal BorderAlpha = 0.85;
-    static constexpr qreal GlowRadius = 5.5;
-    static constexpr qreal GlowAlpha = 0.18;
+    // Soft falloff measured from the crisp border's outside edge.
+    static constexpr qreal GlowRadius = 7.0;
+    static constexpr qreal GlowExtent = Width + GlowRadius;
+    static constexpr qreal GlowAlpha = 0.35;
     // Covers the largest native-pixel rounding of the soft outer extent.
-    static constexpr qreal PaintOutset = 6.0;
+    static constexpr qreal PaintOutset = 9.0;
+    // Keep the existing viewport reservation: the shared clip also applies
+    // to application pixels, so growing it past the column gap exposes a
+    // parked window. The halo respects that native clip during movement.
+    static constexpr qreal ViewportOutset = 6.0;
     static QColor borderColor();
     static QColor glowColor();
 private:

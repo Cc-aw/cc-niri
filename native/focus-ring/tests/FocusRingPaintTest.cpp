@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
             const auto &pixels=patches[i]->image();
             check(!pixels.isNull() && pixels.width()<64 && pixels.height()<64,"bounded glow textures");
             for (int y=0;y<pixels.height();++y) for (int x=0;x<pixels.width();++x)
-                check(qAlpha(pixels.pixel(x,y))<=46,"glow alpha never exceeds .18");
+                check(qAlpha(pixels.pixel(x,y))<=90,"glow alpha never exceeds .35");
             if (i>=4) {
                 const bool horizontal=i==4 || i==6;
                 const int n=horizontal?pixels.height():pixels.width();
@@ -57,7 +57,9 @@ int main(int argc, char **argv) {
                 // the inner pixels, rather than just the hidden peak alpha.
                 const qreal borderWidth=std::round(FocusRingItem::Width*scale)/scale;
                 const int outside=std::min(n-1,int((borderWidth+1)*scale));
-                check(sample(reversed?n-1-outside:outside)>=30,"visible soft glow survives beyond crisp border at every scale");
+                check(sample(reversed?n-1-outside:outside)>=65,"visible soft glow survives beyond crisp border at every scale");
+                const int middle=std::min(n-1,int((borderWidth+3)*scale));
+                check(sample(reversed?n-1-middle:middle)>=35,"soft halo stays visible three logical pixels beyond crisp border");
                 for (int d=1;d<n;++d) check(reversed?sample(d)>=sample(d-1):sample(d)<=sample(d-1),"monotonic glow falloff");
                 check(horizontal?pixels.width()==1:pixels.height()==1,"straight glow uses one-pixel strip");
             }

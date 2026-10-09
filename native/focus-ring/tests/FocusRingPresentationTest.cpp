@@ -107,10 +107,10 @@ int main(int argc, char **argv) {
                 const int rasters=item->rasterizations(); const auto cacheKey=patches[0]->image().cacheKey();
                 for(int repeat=0;repeat<3;++repeat) check(ring.paint(&renderer,target,viewport,*frame), "repaint unchanged frame");
                 check(item->rasterizations()==rasters && patches[0]->image().cacheKey()==cacheKey, "unchanged frame reuses corner pixels");
-                check(close(ring.damageItem()->position().x()*data.xScale()*deviceScale,-std::round(FocusRingItem::GlowRadius*deviceScale)), "damage includes fixed-width glow extent");
+                check(close(ring.damageItem()->position().x()*data.xScale()*deviceScale,-std::round(FocusRingItem::GlowExtent*deviceScale)), "damage includes fixed-width glow extent");
             } else {
                 check(ring.border()->isVisible() && (!item || !item->isVisible()), "static path restored after animation");
-                const auto glowMetrics=FocusRingStrokeMetrics::fromFrame(*frame,deviceScale,FocusRingItem::GlowRadius);
+                const auto glowMetrics=FocusRingStrokeMetrics::fromFrame(*frame,deviceScale,FocusRingItem::GlowExtent);
                 const auto bounds=CcNiri::FocusRingCore::damage(frame->coreState().inner,glowMetrics->numeric());
                 check(RectF(ring.damageItem()->position(),ring.damageItem()->size())==RectF(bounds.x,bounds.y,bounds.width,bounds.height), "static damage covers glow after animation");
             }

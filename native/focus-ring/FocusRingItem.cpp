@@ -48,7 +48,7 @@ bool FocusRingItem::attach(Item *windowItem, Item *contentItem, const QSizeF &fr
     }
     m_sourceInner = inner; m_sourceOutline = outline;
     m_damage->setGeometry(BorderOutline(PaintOutset, glowColor(), radius).inflate(inner));
-    m_clipPadding.attach(windowItem, PaintOutset);
+    m_clipPadding.attach(windowItem, ViewportOutset);
     m_paintRoot->setGeometry(RectF(windowItem->position(), frameSize));
     m_paintRoot->setTransform(windowItem->transform());
     return true;
@@ -68,14 +68,14 @@ bool FocusRingItem::paint(ItemRenderer *renderer, const RenderTarget &target, co
     m_paintRoot->setOpacity(frame.itemOpacity());
     const auto metrics = FocusRingStrokeMetrics::fromFrame(frame, viewport.scale());
     if (!metrics) return false;
-    auto glowMetrics = FocusRingStrokeMetrics::fromFrame(frame, viewport.scale(), GlowRadius);
+    auto glowMetrics = FocusRingStrokeMetrics::fromFrame(frame, viewport.scale(), GlowExtent);
     if (!glowMetrics) return false;
     // Non-axis transforms retain the native local-shape fallback. Rust still
     // computes its layout; the common paint root applies the owner's matrix.
     const bool nativeFallback = metrics->radii[0].width() < 0;
-    if (nativeFallback) glowMetrics = FocusRingStrokeMetrics::fromFrame(frame, viewport.scale(), GlowRadius, true);
+    if (nativeFallback) glowMetrics = FocusRingStrokeMetrics::fromFrame(frame, viewport.scale(), GlowExtent, true);
     if (!glowMetrics || !m_glow->update(*glowMetrics,
-        BorderOutline(GlowRadius, glowColor(), frame.outline().radius()), m_parent->scene(),
+        BorderOutline(GlowExtent, glowColor(), frame.outline().radius()), m_parent->scene(),
         nativeFallback ? frame.outline().thickness() : metrics->thickness)) return false;
     if (metrics->compensated) {
         if (!m_stroke) { m_stroke = new FocusRingStrokeItem(m_paintRoot); m_stroke->setParent(this); m_stroke->setZ(1); }
