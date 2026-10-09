@@ -1,6 +1,6 @@
 # Rust Native 后续 Animation A2 验证记录
 
-日期：2026-10-09。分支 `feat/animation-60hz`。开发基线为 A0/A1 提交 `d5b1fa7490da77d4a344eb4fc7416949e705edaa`。本轮仅实现 A2 普通 H/L 的速度接管，A3 以后与 Focus Ring F1–F5 未实施。用户要求减少重复实机测试，本轮实机计划为一次短序列。
+日期：2026-10-09。分支 `feat/animation-60hz`。开发基线为 A0/A1 提交 `d5b1fa7490da77d4a344eb4fc7416949e705edaa`，已验证及部署的 A2 代码提交为 `270638f6f754d4745bf594337e0f981ae74bbf5c`。本轮仅实现 A2 普通 H/L 的速度接管，A3 以后与 Focus Ring F1–F5 未实施。按用户要求减少重复实机测试，只采集一次 H/L 短连按，随后补完因检查脚本错误而中断的生命周期检查。
 
 ## 实现范围
 
@@ -39,18 +39,52 @@
 
 ## 部署与实机状态
 
-已沿用用户此前的部署授权准备安全 save-state / stop / immutable install / start 入口，限定仅更新 Clip。但首次预检发现真实会话已锁屏，脚本在 save-current-state、stop 和安装前停止。**本轮尚未替换桌面插件，桌面仍运行 A1 的 smooth60。** 预检创建的目录只保存脚本，没有完整桌面快照，不能作为已部署回滚备份。
+首次预检在锁屏时停止，未执行 save-current-state、stop 或安装。用户解锁后，沿用已有部署授权执行 save-current-state → 安全 stop（确认 parked windows 恢复）→ 既有 immutable Clip installer → start，仅替换 Clip。持久备份为：
 
-已请求用户解锁后继续；后续只执行一次短序列：H/L 同向 / 反向、Wide 中途 J/K / 返回、Ring / fullscreen / off-on、窗口关闭、profile 切换和安全 restart / idle。尚未执行的实机检查不标记通过，人工手感仍待实际反馈。A1 长循环的一次焦点准备失败原因仍未查明，本轮不以自动 C1 数值检查宣称该问题解决。
+`/home/cc/.local/state/cc-niri/backups/animation-a2-20261009-151035`
+
+备份包含原配置键的存在性与值、实际窗口 / 输出 / 工作区快照、workspaces.saved.json、组件路径与 hash、CLI、代码提交 / dirty diff、两个用户未跟踪文档、部署命令和安全回滚脚本。安装后 canonical Clip 为：
+
+`/home/cc/.local/lib/cc-niri/viewport-clip/b805cde6130d137dd3717d1ac00d939e39b5ea6bfd1fe96d98fc061991abc9a7/cc-niri-viewport-clip.so`
+
+安装文件 SHA-256 与 immutable 目录名一致；已显式卸载 / 加载并验证新 A2 status / capture 字段、Rust backend。OS 拒绝读取 `/proc/2050/maps`，因此**未独立验证 KWin 实际映射文件的 hash**。Ring、Bridge、CLI、JS 包、输出设置与非本任务配置均保持。KWin PID 2050 未变；最终有效 profile 为 `smooth60`，工作区优化 true / 420ms，Slide false。
+
+实机使用 DP-1 3840×2160 / 60Hz / 150% 与 HDMI-A-1 2560×1440 / 60Hz / 100%。检查结果：
+
+| 场景 | 实际结果 |
+| --- | --- |
+| 单次 L L H H，间隔约 30ms | 实际生产 carry / brake 使用非零 savedVelocity，初速度与 savedVelocity 一致；结束释放 motion，Ring owner 正确，无 clock fallback 或 retarget 降级 |
+| Wide 开始约 75ms 后 J/K 离开 / 返回 | 返回同一 Wide owner，真实窗口保持 Wide 宽度；退出后 Ring 正确 |
+| Full column / fullscreen / restore | Full Ring 正确；fullscreen 抑制 Ring，恢复后重新附着 |
+| Ring off / on | 卸载与恢复成功，owner 正确 |
+| 运动中关闭临时目标窗口 | 关闭前确认 motion active，关闭后列移除、motion 结束、焦点与 Ring 回退成功 |
+| 运动中 smooth60 → stable → smooth60 | 重配置清理 motion，恢复后普通滚动与 Ring 正常 |
+| 安全 restart 与原状态恢复 | 原窗口顺序 / 宽度偏好 / 工作区归属 / minimize / fullscreen、实际与 Bridge 焦点恢复；副屏原窗口 geometry、桌面拓扑、组件与配置核对通过 |
+| 静止 1s / KWin 日志 | 插件 full repaint requests 为 0，paintedSamples 为 0；无 TypeError / ReferenceError / SyntaxError / invariant / fail-safe / completion timeout / Rust panic 记录 |
+
+短序列的第一次 Wide 断言在返回后程序化切到了另一个临时窗口，现有 contextual viewport 规则会因此选择 Pair。读取源码与既有回归确认该预期后，仅修正检查顺序、补完尚未执行的检查，没有重跑 H/L 连按或修改生产代码。第一次清理的实际焦点断言也过早，随后独立快照确认焦点与所有原状态已恢复；补完脚本改为等待实际 KWin 与 Bridge 一致。原失败记录均保留。
+
+补完脚本最后的“窗口集合必须完全等于旧快照”断言未通过：基线后出现一个非测试窗口，PID 2208062，与本轮四个 owned client PID 均不同。保留该窗口，以已记录的 teardown 快照逐项核对原窗口和工作区偏好为有序子集，全部通过，四个测试窗口均已移除。之后该新增窗口获得焦点、原窗口按正常滚动规则被 parked；保留现场的新状态，没有覆盖工作区文件或再次强制原焦点。恢复时刻与后续观察分开保存在 `remaining-a2-acceptance/acceptance-summary.json`、`later-observation.json`，原 exact-set 失败结果仍保留。
+
+证据在备份的 `short-a2-acceptance/` 与 `remaining-a2-acceptance/`；前者保存一次 H/L capture，后者保存剩余功能与恢复快照。人工手感仍待实际反馈。A1 长循环的一次焦点准备失败原因仍未查明，不以本次检查脚本修正或数值 C1 检查宣称它已解决。
 
 ## 性能与限制
 
-自动测试验证的是保存绘制状态的数值连续性，不证明任意墙钟上的实际屏幕轨迹严格 C1。尚未采集新版实机相邻帧位移、呈现 P99 或受控负载，不能给出流畅度 / GPU / 输入到面板延迟改善结论。50ms / 2% 为文档建议的工程起点，尚未经过实机 A/B 调参。核心仅对现有临界阻尼参数做解析范围规划；其他数学状态使用显式安全降级，不改共享 Spring 默认行为。
+一次 H/L capture 共 45 个 painted samples，全部来自 DP-1；sampleMs 等于 predictedMs，fallback 为 0，数据未截断。生产 arm 记录同向 carry v0=12076.469 logical px/s；反向 brake v0=18024.953 logical px/s，制动 5.574494ms、额外位移 50.239995 logical px，小于安全视口 2512px 的 2%（50.24px）且小于 50ms 上限。短连按有被下一目标覆盖的控制消息，因此 4 次输入不等于 4 条独立绘制曲线。
+
+| 输出 | 呈现间隔数 | P50 / P95 / P99 / max（ms） | >25ms |
+| --- | --- | --- | --- |
+| DP-1 | 48 | 16.667 / 16.728 / 16.782 / 16.828 | 0 |
+| HDMI-A-1 | 49 | 16.667 / 33.340 / 33.397 / 33.398 | 5 |
+
+该副屏没有 Scroll painted sample，呈现观测仅按输出关联，不构成 paint-to-present join。持续 repaint 仍是旧 full 范围，本次 capture 计 107 个请求；A5 尚未缩小范围。三条有绘制曲线的相邻物理步进最大值分别为 318.599 / 526.944 / 76.252px；这是短连按不同目标与速度下的描述值，没有配对 stable A/B，不能当作改善证据。最后反向曲线采样 T95=183.276ms、双物理可见阈值=366.772ms、数值完成=649.981ms，完成 sample 仍持有 ownership，既有 cancel 于 capture 759.559ms 请求；没有将数值完成提前当作生命周期释放。
+
+离线分析为 `build/animation-a2/live-retarget-analysis.json`，亦复制到持久备份。小样本、非受控负载的 P99 不代表长期稳定性。自动测试验证的是保存绘制状态的数值连续性，不证明任意墙钟上的实际屏幕轨迹严格 C1，也不证明流畅度 / GPU / 输入到面板延迟改善。50ms / 2% 为文档建议的工程起点，尚未经过实机 A/B 调参。核心仅对现有临界阻尼参数做解析范围规划；其他数学状态使用显式安全降级，不改共享 Spring 默认行为。
 
 热插拔、完整 100/125/150/175/200% 矩阵、更多长测和编译压力组未执行。按用户限制不增加重复实机采样；A3、A4 和 A5 的速度 / 收尾 / damage 改进均不归入本轮。
 
 ## 回滚
 
-当前桌面未部署 A2，因此无需恢复桌面组件。后续部署会生成新的持久状态备份，保存当前 A1 immutable Clip、AnimationProfile 原值、dirty diff / stage commit、窗口状态及可执行安全回滚脚本；不使用 /tmp 作为唯一备份。
+行为回滚将 AnimationProfile 设为 stable，经既有安全生命周期恢复 legacy；该模式切换已在本轮运动中检查通过。若要保留 A1 呈现时钟而撤回 A2，执行持久备份目录的 `rollback-component.sh`：先 `./cc-niri stop` 恢复 parked windows，恢复失败即停止；恢复原 A1 immutable Clip `2d11b47e9da1297ab4eea5a4b2523273c6b55edd904f07f5890b944c64da885a` 绑定、原 AnimationProfile=smooth60，再 start。已准备脚本，未为测试目的重复执行组件回滚。
 
-行为回滚将 AnimationProfile 设为 stable，经既有安全生命周期恢复 legacy；若需要保持 A1 呈现时钟而撤回 A2，则恢复部署前 A1 Clip 的 immutable 绑定。先 ./cc-niri stop 恢复 parked windows，恢复失败中止卸载，不强制释放持有窗口的插件，不覆盖整个 kwinrc / workspaces.json。代码回滚采用本阶段独立提交的 revert，保留用户两个未跟踪 todo 文档，不 reset / stash / 自动合并 main。
+不强制释放持有窗口的插件，不覆盖整个 kwinrc / workspaces.json；备份仅供故障恢复调查，保留用户在测试期间与之后的新窗口 / 工作区状态。代码回滚对独立 A2 提交 `270638f` 做 revert，保留两个未跟踪 todo 文档，不 reset / stash / 自动合并 main。
