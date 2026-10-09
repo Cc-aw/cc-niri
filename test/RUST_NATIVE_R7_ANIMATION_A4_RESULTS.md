@@ -42,7 +42,8 @@ Rust 1.99.0，GNU /usr/bin/g++ 16.2.1，Cargo.lock 未改。并发 2，构建和
 - node tools/check.js --native：通过（100 JS、Bridge 17、Clip 16、Ring 23 CTest，隔离 DBus、plasmoid 与生产符号门禁）。首轮在隔离 DBus socket 创建处被沙箱阻止，之后使用允许 socket 的执行环境完成整套门禁。
 - Core Debug / Release：各 12 CTest 通过，包含冻结 Golden differential；umbrella Debug：27 CTest 通过。
 - BUILD_TESTING=OFF 两个插件与 Bridge 构建 / 符号核验通过，无 reference / differential target。C++ policy 的 GNU 16 接受、GCC 15 / 17、非 GNU / 指定路径拒绝通过；额外实际 configure 拒绝 rustc / cargo 1.98.0，通过。日志与命令在 build/animation-a4/results.json、additional-checks.json。
-- 部署与短实机 A/B：待本阶段构建门禁完成。
+- 800 单步 L 基线已记录，无丢样 / 时钟后备 / 长间隔。基线恢复首次检查发现 Pair anchor 与焦点为两个独立状态；仅还原焦点会改变可见窗口组合，已恢复原 anchor，原窗口几何 / 停放状态核验通过，没有重复基线。
+- 首次部署的新 Clip hash：df424ec77b2a854e83c026450979caaa806d95bb3f009f3818e1b085ca7bf773。新参数 / API 和安装 hash 已核验，但全窗口恢复检查发现既有 stop/start 对 inactive workspace 的 parked 状态采用 lazy 初始化；严格检查触发了安全组件回滚至 A3。恢复程序增加既有工作区激活与保存 anchor / focus 的重应用。恢复期间桌面自动锁屏，KWin 不再推进呈现，后续部署 / 实机验收等待解锁。A4 尚未完成实机验收，当前组件为 A3。
 
 新测试覆盖剩余轨迹包络、低速 crossing、亚像素制动、缩放 / 刷新率矩阵、短 / 长距离与正负速度、无效输出 facts、缩放改变、长采样跨度、pending 完成中断、stale paint、精确 snap、Outgoing 生命周期、partial / stable 原参数与零分配。C ABI smoke 检查 80-byte DTO、空闲实际参数、null / 非法 flags。
 
