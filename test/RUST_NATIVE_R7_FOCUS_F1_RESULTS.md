@@ -2,7 +2,7 @@
 
 日期：2026-10-09。分支：feat/animation-60hz。基线：f0849b1（A5）。生产代码提交：11a6197；部署与实机验收未再修改生产代码。
 
-F1 仅做静态分层。保留 #7FC8FF、唯一真实 Native owner、JS Ring v1 eligibility 与发布 authority、fullscreen / off-on / 对象生命周期。边框配置为 1.5 logical px / alpha=0.85；外缘柔光为 5.5 logical px / alpha=0.15。没有焦点淡入淡出、收敛、持续 pulse 或新动画时钟；H/L、J/K、Spring 参数和布局未改。
+F1 仅做静态分层。保留 #7FC8FF、唯一真实 Native owner、JS Ring v1 eligibility 与发布 authority、fullscreen / off-on / 对象生命周期。边框配置为 1.5 logical px / alpha=0.85；外缘柔光支持半径为 5.5 logical px，初版 alpha=0.15，用户反馈后的修正为 alpha=0.18，并从清晰边框的外缘开始柔和衰减。没有焦点淡入淡出、收敛、持续 pulse 或新动画时钟；H/L、J/K、Spring 参数和布局未改。
 
 ## 渲染与边界
 
@@ -49,4 +49,18 @@ Rust fmt / clippy --locked -D warnings / workspace tests（52 tests）通过。n
 
 F1 不实现 F2 focus fade / F3 gain convergence / F4 timeline / F5 edge weighting。CPU / SDK 变换和纹理 alpha 测试不等同于 GL compositor 或所有显示设置的实机像素；实际用户视觉反馈仍须单独记录。5.5 是有限外缘支持半径，使用轻量衰减纹理而非高强度 bloom；末端透明。
 
-部署采用现有 save-state → stop（恢复失败即停止）→ immutable Ring installer → start；仅更新 Ring。组件回滚入口为上述私有备份的 `rollback-component.sh`，先 stop 恢复 parked windows（失败即停止），仅恢复旧 immutable Ring `e58a356f587dce070c18677bb51792777712d7825bb1d904effd58e4a7622077` 的 discovery 绑定，再 start。不整体覆写配置 / workspace，不删除用户窗口。F1 实现、必要门禁、部署与短实机功能完成，用户视觉反馈待确认；下一阶段为 F2 的 140ms focus fade。
+部署采用现有 save-state → stop（恢复失败即停止）→ immutable Ring installer → start；仅更新 Ring。初版组件回滚入口为上述私有备份的 `rollback-component.sh`，先 stop 恢复 parked windows（失败即停止），仅恢复旧 immutable Ring `e58a356f587dce070c18677bb51792777712d7825bb1d904effd58e4a7622077` 的 discovery 绑定，再 start。不整体覆写配置 / workspace，不删除用户窗口。初版必要门禁、部署与短实机功能通过，但用户反馈“只能看到很小的蓝色边框，根本看不到弱柔光”，静态视觉验收未通过，因此先修正 F1，不进入 F2。
+
+## 用户反馈后的柔光修正
+
+初版从窗口轮廓开始以 `(1-u)^2` 衰减，柔光的高 alpha 区域被清晰边框覆盖，边框外的有效蓝色过弱。修正将当前同帧、经 Rust device alignment 得到的清晰边框宽度作为绘制衰减起点，边框外使用 smoothstep 降到透明，峰值 alpha 为设计范围内的 0.18。四边与圆角复用同一颜色函数；圆角、5.5 logical px 支持半径、damage / viewport padding、缓存、owner 与动画时钟不变。非轴变换继续使用现有局部轮廓 fallback。
+
+回归新增对 100% / 125% / 150% / 175% / 200% 四边真实纹理的检查：清晰边框外约 1 logical px 处 alpha 至少 30/255，确保可见部分不会再次退化为只有被边框遮住的峰值；同时保留单调衰减、末端透明、alpha 上限、client area 透明、纹理大小与静态缓存检查。仅修正绘制材质，没有修改 Core、FFI、Qt 数值转换、CMake 或生产动画。
+
+修正源码提交：`ea9ddef`。Rust 1.99.0 fmt、clippy --locked --workspace --all-targets -D warnings、cargo test --locked --workspace（52 tests）均经 `node tools/check.js --native` 执行并通过；完整门禁通过（100 JS、Bridge 17、Clip 16、Ring 23 CTest，冻结 Golden differential、生产符号边界和 plasmoid 构建）。配置复用既有 Ring 构建树，显式 `/usr/bin/g++`。首轮旧断言要求最后一个纹理像素 alpha <=1/255，在新的柔和曲线下失败；像素中心距全透明的支持边界仍有半像素，因此将该采样容差调整为 <=3/255，重新执行门禁通过。首轮与最终日志均保存在 `build/focus-f1-glow/`。本次无 Core / FFI / Qt 转换 / CMake 改动，未重复 Debug / Release、umbrella 和工具链拒绝矩阵。
+
+修正版部署备份：`/home/cc/.local/state/cc-niri/backups/focus-f1-glow-20261009-194552`（0700）。save-state → stop 成功恢复 parked windows → immutable Ring install → start。新 Ring canonical/hash 为 `f7634ae301e6ff00f7541bdce41ad20210e8b6bf2ec862d2ece3ca749b772ff4`；显式 reload 后 `glowAlpha=0.18`、`glowFalloff=border-edge-smoothstep` 可查询。KWin PID 2050、输出、配置、Clip / CLI / Bridge / JS 组件均保持一致。进程 maps 仍受 OS 限制，安装 hash、reload 与新查询接口已核对，未独立读取实际映射文件 hash。
+
+仅做一次静态实机检查：一个自有临时 Konsole 客户端、一张 Spectacle 合成截图、1 秒空闲观测，没有重复 H/L、J/K、resize、Wide、fullscreen 或 off-on 测试。截图 `short-glow-check/f1-desktop.png`（统一 2× 导出栅格）及四角裁剪 `cc-niri-f1-glow-corners.png` 可见细线外连续的浅蓝柔光，四角衰减连续。空闲期间 glowRasterizations 不增加，Scroll paint / full / target repaint 均为 0；无 KWin 相关错误。临时客户端关闭后，原窗口 geometry / membership / minimized / fullscreen、实际与 Bridge 焦点、viewport anchor、列状态、桌面 ID / 每输出桌面、输出、配置与组件全部核验恢复，见 `short-glow-check/restoration-success.json`。截图检查不代表用户已接受视觉强度，也未量化 GPU 时间或其他 scale 的实机显示效果。
+
+本次窄回滚入口为该修正版备份中的 `rollback-component.sh`，通过 stop → 恢复初版 immutable Ring `216770cc8b23e4cf7b8b73d69d84e12173def313161acf3d298aa43ba715274f` discovery 绑定 → start 回退；不覆盖用户配置 / 工作区。源码可回退 `ea9ddef`。F1 柔光修正已完成门禁、部署与一次静态检查，后续阶段等待用户视觉反馈。
