@@ -120,6 +120,17 @@ uint32_t cc_niri_scroll_clear(CcNiriScroll *handle);
 uint32_t cc_niri_scroll_remove(CcNiriScroll *handle,uint64_t id);
 CcNiriSpringBoolResult cc_niri_scroll_input_blocked(const CcNiriScroll *handle,uint64_t window_id,double x,double y);
 CcNiriSpringBoolResult cc_niri_scroll_advance(CcNiriScroll *handle,int64_t now_ns);
+/* Pending samples only become retarget anchors / publish completion after a
+ * real target-output paint. The stable advance entry keeps its old semantics.
+ * These operations and queries allocate nothing; null returns INVALID_HANDLE. */
+typedef struct {
+    double position,velocity,target;
+    int64_t time_ns,epoch;
+    uint32_t valid,completed,status,reserved;
+} CcNiriScrollSample;
+CcNiriSpringBoolResult cc_niri_scroll_prepare_frame(CcNiriScroll *handle,int64_t now_ns);
+CcNiriSpringBoolResult cc_niri_scroll_mark_painted(CcNiriScroll *handle,int64_t epoch,int64_t time_ns);
+CcNiriScrollSample cc_niri_scroll_frame_sample(const CcNiriScroll *handle,uint32_t painted); /* pending/painted/arm origin=0/1/2 */
 CcNiriScrollStatus cc_niri_scroll_status(const CcNiriScroll *handle);
 CcNiriTextResult cc_niri_scroll_context_text(const CcNiriScroll *handle,uint32_t field); /* session/workspace/output=0/1/2 */
 CcNiriProjectionResult cc_niri_scroll_projection(const CcNiriScroll *handle,uint64_t id,CcNiriRect geometry);

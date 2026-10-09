@@ -67,6 +67,19 @@ pub struct FfiProjection {
     status: u32,
 }
 
+#[repr(C)]
+pub struct FfiScrollSample {
+    position: f64,
+    velocity: f64,
+    target: f64,
+    time_ns: i64,
+    epoch: i64,
+    valid: u32,
+    completed: u32,
+    status: u32,
+    reserved: u32,
+}
+
 /// Unique owned state; no concurrent mutation or aliasing with borrowed output.
 pub struct ScrollHandle(ScrollViewportRuntime);
 // SAFETY contract for all exported entries: slices are aligned live buffers of
@@ -98,7 +111,7 @@ pub extern "C" fn cc_niri_scroll_create(fuzzy_zero: u32) -> *mut ScrollHandle {
 #[no_mangle]
 pub unsafe extern "C" fn cc_niri_scroll_clone(handle: *const ScrollHandle) -> *mut ScrollHandle {
     match unsafe { handle.as_ref() } {
-        Some(h) => Box::into_raw(Box::new(ScrollHandle(h.0.clone()))),
+        Some(h) => Box::into_raw(Box::new(ScrollHandle(h.0.clone_for_paint()))),
         None => std::ptr::null_mut(),
     }
 }
@@ -124,7 +137,7 @@ pub unsafe extern "C" fn cc_niri_scroll_copy(
     }
     if !std::ptr::eq(destination, source) {
         unsafe {
-            (*destination).0 = (*source).0.clone();
+            (*destination).0 = (*source).0.clone_for_paint();
         }
     }
     OK
@@ -294,6 +307,74 @@ pub unsafe extern "C" fn cc_niri_scroll_advance(
             .map(|h| h.0.advance(now))
             .ok_or(INVALID_HANDLE),
     )
+}
+/// # Safety
+/// Live exclusively-borrowed handle; null returns INVALID_HANDLE.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_prepare_frame(
+    handle: *mut ScrollHandle,
+    now: i64,
+) -> FfiSpringBoolResult {
+    bool_result(
+        unsafe { handle.as_mut() }
+            .map(|h| h.0.prepare_frame(now))
+            .ok_or(INVALID_HANDLE),
+    )
+}
+/// # Safety
+/// Live exclusively-borrowed handle; null returns INVALID_HANDLE.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_mark_painted(
+    handle: *mut ScrollHandle,
+    epoch: i64,
+    time_ns: i64,
+) -> FfiSpringBoolResult {
+    bool_result(
+        unsafe { handle.as_mut() }
+            .map(|h| h.0.mark_painted(epoch, time_ns))
+            .ok_or(INVALID_HANDLE),
+    )
+}
+/// # Safety
+/// Live shared-borrowed handle. Queries never sample a clock or allocate.
+/// painted=0 queries pending state, 1 the last paint anchor, 2 the arm origin.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_frame_sample(
+    handle: *const ScrollHandle,
+    painted: u32,
+) -> FfiScrollSample {
+    let mut result = FfiScrollSample {
+        position: 0.0,
+        velocity: 0.0,
+        target: 0.0,
+        time_ns: 0,
+        epoch: -1,
+        valid: 0,
+        completed: 0,
+        status: OK,
+        reserved: 0,
+    };
+    let Some(h) = (unsafe { handle.as_ref() }) else {
+        result.status = INVALID_HANDLE;
+        return result;
+    };
+    if painted > 2 {
+        result.status = INVALID_DTO;
+    } else if let Some(sample) = if painted == 2 {
+        h.0.origin_sample()
+    } else {
+        h.0.frame_sample(painted != 0)
+    } {
+        result.position = sample.motion.current;
+        result.velocity = sample.motion.velocity;
+        result.target = sample.motion.target;
+        result.time_ns = sample.time_ns;
+        result.epoch = sample.motion.epoch;
+        result.valid = 1;
+        result.completed =
+            u32::from(sample.motion.kind == crate::viewport_motion::MotionKind::Static);
+    }
+    result
 }
 /// # Safety
 /// Live shared-borrowed handle, no concurrent mutation or destruction.
@@ -494,6 +575,12 @@ mod tests {
             assert_eq!(cc_niri_scroll_clear(null), INVALID_HANDLE);
             assert_eq!(cc_niri_scroll_remove(null, 0), INVALID_HANDLE);
             assert_eq!(cc_niri_scroll_advance(null, 0).status, INVALID_HANDLE);
+            assert_eq!(cc_niri_scroll_prepare_frame(null, 0).status, INVALID_HANDLE);
+            assert_eq!(
+                cc_niri_scroll_mark_painted(null, 0, 0).status,
+                INVALID_HANDLE
+            );
+            assert_eq!(cc_niri_scroll_frame_sample(null, 0).status, INVALID_HANDLE);
             assert_eq!(cc_niri_scroll_status(null).status, INVALID_HANDLE);
             assert_eq!(
                 cc_niri_scroll_input_blocked(null, 1, 0.0, 0.0).status,
@@ -510,6 +597,9 @@ mod tests {
                 INVALID_HANDLE
             );
             let h = cc_niri_scroll_create(1);
+            assert_eq!(cc_niri_scroll_frame_sample(h, 3).status, INVALID_DTO);
+            assert_eq!(cc_niri_scroll_prepare_frame(h, -1).value, 0);
+            assert_eq!(cc_niri_scroll_mark_painted(h, 0, 0).value, 0);
             assert_eq!(
                 cc_niri_scroll_input_blocked(h, 1, f64::NAN, 0.0).status,
                 INVALID_DTO
@@ -611,6 +701,19 @@ mod tests {
                     std::hint::black_box(cc_niri_scroll_role(h, token));
                     std::hint::black_box(cc_niri_scroll_context_text(h, 0));
                     std::hint::black_box(cc_niri_scroll_frames(h, 0, &mut output, 1));
+                }
+            });
+            assert_eq!(allocations, 0);
+            let allocations = crate::allocation_checks::count(|| {
+                for frame in 1000..2000 {
+                    assert_eq!(cc_niri_scroll_prepare_frame(h, frame * 1_000_000).value, 1);
+                    let sample = cc_niri_scroll_frame_sample(h, 0);
+                    assert_eq!(sample.valid, 1);
+                    assert_eq!(
+                        cc_niri_scroll_mark_painted(h, sample.epoch, sample.time_ns).value,
+                        1
+                    );
+                    std::hint::black_box(cc_niri_scroll_frame_sample(h, 1));
                 }
             });
             assert_eq!(allocations, 0);

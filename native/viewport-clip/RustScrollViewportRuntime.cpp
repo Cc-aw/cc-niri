@@ -70,6 +70,14 @@ QJsonObject RustScrollViewportRuntime::status() const {
     return status;
 }
 bool RustScrollViewportRuntime::advance(ViewportMotionBackend::TimePoint now) { return accepted(cc_niri_scroll_advance(m_handle,now.count())); }
+bool RustScrollViewportRuntime::prepareFrame(ViewportMotionBackend::TimePoint now) { return accepted(cc_niri_scroll_prepare_frame(m_handle,now.count())); }
+bool RustScrollViewportRuntime::markPainted(qint64 epoch, qint64 timeNs) { return accepted(cc_niri_scroll_mark_painted(m_handle,epoch,timeNs)); }
+CcNiriScrollSample RustScrollViewportRuntime::frameSample(bool painted) const {
+    const auto result = cc_niri_scroll_frame_sample(m_handle, painted); checkStatus(result.status); return result;
+}
+CcNiriScrollSample RustScrollViewportRuntime::originSample() const {
+    const auto result = cc_niri_scroll_frame_sample(m_handle, 2); checkStatus(result.status); return result;
+}
 std::optional<ScrollProjection> RustScrollViewportRuntime::projection(const QString &id,const QRectF &geometry) const {
     const auto found=m_ids.constFind(id); if (found==m_ids.cend()) return std::nullopt;
     const auto result=cc_niri_scroll_projection(m_handle,found.value(),rect(geometry)); checkStatus(result.status);

@@ -39,11 +39,13 @@ assert.match(source, /\[VIEWPORT_CLIP_NATIVE\] MAP/);
 assert.match(source, /MotionPlanChanged/);
 assert.match(source, /setData\(MotionPlanDataRole, marker\)/);
 assert.match(source, /windowDataChanged[\s\S]*?role == MotionCompleteDataRole[\s\S]*?forwardMotionCompletion\(window\)/);
-assert.match(source, /onMotionParked[\s\S]*?setData\(MotionPlanDataRole, QVariant\(\)\)[\s\S]*?addRepaintFull\(\)/);
+assert.match(source, /onMotionParked[\s\S]*?setData\(MotionPlanDataRole, QVariant\(\)\)[\s\S]*?requestRepaintFull\(\)/);
 assert.match(source, /ReportMotionComplete/);
 assert.match(source,
-    /QStringLiteral\("outgoing"\)[\s\S]*?QStringLiteral\("PAIR_TO_WIDE"\)[\s\S]*?effects->addRepaintFull\(\)/,
+    /QStringLiteral\("outgoing"\)[\s\S]*?QStringLiteral\("PAIR_TO_WIDE"\)[\s\S]*?requestRepaintFull\(\)/,
     "outgoing Pair-to-Wide motion repaints its compositor-only translation");
+assert.match(source, /void CcNiriViewportClipEffect::requestRepaintFull\(\)[\s\S]*?effects->addRepaintFull\(\)/,
+    "opt-in telemetry preserves the original full repaint request");
 assert.match(cmake, /KWin::kwin/);
 assert.match(cmake, /INSTALL_NAMESPACE "kwin\/effects\/plugins"/);
 assert.ok(install.includes('"${SCRIPT_DIR}/tools/install-native-clip.py"'),

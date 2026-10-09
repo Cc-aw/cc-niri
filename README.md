@@ -110,6 +110,21 @@ cc-niri restart
 
 启用期间 `cc-niri` 暂停 KDE 原生 Slide，stop 时恢复先前偏好。将 `OptimizedWorkspaceAnimation` 设为 `false` 并 restart 可回到原动画；`WorkspaceDuration` 支持 240–800ms。60Hz 的物理呈现上限仍为每秒 60 帧，实测与限制见 [工作区动画优化记录](test/WORKSPACE_ANIMATION_RESULTS.md)。
 
+H/L 呈现时钟优化使用独立选项 `[Effect-cc-niri-viewport-clip] AnimationProfile`，默认 `stable`。安装支持该选项的 Native Clip 后，可以设为 `smooth60` 并通过既有 `cc-niri restart` 流程应用；恢复 `stable` 即回到旧采样策略，无效字符串也回退 `stable`。当前 A0/A1 仅在目标真实输出按预计呈现时间采样、复用同帧样本；Spring 刚度、零速度接管、收尾条件、J/K 时长和光圈外观保持原值。它不会自动开启工作区优化或修改原生 Slide 偏好。
+
+`GetScrollMotionStatus()` 导出实际 profile、时钟来源、目标输出和时钟后备次数。`StartScrollFrameCapture()` 开始一次最多 10 秒的采样，默认关闭；绘制和呈现缓冲各 2048 条，填满时显式标记 `truncated` 并停止记录。开始后执行固定的 H/L 输入序列，结束后导出并离线分析：
+
+```bash
+gdbus call --session --dest org.kde.KWin --object-path /ccNiriViewportMotion \
+  --method org.cc.NiriViewportMotion1.StartScrollFrameCapture
+# 在这 10 秒内执行需要测量的 H/L 序列。
+gdbus call --session --dest org.kde.KWin --object-path /ccNiriViewportMotion \
+  --method org.cc.NiriViewportMotion1.GetScrollFrameCapture > capture.dbus
+python3 tools/analyze-animation-capture.py capture.dbus
+```
+
+采样 v1 将绘制轨迹与 `framePresented` 时间分开记录，二者没有可靠的逐帧关联。分析中的响应时间仅是组件处理事件到绘制样本，T95 / 数值完成时间属于采样轨迹，不代表实际输入到面板的延迟或 GPU 时长。完整门禁、实机待验收项目与回滚边界见 [A0/A1 阶段记录](test/ANIMATION_60HZ_RESULTS.md)。
+
 所有尺寸使用逻辑像素，不额外乘输出缩放比例：
 
 | 配置 | 主屏默认值 | 副屏默认值 |

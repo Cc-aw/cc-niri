@@ -11,6 +11,10 @@
 #include <QString>
 #include <array>
 #include "NativeScrollProtocolBackend.h"
+#include "AnimationFrameContext.h"
+#include "ScrollFrameCapture.h"
+#include <QPointer>
+#include <vector>
 
 namespace KWin
 {
@@ -49,6 +53,8 @@ public Q_SLOTS:
     Q_SCRIPTABLE QString GetViewportHitTest(double x, double y) const;
     Q_SCRIPTABLE void StartWorkspaceFrameCapture();
     Q_SCRIPTABLE QString GetWorkspaceFrameCapture() const;
+    Q_SCRIPTABLE void StartScrollFrameCapture();
+    Q_SCRIPTABLE QString GetScrollFrameCapture() const;
 
 private:
     friend class WorkspaceSlideAdapter;
@@ -75,6 +81,39 @@ private:
     bool resolveScrollPlan(const QJsonObject &plan) const;
     void updateScrollOwnership();
     void clearScrollState();
+    void configureAnimationProfile();
+    void syncScrollOutput();
+    void captureScrollLifecycle(uint32_t kind, qint64 epoch);
+    void requestRepaintFull();
+    CcNiri::AnimationProfile m_animationProfile = CcNiri::AnimationProfile::Stable;
+    bool m_invalidAnimationProfile = false;
+    CcNiri::AnimationFrameContext m_scrollFrameContext;
+    QPointer<LogicalOutput> m_scrollTargetOutput;
+    QString m_scrollTargetName;
+    uint64_t m_scrollRevision = 0, m_scrollFrameSerial = 0;
+    uint64_t m_scrollCapturedSerial = 0;
+    qint64 m_scrollEventTime = 0;
+    qint64 m_scrollBoundEpoch = -1;
+    struct ScrollPaintPass {
+        QPointer<LogicalOutput> output;
+        bool real = false, recorded = false;
+        uint64_t revision = 0, serial = 0;
+        qint64 predictedNs = 0, sampleNs = 0;
+        double refreshHz = 0;
+        CcNiri::ClockFallback fallback = CcNiri::ClockFallback::None;
+    };
+    std::array<ScrollPaintPass, 32> m_scrollPaintPasses;
+    size_t m_scrollPaintDepth = 0;
+    CcNiri::ScrollFrameCapture m_scrollCapture;
+    struct ScrollCaptureOutput {
+        QPointer<LogicalOutput> output;
+        QString name;
+        uint64_t token = 0;
+        double refreshHz = 0, scale = 1;
+        uint64_t fullRepaintRequests = 0;
+    };
+    std::vector<ScrollCaptureOutput> m_scrollCaptureOutputs;
+    uint64_t captureOutputToken(LogicalOutput *output) const;
     CcNiri::ScrollViewportRuntimeBackend m_scrollRuntime;
     CcNiri::ScrollClipHandoff m_scrollClipHandoff;
     // Frozen Rust handles live only until the native workspace effect becomes idle.

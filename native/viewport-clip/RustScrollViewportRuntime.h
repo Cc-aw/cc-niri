@@ -22,6 +22,10 @@ public:
     bool inputBlocked(const QString &id, const QPointF &point) const;
     QJsonObject status() const;
     bool advance(ViewportMotionBackend::TimePoint now);
+    bool prepareFrame(ViewportMotionBackend::TimePoint now);
+    bool markPainted(qint64 epoch, qint64 timeNs);
+    CcNiriScrollSample frameSample(bool painted = false) const;
+    CcNiriScrollSample originSample() const;
     std::optional<ScrollProjection> projection(const QString &id,const QRectF &geometry) const;
     QHash<QString,QRectF> targets() const;
     QHash<QString,QRectF> sourceFrames() const;

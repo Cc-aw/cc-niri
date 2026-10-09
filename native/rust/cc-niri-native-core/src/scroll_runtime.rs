@@ -2,8 +2,14 @@
 //! Scroll authority, shared motion and projection. No platform objects or clock reads.
 pub use crate::native_protocol::*;
 use crate::spring::SpringParams;
-use crate::viewport_motion::{MotionKind, ViewportMotion};
+use crate::viewport_motion::{MotionKind, MotionSample, ViewportMotion};
 use std::collections::HashMap;
+
+#[derive(Clone, Copy, Debug)]
+pub struct ScrollFrameSample {
+    pub motion: MotionSample,
+    pub time_ns: i64,
+}
 
 #[derive(Clone, Debug)]
 pub struct ScrollViewportRuntime {
@@ -16,6 +22,12 @@ pub struct ScrollViewportRuntime {
     roles: HashMap<WindowId, WindowRole>,
     viewport: Rect,
     frame_offset: f64,
+    // prepare_frame projects a pending sample. Only mark_painted promotes it
+    // to the retarget anchor and publishes numerical completion.
+    anchor_offset: f64,
+    frame_sample: Option<ScrollFrameSample>,
+    painted_sample: Option<ScrollFrameSample>,
+    origin_sample: Option<ScrollFrameSample>,
     completed: bool,
     fuzzy_zero: bool,
     clip_partial: bool,
@@ -33,6 +45,10 @@ impl ScrollViewportRuntime {
             roles: HashMap::new(),
             viewport: Rect::default(),
             frame_offset: 0.0,
+            anchor_offset: 0.0,
+            frame_sample: None,
+            painted_sample: None,
+            origin_sample: None,
             completed: false,
             fuzzy_zero,
             clip_partial: false,
@@ -45,6 +61,16 @@ impl ScrollViewportRuntime {
     }
     pub fn label(&self, id: WindowId) -> Option<&Text> {
         self.windows.label(id)
+    }
+    // Adapter-owned copies freeze a rendered pose for workspace departure and
+    // clip handoff. An unused prePaint sample must not become that pose.
+    pub fn clone_for_paint(&self) -> Self {
+        let mut copy = self.clone();
+        copy.frame_offset = self.anchor_offset;
+        copy.frame_sample = self
+            .painted_sample
+            .filter(|s| s.motion.epoch == self.epoch());
+        copy
     }
     pub fn targets(&self) -> &HashMap<WindowId, Rect> {
         &self.columns
@@ -93,6 +119,9 @@ impl ScrollViewportRuntime {
         self.roles.clear();
         self.completed = false;
         self.clip_partial = false;
+        self.frame_sample = None;
+        self.painted_sample = None;
+        self.origin_sample = None;
         self.motion.snap(self.motion.sample(0).target);
     }
     pub fn remove(&mut self, id: WindowId) {
@@ -229,7 +258,7 @@ impl ScrollViewportRuntime {
         }
         if !self.motion.start(
             if continuing {
-                self.frame_offset
+                self.anchor_offset
             } else {
                 old_offset
             },
@@ -244,7 +273,17 @@ impl ScrollViewportRuntime {
         self.source_frames = source_frames;
         self.roles = roles;
         self.viewport = rect;
-        self.frame_offset = self.motion.sample(now).current;
+        let origin = ScrollFrameSample {
+            motion: self.motion.sample(now),
+            time_ns: now,
+        };
+        self.origin_sample = Some(origin);
+        self.frame_offset = origin.motion.current;
+        self.anchor_offset = self.frame_offset;
+        self.frame_sample = None;
+        if !continuing {
+            self.painted_sample = None;
+        }
         self.completed = false;
         self.clip_partial = clip_partial;
         true
@@ -265,10 +304,58 @@ impl ScrollViewportRuntime {
         if self.completed {
             return true;
         }
-        self.frame_offset = self.motion.sample(now).current;
-        if self.motion.sample(now).kind == MotionKind::Static {
+        let sample = ScrollFrameSample {
+            motion: self.motion.sample(now),
+            time_ns: now,
+        };
+        self.frame_offset = sample.motion.current;
+        self.anchor_offset = self.frame_offset;
+        self.frame_sample = Some(sample);
+        self.painted_sample = Some(sample);
+        if sample.motion.kind == MotionKind::Static {
             self.motion.finish(self.epoch(), now);
             self.frame_offset = self.motion.sample(0).target;
+            self.completed = true;
+        }
+        true
+    }
+    pub fn frame_sample(&self, painted: bool) -> Option<ScrollFrameSample> {
+        if painted {
+            self.painted_sample
+        } else {
+            self.frame_sample
+        }
+    }
+    pub fn origin_sample(&self) -> Option<ScrollFrameSample> {
+        self.origin_sample
+    }
+    pub fn prepare_frame(&mut self, now: i64) -> bool {
+        if !self.active() || now < 0 || self.frame_sample.is_some_and(|s| now < s.time_ns) {
+            return false;
+        }
+        let sample = ScrollFrameSample {
+            motion: self.motion.sample(now),
+            time_ns: now,
+        };
+        self.frame_offset = sample.motion.current;
+        self.frame_sample = Some(sample);
+        true
+    }
+    pub fn mark_painted(&mut self, epoch: i64, time_ns: i64) -> bool {
+        let Some(sample) = self.frame_sample else {
+            return false;
+        };
+        if !self.active()
+            || epoch != self.epoch()
+            || epoch != sample.motion.epoch
+            || time_ns != sample.time_ns
+        {
+            return false;
+        }
+        self.anchor_offset = sample.motion.current;
+        self.painted_sample = Some(sample);
+        if sample.motion.kind == MotionKind::Static {
+            self.motion.finish(epoch, time_ns);
             self.completed = true;
         }
         true
@@ -351,6 +438,65 @@ mod tests {
             entries,
             fingerprint: format!("{epoch}/{from}/{to}").into_bytes(),
         }
+    }
+    #[test]
+    fn pending_frames_do_not_replace_paint_anchor_or_publish_completion() {
+        let mut r = ScrollViewportRuntime::new(true);
+        r.update_context(context("s", 1.0));
+        let p = plan(&mut r, 1.0, 0.0, 1260.25);
+        assert!(r.arm(p, 0, &HashMap::new()));
+        assert!(r.prepare_frame(60_000_000));
+        assert!(r.mark_painted(1, 60_000_000));
+        let painted = r.frame_sample(true).unwrap();
+        assert!(r.prepare_frame(200_000_000));
+        assert!(r.frame_sample(false).unwrap().motion.current > painted.motion.current);
+        let frozen = r.clone_for_paint();
+        assert_eq!(frozen.frame_offset, painted.motion.current);
+        assert_eq!(frozen.frame_sample(false).unwrap().time_ns, painted.time_ns);
+        assert_eq!(r.frame_sample(true).unwrap().time_ns, 60_000_000);
+        let p = plan(&mut r, 2.0, 1260.25, 2520.5);
+        assert!(r.arm(p, 60_000_000, &HashMap::new()));
+        assert_eq!(r.frame_offset, painted.motion.current);
+        assert!(r.frame_sample(false).is_none());
+        assert!(!r.mark_painted(1, 200_000_000));
+        assert!(r.prepare_frame(60_000_000));
+        assert_eq!(r.frame_sample(false).unwrap().motion.epoch, 2);
+        assert!(r.mark_painted(2, 60_000_000));
+        assert!(r.prepare_frame(4_000_000_000));
+        assert!(!r.completed());
+        assert!(!r.mark_painted(2, 3_000_000_000));
+        assert!(r.mark_painted(2, 4_000_000_000));
+        assert!(r.completed() && r.active());
+        let outgoing = r.intern(Text::from_utf8("0"));
+        assert_eq!(r.role(outgoing), Some(WindowRole::Outgoing));
+        r.cancel(&Text::from_utf8("s"), 2);
+        assert!(!r.active() && r.frame_sample(true).is_none());
+    }
+    #[test]
+    fn unpainted_first_frame_and_invalid_times_preserve_the_static_anchor() {
+        let mut r = ScrollViewportRuntime::new(true);
+        r.update_context(context("s", 1.0));
+        let p = plan(&mut r, 1.0, 0.0, 1260.25);
+        assert!(r.arm(p, 0, &HashMap::new()));
+        assert!(!r.prepare_frame(-1));
+        assert!(r.prepare_frame(100_000_000));
+        assert!(!r.prepare_frame(99_000_000));
+        assert_eq!(r.frame_sample(false).unwrap().time_ns, 100_000_000);
+        let p = plan(&mut r, 2.0, 1260.25, 0.0);
+        assert!(r.arm(p, 10_000_000, &HashMap::new()));
+        assert_eq!(r.frame_offset, 0.0);
+        assert!(r.frame_sample(true).is_none());
+        let allocations = crate::allocation_checks::count(|| {
+            for now in 0..1000 {
+                r.prepare_frame(now * 1_000_000);
+                std::hint::black_box(r.frame_sample(false));
+                r.mark_painted(2, now * 1_000_000);
+                std::hint::black_box(r.frame_sample(true));
+            }
+        });
+        assert_eq!(allocations, 0);
+        r.update_context(context("other-session", 1.0));
+        assert!(r.frame_sample(true).is_none());
     }
     #[test]
     fn retarget_uses_last_painted_offset_and_holds_outgoing() {

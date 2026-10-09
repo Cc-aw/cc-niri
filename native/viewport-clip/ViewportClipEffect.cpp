@@ -12,6 +12,7 @@
 #include "effect/effecthandler.h"
 #include "effect/effectwindow.h"
 #include "scene/windowitem.h"
+#include "scene/scene.h"
 #include "window.h"
 #include "input.h"
 #include "input_event.h"
@@ -41,6 +42,7 @@
 #include "WorkspaceSlideAdapter.h"
 #include <utility>
 #include <chrono>
+#include <KConfigGroup>
 
 Q_LOGGING_CATEGORY(CC_NIRI_VIEWPORT_CLIP, "cc.niri.viewport.clip", QtInfoMsg)
 
@@ -188,6 +190,7 @@ CcNiriViewportClipEffect::CcNiriViewportClipEffect()
     // freeze guard see the active fullscreen owner on desktopChanged.
     m_workspaceSlide = std::make_unique<WorkspaceSlideAdapter>(this);
     m_inputClip = std::make_unique<ViewportInputClip>(this);
+    configureAnimationProfile();
     m_scrollEndpointRegistered = QDBusConnection::sessionBus().registerObject(
         QStringLiteral("/ccNiriViewportMotion"), this, QDBusConnection::ExportScriptableSlots);
     if (!m_scrollEndpointRegistered) qCWarning(CC_NIRI_VIEWPORT_CLIP) << "scroll arm endpoint unavailable";
@@ -212,6 +215,7 @@ CcNiriViewportClipEffect::CcNiriViewportClipEffect()
     connect(effects, &EffectsHandler::windowDeleted, this, [this](EffectWindow *window) {
         m_inputClip->restore();
         m_scrollRuntime.remove(scrollWindowId(window));
+        if (!m_scrollRuntime.active()) syncScrollOutput();
         m_scrollClipHandoff.remove(scrollWindowId(window));
         for (auto &runtime : m_workspaceDepartures) runtime.remove(scrollWindowId(window));
         m_activeWindows.remove(window); m_motionPlanWindows.remove(window);
@@ -248,12 +252,13 @@ CcNiriViewportClipEffect::CcNiriViewportClipEffect()
                     return;
                 }
                 updateWindowMarker(window);
-                effects->addRepaintFull();
+                requestRepaintFull();
             });
     connect(effects, &EffectsHandler::windowClosed, this,
             [this](EffectWindow *window) {
                 m_inputClip->restore();
                 m_scrollRuntime.remove(scrollWindowId(window));
+                if (!m_scrollRuntime.active()) syncScrollOutput();
                 m_scrollClipHandoff.remove(scrollWindowId(window));
                 for (auto &runtime : m_workspaceDepartures) runtime.remove(scrollWindowId(window));
                 window->setData(ScrollOwnershipDataRole, QVariant());
@@ -333,7 +338,7 @@ void CcNiriViewportClipEffect::clearWorkspaceState(LogicalOutput *output)
         m_motionPlanWindows, ViewportClipDataRole, MotionPlanDataRole, MotionCompleteDataRole,
         effects->hasActiveFullScreenEffect());
     m_loggedDeviceClips.clear();
-    effects->addRepaintFull();
+    requestRepaintFull();
     qCInfo(CC_NIRI_VIEWPORT_CLIP) << "[WORKSPACE_CLIP_NATIVE] CLEAR";
 }
 
@@ -421,6 +426,8 @@ void CcNiriViewportClipEffect::onRuntimeStateChanged(const QString &json)
     m_inputClip->restore();
     m_scrollRuntime.updateContext(document.isObject() ? document.object() : QJsonObject());
     m_scrollClipHandoff.updateContext(document.isObject() ? document.object() : QJsonObject());
+    syncScrollOutput();
+    captureScrollLifecycle(2, m_scrollBoundEpoch);
     updateScrollOwnership();
     m_inputClip->refreshPointer();
 }
@@ -492,7 +499,17 @@ bool CcNiriViewportClipEffect::ArmScrollPlan(const QString &json)
         }
     }
     m_inputClip->restore();
-    if (!m_scrollRuntime.arm(plan, motionNow(), frames)) return false;
+    const auto eventTime = motionNow();
+    auto startTime = eventTime;
+    if (m_animationProfile == CcNiri::AnimationProfile::Smooth60) {
+        const auto painted = m_scrollRuntime.frameSample(true);
+        if (painted.valid) startTime = std::max(startTime, CcNiri::ViewportMotionBackend::TimePoint(painted.time_ns));
+    }
+    if (!m_scrollRuntime.arm(plan, startTime, frames)) return false;
+    if (m_scrollRuntime.status().value(QStringLiteral("epoch")).toInteger() != m_scrollBoundEpoch)
+        m_scrollEventTime = eventTime.count();
+    syncScrollOutput();
+    captureScrollLifecycle(0, m_scrollBoundEpoch);
     m_scrollClipHandoff.clear();
     m_scrollPaintFromScript = false;
     if (plan.value(QStringLiteral("clipPartial")) == QJsonValue(true)
@@ -509,7 +526,7 @@ bool CcNiriViewportClipEffect::ArmScrollPlan(const QString &json)
     }
     updateScrollOwnership();
     m_inputClip->refreshPointer();
-    effects->addRepaintFull();
+    requestRepaintFull();
     int incoming = 0, outgoing = 0;
     const auto targets = m_scrollRuntime.targets();
     for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
@@ -542,6 +559,8 @@ void CcNiriViewportClipEffect::observeWorkspaceFrames(LogicalOutput *output)
     if (!loop || m_frameConnections.contains(output)) return;
     m_frameConnections.insert(output, connect(loop, &RenderLoop::framePresented, this,
         [this, output](RenderLoop *, std::chrono::nanoseconds timestamp, PresentationMode) {
+            if (m_scrollCapture.recording)
+                m_scrollCapture.presented(captureOutputToken(output), timestamp.count());
             // KWin supplies actual monotonic presentation timestamps. Recording
             // stops after three seconds and allocates nothing in this callback.
             if (!m_frameCaptureDeadline || timestamp.count() < m_frameCaptureStart ||
@@ -604,6 +623,69 @@ QString CcNiriViewportClipEffect::GetWorkspaceFrameCapture() const
     return QString::fromUtf8(QJsonDocument(capture).toJson(QJsonDocument::Compact));
 }
 
+void CcNiriViewportClipEffect::StartScrollFrameCapture()
+{
+    m_scrollCaptureOutputs.clear();
+    const auto outputs = effects->screens();
+    m_scrollCaptureOutputs.reserve(outputs.size());
+    for (auto *output : outputs) {
+        auto *backend = output->backendOutput();
+        auto *loop = backend ? backend->renderLoop() : nullptr;
+        m_scrollCaptureOutputs.push_back({output, output->name(), m_scrollCaptureOutputs.size() + 1,
+            loop ? loop->refreshRate() / 1000.0 : 0, output->scale()});
+    }
+    m_scrollCapturedSerial = 0;
+    m_scrollCapture.start(motionNow().count());
+}
+
+QString CcNiriViewportClipEffect::GetScrollFrameCapture() const
+{
+    QJsonArray outputs, frames, presentations, lifecycles;
+    for (const auto &entry : m_scrollCaptureOutputs) {
+        outputs.append(QJsonObject{{QStringLiteral("token"), qint64(entry.token)},
+            {QStringLiteral("name"), entry.name}, {QStringLiteral("refreshHz"), entry.refreshHz},
+            {QStringLiteral("scale"), entry.scale}, {QStringLiteral("removed"), entry.output.isNull()},
+            {QStringLiteral("fullRepaintRequests"), qint64(entry.fullRepaintRequests)}});
+    }
+    const auto atMs = [this](qint64 ns) { return double(ns - m_scrollCapture.startNs) / 1000000.0; };
+    for (size_t i = 0; i < m_scrollCapture.frameCount; ++i) {
+        const auto &r = m_scrollCapture.frames[i];
+        frames.append(QJsonObject{{QStringLiteral("frame"), qint64(r.frame)},
+            {QStringLiteral("output"), qint64(r.output)}, {QStringLiteral("revision"), qint64(r.revision)},
+            {QStringLiteral("epoch"), qint64(r.epoch)}, {QStringLiteral("eventMs"), atMs(r.eventNs)},
+            {QStringLiteral("predictedMs"), r.predictedNs > 0 ? QJsonValue(atMs(r.predictedNs)) : QJsonValue()},
+            {QStringLiteral("sampleMs"), atMs(r.sampleNs)}, {QStringLiteral("paintMs"), atMs(r.paintNs)},
+            {QStringLiteral("x"), r.position}, {QStringLiteral("v"), r.velocity}, {QStringLiteral("target"), r.target},
+            {QStringLiteral("scale"), r.scale}, {QStringLiteral("refreshHz"), r.refreshHz},
+            {QStringLiteral("fallback"), int(r.fallback)}, {QStringLiteral("numericalCompleted"), r.completed},
+            {QStringLiteral("ownershipActive"), r.ownership}, {QStringLiteral("initialX"), r.initialPosition},
+            {QStringLiteral("startMs"), atMs(r.startNs)},
+            {QStringLiteral("profile"), r.profile == CcNiri::AnimationProfile::Smooth60 ? QStringLiteral("smooth60") : QStringLiteral("stable")}});
+    }
+    for (size_t i = 0; i < m_scrollCapture.presentationCount; ++i) {
+        const auto &r = m_scrollCapture.presentations[i];
+        presentations.append(QJsonObject{{QStringLiteral("output"), qint64(r.output)}, {QStringLiteral("atMs"), atMs(r.timeNs)}});
+    }
+    for (size_t i = 0; i < m_scrollCapture.lifecycleCount; ++i) {
+        const auto &r = m_scrollCapture.lifecycles[i];
+        lifecycles.append(QJsonObject{{QStringLiteral("output"), qint64(r.output)}, {QStringLiteral("revision"), qint64(r.revision)},
+            {QStringLiteral("epoch"), qint64(r.epoch)}, {QStringLiteral("atMs"), atMs(r.timeNs)}, {QStringLiteral("kind"), int(r.kind)}});
+    }
+    return QString::fromUtf8(QJsonDocument(QJsonObject{
+        {QStringLiteral("version"), 1}, {QStringLiteral("durationMs"), 10000},
+        {QStringLiteral("captureId"), qint64(m_scrollCapture.captureId)},
+        {QStringLiteral("active"), m_scrollCapture.active(motionNow().count())},
+        {QStringLiteral("truncated"), m_scrollCapture.truncated},
+        {QStringLiteral("association"), QStringLiteral("output-only-no-paint-to-present-join")},
+        {QStringLiteral("positionUnit"), QStringLiteral("logical-px")},
+        {QStringLiteral("velocityUnit"), QStringLiteral("logical-px-per-second")},
+        {QStringLiteral("clockDomain"), QStringLiteral("steady-clock-monotonic-relative-ms")},
+        {QStringLiteral("repaintScope"), QStringLiteral("ViewportClipEffect-full-requests-excludes-workspace-adapter")},
+        {QStringLiteral("repaintFullRequests"), qint64(m_scrollCapture.repaintFullCount)},
+        {QStringLiteral("outputs"), outputs}, {QStringLiteral("paintedFrames"), frames},
+        {QStringLiteral("presentations"), presentations}, {QStringLiteral("lifecycle"), lifecycles}}).toJson(QJsonDocument::Compact));
+}
+
 QString CcNiriViewportClipEffect::GetScrollMotionStatus() const
 {
     auto status = m_scrollRuntime.status();
@@ -618,6 +700,24 @@ QString CcNiriViewportClipEffect::GetScrollMotionStatus() const
     status.insert(QStringLiteral("workspaceAnimationDuration"), m_workspaceSlide->duration());
     status.insert(QStringLiteral("paintClip"), QStringLiteral("viewport-with-decoration-outsets"));
     status.insert(QStringLiteral("clipHandoffActive"), m_scrollClipHandoff.active());
+    status.insert(QStringLiteral("animationProfile"), m_animationProfile == CcNiri::AnimationProfile::Smooth60
+        ? QStringLiteral("smooth60") : QStringLiteral("stable"));
+    status.insert(QStringLiteral("animationProfileFallback"), m_invalidAnimationProfile ? QStringLiteral("invalid-profile") : QString());
+    status.insert(QStringLiteral("scrollClockSource"), m_animationProfile == CcNiri::AnimationProfile::Stable
+        ? QStringLiteral("steady-clock-execution")
+        : (m_scrollFrameContext.fallback() == CcNiri::ClockFallback::None
+            ? QStringLiteral("predicted-presentation") : QStringLiteral("steady-clock-fallback")));
+    status.insert(QStringLiteral("scrollTargetOutput"), m_scrollTargetName);
+    status.insert(QStringLiteral("scrollRetargetPolicy"), QStringLiteral("last-painted-position-zero-velocity"));
+    status.insert(QStringLiteral("scrollSpringStiffness"), 800);
+    status.insert(QStringLiteral("scrollVisualSettlePhysicalPx"), QJsonValue());
+    status.insert(QStringLiteral("workspaceRetargetPolicy"), QStringLiteral("last-painted-position-quintic-zero-velocity"));
+    status.insert(QStringLiteral("clockFallbackCount"), qint64(m_scrollFrameContext.fallbackCount()));
+    status.insert(QStringLiteral("clockFallbackReasons"), QJsonObject{
+        {QStringLiteral("missingPrediction"), qint64(m_scrollFrameContext.fallbackCount(CcNiri::ClockFallback::MissingPrediction))},
+        {QStringLiteral("invalidPrediction"), qint64(m_scrollFrameContext.fallbackCount(CcNiri::ClockFallback::InvalidPrediction))},
+        {QStringLiteral("regressedPrediction"), qint64(m_scrollFrameContext.fallbackCount(CcNiri::ClockFallback::RegressedPrediction))}});
+    status.insert(QStringLiteral("retargetDegradedCount"), QJsonValue()); // A2 is not implemented.
     return QString::fromUtf8(QJsonDocument(status).toJson(QJsonDocument::Compact));
 }
 
@@ -661,9 +761,11 @@ void CcNiriViewportClipEffect::CancelScrollPlan(const QString &json)
     }
     m_scrollClipHandoff.cancel(session, epoch);
     m_scrollRuntime.cancel(session, epoch);
+    captureScrollLifecycle(1, epoch);
+    syncScrollOutput();
     updateScrollOwnership();
     m_inputClip->refreshPointer();
-    effects->addRepaintFull();
+    requestRepaintFull();
 }
 
 void CcNiriViewportClipEffect::updateScrollOwnership()
@@ -693,18 +795,106 @@ void CcNiriViewportClipEffect::clearScrollState()
     if (m_inputClip) m_inputClip->restore();
     m_scrollPaintFromScript = false;
     m_scrollClipHandoff.clear();
-    m_scrollRuntime.clear(); updateScrollOwnership();
+    captureScrollLifecycle(3, m_scrollBoundEpoch);
+    m_scrollRuntime.clear();
+    syncScrollOutput();
+    updateScrollOwnership();
     if (m_inputClip) m_inputClip->refreshPointer();
-    effects->addRepaintFull();
+    requestRepaintFull();
+}
+void CcNiriViewportClipEffect::configureAnimationProfile()
+{
+    const KConfigGroup config(effects->config(), QStringLiteral("Effect-cc-niri-viewport-clip"));
+    const auto value = config.readEntry("AnimationProfile", QStringLiteral("stable"));
+    const auto profile = CcNiri::animationProfile(value.toStdString());
+    m_invalidAnimationProfile = value != QStringLiteral("stable") && value != QStringLiteral("smooth60");
+    if (profile != m_animationProfile) clearScrollState();
+    m_animationProfile = profile;
+}
+void CcNiriViewportClipEffect::syncScrollOutput()
+{
+    if (!m_scrollRuntime.active()) {
+        m_scrollTargetOutput.clear(); m_scrollTargetName.clear();
+        m_scrollBoundEpoch = -1;
+        m_scrollFrameContext.clear();
+        ++m_scrollRevision;
+        return;
+    }
+    const auto status = m_scrollRuntime.status(); // Event boundary only.
+    const auto name = status.value(QStringLiteral("targetOutput")).toString();
+    const auto epoch = status.value(QStringLiteral("epoch")).toInteger();
+    if (name != m_scrollTargetName || epoch != m_scrollBoundEpoch) ++m_scrollRevision;
+    m_scrollBoundEpoch = epoch;
+    m_scrollTargetName = name;
+    m_scrollTargetOutput.clear();
+    for (auto *output : effects->screens()) {
+        if (output->name() == name) { m_scrollTargetOutput = output; break; }
+    }
+    m_scrollFrameContext.bind(reinterpret_cast<uintptr_t>(m_scrollTargetOutput.data()), m_scrollRevision, m_scrollEventTime);
+}
+uint64_t CcNiriViewportClipEffect::captureOutputToken(LogicalOutput *output) const
+{
+    if (!output) return 0;
+    for (const auto &entry : m_scrollCaptureOutputs) if (entry.output == output) return entry.token;
+    return 0; // Outputs added during capture are explicitly unregistered.
+}
+void CcNiriViewportClipEffect::captureScrollLifecycle(uint32_t kind, qint64 epoch)
+{
+    if (!m_scrollCapture.recording) return;
+    m_scrollCapture.lifecycle({captureOutputToken(m_scrollTargetOutput.data()), m_scrollRevision, epoch, motionNow().count(), kind});
+}
+void CcNiriViewportClipEffect::requestRepaintFull()
+{
+    if (m_scrollCapture.recording) {
+        const auto now = motionNow().count();
+        m_scrollCapture.expire(now);
+        if (m_scrollCapture.active(now)) {
+            m_scrollCapture.repaint(now);
+            for (auto &entry : m_scrollCaptureOutputs) if (entry.output) ++entry.fullRepaintRequests;
+        }
+    }
+    effects->addRepaintFull(); // A1 deliberately retains the stable damage scope.
 }
 void CcNiriViewportClipEffect::prePaintScreen(ScreenPrePaintData &data)
 {
+    if (m_scrollCapture.recording) m_scrollCapture.expire(motionNow().count());
+    const auto passIndex = m_scrollPaintDepth++;
+    if (passIndex < m_scrollPaintPasses.size()) {
+        auto &pass = m_scrollPaintPasses[passIndex];
+        pass = {};
+        if (m_animationProfile == CcNiri::AnimationProfile::Smooth60 || m_scrollCapture.recording) {
+            pass.output = data.screen;
+            // Offscreen captures have no OutputFrame. A view on another output must
+            // never advance or commit this output's scroll state.
+            pass.real = data.screen && data.frame && (!data.view || data.view->logicalOutput() == data.screen);
+            pass.revision = m_scrollRevision;
+            pass.predictedNs = data.view ? data.view->nextPresentationTimestamp().count() : 0;
+            pass.refreshHz = data.view ? data.view->refreshRate() / 1000.0 : 0;
+        }
+    }
     m_inputClip->restore();
     m_workspaceSlide->prePaintScreen(data);
     // Sample once per compositor paint pass. All continuing columns share it.
     if (m_scrollRuntime.active()) {
-        if (!m_scrollRuntime.advance(motionNow())) updateScrollOwnership();
-        else data.mask |= PAINT_SCREEN_WITH_TRANSFORMED_WINDOWS;
+        if (m_animationProfile == CcNiri::AnimationProfile::Stable) {
+            if (!m_scrollRuntime.advance(motionNow())) updateScrollOwnership();
+            ++m_scrollFrameSerial;
+            if (passIndex < m_scrollPaintPasses.size()) m_scrollPaintPasses[passIndex].serial = m_scrollFrameSerial;
+        } else if (passIndex < m_scrollPaintPasses.size()) {
+            auto &pass = m_scrollPaintPasses[passIndex];
+            const bool nested = std::any_of(m_scrollPaintPasses.cbegin(), m_scrollPaintPasses.cbegin() + passIndex,
+                [&pass](const auto &parent) { return parent.real && parent.output == pass.output && parent.revision == pass.revision; });
+            const auto decision = m_scrollFrameContext.select(reinterpret_cast<uintptr_t>(data.screen),
+                pass.real, data.view != nullptr, pass.predictedNs, motionNow().count(), reinterpret_cast<uintptr_t>(data.frame), nested);
+            pass.sampleNs = decision.timeNs;
+            pass.fallback = decision.fallback;
+            if (decision.advance) {
+                m_scrollRuntime.prepareFrame(CcNiri::ViewportMotionBackend::TimePoint(decision.timeNs));
+                ++m_scrollFrameSerial;
+            }
+            pass.serial = m_scrollFrameSerial;
+        }
+        if (m_scrollRuntime.active()) data.mask |= PAINT_SCREEN_WITH_TRANSFORMED_WINDOWS;
     }
     if (m_scrollClipHandoff.active()) data.mask |= PAINT_SCREEN_WITH_TRANSFORMED_WINDOWS;
     effects->prePaintScreen(data);
@@ -724,7 +914,9 @@ void CcNiriViewportClipEffect::postPaintScreen()
 {
     effects->postPaintScreen();
     m_workspaceSlide->postPaintScreen();
-    if (m_scrollRuntime.active() && !m_scrollRuntime.completed()) effects->addRepaintFull();
+    if (m_scrollRuntime.active() && !m_scrollRuntime.completed()) requestRepaintFull();
+    if (m_scrollPaintDepth) --m_scrollPaintDepth;
+    if (!m_scrollPaintDepth) m_scrollFrameContext.endPass();
 }
 
 void CcNiriViewportClipEffect::onMotionParked(const QString &json)
@@ -739,7 +931,7 @@ void CcNiriViewportClipEffect::onMotionParked(const QString &json)
         window->setData(MotionPlanDataRole, QVariant());
     }
     m_motionPlanWindows.clear();
-    effects->addRepaintFull();
+    requestRepaintFull();
     qCInfo(CC_NIRI_VIEWPORT_CLIP) << "[MOTION_PARKED_NATIVE] repaint"
         << document.object().value(QStringLiteral("transitionToken")).toString();
 }
@@ -790,6 +982,7 @@ int CcNiriViewportClipEffect::requestedEffectChainPosition() const
 
 void CcNiriViewportClipEffect::reconfigure(ReconfigureFlags)
 {
+    configureAnimationProfile();
     m_workspaceSlide->reconfigure();
 }
 
@@ -808,7 +1001,7 @@ void CcNiriViewportClipEffect::updateWindowMarker(EffectWindow *window)
             // translated toward the virtual Wide edge. Its ordinary damage is
             // bounded by the unchanged frame geometry, so explicitly repaint
             // the scene at the start of the compositor-only motion.
-            effects->addRepaintFull();
+            requestRepaintFull();
         }
         qCInfo(CC_NIRI_VIEWPORT_CLIP)
             << "[VIEWPORT_CLIP_NATIVE] ARM"
@@ -865,6 +1058,10 @@ void CcNiriViewportClipEffect::paintClippedWindow(const RenderTarget &renderTarg
         }
     }
     if (projection) {
+        const bool track = m_scrollPaintDepth && m_scrollPaintDepth <= m_scrollPaintPasses.size()
+            && (m_animationProfile == CcNiri::AnimationProfile::Smooth60 || m_scrollCapture.recording);
+        const auto sample = track ? m_scrollRuntime.frameSample() : CcNiriScrollSample{};
+        const size_t passIndex = m_scrollPaintDepth ? m_scrollPaintDepth - 1 : 0;
         // Script Pair/Wide supplies the paint transform while the same Native
         // handle protects a partially visible surface's viewport and input.
         // Pure Scroll ownership clears the Script marker before committing.
@@ -875,6 +1072,27 @@ void CcNiriViewportClipEffect::paintClippedWindow(const RenderTarget &renderTarg
         const Region clipped = viewportPaintClip(window->windowItem(), viewport,
             RectF(rect.x(), rect.y(), rect.width(), rect.height()), deviceRegion);
         effects->paintWindow(renderTarget, viewport, window, mask | PAINT_WINDOW_TRANSFORMED, clipped, data);
+        if (track && !departure && sample.valid && !clipped.isEmpty()) {
+            auto &pass = m_scrollPaintPasses[passIndex];
+            if (pass.real && pass.output == m_scrollTargetOutput && pass.output == window->screen()
+                && pass.revision == m_scrollRevision && !pass.recorded
+                && (m_animationProfile == CcNiri::AnimationProfile::Stable || pass.sampleNs == sample.time_ns)) {
+                const bool painted = m_animationProfile == CcNiri::AnimationProfile::Stable
+                    || m_scrollRuntime.markPainted(sample.epoch, sample.time_ns);
+                if (painted) {
+                    pass.recorded = true;
+                    const auto now = m_scrollCapture.recording ? motionNow().count() : 0;
+                    if (m_scrollCapture.active(now) && m_scrollCapturedSerial != pass.serial) {
+                        const auto origin = m_scrollRuntime.originSample();
+                        m_scrollCapture.record({pass.serial, captureOutputToken(pass.output), pass.revision,
+                            sample.epoch, m_scrollEventTime, pass.predictedNs, sample.time_ns, now,
+                            sample.position, sample.velocity, sample.target, viewport.scale(), pass.refreshHz,
+                            pass.fallback, sample.completed != 0, m_scrollRuntime.active(), origin.position, origin.time_ns, m_animationProfile});
+                        m_scrollCapturedSerial = pass.serial;
+                    }
+                }
+            }
+        }
         return;
     }
     const QVariantMap marker = window->data(ViewportClipDataRole).toMap();
@@ -924,7 +1142,7 @@ void CcNiriViewportClipEffect::paintClippedWindow(const RenderTarget &renderTarg
                 QStringLiteral("PAIR_TO_WIDE")) {
         // Keep invalidating the old and translated bounds for every frame.
         // A click/screenshot previously forced this repaint externally.
-        effects->addRepaintFull();
+        requestRepaintFull();
     }
 }
 

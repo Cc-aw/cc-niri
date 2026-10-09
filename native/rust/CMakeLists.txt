@@ -124,6 +124,7 @@ if(BUILD_TESTING)
         add_test(NAME "${_test}" COMMAND cc-niri-${_name}-differential)
     endforeach()
     foreach(_pair IN ITEMS
+        "animation-frame;../viewport-clip/tests/AnimationFrameContextTest.cpp;scroll-animation-frame-context"
         "motion;../viewport-clip/tests/ViewportMotionTest.cpp;viewport-motion-rust-contract"
         "scroll;../viewport-clip/tests/ScrollViewportRuntimeTest.cpp;scroll-runtime-contract"
         "ring-context;../focus-ring/tests/FocusRingContextTest.cpp;focus-ring-rust-context-contract"
