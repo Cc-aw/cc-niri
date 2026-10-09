@@ -110,9 +110,9 @@ cc-niri restart
 
 启用期间 `cc-niri` 暂停 KDE 原生 Slide，stop 时恢复先前偏好。将 `OptimizedWorkspaceAnimation` 设为 `false` 并 restart 可回到原动画；`WorkspaceDuration` 支持 240–800ms。60Hz 的物理呈现上限仍为每秒 60 帧，实测与限制见 [工作区动画优化记录](test/WORKSPACE_ANIMATION_RESULTS.md)。
 
-H/L 呈现时钟优化使用独立选项 `[Effect-cc-niri-viewport-clip] AnimationProfile`，默认 `stable`。安装支持该选项的 Native Clip 后，可以设为 `smooth60` 并通过既有 `cc-niri restart` 流程应用；恢复 `stable` 即回到旧采样策略，无效字符串也回退 `stable`。smooth60 在目标真实输出按预计呈现时间采样、复用同帧样本，并从最近绘制的位置和速度接管普通 Scroll。同目标保留曲线；反向先检查 Spring，必要时制动最多 50ms，额外旧方向位移受视口 2% 与已持有窗口覆盖范围共同限制。没有制动空间时保留位置、清零速度，并记录降级原因。JS 绘制的 Pair/Wide clip companion 保持原策略；Spring 刚度、收尾条件、J/K 时长和光圈外观保持原值。它不会自动开启工作区优化或修改原生 Slide 偏好。
+H/L 呈现时钟优化使用独立选项 `[Effect-cc-niri-viewport-clip] AnimationProfile`，默认 `stable`。安装支持该选项的 Native Clip 后，可以设为 `smooth60` 并通过既有 `cc-niri restart` 流程应用；恢复 `stable` 即回到旧采样策略，无效字符串也回退 `stable`。smooth60 在目标真实输出按预计呈现时间采样、复用同帧样本，并从最近绘制的位置和速度接管普通 Scroll。同目标保留曲线；反向先检查 Spring，必要时制动最多 50ms，额外旧方向位移受视口 2% 与已持有窗口覆盖范围共同限制。没有制动空间时保留位置、清零速度，并记录降级原因。普通 smooth60 Scroll 使用独立 stiffness=600（mass=1、damping_ratio=1）。收尾同时检查位置误差、单个输出刷新周期的速度位移和剩余解析轨迹包络，均不超过 0.25 物理像素后精确到位；制动中不提前结束。目标输出、缩放或刷新率无效时回退原数值完成条件，并记录原因。完成样本实际绘制后才发布 completed，仍由 JS park / disarm 释放 Outgoing。stable 与 JS 绘制的 Pair/Wide clip companion 继续使用 stiffness=800 和原完成条件，J/K 时长与光圈外观保持原值。它不会自动开启工作区优化或修改原生 Slide 偏好。
 
-`GetScrollMotionStatus()` 导出实际 profile、时钟来源、目标输出、时钟后备次数，以及接管 / 制动 / 同目标 / 降级次数和最近策略。`StartScrollFrameCapture()` 开始一次最多 10 秒的采样，默认关闭；绘制和呈现缓冲各 2048 条，填满时显式标记 `truncated` 并停止记录。开始后执行固定的 H/L 输入序列，结束后导出并离线分析：
+`GetScrollMotionStatus()` 导出实际 profile、时钟来源、目标输出、时钟后备次数，以及接管 / 制动 / 同目标 / 降级次数和最近策略；`scrollSpringStiffness`、`scrollVisualSettlePhysicalPx`、`scrollVisualSettleEnabled` / `Fallback` 与计数由 Rust 实际策略提供。空闲显示配置参数，`awaiting-frame` 表示尚未验证本次输出 facts。数值参数、实机短对照及限制见 [A4 阶段记录](test/RUST_NATIVE_R7_ANIMATION_A4_RESULTS.md)。`StartScrollFrameCapture()` 开始一次最多 10 秒的采样，默认关闭；绘制和呈现缓冲各 2048 条，填满时显式标记 `truncated` 并停止记录。开始后执行固定的 H/L 输入序列，结束后导出并离线分析：
 
 ```bash
 gdbus call --session --dest org.kde.KWin --object-path /ccNiriViewportMotion \

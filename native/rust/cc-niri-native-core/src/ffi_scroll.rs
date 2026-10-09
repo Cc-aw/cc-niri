@@ -393,6 +393,111 @@ pub unsafe extern "C" fn cc_niri_scroll_prepare_frame(
     )
 }
 /// # Safety
+/// Live exclusively-borrowed handle. Facts belong to the actual target output;
+/// invalid scale/rate fall back numerically, rather than failing the animation.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_prepare_frame_with_output(
+    handle: *mut ScrollHandle,
+    now: i64,
+    output_valid: u32,
+    scale: f64,
+    refresh_hz: f64,
+) -> FfiSpringBoolResult {
+    bool_result((|| {
+        let h = unsafe { handle.as_mut() }.ok_or(INVALID_HANDLE)?;
+        if output_valid > 1 {
+            return Err(INVALID_DTO);
+        }
+        Ok(h.0.prepare_frame_with_output(
+            now,
+            crate::scroll_visual::OutputFacts {
+                valid: output_valid != 0,
+                scale,
+                refresh_hz,
+            },
+        ))
+    })())
+}
+
+#[repr(C)]
+pub struct FfiScrollTuningStatus {
+    stiffness: f64,
+    threshold_px: f64,
+    output_scale: f64,
+    refresh_hz: f64,
+    visual_completed: u64,
+    missing_output: u64,
+    invalid_scale: u64,
+    unknown_refresh: u64,
+    smooth: u32,
+    fallback: u32,
+    status: u32,
+    reserved: u32,
+}
+/// # Safety
+/// Shared live handle; no clock reads or allocations. While active, queries
+/// report the armed policy (partial plans stay legacy); otherwise configured.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_tuning_status(
+    handle: *const ScrollHandle,
+    configured_smooth: u32,
+) -> FfiScrollTuningStatus {
+    let mut result = FfiScrollTuningStatus {
+        stiffness: 0.0,
+        threshold_px: 0.0,
+        output_scale: 0.0,
+        refresh_hz: 0.0,
+        visual_completed: 0,
+        missing_output: 0,
+        invalid_scale: 0,
+        unknown_refresh: 0,
+        smooth: 0,
+        fallback: 0,
+        status: OK,
+        reserved: 0,
+    };
+    let Some(h) = (unsafe { handle.as_ref() }) else {
+        result.status = INVALID_HANDLE;
+        return result;
+    };
+    if configured_smooth > 1 {
+        result.status = INVALID_DTO;
+        return result;
+    }
+    let smooth = h.0.effective_smooth(configured_smooth != 0);
+    result.stiffness = h.0.effective_stiffness(configured_smooth != 0);
+    result.threshold_px = if smooth {
+        crate::scroll_visual::VISUAL_THRESHOLD_PX
+    } else {
+        0.0
+    };
+    result.smooth = u32::from(smooth);
+    result.fallback = if h.0.active() {
+        h.0.visual_fallback as u32
+    } else if smooth {
+        crate::scroll_visual::VisualFallback::AwaitingFrame as u32
+    } else {
+        0
+    };
+    // Never export NaN/Inf into the platform's JSON status.
+    let facts = h.0.output_facts;
+    result.output_scale = if facts.scale.is_finite() {
+        facts.scale
+    } else {
+        0.0
+    };
+    result.refresh_hz = if facts.refresh_hz.is_finite() {
+        facts.refresh_hz
+    } else {
+        0.0
+    };
+    result.visual_completed = h.0.visual_completed;
+    result.missing_output = h.0.visual_fallback_counts[0];
+    result.invalid_scale = h.0.visual_fallback_counts[1];
+    result.unknown_refresh = h.0.visual_fallback_counts[2];
+    result
+}
+/// # Safety
 /// Live exclusively-borrowed handle; null returns INVALID_HANDLE.
 #[no_mangle]
 pub unsafe extern "C" fn cc_niri_scroll_mark_painted(
@@ -653,6 +758,8 @@ mod tests {
             );
             assert_eq!(cc_niri_scroll_frame_sample(null, 0).status, INVALID_HANDLE);
             assert_eq!(cc_niri_scroll_retarget_status(null).status, INVALID_HANDLE);
+            assert_eq!(cc_niri_scroll_tuning_status(null, 1).status, INVALID_HANDLE);
+            assert_eq!(std::mem::size_of::<FfiScrollTuningStatus>(), 80);
             assert_eq!(std::mem::size_of::<FfiRetargetStatus>(), 120);
             assert_eq!(cc_niri_scroll_status(null).status, INVALID_HANDLE);
             assert_eq!(
@@ -670,6 +777,11 @@ mod tests {
                 INVALID_HANDLE
             );
             let h = cc_niri_scroll_create(1);
+            assert_eq!(cc_niri_scroll_tuning_status(h, 2).status, INVALID_DTO);
+            assert_eq!(
+                cc_niri_scroll_prepare_frame_with_output(h, 0, 2, 1.5, 60.0).status,
+                INVALID_DTO
+            );
             assert_eq!(cc_niri_scroll_frame_sample(h, 3).status, INVALID_DTO);
             assert_eq!(
                 cc_niri_scroll_arm_with_policy(h, std::ptr::null(), 0, std::ptr::null(), 0, 2)
@@ -793,6 +905,7 @@ mod tests {
                     );
                     std::hint::black_box(cc_niri_scroll_frame_sample(h, 1));
                     std::hint::black_box(cc_niri_scroll_retarget_status(h));
+                    std::hint::black_box(cc_niri_scroll_tuning_status(h, 1));
                 }
             });
             assert_eq!(allocations, 0);

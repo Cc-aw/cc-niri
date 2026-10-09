@@ -75,6 +75,16 @@ impl ViewportMotion {
         };
         true
     }
+    pub fn set_scroll_parameters(&mut self, smooth: bool) {
+        let params = crate::scroll_visual::parameters(smooth);
+        if self.params.stiffness != params.stiffness {
+            self.curve_range = None;
+        }
+        self.params = params;
+    }
+    pub fn stiffness(&self) -> f64 {
+        self.params.stiffness
+    }
     // Scroll smooth60 entry only. Legacy start / retarget retain their oracle.
     pub fn start_bounded(
         &mut self,
@@ -186,6 +196,47 @@ impl ViewportMotion {
         self.curve_range = None;
         true
     }
+    // Visual completion is pending until ScrollRuntime commits an actual paint.
+    // Braking is explicitly excluded, even if its instantaneous pose is close.
+    pub fn sample_visual(
+        &self,
+        now: i64,
+        facts: crate::scroll_visual::OutputFacts,
+    ) -> MotionSample {
+        if self.kind == MotionKind::Animation {
+            if let Some(brake) = self
+                .brake
+                .filter(|b| now.saturating_sub(self.started_at) < b.duration_ns)
+            {
+                let raw = brake.sample(now.saturating_sub(self.started_at));
+                return MotionSample {
+                    kind: MotionKind::Animation,
+                    current: raw.position,
+                    velocity: raw.velocity,
+                    target: self.target,
+                    epoch: self.epoch.0,
+                };
+            }
+        }
+        let sample = self.sample(now);
+        if sample.kind == MotionKind::Animation
+            && crate::scroll_visual::settled(
+                sample,
+                self.params,
+                facts,
+                crate::scroll_visual::VISUAL_THRESHOLD_PX,
+            )
+        {
+            MotionSample {
+                kind: MotionKind::Static,
+                current: sample.target,
+                velocity: 0.0,
+                ..sample
+            }
+        } else {
+            sample
+        }
+    }
     pub fn snap(&mut self, offset: f64) -> bool {
         if !offset.is_finite() {
             return false;
@@ -203,6 +254,25 @@ impl ViewportMotion {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn even_subpixel_brake_must_finish_before_visual_snap() {
+        let mut motion = ViewportMotion::new(crate::scroll_visual::parameters(true));
+        assert!(motion.start(0.0, 0.00001, 1, 0));
+        motion.brake = Some(Brake {
+            from: 0.0,
+            velocity: 0.0001,
+            duration_ns: 50_000_000,
+        });
+        let facts = crate::scroll_visual::OutputFacts {
+            valid: true,
+            scale: 1.5,
+            refresh_hz: 60.0,
+        };
+        assert_eq!(
+            motion.sample_visual(40_000_000, facts).kind,
+            MotionKind::Animation
+        );
+    }
     #[test]
     fn retarget_preserves_position_and_resets_velocity() {
         let mut motion = ViewportMotion::new(SpringParams::default());

@@ -14,6 +14,7 @@ public:
     bool updateContext(const QJsonObject &state);
     bool arm(const QJsonObject &plan, ViewportMotionBackend::TimePoint now, const QHash<QString,QRectF> &frames = {}, bool smooth = false);
     CcNiriScrollRetargetStatus retargetStatus() const;
+    CcNiriScrollTuningStatus tuningStatus(bool configuredSmooth) const;
     void cancel(const QString &session,qint64 epoch);
     void clear();
     void remove(const QString &id);
@@ -24,6 +25,7 @@ public:
     QJsonObject status() const;
     bool advance(ViewportMotionBackend::TimePoint now);
     bool prepareFrame(ViewportMotionBackend::TimePoint now);
+    bool prepareFrame(ViewportMotionBackend::TimePoint now, bool outputValid, double scale, double refreshHz);
     bool markPainted(qint64 epoch, qint64 timeNs);
     CcNiriScrollSample frameSample(bool painted = false) const;
     CcNiriScrollSample originSample() const;

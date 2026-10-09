@@ -151,6 +151,19 @@ typedef struct {
     uint32_t valid,completed,status,reserved;
 } CcNiriScrollSample;
 CcNiriSpringBoolResult cc_niri_scroll_prepare_frame(CcNiriScroll *handle,int64_t now_ns);
+/* Target output facts are revalidated each sample, including scale changes.
+ * output_valid=0/1; invalid scale/rate use legacy numerical completion.
+ * Sampling does not commit completion or release any window ownership. */
+CcNiriSpringBoolResult cc_niri_scroll_prepare_frame_with_output(CcNiriScroll *handle,int64_t now_ns,uint32_t output_valid,double scale,double refresh_hz);
+typedef struct {
+    double stiffness,threshold_px,output_scale,refresh_hz;
+    uint64_t visual_completed,missing_output,invalid_scale,unknown_refresh;
+    uint32_t smooth,fallback,status,reserved;
+} CcNiriScrollTuningStatus;
+/* fallback: disabled/none/missing-output/invalid-scale/unknown-refresh/awaiting-frame=0..5.
+ * Read-only and allocation-free. Active policy overrides configured_smooth=0/1;
+ * idle reports that profile's Core parameters. threshold_px=0 disables visuals. */
+CcNiriScrollTuningStatus cc_niri_scroll_tuning_status(const CcNiriScroll *handle,uint32_t configured_smooth);
 CcNiriSpringBoolResult cc_niri_scroll_mark_painted(CcNiriScroll *handle,int64_t epoch,int64_t time_ns);
 CcNiriScrollSample cc_niri_scroll_frame_sample(const CcNiriScroll *handle,uint32_t painted); /* pending/painted/arm origin=0/1/2 */
 CcNiriScrollStatus cc_niri_scroll_status(const CcNiriScroll *handle);

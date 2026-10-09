@@ -715,8 +715,19 @@ QString CcNiriViewportClipEffect::GetScrollMotionStatus() const
     status.insert(QStringLiteral("scrollTargetOutput"), m_scrollTargetName);
     status.insert(QStringLiteral("scrollRetargetPolicy"), m_animationProfile == CcNiri::AnimationProfile::Smooth60 && !m_scrollRuntime.clipsPartial()
         ? QStringLiteral("bounded-last-painted-position-and-velocity") : QStringLiteral("last-painted-position-zero-velocity"));
-    status.insert(QStringLiteral("scrollSpringStiffness"), 800);
-    status.insert(QStringLiteral("scrollVisualSettlePhysicalPx"), QJsonValue());
+    const auto tuning = m_scrollRuntime.tuningStatus(m_animationProfile == CcNiri::AnimationProfile::Smooth60);
+    status.insert(QStringLiteral("scrollSpringStiffness"), tuning.stiffness);
+    status.insert(QStringLiteral("scrollVisualSettlePhysicalPx"), tuning.threshold_px > 0 ? QJsonValue(tuning.threshold_px) : QJsonValue());
+    const char *visualFallbacks[] = {"disabled", "none", "missing-output", "invalid-scale", "unknown-refresh", "awaiting-frame"};
+    status.insert(QStringLiteral("scrollVisualSettleEnabled"), tuning.fallback == 1);
+    status.insert(QStringLiteral("scrollVisualSettleFallback"), QString::fromLatin1(tuning.fallback < 6 ? visualFallbacks[tuning.fallback] : "invalid"));
+    status.insert(QStringLiteral("scrollVisualSettleOutputScale"), tuning.output_scale);
+    status.insert(QStringLiteral("scrollVisualSettleRefreshHz"), tuning.refresh_hz);
+    status.insert(QStringLiteral("scrollVisualCompletedCount"), qint64(tuning.visual_completed));
+    status.insert(QStringLiteral("scrollVisualSettleFallbackReasons"), QJsonObject{
+        {QStringLiteral("missingOutput"), qint64(tuning.missing_output)},
+        {QStringLiteral("invalidScale"), qint64(tuning.invalid_scale)},
+        {QStringLiteral("unknownRefresh"), qint64(tuning.unknown_refresh)}});
     status.insert(QStringLiteral("workspaceRetargetPolicy"), m_workspaceSlide->smoothEnabled()
         ? QStringLiteral("bounded-last-painted-quintic-derivatives") : QStringLiteral("last-painted-position-quintic-zero-velocity"));
     status.insert(QStringLiteral("workspaceMotion"), m_workspaceSlide->status());
@@ -913,7 +924,9 @@ void CcNiriViewportClipEffect::prePaintScreen(ScreenPrePaintData &data)
             pass.sampleNs = decision.timeNs;
             pass.fallback = decision.fallback;
             if (decision.advance) {
-                m_scrollRuntime.prepareFrame(CcNiri::ViewportMotionBackend::TimePoint(decision.timeNs));
+                m_scrollRuntime.prepareFrame(CcNiri::ViewportMotionBackend::TimePoint(decision.timeNs),
+                    pass.real && pass.output == m_scrollTargetOutput,
+                    data.screen ? data.screen->scale() : 0, pass.refreshHz);
                 ++m_scrollFrameSerial;
             }
             pass.serial = m_scrollFrameSerial;

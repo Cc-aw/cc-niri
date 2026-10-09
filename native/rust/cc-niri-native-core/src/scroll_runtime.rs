@@ -2,6 +2,7 @@
 //! Scroll authority, shared motion and projection. No platform objects or clock reads.
 pub use crate::native_protocol::*;
 use crate::scroll_retarget::{MotionBounds, ResetReason, RetargetDecision, RetargetStrategy};
+use crate::scroll_visual::{OutputFacts, VisualFallback};
 use crate::spring::SpringParams;
 use crate::viewport_motion::{MotionKind, MotionSample, ViewportMotion};
 use std::collections::HashMap;
@@ -61,6 +62,10 @@ pub struct ScrollViewportRuntime {
     windows: WindowRegistry,
     smooth_motion: bool,
     retarget: RetargetStats,
+    pub visual_fallback: VisualFallback,
+    pub output_facts: OutputFacts,
+    pub visual_completed: u64,
+    pub visual_fallback_counts: [u64; 3],
 }
 impl ScrollViewportRuntime {
     pub fn new(fuzzy_zero: bool) -> Self {
@@ -84,6 +89,10 @@ impl ScrollViewportRuntime {
             windows: WindowRegistry::default(),
             smooth_motion: false,
             retarget: RetargetStats::default(),
+            visual_fallback: VisualFallback::Disabled,
+            output_facts: OutputFacts::default(),
+            visual_completed: 0,
+            visual_fallback_counts: [0; 3],
         }
     }
     // Stable per-runtime tokens avoid string conversion/allocation on projection.
@@ -153,6 +162,8 @@ impl ScrollViewportRuntime {
         self.frame_sample = None;
         self.painted_sample = None;
         self.origin_sample = None;
+        self.visual_fallback = VisualFallback::Disabled;
+        self.output_facts = OutputFacts::default();
         self.motion.snap(self.motion.sample(0).target);
     }
     pub fn remove(&mut self, id: WindowId) {
@@ -312,6 +323,8 @@ impl ScrollViewportRuntime {
             now
         };
         let use_smooth = smooth && !clip_partial;
+        let mut candidate_motion = self.motion.clone();
+        candidate_motion.set_scroll_parameters(use_smooth);
         let mut kept = false;
         let decision = if use_smooth {
             // Held window footprints define extra camera travel; the adapter
@@ -329,8 +342,8 @@ impl ScrollViewportRuntime {
                 upper,
                 reverse_limit: rect.width * 0.02,
             };
-            if carry && self.motion.can_keep_curve(target, bounds) {
-                if !self.motion.keep_curve(epoch, start_time) {
+            if carry && candidate_motion.can_keep_curve(target, bounds) {
+                if !candidate_motion.keep_curve(epoch, start_time) {
                     return false;
                 }
                 kept = true;
@@ -345,8 +358,7 @@ impl ScrollViewportRuntime {
                 let velocity = painted
                     .filter(|s| s.motion.kind == MotionKind::Animation)
                     .map_or(0.0, |s| s.motion.velocity);
-                let Some(decision) = self
-                    .motion
+                let Some(decision) = candidate_motion
                     .start_bounded(from, target, velocity, bounds, epoch, start_time)
                 else {
                     return false;
@@ -354,11 +366,12 @@ impl ScrollViewportRuntime {
                 decision
             }
         } else {
-            if !self.motion.start(from, target, epoch, now) {
+            if !candidate_motion.start(from, target, epoch, now) {
                 return false;
             }
             RetargetDecision::default()
         };
+        self.motion = candidate_motion;
         self.columns = columns;
         self.visual_targets = visual_targets;
         self.source_frames = source_frames;
@@ -388,6 +401,12 @@ impl ScrollViewportRuntime {
         self.completed = false;
         self.clip_partial = clip_partial;
         self.smooth_motion = use_smooth;
+        self.visual_fallback = if use_smooth {
+            VisualFallback::AwaitingFrame
+        } else {
+            VisualFallback::Disabled
+        };
+        self.output_facts = OutputFacts::default();
         self.retarget.record(decision);
         true
     }
@@ -435,12 +454,45 @@ impl ScrollViewportRuntime {
     pub fn retarget_stats(&self) -> RetargetStats {
         self.retarget
     }
+    pub fn effective_smooth(&self, configured: bool) -> bool {
+        if self.active() {
+            self.smooth_motion
+        } else {
+            configured
+        }
+    }
+    pub fn effective_stiffness(&self, configured: bool) -> f64 {
+        if self.active() {
+            self.motion.stiffness()
+        } else {
+            crate::scroll_visual::parameters(configured).stiffness
+        }
+    }
     pub fn prepare_frame(&mut self, now: i64) -> bool {
+        self.prepare_frame_with_output(now, OutputFacts::default())
+    }
+    pub fn prepare_frame_with_output(&mut self, now: i64, facts: OutputFacts) -> bool {
         if !self.active() || now < 0 || self.frame_sample.is_some_and(|s| now < s.time_ns) {
             return false;
         }
+        if !self.completed {
+            self.output_facts = facts;
+            self.visual_fallback = if self.smooth_motion {
+                facts.fallback()
+            } else {
+                VisualFallback::Disabled
+            };
+            if (2..=4).contains(&(self.visual_fallback as u32)) {
+                let count = &mut self.visual_fallback_counts[self.visual_fallback as usize - 2];
+                *count = count.saturating_add(1);
+            }
+        }
         let sample = ScrollFrameSample {
-            motion: self.motion.sample(now),
+            motion: if self.smooth_motion {
+                self.motion.sample_visual(now, facts)
+            } else {
+                self.motion.sample(now)
+            },
             time_ns: now,
         };
         self.frame_offset = sample.motion.current;
@@ -461,7 +513,14 @@ impl ScrollViewportRuntime {
         self.anchor_offset = sample.motion.current;
         self.painted_sample = Some(sample);
         if sample.motion.kind == MotionKind::Static {
-            self.motion.finish(epoch, time_ns);
+            if self.smooth_motion {
+                if !self.completed && self.motion.sample(time_ns).kind == MotionKind::Animation {
+                    self.visual_completed = self.visual_completed.saturating_add(1);
+                }
+                self.motion.snap(sample.motion.target);
+            } else {
+                self.motion.finish(epoch, time_ns);
+            }
             self.completed = true;
         }
         true
@@ -586,6 +645,111 @@ mod tests {
         assert!(r.prepare_frame(now));
         assert!(r.mark_painted(r.epoch(), now));
         r.frame_sample(true).unwrap()
+    }
+    #[test]
+    fn visual_completion_commits_only_on_paint_and_interruption_uses_painted_velocity() {
+        let facts = OutputFacts {
+            valid: true,
+            scale: 1.5,
+            refresh_hz: 60.0,
+        };
+        let mut r = ScrollViewportRuntime::new(true);
+        r.update_context(context("s", 1.0));
+        smooth_arm(&mut r, 1.0, 0.0, 1260.25, 0);
+        assert_eq!(r.effective_stiffness(false), 600.0);
+        assert!(r.prepare_frame_with_output(300_000_000, facts));
+        assert!(r.mark_painted(1, 300_000_000));
+        let anchor = r.frame_sample(true).unwrap();
+        assert!(r.prepare_frame_with_output(500_000_000, facts));
+        assert_eq!(
+            r.frame_sample(false).unwrap().motion.kind,
+            MotionKind::Static
+        );
+        assert!(!r.completed() && r.visual_completed == 0);
+        assert_eq!(r.clone_for_paint().frame_offset, anchor.motion.current);
+        smooth_arm(&mut r, 2.0, 1260.25, 2520.5, 310_000_000);
+        assert!(!r.mark_painted(1, 500_000_000));
+        assert_eq!(
+            r.origin_sample().unwrap().motion.velocity,
+            anchor.motion.velocity
+        );
+        assert!(r.prepare_frame_with_output(900_000_000, facts));
+        assert!(r.mark_painted(2, 900_000_000));
+        assert!(r.completed() && r.active() && r.visual_completed == 1);
+        assert_eq!(r.frame_offset, 2520.5);
+        let outgoing = r.intern(Text::from_utf8("0"));
+        assert_eq!(r.role(outgoing), Some(WindowRole::Outgoing));
+        r.cancel(&Text::from_utf8("s"), 2);
+        assert!(!r.active());
+    }
+
+    #[test]
+    fn facts_are_current_scale_changes_recheck_pending_and_fallback_keeps_numerical_tail() {
+        let facts = OutputFacts {
+            valid: true,
+            scale: 1.0,
+            refresh_hz: 60.0,
+        };
+        let mut r = ScrollViewportRuntime::new(true);
+        r.update_context(context("s", 1.0));
+        smooth_arm(&mut r, 1.0, 0.0, 1260.25, 0);
+        let now = 450_000_000;
+        assert!(r.prepare_frame_with_output(now, facts));
+        assert_eq!(
+            r.frame_sample(false).unwrap().motion.kind,
+            MotionKind::Static
+        );
+        assert!(r.prepare_frame_with_output(
+            now,
+            OutputFacts {
+                scale: 2.0,
+                ..facts
+            }
+        ));
+        assert_eq!(
+            r.frame_sample(false).unwrap().motion.kind,
+            MotionKind::Animation
+        );
+        for (facts, reason) in [
+            (OutputFacts::default(), VisualFallback::MissingOutput),
+            (
+                OutputFacts {
+                    scale: 0.0,
+                    ..facts
+                },
+                VisualFallback::InvalidScale,
+            ),
+            (
+                OutputFacts {
+                    refresh_hz: 0.0,
+                    ..facts
+                },
+                VisualFallback::UnknownRefresh,
+            ),
+        ] {
+            assert!(r.prepare_frame_with_output(600_000_000, facts));
+            assert_eq!(
+                r.frame_sample(false).unwrap().motion.kind,
+                MotionKind::Animation
+            );
+            assert_eq!(r.visual_fallback, reason);
+        }
+        assert_eq!(r.visual_fallback_counts, [1, 1, 1]);
+        assert!(r.prepare_frame_with_output(1_000_000_000, OutputFacts::default()));
+        assert!(r.mark_painted(1, 1_000_000_000) && r.completed());
+        assert_eq!(r.visual_completed, 0);
+        r.cancel(&Text::from_utf8("s"), 1);
+        let mut p = plan(&mut r, 2.0, 1260.25, 0.0);
+        p.clip_partial = 2;
+        assert!(r.arm_with_policy(p, 1_000_000_000, &HashMap::new(), true));
+        assert_eq!(r.effective_stiffness(true), 800.0);
+        assert!(!r.effective_smooth(true));
+        assert!(r.prepare_frame_with_output(1_500_000_000, facts));
+        assert_eq!(r.visual_fallback, VisualFallback::Disabled);
+        assert_eq!(
+            r.frame_sample(false).unwrap().motion.kind,
+            MotionKind::Animation
+        );
     }
     fn close(a: f64, b: f64) {
         assert!(
@@ -721,9 +885,17 @@ mod tests {
         r.remove(removed); // Window removal leaves other ownership valid.
         let allocations = crate::allocation_checks::count(|| {
             for now in 1..500 {
-                r.prepare_frame(now * 1_000_000);
+                r.prepare_frame_with_output(
+                    now * 1_000_000,
+                    OutputFacts {
+                        valid: true,
+                        scale: 1.5,
+                        refresh_hz: 60.0,
+                    },
+                );
                 r.mark_painted(r.epoch(), now * 1_000_000);
                 std::hint::black_box(r.retarget_stats());
+                std::hint::black_box(r.effective_stiffness(true));
             }
         });
         assert_eq!(allocations, 0);

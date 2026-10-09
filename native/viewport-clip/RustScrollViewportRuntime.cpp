@@ -42,6 +42,9 @@ bool RustScrollViewportRuntime::arm(const QJsonObject &plan,ViewportMotionBacken
 CcNiriScrollRetargetStatus RustScrollViewportRuntime::retargetStatus() const {
     const auto result=cc_niri_scroll_retarget_status(m_handle);checkStatus(result.status);return result;
 }
+CcNiriScrollTuningStatus RustScrollViewportRuntime::tuningStatus(bool configuredSmooth) const {
+    const auto result=cc_niri_scroll_tuning_status(m_handle,configuredSmooth);checkStatus(result.status);return result;
+}
 void RustScrollViewportRuntime::cancel(const QString &session,qint64 epoch) { checkStatus(cc_niri_scroll_cancel(m_handle,text(session),epoch)); }
 void RustScrollViewportRuntime::clear() { checkStatus(cc_niri_scroll_clear(m_handle)); }
 void RustScrollViewportRuntime::remove(const QString &id) {
@@ -74,6 +77,9 @@ QJsonObject RustScrollViewportRuntime::status() const {
 }
 bool RustScrollViewportRuntime::advance(ViewportMotionBackend::TimePoint now) { return accepted(cc_niri_scroll_advance(m_handle,now.count())); }
 bool RustScrollViewportRuntime::prepareFrame(ViewportMotionBackend::TimePoint now) { return accepted(cc_niri_scroll_prepare_frame(m_handle,now.count())); }
+bool RustScrollViewportRuntime::prepareFrame(ViewportMotionBackend::TimePoint now,bool outputValid,double scale,double refreshHz) {
+    return accepted(cc_niri_scroll_prepare_frame_with_output(m_handle,now.count(),outputValid,scale,refreshHz));
+}
 bool RustScrollViewportRuntime::markPainted(qint64 epoch, qint64 timeNs) { return accepted(cc_niri_scroll_mark_painted(m_handle,epoch,timeNs)); }
 CcNiriScrollSample RustScrollViewportRuntime::frameSample(bool painted) const {
     const auto result = cc_niri_scroll_frame_sample(m_handle, painted); checkStatus(result.status); return result;
