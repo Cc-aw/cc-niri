@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 use super::{FfiSpringBoolResult, INVALID_HANDLE, OK};
 use crate::native_protocol::Epoch;
-use crate::workspace_motion::{Point, WorkspaceMotion};
+use crate::workspace_motion::{Point, WorkspaceMotion, WorkspaceState};
 
 pub struct WorkspaceHandle(WorkspaceMotion);
 #[repr(C)]
@@ -62,14 +62,64 @@ pub unsafe extern "C" fn cc_niri_workspace_start(
     now: i64,
     duration: i64,
 ) -> FfiSpringBoolResult {
+    unsafe { cc_niri_workspace_start_with_policy(handle, from, target, epoch, now, duration, 0) }
+}
+/// # Safety
+/// Non-null handle must be live and exclusively borrowed for the call.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_workspace_start_with_policy(
+    handle: *mut WorkspaceHandle,
+    from: Point,
+    target: Point,
+    epoch: i64,
+    now: i64,
+    duration: i64,
+    smooth: u32,
+) -> FfiSpringBoolResult {
     match unsafe { handle.as_mut() } {
+        Some(_) if smooth > 1 => FfiSpringBoolResult {
+            value: 0,
+            status: 2,
+        },
         Some(h) => FfiSpringBoolResult {
-            value: u32::from(h.0.start(from, target, Epoch(epoch), now, duration).is_ok()),
+            value: u32::from(
+                h.0.start_with_policy(from, target, Epoch(epoch), now, duration, smooth != 0)
+                    .is_ok(),
+            ),
             status: OK,
         },
         None => FfiSpringBoolResult {
             value: 0,
             status: INVALID_HANDLE,
+        },
+    }
+}
+/// # Safety
+/// Non-null handle must be live and exclusively borrowed for the call.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_workspace_mark_painted(
+    handle: *mut WorkspaceHandle,
+) -> FfiSpringBoolResult {
+    match unsafe { handle.as_mut() } {
+        Some(h) => FfiSpringBoolResult {
+            value: u32::from(h.0.mark_painted()),
+            status: OK,
+        },
+        None => FfiSpringBoolResult {
+            value: 0,
+            status: INVALID_HANDLE,
+        },
+    }
+}
+/// # Safety
+/// Non-null handle must be live and shared-borrowed without concurrent mutation.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_workspace_state(handle: *const WorkspaceHandle) -> WorkspaceState {
+    match unsafe { handle.as_ref() } {
+        Some(h) => h.0.state(),
+        None => WorkspaceState {
+            status: INVALID_HANDLE,
+            ..WorkspaceState::default()
         },
     }
 }
@@ -152,7 +202,29 @@ mod tests {
         assert_eq!(std::mem::size_of::<Point>(), 16);
         assert_eq!(std::mem::size_of::<WorkspaceSample>(), 24);
         assert_eq!(std::mem::size_of::<WorkspaceProjection>(), 24);
+        assert_eq!(std::mem::size_of::<WorkspaceState>(), 280);
         unsafe {
+            assert_eq!(
+                cc_niri_workspace_state(std::ptr::null()).status,
+                INVALID_HANDLE
+            );
+            assert_eq!(
+                cc_niri_workspace_mark_painted(std::ptr::null_mut()).status,
+                INVALID_HANDLE
+            );
+            assert_eq!(
+                cc_niri_workspace_start_with_policy(
+                    std::ptr::null_mut(),
+                    Point::default(),
+                    Point::default(),
+                    1,
+                    0,
+                    420_000_000,
+                    1
+                )
+                .status,
+                INVALID_HANDLE
+            );
             assert_eq!(
                 cc_niri_workspace_advance(std::ptr::null_mut(), 0).status,
                 INVALID_HANDLE
@@ -191,6 +263,19 @@ mod tests {
                 INVALID_HANDLE
             );
             let handle = cc_niri_workspace_create();
+            assert_eq!(
+                cc_niri_workspace_start_with_policy(
+                    handle,
+                    Point::default(),
+                    Point::default(),
+                    1,
+                    0,
+                    420_000_000,
+                    2
+                )
+                .status,
+                2
+            );
             assert_eq!(cc_niri_workspace_configure(handle, 0, 2, 0).value, 0);
             assert_eq!(cc_niri_workspace_configure(handle, 1, 2, 2).value, 0);
             assert_eq!(cc_niri_workspace_configure(handle, 1, 2, 0).value, 1);
@@ -213,6 +298,8 @@ mod tests {
                             cc_niri_workspace_advance(handle, i * 500_000_000 + 210_000_000).active,
                             1
                         );
+                        assert_eq!(cc_niri_workspace_mark_painted(handle).value, 1);
+                        cc_niri_workspace_state(handle);
                         assert_eq!(
                             cc_niri_workspace_projection(
                                 handle,

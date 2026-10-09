@@ -71,6 +71,15 @@ CcNiriWorkspace *cc_niri_workspace_create(void);
 void cc_niri_workspace_destroy(CcNiriWorkspace *handle);
 CcNiriSpringBoolResult cc_niri_workspace_configure(CcNiriWorkspace *handle,uint32_t grid_width,uint32_t grid_height,uint32_t wrap);
 CcNiriSpringBoolResult cc_niri_workspace_start(CcNiriWorkspace *handle,CcNiriPoint from,CcNiriPoint target,int64_t epoch,int64_t now_ns,int64_t duration_ns);
+typedef struct {
+    CcNiriPoint point,velocity,acceleration,target,origin,initial_velocity,initial_acceleration,saved_velocity,saved_acceleration,brake_distance;
+    int64_t time_ns,started_at_ns,duration_ns,brake_x_ns,brake_y_ns,epoch;
+    uint64_t counts[5];
+    uint32_t strategies[2],reasons[2],active,gesture,status,reserved;
+} CcNiriWorkspaceState;
+CcNiriSpringBoolResult cc_niri_workspace_start_with_policy(CcNiriWorkspace *handle,CcNiriPoint from,CcNiriPoint target,int64_t epoch,int64_t now_ns,int64_t duration_ns,uint32_t smooth);
+CcNiriSpringBoolResult cc_niri_workspace_mark_painted(CcNiriWorkspace *handle);
+CcNiriWorkspaceState cc_niri_workspace_state(const CcNiriWorkspace *handle);
 CcNiriSpringBoolResult cc_niri_workspace_gesture(CcNiriWorkspace *handle,CcNiriPoint point,int64_t epoch,int64_t now_ns);
 CcNiriWorkspaceSample cc_niri_workspace_advance(CcNiriWorkspace *handle,int64_t now_ns);
 CcNiriWorkspaceProjection cc_niri_workspace_projection(const CcNiriWorkspace *handle,CcNiriPoint desktop,double width,double height,double gap_x,double gap_y);

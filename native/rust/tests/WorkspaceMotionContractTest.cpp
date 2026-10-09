@@ -11,6 +11,7 @@
 
 static_assert(sizeof(CcNiriPoint) == 16 && alignof(CcNiriPoint) == 8);
 static_assert(sizeof(CcNiriWorkspaceSample) == 24 && sizeof(CcNiriWorkspaceProjection) == 24);
+static_assert(sizeof(CcNiriWorkspaceState) == 280 && alignof(CcNiriWorkspaceState) == 8);
 namespace {
 using Handle = std::unique_ptr<CcNiriWorkspace, decltype(&cc_niri_workspace_destroy)>;
 void require(bool condition, const char *message)
@@ -108,5 +109,60 @@ void sixtyHzFrameDisplacement()
     require(peak < springPeak && peak * 1460 < 110, "60Hz peak displacement regressed");
     std::printf("60Hz logical peak step: finite=%.3fpx, stock Slide spring=%.3fpx\n", peak * 1460, springPeak * 1460);
 }
+void smoothRetargetPolynomialAndBrake()
+{
+    // Long-double boundary algebra oracle; independent of production Horner /
+    // Bernstein representation, including the piecewise brake deadline.
+    for (const auto time : {20000000LL, 80000000LL, 180000000LL}) {
+        for (const double target : {0.0, 2.0, 4.0}) {
+            auto motion = create();
+            require(cc_niri_workspace_configure(motion.get(), 1, 5, 0).value, "smooth grid failed");
+            require(cc_niri_workspace_start_with_policy(motion.get(), {0,0}, {0,1}, 1, 0, 420000000, 1).value, "smooth start failed");
+            cc_niri_workspace_advance(motion.get(), time);
+            require(cc_niri_workspace_mark_painted(motion.get()).value, "paint commit failed");
+            const auto painted = cc_niri_workspace_state(motion.get());
+            // Unpainted prediction must not become the retarget anchor.
+            cc_niri_workspace_advance(motion.get(), time+10000000);
+            require(cc_niri_workspace_start_with_policy(motion.get(), {0,1}, {0,target}, 2, time-10000000, 420000000, 1).value, "prediction-leading start failed");
+            const auto initial = cc_niri_workspace_state(motion.get());
+            near(initial.point.y, painted.point.y, "C0 failed");
+            near(initial.initial_velocity.y, painted.velocity.y, "C1 failed");
+            require(initial.started_at_ns == painted.time_ns, "clock anchor failed");
+            require(initial.strategies[1] != 4, "unexpected reset");
+            if (initial.strategies[1] == 1) near(initial.initial_acceleration.y, painted.acceleration.y, "C2 failed");
+            require(initial.brake_y_ns <= 50000000 && std::abs(initial.brake_distance.y) <= .02, "workspace brake bound failed");
+            for (long long elapsed = 0; elapsed <= 420000000; elapsed += 1000000) {
+                const auto sample = cc_niri_workspace_advance(motion.get(), initial.started_at_ns+elapsed);
+                const auto state = cc_niri_workspace_state(motion.get());
+                long double position, velocity, acceleration;
+                const long double x0 = initial.origin.y, v0 = initial.initial_velocity.y, a0 = initial.initial_acceleration.y;
+                if (elapsed < initial.brake_y_ns) {
+                    const long double dt = elapsed*1e-9L, bt = initial.brake_y_ns*1e-9L;
+                    acceleration = -v0/bt; velocity = v0+acceleration*dt;
+                    position = x0+v0*dt+acceleration*dt*dt/2;
+                } else {
+                    const long double T = (initial.duration_ns-initial.brake_y_ns)*1e-9L;
+                    const long double u = (elapsed-initial.brake_y_ns)*1e-9L/T;
+                    const long double origin = x0+initial.brake_distance.y;
+                    const long double c1 = initial.brake_y_ns ? 0 : v0*T;
+                    const long double c2 = initial.brake_y_ns ? 0 : a0*T*T/2;
+                    const long double A = target-origin-c1-c2, B=-c1-2*c2, C=-2*c2;
+                    const long double c3=10*A-4*B+C/2, c4=-15*A+7*B-C, c5=6*A-3*B+C/2;
+                    position=origin+c1*u+c2*std::pow(u,2)+c3*std::pow(u,3)+c4*std::pow(u,4)+c5*std::pow(u,5);
+                    velocity=(c1+2*c2*u+3*c3*std::pow(u,2)+4*c4*std::pow(u,3)+5*c5*std::pow(u,4))/T;
+                    acceleration=(2*c2+6*c3*u+12*c4*std::pow(u,2)+20*c5*std::pow(u,3))/(T*T);
+                }
+                near(sample.point.y, double(position), "long-double smooth position failed");
+                near(state.velocity.y, double(velocity), "long-double smooth velocity failed");
+                near(state.acceleration.y, double(acceleration), "long-double smooth acceleration failed");
+                require(bool(sample.active) == (elapsed < 420000000), "fixed-duration completion failed");
+            }
+            require(!cc_niri_workspace_start_with_policy(motion.get(), {0,0}, {0,1}, 3, 1000000000, 420000000, 2).value, "bad policy accepted");
+        }
+    }
+    require(cc_niri_workspace_state(nullptr).status == CC_NIRI_FFI_INVALID_HANDLE, "null state failed");
+    require(cc_niri_workspace_mark_painted(nullptr).status == CC_NIRI_FFI_INVALID_HANDLE, "null painted failed");
+    std::puts("Workspace smooth C0/C1, conditional C2, bounded brake and long-double oracle passed");
 }
-int main() { endpointsAndProjection(); continuityAndErrors(); sixtyHzFrameDisplacement(); }
+}
+int main() { endpointsAndProjection(); continuityAndErrors(); sixtyHzFrameDisplacement(); smoothRetargetPolynomialAndBrake(); }

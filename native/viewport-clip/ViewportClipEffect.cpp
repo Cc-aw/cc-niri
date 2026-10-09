@@ -584,6 +584,7 @@ void CcNiriViewportClipEffect::StartWorkspaceFrameCapture()
     m_frameDesktopEventCount = 0;
     m_frameEventsTruncated = false;
     m_frameSamples.clear();
+    m_workspaceSlide->startCapture(m_frameCaptureStart);
     for (auto *output : effects->screens()) {
         auto *backend = output->backendOutput();
         auto *loop = backend ? backend->renderLoop() : nullptr;
@@ -619,6 +620,7 @@ QString CcNiriViewportClipEffect::GetWorkspaceFrameCapture() const
         {QStringLiteral("transitionEndMs"), m_frameTransitionEnd ?
             QJsonValue(double(m_frameTransitionEnd - m_frameCaptureStart) / 1000000.0) : QJsonValue()},
         {QStringLiteral("desktopEventsTruncated"), m_frameEventsTruncated},
+        {QStringLiteral("motionCapture"), m_workspaceSlide->capture()},
         {QStringLiteral("desktopChanges"), desktops}, {QStringLiteral("outputs"), outputs}};
     return QString::fromUtf8(QJsonDocument(capture).toJson(QJsonDocument::Compact));
 }
@@ -715,7 +717,9 @@ QString CcNiriViewportClipEffect::GetScrollMotionStatus() const
         ? QStringLiteral("bounded-last-painted-position-and-velocity") : QStringLiteral("last-painted-position-zero-velocity"));
     status.insert(QStringLiteral("scrollSpringStiffness"), 800);
     status.insert(QStringLiteral("scrollVisualSettlePhysicalPx"), QJsonValue());
-    status.insert(QStringLiteral("workspaceRetargetPolicy"), QStringLiteral("last-painted-position-quintic-zero-velocity"));
+    status.insert(QStringLiteral("workspaceRetargetPolicy"), m_workspaceSlide->smoothEnabled()
+        ? QStringLiteral("bounded-last-painted-quintic-derivatives") : QStringLiteral("last-painted-position-quintic-zero-velocity"));
+    status.insert(QStringLiteral("workspaceMotion"), m_workspaceSlide->status());
     status.insert(QStringLiteral("clockFallbackCount"), qint64(m_scrollFrameContext.fallbackCount()));
     status.insert(QStringLiteral("clockFallbackReasons"), QJsonObject{
         {QStringLiteral("missingPrediction"), qint64(m_scrollFrameContext.fallbackCount(CcNiri::ClockFallback::MissingPrediction))},

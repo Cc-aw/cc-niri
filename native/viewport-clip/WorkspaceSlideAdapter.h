@@ -5,6 +5,8 @@
 #include "effect/effectwindow.h"
 #include <QHash>
 #include <QPointer>
+#include <QJsonObject>
+#include <array>
 #include <memory>
 
 namespace KWin {
@@ -20,6 +22,10 @@ public:
     bool enabled() const { return m_enabled; }
     bool active() const { return !m_screens.isEmpty(); }
     int duration() const { return m_duration; }
+    bool smoothEnabled() const { return m_enabled && m_smooth; }
+    QJsonObject status() const;
+    void startCapture(qint64 now);
+    QJsonObject capture() const;
     void prePaintScreen(ScreenPrePaintData &data);
     void prePaintWindow(EffectWindow *window, WindowPrePaintData &data);
     void postPaintScreen();
@@ -41,6 +47,7 @@ private:
         QPointer<EffectWindow> movingWindow;
         qint64 lastSampleTime = 0;
         bool finished = false;
+        bool painted = false;
     };
     std::shared_ptr<ScreenBinding> prepare(LogicalOutput *output, EffectWindow *moving);
     void desktopChanged(VirtualDesktop *previous, VirtualDesktop *current, EffectWindow *moving, LogicalOutput *output);
@@ -50,6 +57,16 @@ private:
     void finishAll();
     void bindWindow(ScreenBinding &screen, EffectWindow *window);
     void unbindWindow(ScreenBinding &screen, EffectWindow *window);
+    void observe(LogicalOutput *output, ScreenBinding &screen, uint32_t kind);
+    struct CaptureOutput { QPointer<LogicalOutput> output; QString name; };
+    struct CaptureRecord { CcNiriWorkspaceState state; qint64 at; uint32_t output,kind; };
+    QList<CaptureOutput> m_captureOutputs;
+    std::array<CaptureRecord, 512> m_captureRecords{};
+    size_t m_captureCount = 0;
+    qint64 m_captureStart = 0, m_captureDeadline = 0;
+    bool m_captureTruncated = false;
+    CcNiriWorkspaceState m_lastState{};
+    QPointer<LogicalOutput> m_lastOutput;
     CcNiriViewportClipEffect *m_owner;
     QHash<LogicalOutput *, std::shared_ptr<ScreenBinding>> m_screens;
     QPointer<LogicalOutput> m_paintedScreen;
@@ -59,6 +76,7 @@ private:
     int m_verticalGap = 20;
     bool m_slideBackground = true;
     bool m_enabled = false;
+    bool m_smooth = false;
     bool m_switchingActivity = false;
 };
 }

@@ -125,6 +125,8 @@ python3 tools/analyze-animation-capture.py capture.dbus
 
 采样 v1 将绘制轨迹与 `framePresented` 时间分开记录，二者没有可靠的逐帧关联。分析中的响应时间仅是组件处理事件到绘制样本，T95 / 数值完成时间属于采样轨迹，不代表实际输入到面板的延迟或 GPU 时长。完整门禁、实机待验收项目与回滚边界见 [A0/A1 阶段记录](test/ANIMATION_60HZ_RESULTS.md)。
 
+工作区优化已启用且 profile 为 smooth60 时，J/K 从最近实际绘制的 cell 位置与解析速度接管，整段五次轨迹经 Bézier 包络检查。可行段同时保留加速度；受限时明确降级为 C1，必要时在原 WorkspaceDuration 内加入最多 50ms、最多 0.02 cell 的制动段，硬边界没有空间时清零速度并记录原因。静止起步、wrap / grid、手势释放语义和时长不变。GetScrollMotionStatus 的 workspaceMotion 提供各轴策略与导数；既有工作区 capture 附加最多 3 秒 / 512 条的 motionCapture，关闭时不记录，无独立 timer。结果与限制见 [A3 阶段记录](test/RUST_NATIVE_R7_ANIMATION_A3_RESULTS.md)。
+
 所有尺寸使用逻辑像素，不额外乘输出缩放比例：
 
 | 配置 | 主屏默认值 | 副屏默认值 |
