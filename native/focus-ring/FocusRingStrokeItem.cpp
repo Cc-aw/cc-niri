@@ -64,13 +64,23 @@ FocusRingStrokeItem::FocusRingStrokeItem(Item *parent, bool softGlow) : Item(par
     for (auto &patch : m_patches) { patch = new StrokePatch(this); patch->setParent(this); }
 }
 FocusRingStrokeItem::~FocusRingStrokeItem() { for (auto *patch : m_patches) delete patch; }
-bool FocusRingStrokeItem::update(const FocusRingStrokeMetrics &m, const BorderOutline &outline, Scene *scene) {
+bool FocusRingStrokeItem::update(const FocusRingStrokeMetrics &m, const BorderOutline &outline, Scene *scene,
+        qreal glowInset) {
     if (this->scene() != scene) setScene(scene);
     for (auto *patch : m_patches) static_cast<StrokePatch *>(patch)->bindScene(scene);
-    if (m_previous && same(*m_previous,m) && m_color == outline.color()) return true;
+    if (m_previous && same(*m_previous,m) && m_color == outline.color() && m_glowInset == glowInset) return true;
     const auto layout=CcNiri::FocusRingCore::layout(m.numeric());
     if(layout.status || !layout.valid) return false;
     const qreal t=m.thickness;
+    // The crisp line covers the first few pixels. Keep the glow at its peak
+    // through that line, then soften from its outside edge to zero. Starting
+    // the falloff at the window contour hides most of the visible blue halo.
+    const qreal inset=std::clamp(glowInset,qreal(0),t);
+    const auto glowColor = [&](qreal distance) {
+        const qreal u=t>inset ? std::clamp((distance-inset)/(t-inset),qreal(0),qreal(1)) : qreal(0);
+        QColor color=outline.color(); color.setAlphaF(color.alphaF()*(1-u*u*(3-2*u)));
+        return color;
+    };
     const QPainterPath inner=strokeContour(m);
     QPainterPathStroker stroker; stroker.setWidth(2*t); stroker.setJoinStyle(Qt::RoundJoin);
     const QPainterPath stroke=stroker.createStroke(inner).subtracted(inner);
@@ -106,9 +116,7 @@ bool FocusRingStrokeItem::update(const FocusRingStrokeMetrics &m, const BorderOu
             if (m_softGlow) {
                 painter.setCompositionMode(QPainter::CompositionMode_Source);
                 for (int band=GlowSteps-1; band>=0; --band) {
-                    const qreal u=(band+0.5)/GlowSteps;
-                    QColor color=outline.color(); color.setAlphaF(color.alphaF()*(1-u)*(1-u));
-                    painter.fillPath(glowBands[band],color);
+                    painter.fillPath(glowBands[band],glowColor(t*(band+0.5)/GlowSteps));
                 }
             } else painter.fillPath(stroke,outline.color());
             painter.end();
@@ -122,13 +130,13 @@ bool FocusRingStrokeItem::update(const FocusRingStrokeMetrics &m, const BorderOu
             for (int d=0; d<extent; ++d) {
                 qreal u=(d+0.5)/extent;
                 if (i==4 || i==7) u=1-u;
-                QColor color=outline.color(); color.setAlphaF(color.alphaF()*(1-u)*(1-u));
+                const QColor color=glowColor(t*u);
                 pixels.setPixel(horizontal?0:d,horizontal?d:0,qPremultiply(color.rgba()));
             }
             patch->setImage(pixels); ++m_rasterizations;
         } else if(patch->image().isNull() || m_color!=outline.color()) patch->setImage(solid);
     }
     setSize(m.body); setTransform(QTransform::fromScale(1/m.scaleX,1/m.scaleY));
-    m_previous=m; m_color=outline.color(); return true;
+    m_previous=m; m_color=outline.color(); m_glowInset=glowInset; return true;
 }
 }

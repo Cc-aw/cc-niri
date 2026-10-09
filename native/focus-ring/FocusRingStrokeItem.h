@@ -19,7 +19,8 @@ class FocusRingStrokeItem : public Item {
 public:
     explicit FocusRingStrokeItem(Item *parent, bool softGlow = false);
     ~FocusRingStrokeItem() override;
-    bool update(const FocusRingStrokeMetrics &metrics, const BorderOutline &outline, Scene *scene);
+    bool update(const FocusRingStrokeMetrics &metrics, const BorderOutline &outline, Scene *scene,
+        qreal glowInset = 0);
     const std::array<ImageItem *, 8> &patches() const { return m_patches; }
     int rasterizations() const { return m_rasterizations; }
     bool softGlow() const { return m_softGlow; }
@@ -27,6 +28,7 @@ private:
     std::array<ImageItem *, 8> m_patches;
     std::optional<FocusRingStrokeMetrics> m_previous;
     QColor m_color;
+    qreal m_glowInset = 0;
     int m_rasterizations = 0;
     bool m_softGlow = false;
 };

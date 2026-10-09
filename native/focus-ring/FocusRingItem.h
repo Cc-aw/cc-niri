@@ -31,7 +31,7 @@ public:
     static constexpr qreal Width = 1.5;
     static constexpr qreal BorderAlpha = 0.85;
     static constexpr qreal GlowRadius = 5.5;
-    static constexpr qreal GlowAlpha = 0.15;
+    static constexpr qreal GlowAlpha = 0.18;
     // Covers the largest native-pixel rounding of the soft outer extent.
     static constexpr qreal PaintOutset = 6.0;
     static QColor borderColor();

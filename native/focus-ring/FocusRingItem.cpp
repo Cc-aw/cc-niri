@@ -75,7 +75,8 @@ bool FocusRingItem::paint(ItemRenderer *renderer, const RenderTarget &target, co
     const bool nativeFallback = metrics->radii[0].width() < 0;
     if (nativeFallback) glowMetrics = FocusRingStrokeMetrics::fromFrame(frame, viewport.scale(), GlowRadius, true);
     if (!glowMetrics || !m_glow->update(*glowMetrics,
-        BorderOutline(GlowRadius, glowColor(), frame.outline().radius()), m_parent->scene())) return false;
+        BorderOutline(GlowRadius, glowColor(), frame.outline().radius()), m_parent->scene(),
+        nativeFallback ? frame.outline().thickness() : metrics->thickness)) return false;
     if (metrics->compensated) {
         if (!m_stroke) { m_stroke = new FocusRingStrokeItem(m_paintRoot); m_stroke->setParent(this); m_stroke->setZ(1); }
         if (!m_stroke->update(*metrics, frame.outline(), m_parent->scene())) return false;

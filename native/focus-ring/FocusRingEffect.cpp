@@ -171,6 +171,7 @@ QString CcNiriFocusRingEffect::GetFocusRingStatus() const {
         {QStringLiteral("borderAlpha"), FocusRingItem::BorderAlpha},
         {QStringLiteral("glowRadius"), FocusRingItem::GlowRadius},
         {QStringLiteral("glowAlpha"), FocusRingItem::GlowAlpha},
+        {QStringLiteral("glowFalloff"), QStringLiteral("border-edge-smoothstep")},
         {QStringLiteral("paintOutset"), FocusRingItem::PaintOutset},
         {QStringLiteral("glowRasterizations"), m_ring.glow() ? m_ring.glow()->rasterizations() : 0},
         {QStringLiteral("focusAnimation"), false}
