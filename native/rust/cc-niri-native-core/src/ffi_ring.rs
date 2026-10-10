@@ -78,6 +78,40 @@ pub unsafe extern "C" fn cc_niri_ring_capture(frame: *const Frame) -> FrameResul
     }
 }
 /// # Safety
+/// Non-null frame is an aligned borrowed DTO; visual_opacity is in [0,1].
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_ring_capture_visual(
+    frame: *const Frame,
+    visual_opacity: f64,
+) -> FrameResult {
+    // SAFETY: Forward the same borrowed DTO contract, without gain.
+    unsafe { cc_niri_ring_capture_gain(frame, visual_opacity, 0.0) }
+}
+/// # Safety
+/// Non-null frame is an aligned borrowed DTO; opacity and profile mix are in [0,1].
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_ring_capture_gain(
+    frame: *const Frame,
+    visual_opacity: f64,
+    glow_mix: f64,
+) -> FrameResult {
+    // SAFETY: Caller supplies the documented borrowed DTO.
+    let Some(frame) = (unsafe { frame.as_ref() }) else {
+        return FrameResult {
+            status: 1,
+            ..FrameResult::default()
+        };
+    };
+    match core::capture_gain(*frame, visual_opacity, glow_mix) {
+        Some(frame) => FrameResult {
+            frame,
+            valid: 1,
+            status: 0,
+        },
+        None => FrameResult::default(),
+    }
+}
+/// # Safety
 /// Non-null input must reference an aligned readable Input for the call.
 #[no_mangle]
 pub unsafe extern "C" fn cc_niri_ring_metrics(input: *const Input) -> MetricsResult {
@@ -138,6 +172,11 @@ mod tests {
         // SAFETY: Null inputs are explicitly supported and return errors.
         unsafe {
             assert_eq!(cc_niri_ring_capture(std::ptr::null()).status, 1);
+            assert_eq!(cc_niri_ring_capture_visual(std::ptr::null(), 0.5).status, 1);
+            assert_eq!(
+                cc_niri_ring_capture_gain(std::ptr::null(), 0.5, 0.5).status,
+                1
+            );
             assert_eq!(cc_niri_ring_metrics(std::ptr::null()).status, 1);
             assert_eq!(cc_niri_ring_layout(std::ptr::null()).status, 1);
             assert_eq!(
@@ -168,6 +207,13 @@ mod tests {
                 // SAFETY: Fixed stack DTOs stay readable throughout each call.
                 unsafe {
                     assert_eq!(cc_niri_ring_capture(&input.frame).valid, 1);
+                    assert_eq!(
+                        cc_niri_ring_capture_visual(&input.frame, 0.5)
+                            .frame
+                            .item_opacity,
+                        0.5
+                    );
+                    assert_eq!(cc_niri_ring_capture_gain(&input.frame, 0.5, 0.5).valid, 1);
                     let metrics = cc_niri_ring_metrics(&input);
                     assert_eq!(metrics.valid, 1);
                     assert_eq!(cc_niri_ring_layout(&metrics.value).valid, 1);

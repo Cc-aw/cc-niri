@@ -101,8 +101,13 @@ impl FocusRingContext {
         Ok(true)
     }
     pub fn permits(&self, candidate: Candidate<'_>) -> bool {
+        candidate.flags & 1 != 0 && self.permits_decoration(candidate)
+    }
+    // A retained fading decoration is not a focus owner. All other published
+    // membership and actual visibility constraints still apply immediately.
+    pub fn permits_decoration(&self, candidate: Candidate<'_>) -> bool {
         self.enabled
-            && candidate.flags & 0x3ff == 0x7f
+            && candidate.flags & 0x3fe == 0x7e
             && candidate.opacity.is_finite()
             && candidate.opacity > 0.0
             && self.context.as_ref().is_some_and(|context| {
@@ -163,6 +168,52 @@ mod tests {
         assert!(c.update(snapshot("overflow", 0.0)).is_err());
         assert!(!c.enabled);
         assert_eq!(c.context.unwrap().session.0, Text::from_utf8("s254"));
+    }
+    #[test]
+    fn retiring_decoration_never_grants_focus_or_bypasses_visibility() {
+        let mut c = FocusRingContext::default();
+        c.update(snapshot("s", 0.0)).unwrap();
+        let name = Text::from_utf8("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+        let workspace = Text::from_utf8("w");
+        let output = Text::from_utf8("eDP-1");
+        let candidate = |flags| Candidate {
+            window: &name.0,
+            workspace: &workspace.0,
+            output: &output.0,
+            flags,
+            opacity: 1.0,
+        };
+        assert!(!c.permits(candidate(0x7e)));
+        assert!(c.permits_decoration(candidate(0x7e)));
+        for bit in 1..10 {
+            assert!(!c.permits_decoration(candidate(0x7e ^ (1 << bit))));
+        }
+        let other = Text::from_utf8("other");
+        assert!(!c.permits_decoration(Candidate {
+            output: &other.0,
+            ..candidate(0x7e)
+        }));
+        assert!(!c.permits_decoration(Candidate {
+            workspace: &other.0,
+            ..candidate(0x7e)
+        }));
+        assert!(!c.permits_decoration(Candidate {
+            window: &other.0,
+            ..candidate(0x7e)
+        }));
+        assert_eq!(
+            crate::allocation_checks::count(|| {
+                for _ in 0..1000 {
+                    assert!(c.permits_decoration(candidate(0x7e)));
+                }
+            }),
+            0
+        );
+        let mut disabled = snapshot("s", 1.0);
+        disabled.enabled = false;
+        disabled.windows.clear();
+        c.update(disabled).unwrap();
+        assert!(!c.permits_decoration(candidate(0x7e)));
     }
     #[test]
     fn permission_hot_path_does_not_allocate() {

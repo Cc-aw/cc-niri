@@ -235,16 +235,40 @@ pub unsafe extern "C" fn cc_niri_eligibility_permits(
     handle: *const EligibilityHandle,
     candidate: *const FfiCandidate,
 ) -> FfiSpringBoolResult {
+    // SAFETY: Forward the public borrowed-handle/buffer contract.
+    unsafe { eligibility_permits(handle, candidate, false) }
+}
+/// # Safety
+/// Live shared handle/candidate buffers without concurrent mutation. This
+/// grants decoration eligibility only, never active-window authority.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_eligibility_permits_decoration(
+    handle: *const EligibilityHandle,
+    candidate: *const FfiCandidate,
+) -> FfiSpringBoolResult {
+    // SAFETY: Forward the public borrowed-handle/buffer contract.
+    unsafe { eligibility_permits(handle, candidate, true) }
+}
+unsafe fn eligibility_permits(
+    handle: *const EligibilityHandle,
+    candidate: *const FfiCandidate,
+    decoration: bool,
+) -> FfiSpringBoolResult {
     let value = (|| {
         let h = unsafe { handle.as_ref() }.ok_or(INVALID_HANDLE)?;
         let c = unsafe { candidate.as_ref() }.ok_or(INVALID_DTO)?;
-        Ok::<_, u32>(h.0.permits(Candidate {
+        let candidate = Candidate {
             window: unsafe { slice(c.window.data, c.window.len)? },
             workspace: unsafe { slice(c.workspace.data, c.workspace.len)? },
             output: unsafe { slice(c.output.data, c.output.len)? },
             flags: c.flags,
             opacity: c.opacity,
-        }))
+        };
+        Ok::<_, u32>(if decoration {
+            h.0.permits_decoration(candidate)
+        } else {
+            h.0.permits(candidate)
+        })
     })();
     match value {
         Ok(v) => FfiSpringBoolResult {
@@ -391,6 +415,14 @@ mod tests {
             assert_eq!(invalid.status, OK);
             assert_eq!(invalid.error, NativeError::InvalidProtocol as u32);
             assert_eq!(cc_niri_eligibility_permits(handle, &candidate).value, 0);
+            assert_eq!(
+                cc_niri_eligibility_permits_decoration(std::ptr::null(), &candidate).status,
+                INVALID_HANDLE
+            );
+            assert_eq!(
+                cc_niri_eligibility_permits_decoration(clone, std::ptr::null()).status,
+                INVALID_DTO
+            );
             cc_niri_eligibility_destroy(handle);
             assert_eq!(cc_niri_eligibility_text(clone, 3, 1).status, INVALID_DTO);
             assert_eq!(
@@ -401,6 +433,10 @@ mod tests {
                 crate::allocation_checks::count(|| {
                     for _ in 0..1000 {
                         assert_eq!(cc_niri_eligibility_permits(clone, &candidate).value, 1);
+                        assert_eq!(
+                            cc_niri_eligibility_permits_decoration(clone, &candidate).value,
+                            1
+                        );
                         assert_eq!(cc_niri_eligibility_status(clone).windows, 1);
                         assert_eq!(cc_niri_eligibility_text(clone, 3, 0).value.len, 36);
                     }

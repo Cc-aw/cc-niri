@@ -14,11 +14,13 @@ public:
     bool update(const QString &json);
     void clear();
     bool permits(const FocusRingCandidate &candidate) const;
+    bool permitsDecoration(const FocusRingCandidate &candidate) const;
     QString session,workspace,output;
     qint64 generation = -1;
     bool enabled = false;
     QSet<QString> retiredSessions,windows;
 private:
+    bool permits(const FocusRingCandidate &candidate, bool decoration) const;
     void synchronize();
     QString text(std::uint32_t field,std::uint64_t index=0) const;
     CcNiriEligibility *m_handle;

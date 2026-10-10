@@ -11,6 +11,7 @@ namespace KWin {
 FocusRingItem::FocusRingItem(QObject *parent) : QObject(parent) {}
 FocusRingItem::~FocusRingItem() { clear(); }
 FocusRingStrokeItem *FocusRingItem::glow() const { return m_glow.data(); }
+FocusRingStrokeItem *FocusRingItem::gainGlow() const { return m_gainGlow.data(); }
 QColor FocusRingItem::borderColor() {
     QColor color(QStringLiteral("#7FC8FF")); color.setAlphaF(BorderAlpha); return color;
 }
@@ -22,6 +23,7 @@ bool FocusRingItem::attach(Item *windowItem, Item *contentItem, const QSizeF &fr
     const double radii[4]{radius.topLeft(),radius.topRight(),radius.bottomRight(),radius.bottomLeft()};
     if(!CcNiri::FocusRingCore::geometryValid(frameSize.width(),frameSize.height(),radii)) { clear(); return false; }
     const RectF inner(0, 0, frameSize.width(), frameSize.height());
+    const bool geometryChanged = m_parent != windowItem || m_sourceInner != inner || m_sourceOutline.radius() != radius;
     const BorderOutline outline(Width, borderColor(), radius);
     if (m_parent != windowItem || !m_border) {
         clear();
@@ -47,19 +49,29 @@ bool FocusRingItem::attach(Item *windowItem, Item *contentItem, const QSizeF &fr
         m_border->setOutline(outline);
     }
     m_sourceInner = inner; m_sourceOutline = outline;
-    m_damage->setGeometry(BorderOutline(PaintOutset, glowColor(), radius).inflate(inner));
+    // Preserve the paint-resolved damage on unchanged attachments. Resetting
+    // it here every prepaint would alternate logical/device-rounded bounds
+    // and could create an idle repaint loop.
+    if (geometryChanged) m_damage->setGeometry(BorderOutline(PaintOutset, glowColor(), radius).inflate(inner));
     m_clipPadding.attach(windowItem, ViewportOutset);
     m_paintRoot->setGeometry(RectF(windowItem->position(), frameSize));
     m_paintRoot->setTransform(windowItem->transform());
     return true;
 }
-std::optional<FocusRingPaintFrame> FocusRingItem::capture(int mask, const Region &region, const WindowPaintData &data) const {
-    return FocusRingPaintFrame::capture(m_parent.data(), m_paintRoot.data(), mask, region, data, m_sourceInner, m_sourceOutline);
+std::optional<FocusRingPaintFrame> FocusRingItem::capture(int mask, const Region &region, const WindowPaintData &data, qreal visualOpacity, qreal glowMix) const {
+    return FocusRingPaintFrame::capture(m_parent.data(), m_paintRoot.data(), mask, region, data, m_sourceInner, m_sourceOutline, visualOpacity, glowMix);
 }
 bool FocusRingItem::paint(ItemRenderer *renderer, const RenderTarget &target, const RenderViewport &viewport,
-        const FocusRingPaintFrame &frame, bool glowOnly) {
+        const FocusRingPaintFrame &frame, bool glowOnly, const Region &outputRegion) {
     if (!attached() || !m_parent || frame.owner() != m_parent.data() || !renderer
         || frame.attachment() != m_paintRoot.data() || frame.deviceRegion().isEmpty()) return false;
+    const Region lineRegion = frame.deviceRegion() & outputRegion;
+    const bool gaining = frame.glowMix() > 0;
+    const qreal extent = gaining ? GainGlowExtent : GlowExtent;
+    const Region glowRegion = frame.decorationRegion(extent, viewport.scale()) & outputRegion;
+    // Expanded damage can reach a neighboring output with another DPI.
+    // Reject that pass before touching the owner's one-scale texture cache.
+    if (lineRegion.isEmpty() && glowRegion.isEmpty()) return false;
     // Preserve the window's state at entry to this paint call, even if nested
     // downstream work changes the Item. A destroyed/recreated attachment must
     // reject its old local frame even when focus returns to the same window.
@@ -77,6 +89,24 @@ bool FocusRingItem::paint(ItemRenderer *renderer, const RenderTarget &target, co
     if (!glowMetrics || !m_glow->update(*glowMetrics,
         BorderOutline(GlowExtent, glowColor(), frame.outline().radius()), m_parent->scene(),
         nativeFallback ? frame.outline().thickness() : metrics->thickness)) return false;
+    m_glow->setOpacity(1 - frame.glowMix());
+    if (gaining) {
+        if (!m_gainGlow) {
+            m_gainGlow = new FocusRingStrokeItem(m_paintRoot, true);
+            m_gainGlow->setParent(this);
+        }
+        const auto gainMetrics = FocusRingStrokeMetrics::fromFrame(frame, viewport.scale(), GainGlowExtent, nativeFallback);
+        if (!gainMetrics || !m_gainGlow->update(*gainMetrics,
+            BorderOutline(GainGlowExtent, glowColor(), frame.outline().radius()), m_parent->scene(),
+            nativeFallback ? frame.outline().thickness() : metrics->thickness)) return false;
+        m_gainGlow->setOpacity(frame.glowMix());
+        m_gainGlow->setVisible(true);
+        glowMetrics = gainMetrics; // Damage covers both fixed profiles.
+    } else if (m_gainGlow) {
+        m_gainGlow->setOpacity(0);
+        m_gainGlow->setVisible(false);
+    }
+
     if (metrics->compensated) {
         if (!m_stroke) { m_stroke = new FocusRingStrokeItem(m_paintRoot); m_stroke->setParent(this); m_stroke->setZ(1); }
         if (!m_stroke->update(*metrics, frame.outline(), m_parent->scene())) return false;
@@ -90,16 +120,15 @@ bool FocusRingItem::paint(ItemRenderer *renderer, const RenderTarget &target, co
     }
     const auto damage=CcNiri::FocusRingCore::damage(frame.coreState().inner,glowMetrics->numeric());
     m_damage->setGeometry(RectF(damage.x,damage.y,damage.width,damage.height));
-    const Region glowRegion = frame.decorationRegion(GlowExtent, viewport.scale());
-    if (!glowOnly && glowRegion == frame.deviceRegion()) {
-        renderer->renderItem(target, viewport, m_paintRoot, frame.mask(), frame.deviceRegion(), frame.paintData(), {}, {});
+    if (!glowOnly && glowRegion == lineRegion) {
+        renderer->renderItem(target, viewport, m_paintRoot, frame.mask(), lineRegion, frame.paintData(), {}, {});
     } else {
         // Render filters skip a subtree without changing Item visibility or
         // scheduling another repaint. Both passes retain the frozen root.
         renderer->renderItem(target, viewport, m_paintRoot, frame.mask(), glowRegion, frame.paintData(),
             [this](Item *item) { return item == m_border || item == m_stroke; }, {});
-        if (!glowOnly) renderer->renderItem(target, viewport, m_paintRoot, frame.mask(), frame.deviceRegion(), frame.paintData(),
-            [this](Item *item) { return item == m_glow; }, {});
+        if (!glowOnly) renderer->renderItem(target, viewport, m_paintRoot, frame.mask(), lineRegion, frame.paintData(),
+            [this](Item *item) { return item == m_glow || item == m_gainGlow; }, {});
     }
     return true;
 }
@@ -109,6 +138,7 @@ void FocusRingItem::clear() {
     m_parentDestroyed = {};
     // Destroy visual children before their detached parent.
     delete m_stroke.data(); m_stroke = nullptr;
+    delete m_gainGlow.data(); m_gainGlow = nullptr;
     delete m_glow.data(); m_glow = nullptr;
     delete m_border.data();
     m_border = nullptr;

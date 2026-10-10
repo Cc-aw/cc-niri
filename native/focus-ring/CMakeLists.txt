@@ -60,6 +60,10 @@ if(BUILD_TESTING)
     target_link_libraries(cc-niri-focus-ring-retarget-tests PRIVATE Qt6::Core Qt6::Gui KWin::kwin)
     target_link_libraries(cc-niri-focus-ring-retarget-tests PRIVATE cc-niri-native-adapters)
     add_test(NAME focus-ring-retarget COMMAND cc-niri-focus-ring-retarget-tests)
+    add_executable(cc-niri-focus-ring-fade-tests tests/FocusRingFadeTest.cpp
+        FocusRingItem.cpp FocusRingItem.h FocusRingPaintFrame.cpp FocusRingStrokeItem.cpp FocusRingStrokeItem.h)
+    target_link_libraries(cc-niri-focus-ring-fade-tests PRIVATE Qt6::Core Qt6::Gui KWin::kwin cc-niri-native-adapters)
+    add_test(NAME focus-ring-fade-paint COMMAND cc-niri-focus-ring-fade-tests)
     find_program(NODE_EXECUTABLE node REQUIRED)
     add_executable(cc-niri-focus-ring-presentation-tests tests/FocusRingPresentationTest.cpp
         FocusRingItem.cpp FocusRingItem.h FocusRingPaintFrame.cpp FocusRingStrokeItem.cpp FocusRingStrokeItem.h)

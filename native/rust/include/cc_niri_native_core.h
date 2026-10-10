@@ -217,6 +217,8 @@ CcNiriEligibility *cc_niri_eligibility_clone(const CcNiriEligibility *handle);
 void cc_niri_eligibility_destroy(CcNiriEligibility *handle);
 CcNiriProtocolResult cc_niri_eligibility_update(CcNiriEligibility *handle,const CcNiriEligibilitySnapshot *snapshot);
 CcNiriSpringBoolResult cc_niri_eligibility_permits(const CcNiriEligibility *handle,const CcNiriEligibilityCandidate *candidate);
+/* Same lifetime contract; permits inactive outgoing visual decoration only. */
+CcNiriSpringBoolResult cc_niri_eligibility_permits_decoration(const CcNiriEligibility *handle,const CcNiriEligibilityCandidate *candidate);
 uint32_t cc_niri_eligibility_clear(CcNiriEligibility *handle);
 CcNiriEligibilityStatus cc_niri_eligibility_status(const CcNiriEligibility *handle);
 /* field 0/1/2 context, 3 window, 4 retired session; index used only for 3/4. */
@@ -245,11 +247,28 @@ CcNiriRingCorners cc_niri_ring_corners(double configured,double rounded,uint32_t
 CcNiriRingRadius cc_niri_ring_radius(CcNiriRingCorners corners,const double native_radii[4],double width,double height);
 uint32_t cc_niri_ring_geometry_valid(double width,double height,const double radii[4]);
 CcNiriRingFrameResult cc_niri_ring_capture(const CcNiriRingFrame *frame);
+CcNiriRingFrameResult cc_niri_ring_capture_visual(const CcNiriRingFrame *frame,double visual_opacity);
+/* Same borrowed DTO contract; validates and freezes a gain-profile mix in [0,1]. */
+CcNiriRingFrameResult cc_niri_ring_capture_gain(const CcNiriRingFrame *frame,double visual_opacity,double glow_mix);
 CcNiriRingMetricsResult cc_niri_ring_metrics(const CcNiriRingInput *input);
 CcNiriRingLayout cc_niri_ring_layout(const CcNiriRingMetrics *metrics);
 CcNiriRect cc_niri_ring_damage(CcNiriRect inner,CcNiriRingMetrics metrics);
 double cc_niri_ring_padding(double requested);
 double cc_niri_ring_device_padding(double requested,double device_scale);
+
+/* Unique visual-state handle. No clock/window ownership; compositor timestamps
+ * are borrowed values. Destroy once after the final call; null returns status=1.
+ * Invalid target/timestamp returns status=2 without changing state. */
+typedef struct CcNiriFocusFade CcNiriFocusFade;
+typedef struct { double opacity; uint32_t active,retired,status,reserved; } CcNiriFocusFadeSample;
+CcNiriFocusFade *cc_niri_focus_fade_create(void);
+void cc_niri_focus_fade_destroy(CcNiriFocusFade *handle);
+CcNiriFocusFadeSample cc_niri_focus_fade_retarget(CcNiriFocusFade *handle,uint32_t focused);
+CcNiriFocusFadeSample cc_niri_focus_fade_advance(CcNiriFocusFade *handle,int64_t presentation_ns);
+CcNiriFocusFadeSample cc_niri_focus_fade_sample(const CcNiriFocusFade *handle);
+/* Additive query keeps the F2 Sample ABI unchanged. Null returns status=1. */
+typedef struct { double mix; uint32_t status,reserved; } CcNiriFocusGlowSample;
+CcNiriFocusGlowSample cc_niri_focus_fade_glow(const CcNiriFocusFade *handle);
 
 #ifdef __cplusplus
 }

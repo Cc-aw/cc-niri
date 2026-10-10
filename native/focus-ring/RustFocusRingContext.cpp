@@ -45,11 +45,18 @@ bool RustFocusRingContext::update(const QString &json) {
 }
 void RustFocusRingContext::clear() { check(cc_niri_eligibility_clear(m_handle)); synchronize(); }
 bool RustFocusRingContext::permits(const FocusRingCandidate &candidate) const {
+    return permits(candidate, false);
+}
+bool RustFocusRingContext::permitsDecoration(const FocusRingCandidate &candidate) const {
+    return permits(candidate, true);
+}
+bool RustFocusRingContext::permits(const FocusRingCandidate &candidate, bool decoration) const {
     const std::uint32_t flags=std::uint32_t(candidate.active) | (std::uint32_t(candidate.managed)<<1) | (std::uint32_t(candidate.normal)<<2)
         | (std::uint32_t(candidate.visible)<<3) | (std::uint32_t(candidate.onCurrentActivity)<<4) | (std::uint32_t(candidate.onCurrentDesktop)<<5)
         | (std::uint32_t(candidate.insideOutput)<<6) | (std::uint32_t(candidate.minimized)<<7) | (std::uint32_t(candidate.deleted)<<8) | (std::uint32_t(candidate.fullscreen)<<9);
     const CcNiriEligibilityCandidate dto{ProtocolAdapter::text(candidate.id),ProtocolAdapter::text(candidate.workspace),ProtocolAdapter::text(candidate.output),candidate.opacity,flags,0};
-    return ProtocolAdapter::accepted(cc_niri_eligibility_permits(m_handle,&dto));
+    return ProtocolAdapter::accepted(decoration ? cc_niri_eligibility_permits_decoration(m_handle,&dto)
+        : cc_niri_eligibility_permits(m_handle,&dto));
 }
 QString RustFocusRingContext::text(std::uint32_t field,std::uint64_t index) const {
     const auto result=cc_niri_eligibility_text(m_handle,field,index); check(result.status); return ProtocolAdapter::text(result.value);

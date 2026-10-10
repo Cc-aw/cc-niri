@@ -21,9 +21,9 @@ int main(int argc, char **argv) {
         FocusRingItem ring;
         check(ring.attach(&window, &content, window.size(), BorderRadius(12)), "attach incoming scene owner without shadow");
         check(window.property(ViewportDecorationPaddingProperty).toDouble() == FocusRingItem::ViewportOutset,
-            "production Ring keeps its existing viewport reservation independent of halo damage extent");
-        check(FocusRingItem::ViewportOutset == 6 && FocusRingItem::PaintOutset > FocusRingItem::ViewportOutset,
-            "wider halo never exposes parked application pixels beyond the existing viewport reservation");
+            "production Ring keeps its viewport reservation independent of halo damage extent");
+        check(FocusRingItem::ViewportOutset == 5 && FocusRingItem::PaintOutset > FocusRingItem::ViewportOutset,
+            "thicker line retains room inside the column gap without expanding parked application painting");
         const Region screen(viewport.mapToDeviceCoordinates(RectF(0, 0, 1920, 1080)).rounded());
         const Region top(viewport.mapToDeviceCoordinates(RectF(1200, 47, 120, 3)).rounded());
         const Region bottom(viewport.mapToDeviceCoordinates(RectF(1200, 1010, 120, 3)).rounded());
@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
         const auto &haloDraw=renderer.draws[renderer.draws.size()-2];
         const auto &lineDraw=renderer.draws.back();
         check(haloDraw.region==expectedHalo && lineDraw.region==restrictedClip,"only halo expands the viewport; crisp line preserves the window clip");
-        check(haloDraw.region.contains(QPoint(centerX,baseClip.top()-10*scale)) && !lineDraw.region.contains(QPoint(centerX,baseClip.top()-10*scale)),"diffuse light outside the old six-pixel clip is actually submitted for rendering");
+        check(haloDraw.region.contains(QPoint(centerX,baseClip.top()-6*scale)) && !lineDraw.region.contains(QPoint(centerX,baseClip.top()-6*scale)),"soft tail outside the shared five-pixel clip is actually submitted for rendering");
         check((haloDraw.region & (top|leftBand|rightBand)).isEmpty(),"halo never paints through original compositor occlusion");
         check(haloDraw.matrix==lineDraw.matrix && haloDraw.opacity==lineDraw.opacity,"both clips use the same frozen render transform and opacity");
         check(haloDraw.filter(ring.border()) && !haloDraw.filter(ring.glow()) && !haloDraw.filter(ring.paintRoot())
@@ -101,6 +101,30 @@ int main(int argc, char **argv) {
         ring.clear();
         check(!window.property(ViewportDecorationPaddingProperty).isValid(), "no stale padding after Ring clears");
         check(viewportPaintClip(&window, viewport, safe, screen) == legacy, "off/unload restores original clip");
+    }
+    // A halo near the primary's right edge crosses into its neighbor, but alternating output
+    // passes must not rebuild the same cache at 150% and 100% forever.
+    {
+        Item owner; owner.setGeometry(RectF(1304,50,1252,1382));
+        Item content(&owner); content.setSize(owner.size());
+        FocusRingItem ring; check(ring.attach(&owner,&content,owner.size(),BorderRadius(12)),"attach near mixed-DPI output boundary");
+        const RectF primaryGeometry(0,0,2560,1440);
+        RenderViewport primary(primaryGeometry,1.5,target,QPoint());
+        RenderViewport neighbor(RectF(2560,0,2560,1440),1,target,QPoint());
+        const Region primaryRegion=Region(primary.mapToDeviceCoordinates(primaryGeometry).rounded()) & primary.deviceRect();
+        const Region neighborRegion=Region(neighbor.mapToDeviceCoordinates(primaryGeometry).rounded()) & neighbor.deviceRect();
+        WindowPaintData data; FocusRingCaptureRenderer renderer;
+        const auto frame=ring.capture(0,Region::infinite(),data);
+        check(frame && ring.paint(&renderer,target,primary,*frame,false,primaryRegion),"primary output draws halo");
+        const int rasters=ring.glow()->rasterizations();
+        const auto cache=ring.glow()->patches()[0]->image().cacheKey();
+        for (int i=0;i<12;++i) {
+            const int draws=renderer.calls;
+            check(!ring.paint(&renderer,target,neighbor,*frame,false,neighborRegion) && renderer.calls==draws,"neighbor output submits no owner halo");
+            check(ring.paint(&renderer,target,primary,*frame,false,primaryRegion),"primary redraw after neighbor pass");
+            check(ring.glow()->rasterizations()==rasters && ring.glow()->patches()[0]->image().cacheKey()==cache,"mixed-DPI passes preserve the primary texture cache");
+            check((renderer.lastRegion-primaryRegion).isEmpty(),"halo remains inside owner output bounds");
+        }
     }
     // Reservation cleanup must not leave stale scene state or destroy another writer's value.
     Item first, second;

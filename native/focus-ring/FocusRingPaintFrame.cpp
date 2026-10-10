@@ -3,9 +3,9 @@
 #include <cmath>
 
 namespace KWin {
-FocusRingPaintFrame::FocusRingPaintFrame(Item *owner, Item *attachment, int mask, const Region &deviceRegion, const WindowPaintData &data, const RectF &inner, const BorderOutline &outline, const CcNiriRingFrame &coreState)
+FocusRingPaintFrame::FocusRingPaintFrame(Item *owner, Item *attachment, int mask, const Region &deviceRegion, const WindowPaintData &data, const RectF &inner, const BorderOutline &outline, const CcNiriRingFrame &coreState, qreal glowMix)
     : m_owner(owner), m_attachment(attachment), m_innerRect(inner), m_outline(outline), m_position(owner->position()), m_transform(owner->transform()),
-      m_itemOpacity(coreState.item_opacity), m_mask(mask), m_deviceRegion(deviceRegion), m_data(data), m_coreState(coreState) {
+      m_itemOpacity(coreState.item_opacity), m_glowMix(glowMix), m_mask(mask), m_deviceRegion(deviceRegion), m_data(data), m_coreState(coreState) {
     m_viewportContext = ScopedViewportPaintContext::snapshot(owner);
     // The ring owns its sRGB material. Window and effect opacity still apply
     // once each; application brightness/saturation must not tint the border.
@@ -13,13 +13,13 @@ FocusRingPaintFrame::FocusRingPaintFrame(Item *owner, Item *attachment, int mask
     m_data.setSaturation(1);
 }
 std::optional<FocusRingPaintFrame> FocusRingPaintFrame::capture(Item *owner, Item *attachment, int mask,
-        const Region &deviceRegion, const WindowPaintData &data, const RectF &inner, const BorderOutline &outline) {
+        const Region &deviceRegion, const WindowPaintData &data, const RectF &inner, const BorderOutline &outline, qreal visualOpacity, qreal glowMix) {
     if (!owner || !attachment || deviceRegion.isEmpty()) return std::nullopt;
     const auto &r=outline.radius();
     const CcNiriRingFrame values{{inner.x(),inner.y(),inner.width(),inner.height()},outline.thickness(),
         {r.topLeft(),r.topRight(),r.bottomRight(),r.bottomLeft()},owner->opacity(),data.opacity()};
-    const auto snapshot=CcNiri::FocusRingCore::capture(values);
+    const auto snapshot=CcNiri::FocusRingCore::captureGain(values,visualOpacity,glowMix);
     if(snapshot.status || !snapshot.valid) return std::nullopt;
-    return FocusRingPaintFrame(owner, attachment, mask, deviceRegion, data, inner, outline, snapshot.frame);
+    return FocusRingPaintFrame(owner, attachment, mask, deviceRegion, data, inner, outline, snapshot.frame, glowMix);
 }
 }

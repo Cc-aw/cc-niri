@@ -130,6 +130,19 @@ pub fn capture(frame: Frame) -> Option<Frame> {
         && frame.effect_opacity > 0.0)
         .then_some(frame)
 }
+pub fn capture_visual(mut frame: Frame, opacity: f64) -> Option<Frame> {
+    if !opacity.is_finite() || !(0.0..=1.0).contains(&opacity) {
+        return None;
+    }
+    frame.item_opacity *= opacity;
+    capture(frame)
+}
+pub fn capture_gain(frame: Frame, opacity: f64, glow_mix: f64) -> Option<Frame> {
+    if !glow_mix.is_finite() || !(0.0..=1.0).contains(&glow_mix) {
+        return None;
+    }
+    capture_visual(frame, opacity)
+}
 pub fn metrics(input: Input) -> Option<Metrics> {
     let f = input.frame;
     let s = input.device_scale;
@@ -317,6 +330,30 @@ mod tests {
         assert!(capture(f).is_some());
         f.effect_opacity = 0.0;
         assert!(capture(f).is_none());
+    }
+    #[test]
+    fn visual_opacity_is_validated_and_frozen_once() {
+        let native = input().frame;
+        let visual = capture_visual(native, 0.5).unwrap();
+        assert_eq!(visual.item_opacity, native.item_opacity * 0.5);
+        assert_eq!(visual.effect_opacity, native.effect_opacity);
+        assert_eq!(native.item_opacity, 0.5);
+        for opacity in [0.0, -0.1, 1.1, f64::NAN, f64::INFINITY] {
+            assert!(capture_visual(native, opacity).is_none());
+        }
+    }
+    #[test]
+    fn gain_profile_mix_is_validated_without_changing_border_geometry() {
+        let frame = input().frame;
+        for mix in [0.0, 0.25, 0.5, 1.0] {
+            let captured = capture_gain(frame, 0.5, mix).unwrap();
+            assert_eq!(captured.thickness, frame.thickness);
+            assert_eq!(captured.radii, frame.radii);
+            assert_eq!(captured.item_opacity, 0.25);
+        }
+        for invalid in [-0.1, 1.1, f64::NAN, f64::INFINITY] {
+            assert!(capture_gain(frame, 0.5, invalid).is_none());
+        }
     }
     #[test]
     fn fixed_device_stroke_and_frozen_retarget_sample() {

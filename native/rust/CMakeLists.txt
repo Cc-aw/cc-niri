@@ -125,6 +125,7 @@ if(BUILD_TESTING)
     endforeach()
     foreach(_pair IN ITEMS
         "animation-frame;../viewport-clip/tests/AnimationFrameContextTest.cpp;scroll-animation-frame-context"
+        "focus-fade;tests/FocusFadeContractTest.cpp;focus-fade-shared-frame-contract"
         "motion;../viewport-clip/tests/ViewportMotionTest.cpp;viewport-motion-rust-contract"
         "scroll;../viewport-clip/tests/ScrollViewportRuntimeTest.cpp;scroll-runtime-contract"
         "ring-context;../focus-ring/tests/FocusRingContextTest.cpp;focus-ring-rust-context-contract"

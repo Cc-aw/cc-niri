@@ -14,6 +14,7 @@ pub mod scroll_retarget;
 pub mod scroll_runtime;
 pub mod scroll_visual;
 
+pub mod focus_fade;
 pub mod focus_ring;
 
 #[cfg(test)]

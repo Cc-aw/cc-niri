@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "ViewportClipEffect.h"
+#include "../common/CompositorFrameContext.h"
 #include "../common/ViewportPaintClip.h"
 #include "../common/NativeProtocolDto.h"
 
@@ -933,6 +934,11 @@ void CcNiriViewportClipEffect::requestScrollContinuationRepaint()
 }
 void CcNiriViewportClipEffect::prePaintScreen(ScreenPrePaintData &data)
 {
+    const bool realFrame = data.screen && data.frame && (!data.view || data.view->logicalOutput() == data.screen);
+    // Reuse the compositor prediction for static passes and the actual Scroll
+    // sample below when motion is running. Ring never samples another clock.
+    const auto prediction = data.view ? data.view->nextPresentationTimestamp().count() : 0;
+    auto sharedTime = prediction > 0 ? prediction : motionNow().count();
     if (m_scrollCapture.recording) m_scrollCapture.expire(motionNow().count());
     const auto passIndex = m_scrollPaintDepth++;
     if (passIndex < m_scrollPaintPasses.size()) {
@@ -953,7 +959,9 @@ void CcNiriViewportClipEffect::prePaintScreen(ScreenPrePaintData &data)
     // Sample once per compositor paint pass. All continuing columns share it.
     if (m_scrollRuntime.active()) {
         if (m_animationProfile == CcNiri::AnimationProfile::Stable) {
-            if (!m_scrollRuntime.advance(motionNow())) updateScrollOwnership();
+            const auto sampleTime = motionNow();
+            sharedTime = sampleTime.count();
+            if (!m_scrollRuntime.advance(sampleTime)) updateScrollOwnership();
             ++m_scrollFrameSerial;
             if (passIndex < m_scrollPaintPasses.size()) m_scrollPaintPasses[passIndex].serial = m_scrollFrameSerial;
         } else if (passIndex < m_scrollPaintPasses.size()) {
@@ -963,6 +971,7 @@ void CcNiriViewportClipEffect::prePaintScreen(ScreenPrePaintData &data)
             const auto decision = m_scrollFrameContext.select(reinterpret_cast<uintptr_t>(data.screen),
                 pass.real, data.view != nullptr, pass.predictedNs, motionNow().count(), reinterpret_cast<uintptr_t>(data.frame), nested);
             pass.sampleNs = decision.timeNs;
+            if (pass.real && pass.output == m_scrollTargetOutput && decision.timeNs >= 0) sharedTime = decision.timeNs;
             pass.fallback = decision.fallback;
             if (decision.advance) {
                 pass.sampled = m_scrollRuntime.prepareFrame(CcNiri::ViewportMotionBackend::TimePoint(decision.timeNs),
@@ -975,6 +984,8 @@ void CcNiriViewportClipEffect::prePaintScreen(ScreenPrePaintData &data)
         if (m_scrollRuntime.active()) data.mask |= PAINT_SCREEN_WITH_TRANSFORMED_WINDOWS;
     }
     if (m_scrollClipHandoff.active()) data.mask |= PAINT_SCREEN_WITH_TRANSFORMED_WINDOWS;
+    const CcNiri::ScopedCompositorFrame sharedFrame(effects,
+        {reinterpret_cast<uintptr_t>(data.screen), sharedTime, realFrame});
     effects->prePaintScreen(data);
 }
 void CcNiriViewportClipEffect::prePaintWindow(RenderView *view, EffectWindow *window, WindowPrePaintData &data)
@@ -1043,7 +1054,8 @@ void CcNiriViewportClipEffect::advertiseCapability(EffectWindow *window, bool av
 bool CcNiriViewportClipEffect::isActive() const
 {
     return (m_workspaceSlide && m_workspaceSlide->active()) || m_scrollRuntime.active()
-        || m_scrollClipHandoff.active() || !m_activeWindows.isEmpty();
+        || m_scrollClipHandoff.active() || !m_activeWindows.isEmpty()
+        || effects->property(CcNiri::CompositorFrameDemandProperty).value<quintptr>() != 0;
 }
 
 bool CcNiriViewportClipEffect::blocksDirectScanout() const

@@ -6,6 +6,8 @@ inline CcNiriRingCorners corners(double a,double b,bool loaded) { return cc_niri
 inline CcNiriRingRadius radius(CcNiriRingCorners c,const double native[4],double w,double h) { return cc_niri_ring_radius(c,native,w,h); }
 inline bool geometryValid(double w,double h,const double r[4]) { return cc_niri_ring_geometry_valid(w,h,r); }
 inline CcNiriRingFrameResult capture(const CcNiriRingFrame &f) { return cc_niri_ring_capture(&f); }
+inline CcNiriRingFrameResult captureVisual(const CcNiriRingFrame &f,double opacity) { return cc_niri_ring_capture_visual(&f,opacity); }
+inline CcNiriRingFrameResult captureGain(const CcNiriRingFrame &f,double opacity,double mix) { return cc_niri_ring_capture_gain(&f,opacity,mix); }
 inline CcNiriRingMetricsResult metrics(const CcNiriRingInput &i) { return cc_niri_ring_metrics(&i); }
 inline CcNiriRingLayout layout(const CcNiriRingMetrics &m) { return cc_niri_ring_layout(&m); }
 inline CcNiriRect damage(CcNiriRect r,CcNiriRingMetrics m) { return cc_niri_ring_damage(r,m); }

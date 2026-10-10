@@ -85,6 +85,14 @@ int main(int argc,char **argv) {
             auto gright=deviceBounds(gmatrix,glow->patches()[5],s);
             check(near(gtop.bottom(),origin.y()) && near(gright.left(),origin.x()+w),"soft layer and crisp edge share the same inner contour");
             check(near(gtop.height(),std::round(FocusRingItem::GlowExtent*s)) && near(gright.width(),std::round(FocusRingItem::GlowExtent*s)),"glow keeps a bounded device extent while the window scales");
+            // Check actual SDK-built quads after child rounding and motion,
+            // with neighboring window frames eight logical pixels away.
+            // A dim but oversized texture would still fail this regression.
+            for (auto *patch : glow->patches()) if (patch->isVisible()) {
+                const auto bounds=deviceBounds(gmatrix,patch,s);
+                check(bounds.left()>origin.x()-8*s && bounds.right()<origin.x()+w+8*s,
+                    "glow cannot reach either adjacent window across the eight-pixel gap");
+            }
             const int glowRasters=glow->rasterizations();
             check(ring.paint(&renderer,target,viewport,*frame) && glow->rasterizations()==glowRasters,"unchanged frame reuses both layer caches");
             check(window.size()==size,"window geometry preserved"); ++samples;

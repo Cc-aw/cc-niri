@@ -15,7 +15,8 @@ namespace KWin {
 class FocusRingPaintFrame {
 public:
     static std::optional<FocusRingPaintFrame> capture(Item *owner, Item *attachment, int mask,
-        const Region &deviceRegion, const WindowPaintData &data, const RectF &inner, const BorderOutline &outline);
+        const Region &deviceRegion, const WindowPaintData &data, const RectF &inner, const BorderOutline &outline,
+        qreal visualOpacity = 1.0, qreal glowMix = 0.0);
     Item *owner() const { return m_owner.data(); }
     Item *attachment() const { return m_attachment.data(); }
     const RectF &innerRect() const { return m_innerRect; }
@@ -23,6 +24,7 @@ public:
     QPointF position() const { return m_position; }
     QTransform transform() const { return m_transform; }
     qreal itemOpacity() const { return m_itemOpacity; }
+    qreal glowMix() const { return m_glowMix; }
     int mask() const { return m_mask; }
     const Region &deviceRegion() const { return m_deviceRegion; }
     bool hasViewportContext() const { return m_viewportContext.has_value(); }
@@ -32,14 +34,14 @@ public:
     const WindowPaintData &paintData() const { return m_data; }
     const CcNiriRingFrame &coreState() const { return m_coreState; }
 private:
-    FocusRingPaintFrame(Item *owner, Item *attachment, int mask, const Region &deviceRegion, const WindowPaintData &data, const RectF &inner, const BorderOutline &outline, const CcNiriRingFrame &coreState);
+    FocusRingPaintFrame(Item *owner, Item *attachment, int mask, const Region &deviceRegion, const WindowPaintData &data, const RectF &inner, const BorderOutline &outline, const CcNiriRingFrame &coreState, qreal glowMix);
     QPointer<Item> m_owner;
     QPointer<Item> m_attachment;
     RectF m_innerRect;
     BorderOutline m_outline;
     QPointF m_position;
     QTransform m_transform;
-    qreal m_itemOpacity;
+    qreal m_itemOpacity, m_glowMix;
     int m_mask;
     Region m_deviceRegion;
     std::optional<ViewportPaintContext> m_viewportContext;

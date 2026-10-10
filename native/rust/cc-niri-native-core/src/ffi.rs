@@ -237,6 +237,8 @@ mod motion;
 #[path = "ffi_scroll.rs"]
 mod scroll;
 
+#[path = "ffi_focus_fade.rs"]
+mod focus_fade;
 #[path = "ffi_ring.rs"]
 mod ring;
 
