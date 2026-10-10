@@ -30,15 +30,16 @@ public:
     FocusRingStrokeItem *glow() const;
     static constexpr qreal Width = 1.5;
     static constexpr qreal BorderAlpha = 0.85;
-    // Gaussian sigma; retain three sigma of falloff outside the crisp line.
-    static constexpr qreal GlowRadius = 6.0;
+    // Deliberately exaggerated diagnostic requested after invisible-glow
+    // feedback. Retain three sigma outside the crisp line.
+    static constexpr qreal GlowRadius = 12.0;
     static constexpr qreal GlowExtent = Width + 3 * GlowRadius;
-    static constexpr qreal GlowAlpha = 0.45;
+    static constexpr qreal GlowAlpha = 1.0;
     // Covers the largest native-pixel rounding of the soft outer extent.
-    static constexpr qreal PaintOutset = 20.0;
+    static constexpr qreal PaintOutset = 38.0;
     // Keep the existing viewport reservation: the shared clip also applies
     // to application pixels, so growing it past the column gap exposes a
-    // parked window. The halo respects that native clip during movement.
+    // parked window. The halo has a separate decoration-only paint region.
     static constexpr qreal ViewportOutset = 6.0;
     static QColor borderColor();
     static QColor glowColor();

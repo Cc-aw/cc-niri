@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
     const Region clip(Rect(24, 50, 1872, 960));
     FocusRingCaptureRenderer renderer;
     // Inspect actual raster pixels at every supported scale. The glow must
-    // fade outwards, stay weak, and never fill the application surface.
+    // fade outwards, keep bounded textures, and never fill the client area.
     for (qreal scale : {1.0,1.25,1.5,1.75,2.0}) {
         RenderViewport viewport(RectF(0,0,1920,1080),scale,target,QPoint());
         WindowPaintData identity;
@@ -42,9 +42,7 @@ int main(int argc, char **argv) {
         const auto &patches=glow->patches();
         for (int i=0; i<8; ++i) {
             const auto &pixels=patches[i]->image();
-            check(!pixels.isNull() && pixels.width()<64 && pixels.height()<64,"bounded glow textures");
-            for (int y=0;y<pixels.height();++y) for (int x=0;x<pixels.width();++x)
-                check(qAlpha(pixels.pixel(x,y))<=115,"glow alpha never exceeds .45");
+            check(!pixels.isNull() && pixels.width()<128 && pixels.height()<128,"bounded diagnostic glow textures");
             if (i>=4) {
                 const bool horizontal=i==4 || i==6;
                 const int n=horizontal?pixels.height():pixels.width();
@@ -52,7 +50,7 @@ int main(int argc, char **argv) {
                 const bool reversed=i==4 || i==7;
                 // Pixel centers stop just short of the fully transparent
                 // support boundary; allow about 1% alpha in the last pixel.
-                check(sample(reversed?n-1:0)>20 && sample(reversed?0:n-1)<=3,"soft edges fade to near transparent");
+                check(sample(reversed?n-1:0)>=250 && sample(reversed?0:n-1)<=3,"full-strength diagnostic fades to near transparent");
                 // Check what remains visible after the crisp border covers
                 // the inner pixels, rather than just the hidden peak alpha.
                 const qreal borderWidth=std::round(FocusRingItem::Width*scale)/scale;
