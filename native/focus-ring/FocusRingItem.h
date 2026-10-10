@@ -30,11 +30,10 @@ public:
     FocusRingStrokeItem *glow() const;
     static constexpr qreal Width = 1.5;
     static constexpr qreal BorderAlpha = 0.85;
-    // Deliberately exaggerated diagnostic requested after invisible-glow
-    // feedback. Retain three sigma outside the crisp line.
+    // Gaussian sigma; retain three sigma outside the crisp line.
     static constexpr qreal GlowRadius = 12.0;
     static constexpr qreal GlowExtent = Width + 3 * GlowRadius;
-    static constexpr qreal GlowAlpha = 1.0;
+    static constexpr qreal GlowAlpha = 0.5;
     // Covers the largest native-pixel rounding of the soft outer extent.
     static constexpr qreal PaintOutset = 38.0;
     // Keep the existing viewport reservation: the shared clip also applies

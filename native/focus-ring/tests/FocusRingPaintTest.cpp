@@ -42,7 +42,9 @@ int main(int argc, char **argv) {
         const auto &patches=glow->patches();
         for (int i=0; i<8; ++i) {
             const auto &pixels=patches[i]->image();
-            check(!pixels.isNull() && pixels.width()<128 && pixels.height()<128,"bounded diagnostic glow textures");
+            check(!pixels.isNull() && pixels.width()<128 && pixels.height()<128,"bounded glow textures");
+            for (int y=0;y<pixels.height();++y) for (int x=0;x<pixels.width();++x)
+                check(qAlpha(pixels.pixel(x,y))<=128,"half-strength glow never accumulates above its opacity cap");
             if (i>=4) {
                 const bool horizontal=i==4 || i==6;
                 const int n=horizontal?pixels.height():pixels.width();
@@ -50,7 +52,7 @@ int main(int argc, char **argv) {
                 const bool reversed=i==4 || i==7;
                 // Pixel centers stop just short of the fully transparent
                 // support boundary; allow about 1% alpha in the last pixel.
-                check(sample(reversed?n-1:0)>=250 && sample(reversed?0:n-1)<=3,"full-strength diagnostic fades to near transparent");
+                check(sample(reversed?n-1:0)>=125 && sample(reversed?0:n-1)<=3,"half-strength glow fades to near transparent");
                 // Check what remains visible after the crisp border covers
                 // the inner pixels, rather than just the hidden peak alpha.
                 const qreal borderWidth=std::round(FocusRingItem::Width*scale)/scale;
