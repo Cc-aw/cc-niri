@@ -21,8 +21,21 @@ Clip Adapter 仅在同步 paint 调用期间，为 Ring owner 发布原始 compo
 
 ## 部署与实机状态
 
-当前屏幕锁定，**尚未部署此实现，尚未执行只画柔光诊断或新路径实机验收**。已准备 save-state → stop → immutable Clip / Ring install → start 的双组件部署，以及仅恢复两条 discovery 绑定的窄回滚。不得用自动测试或旧截图替代新路径实机检查。
+2026-10-10 解锁后已部署源码 `5d89f1e`。备份为 `/home/cc/.local/state/cc-niri/backups/focus-f1-gaussian-20261010-093357`（0700），含部署前配置 / 工作区 / 窗口与实际焦点 / 组件路径 / 用户设计文档 / 执行脚本和窄回滚。save-state → stop 成功恢复 parked windows → immutable Clip / Ring install → start；KWin PID 保持 2050。
 
-解锁后先核对新 Clip / Ring 跨插件上下文实际计数、一次简短 H/L / J/K / Wide / fullscreen / off-on 和停止重启的必要平台 hook 复验，再检查当前窗口的 glow-only / normal 截图与空闲缓存。恢复原窗口、焦点、工作区、视口、配置和输出。用户实际看到的窗口 / 输出也须与 Ring owner 对应；现有 Ring eligibility 仍由主输出的 JS 控制面发布，不擅自建立副屏焦点 authority。
+- 新 Clip canonical/hash：`8cefef2a59fd9c18f76c8d680b131067bb74f7b3cadf3218e567b0a7757d2e66`；新 Ring：`819c7cbd647d629996c96de6bf191c8afbd1102c78be4156583ccd67632b2f19`。查询核对高斯参数、独立 clip、Rust backend；Bridge / CLI / JS / 配置 / 输出保持原值。OS 禁止读取 KWin maps，因此仅确认 immutable 安装 hash、显式 reload 和新接口，未独立核验进程映射文件 hash。
+- 仅一次 H/L 80ms 反向接管、J/K 80ms 返回、Wide 往返、fullscreen 恢复、Ring off-on；停止 / 重启已由部署路径覆盖。H/L 的 `separateGlowClipDrawCount=52`，证明两个新插件实际传递了 paint context。所有原窗口 geometry / membership / minimized / fullscreen、实际及 Bridge 焦点、columns / viewport anchor、桌面 ID / 输出桌面和配置恢复，无相关 KWin 错误。
+- 原短检查脚本错误地在 Ring reload 后要求新实例的 context 计数大于零；静态完整窗口不需要 Clip，reload 也会清零该计数。这是检查断言错误。保留原失败记录，复用 reload 前 H/L 的 52 次实际计数，仅补完一次 1 秒空闲检查，未重跑键盘场景。最终结果为 `short-platform-check/result-with-idle.json`。
+- 空闲检查纹理 rasterizations 不增加，Scroll paintedFrames / full repaint / output repaint 均为零。未量化实际 GPU / resize 开销，未执行五档 scale 的实机矩阵；该矩阵仅有前述自动纹理测试。
 
-源码回退仅回退本次提交；组件部署前保留旧 immutable Clip / Ring 路径、配置、工作区和用户文档快照。只画柔光诊断必须恢复为 false，不作为默认模式或持久配置。
+## 只画柔光诊断与视觉状态
+
+对 DP-1（3840×2160@60、150%）当前窗口 `0d479654-b982-4a21-9693-e3c9f3f8813f`，frame 为 x=1284 / y=50 / 1252×1382，完成同场景 normal / Ring off / glow-only 三张截图，并临时隐藏细线约一分钟供用户观察。截图位于备份 `glow-only-diagnostic/`。只画柔光图能单独看到外侧的蓝色渐变，normal 图同时保留清晰细线；右侧自然衰减可见，圆角连接连续。
+
+Spectacle 统一 2× 导出栅格，不能将它当成输出实际物理像素厚度。右边距窗口外缘 2.25 / 6.25 / 10.25 / 14.25 / 16.25 logical px 的 normal 相对 off 蓝通道中位差约 56 / 37.5 / 16 / 4 / 2，glow-only 相同位置近似一致，20.25px 归零。顶部远端另有背景差异，不作为整个支持范围的计量。像素差仅用来验证独立绘制和衰减；**用户尚未确认新版本的柔光强度，F1 视觉验收仍待反馈，不进入 F2**。
+
+诊断结束已核对 `glowOnlyDiagnostic=false`，恢复默认两层显示，配置 / 组件 / 输出保持一致。未创建测试客户端；诊断期间若用户另选窗口，不覆盖用户的新焦点。实际看到的窗口 / 输出须与 Ring owner 对应；现有 eligibility 仍由主输出的 JS 控制面发布，没有建立副屏焦点 authority。
+
+## 回滚
+
+运行本备份 `rollback-component.sh`：stop → 仅恢复旧 Clip `a873c8719ccee73cb3258b91ff93b4d05c7c04b5b9788b7276d1381008c86cba` 与旧 Ring `c6bbaf8e63e65ac065d82c5604f8d26ed6ad77c70b33cb05260060aa1fc0f86e` 的 immutable discovery → start。不整体覆盖配置或工作区，不删除用户新窗口。源码仅回退 `5d89f1e`。只画柔光诊断为临时内存状态，未写入持久配置。
