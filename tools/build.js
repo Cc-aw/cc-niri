@@ -45,6 +45,7 @@ const targets = [
             "src/kwin/runtime/ControllerComposition.js",
             "src/kwin/runtime/CCNiri.js",
             "src/kwin/policy/WindowPolicy.js",
+            "src/kwin/policy/LayoutEligibility.js",
             "src/kwin/stability/LayoutTransaction.js",
             "src/kwin/stability/InvariantChecker.js",
             "src/kwin/stability/StabilitySupervisor.js",

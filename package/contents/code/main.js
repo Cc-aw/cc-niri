@@ -2894,6 +2894,30 @@ class WindowPolicy {
     }
 }
 
+// Generated from src/kwin/policy/LayoutEligibility.js
+class LayoutEligibility {
+    constructor(options) {
+        this.windowPolicy = options.windowPolicy;
+        this.membership = options.membership;
+        this.isEnabled = options.isEnabled;
+        this.getPrimaryOutput = options.getPrimaryOutput;
+        this.isPrimaryReady = options.isPrimaryReady;
+    }
+
+    isWorkspaceReady(window) {
+        if (!this.isEnabled() || !window || !window.output ||
+                !this.membership.belongsToActive(window, window.output)) return false;
+        // Only primary Columns depend on the primary workspace mount.
+        return window.output !== this.getPrimaryOutput() || this.isPrimaryReady();
+    }
+
+    eligible(window) {
+        return Boolean(window && !window.fullScreen &&
+            this.windowPolicy.managedLayoutEligible(window) &&
+            this.isWorkspaceReady(window));
+    }
+}
+
 // Generated from src/kwin/stability/LayoutTransaction.js
 class LayoutTransaction {
     constructor(options) {
@@ -5324,6 +5348,15 @@ const workspacePersistence = new WorkspacePersistence({
     hasDesktop: id => Boolean(virtualDesktopTopology.byId(id)),
 });
 let workspaceMountController;
+const layoutEligibility = new LayoutEligibility({
+    windowPolicy,
+    membership: workspaceMembership,
+    isEnabled: () => mainScreenState.enabled &&
+        (!workspaceMountController || !workspaceMountController.stopped),
+    getPrimaryOutput: resolveTargetOutput,
+    isPrimaryReady: () => Boolean(workspaceMountController &&
+        workspaceMountController.canUseActiveWorkspace()),
+});
 let workspaceSwitchController;
 let workspaceTransferController;
 let workspaceMoveController;
@@ -6915,10 +6948,7 @@ function isLayoutMode(mode) {
 }
 
 function eligible(window) {
-    return Boolean(workspaceMountController && workspaceMountController.canUseActiveWorkspace() &&
-        window && !window.fullScreen &&
-        windowPolicy.managedLayoutEligible(window) &&
-        workspaceMembership.belongsToActive(window, mainScreenState.targetOutput));
+    return layoutEligibility.eligible(window);
 }
 
 function onManagedOutput(window) {
@@ -7033,12 +7063,12 @@ function leavePseudoMaximize(window, state, reason) {
 
 function onFrameGeometryChanged(window, oldGeometry) {
     const state = stateFor(window);
-    if (!workspaceMountController.canUseActiveWorkspace() ||
-            !workspaceMembership.belongsToActive(window, mainScreenState.targetOutput)) return;
+    if (!layoutEligibility.isWorkspaceReady(window)) return;
     if (state.internalChange || state.interactiveMoveResize || window.fullScreen) return;
     if (contextualWideCoordinator.onTargetGeometryChanged(window)) return;
     if (!windowPolicy.canJoinColumn(window)) return;
-    if (window.active && state.adoptionPhase !== ADOPTION_UNTRACKED &&
+    if (window.output === mainScreenState.targetOutput && window.active &&
+            state.adoptionPhase !== ADOPTION_UNTRACKED &&
             state.adoptionPhase !== ADOPTION_MANAGED &&
             state.adoptionPhase !== ADOPTION_FLOATING &&
             state.adoptionPhase !== ADOPTION_POLICY_FLOATING &&
@@ -7277,8 +7307,14 @@ function setupWindow(window) {
 function reapplyManagedLayouts(reason) {
     states.forEach((state, window) => {
         if (!state.internalChange && !state.interactiveMoveResize && eligible(window) &&
-                !state.managedByScrollLayout && onManagedOutput(window) &&
-                isLayoutMode(state.layoutMode)) {
+                !state.managedByScrollLayout && onManagedOutput(window)) {
+            // An inactive secondary desktop may have been skipped at startup.
+            const profile = profileForOutput(window.output);
+            if (profile.role === "secondary" && state.layoutMode === NORMAL_MODE &&
+                    Number(window.maximizeMode) === FULL_MAXIMIZE_MODE) {
+                setLayoutMode(state, MAXIMIZE_MODE);
+            }
+            if (!isLayoutMode(state.layoutMode)) return;
             applyLayoutGeometry(window, state, state.layoutMode, reason);
         }
     });
@@ -7344,6 +7380,7 @@ const app = new CCNiri({
         onCurrentDesktopChanged: (previous, current, output) => {
             workspaceRecycleController.onDesktopChanged();
             workspaceSwitchController.onDesktopChanged(previous, current, output);
+            reapplyManagedLayouts("output-desktop-changed");
             dynamicWorkspaceController.request();
             workspaceRecycleController.request();
         },
