@@ -31,6 +31,7 @@ kcoreaddons_add_plugin(cc-niri-viewport-clip
         ViewportClipEffect.h
         WorkspaceSlideAdapter.cpp
         WorkspaceSlideAdapter.h
+        WorkspaceProjectionCache.h
     INSTALL_NAMESPACE "kwin/effects/plugins"
 )
 
@@ -57,6 +58,11 @@ if(BUILD_TESTING)
     target_include_directories(cc-niri-workspace-clip-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(cc-niri-workspace-clip-tests PRIVATE Qt6::Core)
     add_test(NAME workspace-clip-barrier COMMAND cc-niri-workspace-clip-tests)
+    add_executable(cc-niri-workspace-projection-tests tests/WorkspaceProjectionCacheTest.cpp)
+    set_target_properties(cc-niri-workspace-projection-tests PROPERTIES AUTOMOC OFF)
+    target_include_directories(cc-niri-workspace-projection-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(cc-niri-workspace-projection-tests PRIVATE cc-niri-native-adapters KWin::kwin)
+    add_test(NAME workspace-projection-cache COMMAND cc-niri-workspace-projection-tests)
 endif()
 
 target_link_libraries(cc-niri-viewport-clip PRIVATE cc-niri-native-adapters)

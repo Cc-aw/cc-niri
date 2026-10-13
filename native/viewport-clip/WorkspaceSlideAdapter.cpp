@@ -38,10 +38,22 @@ WorkspaceSlideAdapter::WorkspaceSlideAdapter(CcNiriViewportClipEffect *owner) : 
     connect(effects, &EffectsHandler::desktopChanged, this, &WorkspaceSlideAdapter::desktopChanged);
     connect(effects, &EffectsHandler::desktopChanging, this, &WorkspaceSlideAdapter::desktopChanging);
     connect(effects, QOverload<>::of(&EffectsHandler::desktopChangingCancelled), this, &WorkspaceSlideAdapter::cancelGesture);
-    connect(effects, &EffectsHandler::screenRemoved, this, &WorkspaceSlideAdapter::finish);
-    connect(effects, &EffectsHandler::screenAdded, this, [this](LogicalOutput *) { finishAll(); });
-    connect(effects, &EffectsHandler::desktopAdded, this, [this](VirtualDesktop *) { finishAll(); });
+    connect(effects, &EffectsHandler::screenRemoved, this, [this](LogicalOutput *output) {
+        m_projectionPasses.forget(reinterpret_cast<uintptr_t>(output));
+        finish(output);
+    });
+    for (auto *output : effects->screens()) watchOutput(output);
+    connect(effects, &EffectsHandler::screenAdded, this, [this](LogicalOutput *output) {
+        watchOutput(output);
+        finishAll();
+    });
+    for (auto *desktop : effects->desktops()) watchDesktop(desktop);
+    connect(effects, &EffectsHandler::desktopAdded, this, [this](VirtualDesktop *desktop) {
+        watchDesktop(desktop);
+        finishAll();
+    });
     connect(effects, &EffectsHandler::desktopRemoved, this, [this](VirtualDesktop *) { finishAll(); });
+    connect(effects, &EffectsHandler::desktopGridSizeChanged, this, [this](const QSize &) { invalidateProjections(); });
     connect(effects, &EffectsHandler::currentActivityAboutToChange, this, [this]() {
         m_switchingActivity = true;
         finishAll();
@@ -54,6 +66,7 @@ WorkspaceSlideAdapter::WorkspaceSlideAdapter(CcNiriViewportClipEffect *owner) : 
         if (auto binding = m_screens.value(window->screen())) bindWindow(*binding, window);
     });
     connect(effects, &EffectsHandler::windowDeleted, this, [this](EffectWindow *window) {
+        invalidateProjections();
         for (const auto &binding : std::as_const(m_screens)) unbindWindow(*binding, window);
     });
 }
@@ -65,6 +78,7 @@ void WorkspaceSlideAdapter::reconfigure()
     const bool enabled = config.readEntry("OptimizedWorkspaceAnimation", false);
     finishAll();
     m_enabled = enabled;
+    m_projectionCacheEnabled = config.readEntry("WorkspaceProjectionCache", false);
     m_smooth = config.readEntry("AnimationProfile", QStringLiteral("stable")) == QStringLiteral("smooth60");
     m_duration = std::clamp(config.readEntry("WorkspaceDuration", 420), 240, 800);
     const KConfigGroup slide(effects->config(), QStringLiteral("Effect-slide"));
@@ -95,6 +109,7 @@ void WorkspaceSlideAdapter::unbindWindow(ScreenBinding &screen, EffectWindow *wi
 std::shared_ptr<WorkspaceSlideAdapter::ScreenBinding> WorkspaceSlideAdapter::prepare(LogicalOutput *output, EffectWindow *moving)
 {
     if (!m_enabled || m_switchingActivity || !output || (effects->activeFullScreenEffect() && effects->activeFullScreenEffect() != m_owner)) return {};
+    invalidateProjections();
     auto binding = m_screens.value(output);
     if (!binding) {
         binding = std::make_shared<ScreenBinding>();
@@ -104,6 +119,7 @@ std::shared_ptr<WorkspaceSlideAdapter::ScreenBinding> WorkspaceSlideAdapter::pre
         }
     }
     binding->movingWindow = moving;
+    ++binding->motionRevision;
     binding->finished = false;
     const auto grid = cc_niri_workspace_configure(binding->motion, effects->desktopGridWidth(),
         effects->desktopGridHeight(), effects->optionRollOverDesktops());
@@ -155,9 +171,13 @@ void WorkspaceSlideAdapter::cancelGesture()
 
 void WorkspaceSlideAdapter::prePaintScreen(ScreenPrePaintData &data)
 {
-    m_paintedScreen = data.screen;
+    const bool real = data.screen && data.frame && data.view && data.view->logicalOutput() == data.screen;
+    m_projectionPasses.enter(reinterpret_cast<uintptr_t>(data.screen), real);
+    if (m_projectionPasses.nested()) invalidateProjections();
     const auto binding = m_screens.value(data.screen);
     if (!binding) return;
+    binding->projections.clear();
+    if (m_captureDeadline && workspaceNow() > m_captureDeadline) m_captureDeadline = 0;
     // Use the compositor's predicted presentation time once per output pass.
     const auto now = data.view ? data.view->nextPresentationTimestamp().count() : workspaceNow();
     const auto sample = cc_niri_workspace_advance(binding->motion, now);
@@ -165,6 +185,23 @@ void WorkspaceSlideAdapter::prePaintScreen(ScreenPrePaintData &data)
     binding->lastSampleTime = std::max(binding->lastSampleTime, now);
     binding->finished = !sample.active;
     binding->painted = false;
+    if (m_projectionCacheEnabled && m_projectionPasses.canCache(reinterpret_cast<uintptr_t>(data.screen))) {
+        const auto screenRect = data.screen->geometry();
+        const auto desktops = effects->desktops();
+        const bool complete = binding->projections.prepare(desktops, [&](VirtualDesktop *desktop) {
+            if (m_captureDeadline) ++m_captureProjectionCalls;
+            const auto projection = cc_niri_workspace_projection(binding->motion, desktopPoint(desktop),
+                screenRect.width(), screenRect.height(), m_horizontalGap, m_verticalGap);
+            return projection;
+        });
+        if (complete) {
+            binding->projectionGeometry = screenRect;
+            binding->projectionScale = data.screen->scale();
+            binding->projectionGrid = effects->desktopGridSize();
+            binding->projectionRevision = m_projectionRevision;
+            if (m_captureDeadline) ++m_captureProjectionFrames;
+        }
+    }
     data.mask |= Effect::PAINT_SCREEN_TRANSFORMED;
 }
 void WorkspaceSlideAdapter::prePaintWindow(EffectWindow *window, WindowPrePaintData &data)
@@ -173,9 +210,10 @@ void WorkspaceSlideAdapter::prePaintWindow(EffectWindow *window, WindowPrePaintD
 }
 void WorkspaceSlideAdapter::postPaintScreen()
 {
-    auto *output = m_paintedScreen.data();
+    auto *output = reinterpret_cast<LogicalOutput *>(m_projectionPasses.leave());
     const auto binding = m_screens.value(output);
     if (!binding) return;
+    binding->projections.clear();
     if (binding->finished) finish(output);
     else effects->addRepaint(output->geometry());
 }
@@ -188,30 +226,48 @@ bool WorkspaceSlideAdapter::paintWindow(const RenderTarget &target, const Render
     if (!binding) return false;
     if (window == binding->movingWindow || (window->isOnAllDesktops() && (!window->isDesktop() || !m_slideBackground))) return false;
     const auto screenRect = output->geometry();
-    for (auto *desktop : effects->desktops()) {
-        if (!window->isOnDesktop(desktop)) continue;
-        const auto projection = cc_niri_workspace_projection(binding->motion, desktopPoint(desktop),
-            screenRect.width(), screenRect.height(), m_horizontalGap, m_verticalGap);
-        workspaceCheck(projection.status);
-        if (!projection.visible) continue;
+    const auto alive = [&] { return m_screens.value(output) == binding && binding->windows.contains(window); };
+    const auto valid = [&] { return binding->projectionRevision == m_projectionRevision
+        && m_projectionPasses.canCache(reinterpret_cast<uintptr_t>(output)); };
+    const bool cached = m_projectionCacheEnabled && binding->projections.complete() && valid()
+        && binding->projectionGeometry == screenRect && binding->projectionScale == output->scale()
+        && binding->projectionGrid == effects->desktopGridSize();
+    if (m_captureDeadline && cached) ++m_captureProjectionHits;
+    const auto paint = [&](const CcNiriWorkspaceProjection &projection) {
+        const auto revision = binding->motionRevision;
+        const auto sampleTime = binding->lastSampleTime;
         WindowPaintData translated(data);
         translated.setXTranslation(data.xTranslation() + projection.translation.x);
         translated.setYTranslation(data.yTranslation() + projection.translation.y);
         const RectF clip = RectF(screenRect).translated(projection.translation.x, projection.translation.y).intersected(RectF(screenRect));
         const Region clipped = region & viewport.mapToDeviceCoordinatesAligned(clip);
         m_owner->paintClippedWindow(target, viewport, window, mask | Effect::PAINT_WINDOW_TRANSFORMED, clipped, translated);
-        if (!binding->painted && !clipped.isEmpty()) {
+        // Cache invalidation (e.g. another output's nested capture) does not
+        // invalidate this pose. A retarget or later motion sample does.
+        if (revision == binding->motionRevision && sampleTime == binding->lastSampleTime
+            && alive() && !binding->painted && !clipped.isEmpty()) {
             const auto marked = cc_niri_workspace_mark_painted(binding->motion);
             workspaceCheck(marked.status);
             binding->painted = true;
             if (marked.value) observe(output, *binding, 1);
         }
-    }
+    };
+    binding->projections.paint(cached, [&] {
+        if (m_captureDeadline) ++m_captureProjectionFallbacks;
+        return effects->desktops();
+    }, [&](VirtualDesktop *desktop) { return window->isOnDesktop(desktop); }, [&](VirtualDesktop *desktop) {
+        if (m_captureDeadline) ++m_captureProjectionCalls;
+        const auto projection = cc_niri_workspace_projection(binding->motion, desktopPoint(desktop),
+            screenRect.width(), screenRect.height(), m_horizontalGap, m_verticalGap);
+        workspaceCheck(projection.status);
+        return projection;
+    }, paint, alive, valid);
     return true;
 }
 
 void WorkspaceSlideAdapter::finish(LogicalOutput *output)
 {
+    invalidateProjections();
     const auto binding = m_screens.take(output);
     if (!binding) return;
     m_lastOutput = output;
@@ -227,6 +283,22 @@ void WorkspaceSlideAdapter::finishAll()
 {
     const auto outputs = m_screens.keys();
     for (auto *output : outputs) finish(output);
+}
+void WorkspaceSlideAdapter::invalidateProjections()
+{
+    ++m_projectionRevision;
+    for (const auto &binding : std::as_const(m_screens)) binding->projections.clear();
+}
+void WorkspaceSlideAdapter::watchDesktop(VirtualDesktop *desktop)
+{
+    if (desktop) connect(desktop, &VirtualDesktop::aboutToBeDestroyed,
+        this, &WorkspaceSlideAdapter::invalidateProjections, Qt::UniqueConnection);
+}
+void WorkspaceSlideAdapter::watchOutput(LogicalOutput *output)
+{
+    if (!output) return;
+    connect(output, &LogicalOutput::geometryChanged, this, &WorkspaceSlideAdapter::invalidateProjections, Qt::UniqueConnection);
+    connect(output, &LogicalOutput::scaleChanged, this, &WorkspaceSlideAdapter::invalidateProjections, Qt::UniqueConnection);
 }
 static QJsonObject workspaceStateJson(const CcNiriWorkspaceState &s)
 {
@@ -261,12 +333,15 @@ QJsonObject WorkspaceSlideAdapter::status() const
     workspaceCheck(state.status);
     auto row = workspaceStateJson(state);
     row.insert(QStringLiteral("liveBinding"), bool(binding));
+    row.insert(QStringLiteral("projectionCacheEnabled"), m_projectionCacheEnabled);
     return row;
 }
 void WorkspaceSlideAdapter::startCapture(qint64 now)
 {
     m_captureStart = now; m_captureDeadline = now+3000000000LL;
     m_captureCount = 0; m_captureTruncated = false; m_captureOutputs.clear();
+    m_captureProjectionCalls = 0; m_captureProjectionFrames = 0;
+    m_captureProjectionHits = 0; m_captureProjectionFallbacks = 0;
     for (auto *output : effects->screens()) m_captureOutputs.append({output, output->name()});
 }
 void WorkspaceSlideAdapter::observe(LogicalOutput *output, ScreenBinding &screen, uint32_t kind)
@@ -300,6 +375,12 @@ QJsonObject WorkspaceSlideAdapter::capture() const
     }
     return {{QStringLiteral("version"), 1}, {QStringLiteral("active"), m_captureDeadline > workspaceNow()},
         {QStringLiteral("truncated"), m_captureTruncated}, {QStringLiteral("units"), QStringLiteral("workspace-cell-second")},
+        {QStringLiteral("projectionAudit"), QJsonObject{
+            {QStringLiteral("cacheEnabled"), m_projectionCacheEnabled},
+            {QStringLiteral("projectionCalls"), qint64(m_captureProjectionCalls)},
+            {QStringLiteral("cachedFrames"), qint64(m_captureProjectionFrames)},
+            {QStringLiteral("cachedWindowPasses"), qint64(m_captureProjectionHits)},
+            {QStringLiteral("fallbackWindowPasses"), qint64(m_captureProjectionFallbacks)}}},
         {QStringLiteral("outputs"), outputs}, {QStringLiteral("records"), records}};
 }
 }

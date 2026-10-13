@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 #include "cc_niri_native_core.h"
+#include "WorkspaceProjectionCache.h"
 #include "effect/effect.h"
 #include "effect/effectwindow.h"
 #include <QHash>
@@ -46,8 +47,14 @@ private:
         QHash<EffectWindow *, WindowBinding> windows;
         QPointer<EffectWindow> movingWindow;
         qint64 lastSampleTime = 0;
+        uint64_t motionRevision = 0;
         bool finished = false;
         bool painted = false;
+        WorkspaceProjectionCache<VirtualDesktop> projections;
+        Rect projectionGeometry;
+        qreal projectionScale = 0;
+        uint64_t projectionRevision = 0;
+        QSize projectionGrid;
     };
     std::shared_ptr<ScreenBinding> prepare(LogicalOutput *output, EffectWindow *moving);
     void desktopChanged(VirtualDesktop *previous, VirtualDesktop *current, EffectWindow *moving, LogicalOutput *output);
@@ -57,6 +64,9 @@ private:
     void finishAll();
     void bindWindow(ScreenBinding &screen, EffectWindow *window);
     void unbindWindow(ScreenBinding &screen, EffectWindow *window);
+    void invalidateProjections();
+    void watchDesktop(VirtualDesktop *desktop);
+    void watchOutput(LogicalOutput *output);
     void observe(LogicalOutput *output, ScreenBinding &screen, uint32_t kind);
     struct CaptureOutput { QPointer<LogicalOutput> output; QString name; };
     struct CaptureRecord { CcNiriWorkspaceState state; qint64 at; uint32_t output,kind; };
@@ -69,7 +79,10 @@ private:
     QPointer<LogicalOutput> m_lastOutput;
     CcNiriViewportClipEffect *m_owner;
     QHash<LogicalOutput *, std::shared_ptr<ScreenBinding>> m_screens;
-    QPointer<LogicalOutput> m_paintedScreen;
+    WorkspaceProjectionPasses m_projectionPasses;
+    uint64_t m_projectionRevision = 0;
+    uint64_t m_captureProjectionCalls = 0, m_captureProjectionFrames = 0;
+    uint64_t m_captureProjectionHits = 0, m_captureProjectionFallbacks = 0;
     qint64 m_epoch = 0;
     int m_duration = 420;
     int m_horizontalGap = 45;
@@ -78,5 +91,6 @@ private:
     bool m_enabled = false;
     bool m_smooth = false;
     bool m_switchingActivity = false;
+    bool m_projectionCacheEnabled = false;
 };
 }

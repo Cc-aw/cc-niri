@@ -1,0 +1,40 @@
+{
+  "scope": "D1a only; no Blur/Contrast policy or time clamping",
+  "defaultEnabled": false,
+  "configGroup": "Effect-cc-niri-viewport-clip",
+  "configKey": "WorkspaceProjectionCache",
+  "core": "Rust; unchanged projection/curve APIs",
+  "cacheBytes": 144,
+  "passStackBytes": 136,
+  "fixture": {
+    "windows": 27,
+    "desktops": 9,
+    "legacyProjectionCalls": 27,
+    "cachedProjectionCalls": 9,
+    "legacyMembershipChecks": 243,
+    "cachedMembershipChecks": 54
+  },
+  "validationLogs": {
+    "native-final": "/tmp/cc-niri-jk-d1a-native-final.log",
+    "debug": "/tmp/cc-niri-jk-d1a-debug.log",
+    "release": "/tmp/cc-niri-jk-d1a-release.log",
+    "umbrella-final": "/tmp/cc-niri-jk-d1a-umbrella-final.log",
+    "production-final": "/tmp/cc-niri-jk-d1a-production-final.log",
+    "bridge-production": "/tmp/cc-niri-jk-d1a-bridge-production.log",
+    "reject": "/tmp/cc-niri-jk-d1a-reject.log"
+  },
+  "sourceSha256": {
+    "native/viewport-clip/WorkspaceSlideAdapter.cpp": "26d609d58bcbf9e751fe1ae9fd28e07e93f1e59ccd6c73afd657706bb2c11fb7",
+    "native/viewport-clip/WorkspaceSlideAdapter.h": "15480147ce82bd54e637611188536f4f8d27d782eef56a76531a90aa2340dab4",
+    "native/viewport-clip/WorkspaceProjectionCache.h": "5e7db633aa3239e56f63ac3cc35827da719cd540a6f6ff992c890b21e0d88af7",
+    "native/viewport-clip/CMakeLists.txt": "c353ff248eae8b5475e4c6cf31d339234956a177c5c57de00d007cbb9a2564f2",
+    "native/viewport-clip/tests/WorkspaceProjectionCacheTest.cpp": "64135552da1b753364e9530d486bbe3736eb0191d1c8d96ee3e9977dc4a31717"
+  },
+  "artifactSha256": {
+    "testedClipRelWithDebInfo": "b0e874ddc83e2057eca37ca3887b70af37ef76fe7637cfcd0d89d4d7963fb059",
+    "installStagedClip": "737c5dbf9bbf682ed59a384f52d1676be8cfbeab8b90f4450ac4e35785c4678d"
+  },
+  "liveAB": "PENDING; requires deployment decision",
+  "wholeProjectMemory": "NOT MEASURED",
+  "validation": "PASS: final complete Native gate, Debug/Release, umbrella, OFF production and compiler rejection"
+}
