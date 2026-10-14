@@ -1,0 +1,2 @@
+# Preserve raw KWin diagnostic output: spaces and '=' section headings are data.
+test/memory-data/20261013/kwin-support.txt -whitespace conflict-marker-size=64

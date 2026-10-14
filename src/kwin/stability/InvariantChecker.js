@@ -1,8 +1,13 @@
 "use strict";
 
+/* cjs:start */
+const { virtualLeadingInset } = require("../layout/ColumnLayout");
+/* cjs:end */
+
 class InvariantChecker {
     constructor(options) {
         this.appState = options.appState;
+        this.alwaysCenterSingleColumn = options.alwaysCenterSingleColumn === true;
         this.workspaceMembership = options.workspaceMembership || null;
         this.workspaceSnapshots = options.workspaceSnapshots || null;
         this.windowStates = options.windowStates;
@@ -20,7 +25,9 @@ class InvariantChecker {
         const columns = this.appState.columns;
         const windows = new Set();
         const uuids = new Set();
-        let expectedLogicalX = 0;
+        let expectedLogicalX = virtualLeadingInset(
+            this.appState.safeRect ? this.appState.safeRect.width : 0,
+            this.appState.innerGap, this.alwaysCenterSingleColumn);
 
         columns.forEach((column, index) => {
             const uuid = this.normalizeUuid(column.window.internalId);

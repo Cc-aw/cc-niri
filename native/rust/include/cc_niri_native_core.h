@@ -132,6 +132,12 @@ typedef struct {
     CcNiriByteView fingerprint; uint32_t shape_valid,retarget_only,clip_partial;
     /* retarget_only / clip_partial: 0 absent, 1 false, 2 true, 3 wrong JSON type */
 } CcNiriScrollPlan;
+/* Distinct wire basis adaptation. All nested buffers borrowed for one call.
+ * Shares the SCROLL sequence/runtime/clock; does not relax SCROLL validation. */
+typedef struct {
+    CcNiriScrollPlan plan;
+    uint64_t source_id; double source_logical_x;
+} CcNiriReindexPlan;
 /* reserved bit 0: active partial paint/input clipping, also after settlement. */
 typedef struct { int64_t epoch; uint32_t active,completed,status,reserved; } CcNiriScrollStatus;
 typedef struct { uint64_t value; uint32_t status,reserved; } CcNiriIdResult;
@@ -148,6 +154,7 @@ CcNiriSpringBoolResult cc_niri_scroll_arm(CcNiriScroll *handle,const CcNiriScrol
  * Other values return INVALID_DTO. JS wire protocol and layout authority stay
  * unchanged; partial Script-painted plans keep the legacy motion policy. */
 CcNiriSpringBoolResult cc_niri_scroll_arm_with_policy(CcNiriScroll *handle,const CcNiriScrollPlan *plan,int64_t now_ns,const CcNiriWindowFrame *frames,uint64_t frames_len,uint32_t smooth);
+CcNiriSpringBoolResult cc_niri_scroll_arm_reindex(CcNiriScroll *handle,const CcNiriReindexPlan *plan,int64_t now_ns,const CcNiriWindowFrame *frames,uint64_t frames_len,uint32_t smooth);
 typedef struct {
     uint64_t degraded,carried,braked,kept,no_space,invalid_math,coverage;
     double initial_velocity,saved_velocity,brake_ms,brake_distance,lower,upper;
@@ -221,6 +228,7 @@ CcNiriProtocolResult cc_niri_scroll_sequence_update(CcNiriScrollSequence *handle
 /* observe=0 validates without consuming an epoch; observe=1 returns disposition
  * rejected/duplicate/accepted = 0/1/2 and consumes an accepted epoch. */
 CcNiriProtocolResult cc_niri_scroll_sequence_plan(CcNiriScrollSequence *handle,const CcNiriScrollPlan *plan,uint32_t observe);
+CcNiriProtocolResult cc_niri_scroll_sequence_reindex(CcNiriScrollSequence *handle,const CcNiriReindexPlan *plan,uint32_t observe);
 CcNiriSpringBoolResult cc_niri_scroll_sequence_authority(const CcNiriScrollSequence *handle);
 typedef struct CcNiriEligibility CcNiriEligibility;
 typedef struct {

@@ -358,5 +358,29 @@ int main() {
         handoff.remove(QStringLiteral("1"));
         check(!handoff.active(), "window lifecycle releases the handoff handle");
     }
-    std::cout << "PASS native scroll projection ownership and lifecycle with incoming fixed gap" << std::endl;
+    ScrollRuntimeTestBackend reindexed; reindexed.updateContext(state());
+    auto reindex = plan(1, 630, 0);
+    reindex.insert(QStringLiteral("type"), QStringLiteral("COLUMN_REINDEX"));
+    reindex.insert(QStringLiteral("sourceWindowId"), QStringLiteral("b"));
+    reindex.insert(QStringLiteral("sourceLogicalX"), 1890);
+    auto row = reindex.value(QStringLiteral("entries")).toArray().first().toObject();
+    row.insert(QStringLiteral("windowId"), QStringLiteral("b"));
+    row.insert(QStringLiteral("logicalX"), 630); row.insert(QStringLiteral("pixelWidth"), 1252);
+    row.insert(QStringLiteral("oldPlacement"), QStringLiteral("visible"));
+    row.insert(QStringLiteral("newPlacement"), QStringLiteral("visible"));
+    reindex.insert(QStringLiteral("entries"), QJsonArray{row});
+    const QRectF reindexSource(-660.5, 50.25, 1252, 1320.25);
+    check(reindexed.arm(reindex, 0ns, {{QStringLiteral("b"), reindexSource}}, true), "typed reindex FFI arm");
+    const auto target = reindexed.targets().value(QStringLiteral("b"));
+    check(target.x() == -1290.5, "new centered real frame");
+    check(target.x() + reindexed.projection(QStringLiteral("b"), target)->translationX == reindexSource.x(), "first paint preserves old basis");
+    check(reindexed.projection(QStringLiteral("b"), reindexSource)->translationX == 0, "pre-configure reindexSource pose owned");
+    check(reindexed.prepareFrame(80ms), "shared frame sample");
+    check(reindexed.markPainted(1, 80'000'000), "shared real paint anchor");
+    auto departing = reindexed;
+    reindexed.cancel(QStringLiteral("s"), 1);
+    check(!reindexed.active() && departing.projection(QStringLiteral("b"), target).has_value(), "reindex workspace departure freezes shared Rust pose");
+    departing.remove(QStringLiteral("b"));
+    check(!departing.projection(QStringLiteral("b"), target), "closed reindex owner released");
+    std::cout << "PASS native scroll / typed reindex projection ownership and lifecycle" << std::endl;
 }

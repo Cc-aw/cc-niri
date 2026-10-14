@@ -18,6 +18,19 @@
 - 工具链或语言迁移不改变滚动、Spring 参数、retarget、Focus Ring、Pair/Wide、Workspace 或快捷键行为。
 - 修改 `src/` 后用 `node tools/build.js` 生成包，不直接编辑生成脚本。
 
+## 全项目低内存设计约束（16GB 桌面）
+
+- 资源预算覆盖 KWin JavaScript、Rust Native Core、原生 Viewport Clip / Focus Ring、独立 Bridge，以及开启时的可选 Dock。不得仅凭单个进程 RSS 或单个功能零分配宣称整体低内存。
+- 默认 Dockless 整套项目相对原生 KDE 的空闲稳态 PSS 净增量初始目标为 **≤32 MiB，争取 ≤16 MiB**；正常动画期间 PSS 观测峰值净增量目标为 **≤64 MiB**。这些是待测目标，不是现有实测结果；先建立同负载 B0/B1 基线，无法可靠归因时标记 `INCONCLUSIVE`。
+- 轻量布局特性的空闲 / 动画增量目标为 ≤2 / ≤8 MiB，必须计入同一份项目总预算；同样窗口 / 工作区数量下，30–60 分钟交互后空闲 PSS 净增长超过 4 MiB 须调查，持续正斜率或存活对象增长不得通过验收。
+- 禁止新增不必要的常驻 daemon、线程池、全屏 / 窗口尺寸图像或纹理、额外动画时钟、每帧 JSON 与无界缓存。新增动画热路径以零堆分配为设计目标；必要的现有状态可按真实窗口数量 O(N) 增长，不得按历史操作次数增长。
+- 新功能默认新增独立服务 / 线程池 / 动画时钟、窗口尺寸 / 全屏缓冲均为 0；例外须明确批准，图形缓冲须先架构评审并测量资源成本。
+- 窗口关闭、工作区退出 / 回收、输出移除、effect 卸载和安全 stop 后，关联引用、Scene Item、纹理、信号、timer、FFI handle 与 IPC callback 必须释放或回到有界稳态；不得绕过 ACK、park / restore 或 epoch 清理顺序。
+- 正常 idle 不得有插件发起的循环 repaint、每帧日志或持续 capture。诊断默认关闭、容量与时间有界，不得在绘制热路径分配诊断缓冲。
+- 对内存 / 生命周期路径先测量再优化，报告 A/B PSS、Private_Dirty、对象 / 纹理数量、帧时间、GPU 归因限制与回归结果；不以降低 4K60 动画流畅度或破坏安全恢复换取内存。
+- 测量使用 Release 产物，待大型构建 / 测试结束后低频采样；16GB 设备不并行执行高内存 Debug / Release 构建，通常使用 `--parallel 2`。用户正在使用的桌面不得未经明确允许执行组件卸载、强杀 KWin、强制重登、热插拔或内存耗尽测试。
+- 按 [全项目资源规范](doc/todo/iA%20Writer.md) 执行 M0 基线、M1 账本、M2 最小优化和 M3 验收；结果分别写入 `test/CC_NIRI_GLOBAL_MEMORY_BASELINE.md`、`test/CC_NIRI_GLOBAL_MEMORY_AUDIT.md` 和 `test/CC_NIRI_GLOBAL_MEMORY_RESULTS.md`，每项明确 `PASS` / `FAIL` / `BLOCKED` / `INCONCLUSIVE` 或 `NOT MEASURED`。未验收项目保持 Pending，不虚报达标。
+
 ## 必须执行的验证
 
 工具链、Native、构建或 FFI 改动完成前，必须执行并报告结果：

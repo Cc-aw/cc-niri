@@ -177,7 +177,7 @@ bool CCNiriBridge::PublishMotionPlan(const QString &json)
     const QJsonObject plan = document.object();
     const QString type = plan.value(QStringLiteral("type")).toString();
     const QJsonArray entries = plan.value(QStringLiteral("entries")).toArray();
-    if (type == QStringLiteral("SCROLL")) {
+    if (type == QStringLiteral("SCROLL") || type == QStringLiteral("COLUMN_REINDEX")) {
         // Resolve membership against the last authoritative active workspace.
         // Never alter Wide completion tokens when publishing scroll telemetry.
         const auto state = QJsonDocument::fromJson(m_lastState.toUtf8()).object();

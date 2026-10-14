@@ -209,24 +209,63 @@ impl ScrollViewportRuntime {
         frames: &HashMap<WindowId, Rect>,
         smooth: bool,
     ) -> bool {
-        let Ok(mut validated) = ValidatedScrollPlan::new(plan, &self.windows) else {
+        let Ok(validated) = ValidatedScrollPlan::new(plan, &self.windows) else {
             return false;
         };
+        self.arm_validated(validated, 0.0, now, frames, smooth)
+    }
+    pub fn arm_reindex(
+        &mut self,
+        plan: ScrollPlan,
+        source: WindowId,
+        source_logical_x: f64,
+        now: i64,
+        frames: &HashMap<WindowId, Rect>,
+        smooth: bool,
+    ) -> bool {
+        let Ok((validated, shift)) =
+            ValidatedScrollPlan::new_reindex(plan, source, source_logical_x, &self.windows)
+        else {
+            return false;
+        };
+        self.arm_validated(validated, shift, now, frames, smooth)
+    }
+    fn arm_validated(
+        &mut self,
+        mut validated: ValidatedScrollPlan,
+        basis_shift: f64,
+        now: i64,
+        frames: &HashMap<WindowId, Rect>,
+        smooth: bool,
+    ) -> bool {
         let epoch = validated.epoch().0;
         if epoch <= self.cancelled_epoch {
             return false;
         }
         match self.sequence.observe_validated(&mut validated) {
             Ok(PlanDisposition::Accepted) => {}
-            Ok(PlanDisposition::Duplicate) => return self.active(),
+            Ok(PlanDisposition::Duplicate) => {
+                return self.active()
+                    && (basis_shift == 0.0 || self.motion.sample(0).epoch == epoch)
+            }
             _ => return false,
         }
         let plan = validated.into_wire();
         let clip_partial = plan.clip_partial == 2;
         let rect = plan.viewport;
         let target = plan.new_offset;
-        let old_offset = plan.old_offset;
+        let old_offset = plan.old_offset + basis_shift;
         let continuing = self.active() && self.viewport.equivalent(rect, self.fuzzy_zero);
+        if basis_shift != 0.0
+            && continuing
+            && plan
+                .entries
+                .iter()
+                .filter(|e| e.old_placement == Placement::Visible)
+                .any(|e| !self.visual_targets.contains_key(&e.window_id))
+        {
+            return false;
+        }
         let mut columns = HashMap::new();
         let mut visual_targets = HashMap::new();
         let mut source_frames = HashMap::new();
@@ -240,7 +279,10 @@ impl ScrollViewportRuntime {
             }
             if continuing {
                 if let Some(previous) = self.visual_targets.get(&id) {
-                    if (previous.x + self.motion.sample(0).target - rect.x - entry.logical_x).abs()
+                    if (previous.x + self.motion.sample(0).target + basis_shift
+                        - rect.x
+                        - entry.logical_x)
+                        .abs()
                         > GEOMETRY_EPSILON
                         || (previous.width - entry.pixel_width).abs() > GEOMETRY_EPSILON
                     {
@@ -298,7 +340,7 @@ impl ScrollViewportRuntime {
                 columns.insert(*id, *column);
                 source_frames.insert(*id, *column);
                 let mut visual = self.visual_targets.get(id).copied().unwrap_or_default();
-                visual.x += self.motion.sample(0).target - target;
+                visual.x += self.motion.sample(0).target + basis_shift - target;
                 visual_targets.insert(*id, visual);
                 roles.insert(*id, WindowRole::Outgoing);
             }
@@ -308,7 +350,7 @@ impl ScrollViewportRuntime {
             return false;
         }
         let from = if continuing {
-            self.anchor_offset
+            self.anchor_offset + basis_shift
         } else {
             old_offset
         };
@@ -342,7 +384,7 @@ impl ScrollViewportRuntime {
                 upper,
                 reverse_limit: rect.width * 0.02,
             };
-            if carry && candidate_motion.can_keep_curve(target, bounds) {
+            if carry && basis_shift == 0.0 && candidate_motion.can_keep_curve(target, bounds) {
                 if !candidate_motion.keep_curve(epoch, start_time) {
                     return false;
                 }
@@ -397,6 +439,10 @@ impl ScrollViewportRuntime {
         self.frame_sample = None;
         if !continuing {
             self.painted_sample = None;
+        } else if let Some(sample) = &mut self.painted_sample {
+            // Preserve the actual painted pose and velocity in the new basis.
+            sample.motion.current += basis_shift;
+            sample.motion.target += basis_shift;
         }
         self.completed = false;
         self.clip_partial = clip_partial;
@@ -1082,5 +1128,265 @@ mod tests {
         assert!(!Text::from_utf8("İ").canonical_window());
         assert!(!Text(vec![0x85, 0xa0]).valid());
         assert!(Text(vec![0xd800]).canonical_window());
+    }
+
+    fn centered(
+        r: &mut ScrollViewportRuntime,
+        epoch: f64,
+        old: f64,
+        new: f64,
+        rows: &[(&str, f64, Placement)],
+        reindex: bool,
+    ) -> ScrollPlan {
+        let mut p = plan(r, epoch, 0.0, 1260.25);
+        p.kind = Text::from_utf8(if reindex { "COLUMN_REINDEX" } else { "SCROLL" });
+        p.old_offset = old;
+        p.new_offset = new;
+        p.viewport.width = 2512.0;
+        p.retarget_only = if old == new && !reindex { 2 } else { 0 };
+        p.entries = rows
+            .iter()
+            .enumerate()
+            .map(|(i, (name, x, placement))| ScrollEntry {
+                window_id: r.intern(Text::from_utf8(name)),
+                column_id: i as f64,
+                logical_x: *x,
+                pixel_width: 1252.0,
+                old_placement: *placement,
+                new_placement: Placement::Visible,
+            })
+            .collect();
+        p
+    }
+    #[test]
+    fn typed_reindex_starts_at_real_old_basis_and_finishes_centered() {
+        let mut r = ScrollViewportRuntime::new(true);
+        r.update_context(context("s", 1.0));
+        let p = centered(
+            &mut r,
+            1.0,
+            630.0,
+            0.0,
+            &[("b", 630.0, Placement::Visible)],
+            true,
+        );
+        let b = p.entries[0].window_id;
+        let old = Rect {
+            x: p.viewport.x + 1260.0,
+            y: p.viewport.y,
+            width: 1252.0,
+            height: p.viewport.height,
+        };
+        assert!(!r.arm(p.clone(), 0, &HashMap::new()));
+        assert!(r.arm_reindex(p.clone(), b, 1890.0, 0, &HashMap::from([(b, old)]), true));
+        let target = r.targets()[&b];
+        assert_eq!(
+            target.x + r.projection(b, target).unwrap().translation_x,
+            old.x
+        );
+        assert_eq!(old.x + r.projection(b, old).unwrap().translation_x, old.x);
+        assert!(r.arm_reindex(p, b, 1890.0, 1, &HashMap::new(), true)); // duplicate
+        let allocations = crate::allocation_checks::count(|| {
+            for frame in 0..100 {
+                r.prepare_frame(frame * 16_666_667);
+                let sample = r.frame_sample.unwrap();
+                assert!(r.mark_painted(sample.motion.epoch, sample.time_ns));
+                std::hint::black_box(r.projection(b, target));
+            }
+        });
+        assert_eq!(allocations, 0);
+        assert!(r.completed());
+        assert_eq!(r.projection(b, target).unwrap().translation_x, 0.0);
+        r.cancel(&Text::from_utf8("s"), 1);
+        assert!(!r.active());
+        r.remove(b);
+        assert!(r.label(b).is_none());
+    }
+    #[test]
+    fn left_insert_and_reverse_reindex_reuse_painted_pose_not_prediction() {
+        let mut r = ScrollViewportRuntime::new(true);
+        r.update_context(context("s", 1.0));
+        let p = centered(
+            &mut r,
+            1.0,
+            0.0,
+            630.0,
+            &[
+                ("b", 630.0, Placement::Parked),
+                ("a", 1890.0, Placement::Visible),
+            ],
+            true,
+        );
+        let a = p.entries[1].window_id;
+        let b = p.entries[0].window_id;
+        assert!(r.arm_reindex(p, a, 630.0, 0, &HashMap::new(), true));
+        let geometry = r.targets()[&a];
+        assert_eq!(
+            geometry.x + r.projection(a, geometry).unwrap().translation_x,
+            r.viewport.x + 630.0
+        );
+        r.prepare_frame(50_000_000);
+        assert!(r.mark_painted(1, 50_000_000));
+        let painted_x = geometry.x + r.projection(a, geometry).unwrap().translation_x;
+        r.prepare_frame(100_000_000); // do not promote this prediction
+        r.remove(b);
+        let returning = centered(
+            &mut r,
+            2.0,
+            630.0,
+            0.0,
+            &[("a", 630.0, Placement::Visible)],
+            true,
+        );
+        assert!(r.arm_reindex(returning, a, 1890.0, 100_000_000, &HashMap::new(), true));
+        let target = r.targets()[&a];
+        assert!(
+            (target.x + r.projection(a, target).unwrap().translation_x - painted_x).abs() < 1e-9
+        );
+        // Same-frame ordinary SCROLL resumes the new canonical basis.
+        let next = centered(
+            &mut r,
+            3.0,
+            0.0,
+            630.0,
+            &[
+                ("a", 630.0, Placement::Visible),
+                ("c", 1890.0, Placement::Parked),
+            ],
+            false,
+        );
+        assert!(r.arm_with_policy(next, 100_000_000, &HashMap::new(), true));
+        let target = r.targets()[&a];
+        assert!(
+            (target.x + r.projection(a, target).unwrap().translation_x - painted_x).abs() < 1e-9
+        );
+    }
+    #[test]
+    fn reindex_rejects_unknown_basis_and_consumes_accepted_epoch_on_arm_failure() {
+        let mut r = ScrollViewportRuntime::new(true);
+        r.update_context(context("s", 1.0));
+        let initial = centered(
+            &mut r,
+            1.0,
+            0.0,
+            630.0,
+            &[
+                ("a", 630.0, Placement::Visible),
+                ("b", 1890.0, Placement::Parked),
+            ],
+            false,
+        );
+        assert!(r.arm_with_policy(initial, 0, &HashMap::new(), true));
+        let p = centered(
+            &mut r,
+            2.0,
+            630.0,
+            0.0,
+            &[("b", 630.0, Placement::Visible)],
+            true,
+        );
+        let b = p.entries[0].window_id;
+        let mut wrong = p.clone();
+        wrong.fingerprint.push(1);
+        assert!(!r.arm_reindex(wrong.clone(), b, 1889.0, 1, &HashMap::new(), true));
+        assert_eq!(r.epoch(), 1);
+        assert!(!r.arm_reindex(wrong, b, 1889.0, 1, &HashMap::new(), true));
+        assert!(!r.arm_reindex(p, b, 1890.0, 1, &HashMap::new(), true));
+    }
+    #[test]
+    fn typed_reindex_validates_scope_source_numbers_widths_and_placements() {
+        let mut r = ScrollViewportRuntime::new(true);
+        let p = centered(
+            &mut r,
+            1.0,
+            0.0,
+            630.0,
+            &[
+                ("b", 630.0, Placement::Parked),
+                ("a", 1890.0, Placement::Visible),
+            ],
+            true,
+        );
+        let a = p.entries[1].window_id;
+        assert!(ValidatedScrollPlan::new_reindex(p.clone(), a, 630.0, &r.windows).is_ok());
+        for source_x in [f64::NAN, f64::INFINITY, -1.0, 1890.0, 1261.0] {
+            assert!(ValidatedScrollPlan::new_reindex(p.clone(), a, source_x, &r.windows).is_err());
+        }
+        assert!(
+            ValidatedScrollPlan::new_reindex(p.clone(), WindowId(0), 630.0, &r.windows).is_err()
+        );
+        for case in 0..16 {
+            let mut bad = p.clone();
+            match case {
+                0 => bad.kind = Text::from_utf8("SCROLL"),
+                1 => bad.old_offset = -1.0,
+                2 => bad.new_offset = f64::NAN,
+                3 => bad.entries[0].old_placement = Placement::Visible,
+                4 => bad.entries[1].old_placement = Placement::Parked,
+                5 => bad.entries[0].new_placement = Placement::Parked,
+                6 => bad.entries[0].window_id = a,
+                7 => bad.entries[0].column_id = bad.entries[1].column_id,
+                8 => bad.entries[0].pixel_width -= 1.0,
+                9 => bad.entries[0].logical_x = -1.0,
+                10 => bad.retarget_only = 2,
+                11 => bad.clip_partial = 2,
+                12 => bad.entries.push(bad.entries[0].clone()),
+                13 => bad.entries.clear(),
+                14 => bad.epoch = 9007199254740992.0,
+                _ => bad.viewport.x = f64::INFINITY,
+            }
+            assert!(
+                ValidatedScrollPlan::new_reindex(bad, a, 630.0, &r.windows).is_err(),
+                "case {case}"
+            );
+        }
+    }
+    #[test]
+    fn stable_reindex_without_paint_reverses_at_origin_and_workspace_switch_retires_it() {
+        let mut r = ScrollViewportRuntime::new(true);
+        r.update_context(context("s", 1.0));
+        let p = centered(
+            &mut r,
+            1.0,
+            0.0,
+            630.0,
+            &[
+                ("b", 630.0, Placement::Parked),
+                ("a", 1890.0, Placement::Visible),
+            ],
+            true,
+        );
+        let a = p.entries[1].window_id;
+        assert!(r.arm_reindex(p, a, 630.0, 0, &HashMap::new(), false));
+        let target = r.targets()[&a];
+        let origin = target.x + r.projection(a, target).unwrap().translation_x;
+        r.prepare_frame(50_000_000);
+        let returning = centered(
+            &mut r,
+            2.0,
+            630.0,
+            0.0,
+            &[("a", 630.0, Placement::Visible)],
+            true,
+        );
+        assert!(r.arm_reindex(
+            returning.clone(),
+            a,
+            1890.0,
+            50_000_000,
+            &HashMap::new(),
+            false
+        ));
+        let target = r.targets()[&a];
+        assert_eq!(
+            target.x + r.projection(a, target).unwrap().translation_x,
+            origin
+        );
+        let mut next = context("s", 2.0);
+        next.workspace = Text::from_utf8("other");
+        assert!(r.update_context(next));
+        assert!(!r.active());
+        assert!(!r.arm_reindex(returning, a, 1890.0, 60_000_000, &HashMap::new(), false));
+        assert!(r.targets().is_empty() && r.source_frames().is_empty());
     }
 }

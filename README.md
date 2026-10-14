@@ -82,6 +82,8 @@ cc-niri status
 
 在 **系统设置 → 窗口管理 → KWin 脚本** 中配置输出名称、边距、间隔和日志。主屏名称留空时选择最左侧启用的输出。
 
+开发版本新增 `AlwaysCenterSingleColumn`，默认关闭：主屏仅一列 half 时居中，增删列通过现有 Native 时钟过渡。本机已部署并开启，统一实机视觉验收待确认，见[开发与部署结果](test/RUST_NATIVE_R7_SINGLE_COLUMN_CENTER_RESULTS.md)。
+
 Dock 集成默认关闭。系统设置的 **Enable optional CC Scroll Tasks integration** 控制 Dock 点击、拖动重排和展示菜单；关闭后不创建 Dock 滚动规划器，也不接受这些 Dock 命令。已安装 Dock 可直接重新启用：
 
 ```bash
@@ -128,6 +130,12 @@ python3 tools/analyze-animation-capture.py capture.dbus
 采样 v1 将绘制轨迹与 `framePresented` 时间分开记录，二者没有可靠的逐帧关联。分析中的响应时间仅是组件处理事件到绘制样本，T95 / 数值完成时间属于采样轨迹，不代表实际输入到面板的延迟或 GPU 时长。完整门禁、实机待验收项目与回滚边界见 [A0/A1 阶段记录](test/ANIMATION_60HZ_RESULTS.md)。
 
 工作区优化已启用且 profile 为 smooth60 时，J/K 从最近实际绘制的 cell 位置与解析速度接管，整段五次轨迹经 Bézier 包络检查。可行段同时保留加速度；受限时明确降级为 C1，必要时在原 WorkspaceDuration 内加入最多 50ms、最多 0.02 cell 的制动段，硬边界没有空间时清零速度并记录原因。静止起步、wrap / grid、手势释放语义和时长不变。GetScrollMotionStatus 的 workspaceMotion 提供各轴策略与导数；既有工作区 capture 附加最多 3 秒 / 512 条的 motionCapture，关闭时不记录，无独立 timer。结果与限制见 [A3 阶段记录](test/RUST_NATIVE_R7_ANIMATION_A3_RESULTS.md)。
+
+J/K 呈现帧诊断使用既有 `StartWorkspaceFrameCapture()` / `GetWorkspaceFrameCapture()`。导出 JSON 或 gdbus 单字符串结果后，运行 `python3 tools/analyze-workspace-capture.py capture.dbus --transitions`，按各输出的 desktopChanged 至 Native finish 后一刷新周期统计 P50/P95/P99、最大间隔与超过25ms的间隔数。连续 retarget 归入同一转场，独立转场之间的 idle 不计入；首个呈现等待与首个 paint callback 分别报告，不关联到确切窗口内容。截断、无 finish 或无效样本会显式标记，不能当作完整性能结论。不加 `--transitions` 保留旧的全 capture 初步分析方式。同负载 Blur 开/关/开短测与归因限制见 [D0 结果](test/JK_4K60_STUTTER_D0_RESULTS.md)。
+
+J/K 桌面投影预计算 D1a 已实现并通过离线门禁，2026-10-14已部署、缓存保持关闭；后续短开关对照与用户目测已通过，完整场景/内存预算未验收，见 [D1a 结果](test/RUST_NATIVE_R7_JK_D1A_RESULTS.md)。新版 Native Clip 的 `Effect-cc-niri-viewport-clip / WorkspaceProjectionCache` 默认 false；开启时每真实输出 paint pass 复用最多4项 Rust 可视桌面投影，无法完整复用时回到完整遍历。`workspaceMotion.projectionCacheEnabled` 显示实际配置，Workspace capture 的 `motionCapture.projectionAudit` 提供调用与回退计数。此项不调整 Blur、曲线、420ms 时长或全屏重绘；减少调用数量不等于已证明 FPS 提升。
+
+可选D2时间增量限制已实现，2026-10-14已部署，选项保持关闭、仅smooth60适用，后续短功能与用户目测验收已通过。`Effect-cc-niri-viewport-clip / WorkspaceFrameDeltaClamping` 控制独立的每输出Rust采样时间适配；`workspaceMotion.samplingClock` 报告逻辑时间、真实输入时间、lag与回退原因。它可以减轻长帧后的位置突进，但可能延长420ms逻辑动画的实际完成时间；不改变framePresented或提高真实FPS。实现、离线门禁与待验收项目见 [D2 结果](test/RUST_NATIVE_R7_JK_D2_RESULTS.md)。
 
 所有尺寸使用逻辑像素，不额外乘输出缩放比例：
 

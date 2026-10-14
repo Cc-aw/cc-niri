@@ -19,6 +19,7 @@ let windows = [];
 let geometryWrites = 0;
 const logs = [];
 const published = [];
+const stateAcks = [];
 const traffic = [];
 const deferred = [];
 const motionAcks = [];
@@ -74,10 +75,12 @@ function windowFor(uuid, desktop) {
     window.setMaximize = (horizontal, vertical) => { window.maximizeMode = horizontal && vertical ? 3 : 0; window.maximizedChanged.emit(); };
     return window;
 }
-const a = Array.from({ length: 5 }, (_, index) => windowFor(`a${index}`, desktops[0]));
-const b = [windowFor("b0", desktops[1]), windowFor("b1", desktops[1])];
+const a = Array.from({ length: config.PrimaryWindowCount === undefined ? 5 : config.PrimaryWindowCount },
+    (_, index) => windowFor(`a${index}`, desktops[0]));
+const b = Array.from({ length: config.OtherWorkspaceWindowCount === undefined ? 2 : config.OtherWorkspaceWindowCount },
+    (_, index) => windowFor(`b${index}`, desktops[1]));
 windows = [...a, ...b];
-activeWindow = a[0]; a[0].active = true;
+activeWindow = a[0]; if (a[0]) a[0].active = true;
 const workspace = { desktops, screens: [output], currentDesktopForScreen: () => current,
     createDesktop(position, name) {
         desktopCreates.push({ position, name });
@@ -116,14 +119,33 @@ const context = vm.createContext({ workspace, QTimer: Timer,
         if (method === "GetState") callback(config.PreviousState
             ? JSON.stringify(config.PreviousState) : "");
         else if (method === "EnsureVerticalDesktopLayout") { desktopRows.push(args[0]); callback(true); }
-        else if (method === "PublishState") { published.push(JSON.parse(args[0])); callback(true); }
+        else if (method === "PublishState") {
+            const state = JSON.parse(args[0]);
+            let replied = false;
+            const reply = accepted => {
+                if (replied) return;
+                replied = true;
+                if (accepted) published.push(state);
+                callback(accepted);
+            };
+            stateAcks.push(reply);
+            if (!config.HoldStateAck) reply(!config.RejectState);
+        }
         else if (method === "PublishMotionPlan") {
             const plan = JSON.parse(args[0]);
             motionPlans.push(plan); motionPublishWrites.push(geometryWrites); motionAcks.push(callback);
-            if ((plan.type === "SCROLL" && !config.HoldScrollAck) ||
-                    (plan.viewport && plan.type !== "SCROLL" && !config.HoldWidthAck)) callback(true);
+            if (config.ValidateScrollMembership && ["SCROLL", "COLUMN_REINDEX"].includes(plan.type)) {
+                const state = published.at(-1);
+                const owners = new Set(state ? state.columns.map(column => column.uuid) : []);
+                if (!state || state.workspaceId !== plan.workspaceId ||
+                        state.targetOutput !== plan.targetOutput ||
+                        plan.entries.some(entry => !owners.has(entry.windowId))) { callback(false); return; }
+            }
+            if (config.RejectScrollPlan && ["SCROLL", "COLUMN_REINDEX"].includes(plan.type)) { callback(false); return; }
+            if ((["SCROLL", "COLUMN_REINDEX"].includes(plan.type) && !config.HoldScrollAck) ||
+                    (plan.viewport && !["SCROLL", "COLUMN_REINDEX"].includes(plan.type) && !config.HoldWidthAck)) callback(true);
         }
-        else if (method === "ArmScrollPlan") { nativeArms.push(JSON.parse(args[0])); nativeAcks.push(callback); if (!config.HoldNativeAck) callback(true); }
+        else if (method === "ArmScrollPlan") { nativeArms.push(JSON.parse(args[0])); nativeAcks.push(callback); if (!config.HoldNativeAck) callback(!config.RejectNativeArm); }
         else if (method === "WorkspaceTransitionActive") {
             workspaceTransitionAcks.push(callback);
             if (!config.HoldWorkspaceTransitionAck) callback(workspaceTransitionActive);
@@ -148,7 +170,7 @@ function nativeSwitch(index, active, expectMount = true) {
     assert.equal(logs.filter(line => /BEGIN epoch=.*reason=workspace-mount/.test(line)).length, batches + Number(expectMount),
         "native desktop changes issue one relayout, including empty workspaces");
 }
-return { evaluate, state, ids, nativeSwitch, desktops, desktopCreates, desktopRemoves, desktopRows, output, workspace, a, b, published, traffic, deferred, motionAcks, motionPlans, motionPublishWrites, nativeArms, nativeAcks, nativeCancels, cancelAcks, scrollStatusAcks, timers, shortcuts, logs,
+return { evaluate, state, ids, nativeSwitch, desktops, desktopCreates, desktopRemoves, desktopRows, output, workspace, a, b, published, stateAcks, traffic, deferred, motionAcks, motionPlans, motionPublishWrites, nativeArms, nativeAcks, nativeCancels, cancelAcks, scrollStatusAcks, timers, shortcuts, logs,
     queueCommand(command) { pendingCommand = JSON.stringify(command); },
     workspaceTransitionAcks,
     setWorkspaceTransitionActive(value) { workspaceTransitionActive = value; },

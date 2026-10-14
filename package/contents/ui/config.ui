@@ -71,6 +71,14 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="columnGroup">
+     <property name="title"><string>Primary workspace columns</string></property>
+     <layout class="QVBoxLayout" name="columnLayout">
+      <item><widget class="QCheckBox" name="kcfg_AlwaysCenterSingleColumn"><property name="text"><string>Center the only half-width column on the primary workspace</string></property><property name="toolTip"><string>Multiple columns keep the Pair layout; Full, Wide and secondary windows keep their existing behavior. Restart cc-niri after changing this option.</string></property></widget></item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QGroupBox" name="secondaryGroup">
      <property name="title"><string>Secondary monitor safe area</string></property>
      <layout class="QGridLayout" name="secondaryLayout">

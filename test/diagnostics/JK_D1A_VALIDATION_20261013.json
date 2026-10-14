@@ -34,7 +34,30 @@
     "testedClipRelWithDebInfo": "b0e874ddc83e2057eca37ca3887b70af37ef76fe7637cfcd0d89d4d7963fb059",
     "installStagedClip": "737c5dbf9bbf682ed59a384f52d1676be8cfbeab8b90f4450ac4e35785c4678d"
   },
-  "liveAB": "PENDING; requires deployment decision",
+  "deployment": {
+    "date": "2026-10-14",
+    "status": "PASS: installed candidate, components started, desktop/focus/window set restored",
+    "cacheEnabled": false,
+    "backupPath": "/home/cc/.local/state/cc-niri/backups/jk-d1a-deploy-20261014-091706",
+    "blurModified": false,
+    "userVisualFeedback": {
+      "date": "2026-10-14",
+      "feedback": "我目测比较流畅",
+      "status": "PASS: subjective daily-use feedback with cache disabled; no quantitative measurement or enabled-cache acceptance"
+    }
+  },
+  "liveAB": "PASS short functional and user visual acceptance; 33-50ms real presentation intervals remain, no FPS benefit established",
   "wholeProjectMemory": "NOT MEASURED",
-  "validation": "PASS: final complete Native gate, Debug/Release, umbrella, OFF production and compiler rejection"
+  "validation": "PASS: final complete Native gate, Debug/Release, umbrella, OFF production and compiler rejection",
+  "shortAcceptance": {
+    "date": "2026-10-14",
+    "report": "test/JK_SHORT_ACCEPTANCE_20261014.md",
+    "summary": "test/diagnostics/JK_SHORT_ACCEPTANCE_20261014.json",
+    "actions": 40,
+    "userFeedback": "没有明显异常",
+    "finalProjectionCacheEnabled": false,
+    "finalFrameDeltaClampingEnabled": false,
+    "longStability": "SKIPPED at user request",
+    "memoryBudget": "NOT MEASURED"
+  }
 }

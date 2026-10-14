@@ -1438,17 +1438,29 @@ function computeSafeRect(screen, gaps) {
 
 // Generated from src/kwin/layout/ColumnLayout.js
 function computeColumnWidth(mode, safeWidth, requestedInnerGap) {
-    if (mode === "full") return Math.max(1, safeWidth);
-    const gap = Math.min(requestedInnerGap, Math.max(0, safeWidth - 1));
-    return Math.max(1, Math.floor((safeWidth - gap) / 2));
+    const width = Number.isFinite(safeWidth) && safeWidth > 0
+        ? Math.min(safeWidth, Number.MAX_SAFE_INTEGER) : 1;
+    if (mode === "full") return Math.max(1, width);
+    const gap = Number.isFinite(requestedInnerGap)
+        ? Math.min(Math.max(0, requestedInnerGap), Math.max(0, width - 1)) : 0;
+    return Math.max(1, Math.floor((width - gap) / 2));
 }
 
-function deriveColumnLayout(columns, safeWidth, innerGap) {
-    let logicalX = 0;
+// One coordinate origin for every column count; multi-column visibility scrolls
+// this inset out of view. Native offsets and logical coordinates stay nonnegative.
+function virtualLeadingInset(safeWidth, innerGap, enabled) {
+    if (!enabled || !Number.isFinite(safeWidth) || safeWidth <= 0 ||
+            safeWidth > Number.MAX_SAFE_INTEGER) return 0;
+    return Math.max(0, Math.floor((safeWidth - computeColumnWidth("half", safeWidth, innerGap)) / 2));
+}
+
+function deriveColumnLayout(columns, safeWidth, innerGap, options = {}) {
+    let logicalX = virtualLeadingInset(safeWidth, innerGap, options.alwaysCenterSingleColumn === true);
+    const gap = Number.isFinite(innerGap) ? Math.min(Number.MAX_SAFE_INTEGER, Math.max(0, innerGap)) : 0;
     return columns.map(column => {
         const pixelWidth = computeColumnWidth(column.widthMode, safeWidth, innerGap);
         const derived = { logicalX, pixelWidth };
-        logicalX += pixelWidth + innerGap;
+        logicalX += pixelWidth + gap;
         return derived;
     });
 }
@@ -1472,6 +1484,67 @@ function scrollOffsetToRevealColumn(offset, column, stripWidth, viewportWidth) {
         nextOffset = column.logicalX + column.pixelWidth - viewportWidth;
     }
     return boundScrollOffset(nextOffset, stripWidth, viewportWidth);
+}
+
+// Generated from src/kwin/layout/SingleColumnTransition.js
+// Short-lived metadata at membership changes only, never a second window model.
+// Rust retains the last painted camera sample when the coordinate origin agrees.
+function captureSingleColumnLayout(state, enabled) {
+    if (!enabled || state.columns.length > 2 || !state.safeRect) return null;
+    return {
+        workspaceId: state.activeWorkspaceId, output: state.targetOutput,
+        safeRect: Object.assign({}, state.safeRect),
+        scrollOffsetX: state.scrollOffsetX,
+        pair: state.viewport.mode === "pair" && state.presentation.mode === "normal",
+        columns: state.columns.map(column => ({ window: column.window,
+            logicalX: column.logicalX, pixelWidth: column.pixelWidth, widthMode: column.widthMode })),
+    };
+}
+
+function prepareSingleColumnReindexPlan(plan, previous, offset) {
+    if (!previous || plan.viewportMotion || !Number.isFinite(previous.scrollOffsetX)) return null;
+    const survivors = plan.windows.filter(item => previous.columns.some(old => old.window === item.column.window));
+    if (survivors.length !== 1) return null;
+    const source = survivors[0], old = previous.columns.find(c => c.window === source.column.window);
+    const sourceX = old.logicalX - previous.scrollOffsetX;
+    // Hidden/partial sources have no continuous fully visible half-column pose.
+    // Keep the existing static fallback for these and safe-area/width changes.
+    if (source.placement !== "visible" || sourceX < 0 ||
+            sourceX + old.pixelWidth > previous.safeRect.width ||
+            old.pixelWidth !== source.column.pixelWidth || old.logicalX === source.column.logicalX) return null;
+    const windows = plan.windows.map(item => Object.assign({}, item, {
+        transitionRole: item === source ? "continuing" : item.placement === "visible" ? "incoming" : "static",
+        oldPlacement: item === source ? "visible" : "parked", newPlacement: item.placement,
+    }));
+    const entries = windows.filter(item => item.transitionRole !== "static").map(item => ({
+        windowId: String(item.column.window.internalId), columnId: item.columnId,
+        logicalX: item.column.logicalX, pixelWidth: item.column.pixelWidth,
+        oldPlacement: item.oldPlacement, newPlacement: item.newPlacement,
+    }));
+    return Object.assign({}, plan, { windows,
+        commitOrder: plan.commitOrder.map(item => windows.find(w => w.columnId === item.columnId)),
+        scrollTransaction: { id: plan.epoch, epoch: plan.epoch, type: "COLUMN_REINDEX",
+            sourceWindowId: String(source.column.window.internalId), sourceLogicalX: old.logicalX,
+            direction: "reindex", deltaX: offset - previous.scrollOffsetX,
+            oldScrollOffsetX: previous.scrollOffsetX, newScrollOffsetX: offset,
+            viewport: Object.assign({}, previous.safeRect), entries },
+    });
+}
+
+function classifySingleColumnTransition(previous, state) {
+    if (!previous || !previous.pair || !state.enabled || state.workspaceSwitching ||
+            previous.workspaceId !== state.activeWorkspaceId || previous.output !== state.targetOutput ||
+            !state.safeRect || state.viewport.mode !== "pair" || state.presentation.mode !== "normal") return null;
+    const before = previous.columns, after = state.columns;
+    if (!((before.length === 1 && after.length === 2) ||
+            (before.length === 2 && after.length === 1))) return null;
+    if (before.some(column => column.widthMode !== "half") ||
+            after.some(column => column.widthMode !== "half")) return null;
+    if (["x", "y", "width", "height"].some(key => previous.safeRect[key] !== state.safeRect[key])) return "rebase";
+    const surviving = after.filter(column => before.some(old => old.window === column.window));
+    if (surviving.length !== 1) return null;
+    const column = surviving[0], old = before.find(candidate => candidate.window === column.window);
+    return old.logicalX === column.logicalX && old.pixelWidth === column.pixelWidth ? "scroll" : "reindex";
 }
 
 // Generated from src/kwin/layout/ColumnWidthController.js
@@ -1667,24 +1740,54 @@ class ScrollPlanCommitGate {
         this.retainedEpochs = new Set();
     }
     abort(epoch, callback = () => {}) {
-        const request = { epoch };
+        const request = { epoch, timer: null };
         this.disarming.add(request);
         const finish = () => {
             if (!this.disarming.delete(request)) return;
+            this.clearTimer(request.timer);
             try { callback(); } finally {
                 if (!this.disarming.size) this.idleCallbacks.splice(0).forEach(fn => fn());
             }
         };
+        // A disconnected endpoint must not retain historical requests forever.
+        // This is the same finite ACK deadline used by visible fallback commits.
+        request.timer = this.setTimer(finish, this.timeoutMs);
         try { this.disarm(epoch, finish); } catch (error) {
             this.warn(`[SCROLL_PLAN] disarm unavailable ${error}`); finish();
         }
     }
     whenIdle(callback) {
-        if (this.disarming.size) this.idleCallbacks.push(callback);
-        else callback();
+        if (!this.disarming.size) { callback(); return () => {}; }
+        this.idleCallbacks.push(callback);
+        return () => {
+            const index = this.idleCallbacks.indexOf(callback);
+            if (index >= 0) this.idleCallbacks.splice(index, 1);
+        };
+    }
+    commitWhenDisarmed(plan, context, offset) {
+        // Reindexing cannot share the old strip projection. Wait for its cancel
+        // ACK, with the existing protocol timeout as a visible geometry fallback.
+        // This timer gates a commit; it never samples or interpolates motion.
+        const pending = { plan, context, envelope: { oldScrollOffsetX: offset },
+            activationWindow: null, staticFallback: true, timer: null, cancelIdle: null };
+        this.pending = pending;
+        const finish = () => {
+            if (this.pending !== pending) return;
+            this.pending = null;
+            this.clearTimer(pending.timer);
+            if (pending.cancelIdle) pending.cancelIdle();
+            if (this.currentEpoch() === plan.epoch)
+                this.commit(plan, context, pending.activationWindow);
+        };
+        pending.timer = this.setTimer(finish, this.timeoutMs);
+        pending.cancelIdle = this.whenIdle(finish);
     }
     releaseForWorkspace() {
-        if (this.pending) { this.clearTimer(this.pending.timer); this.pending = null; }
+        if (this.pending) {
+            this.clearTimer(this.pending.timer);
+            if (this.pending.cancelIdle) this.pending.cancelIdle();
+            this.pending = null;
+        }
         this.activeEpoch = null;
         this.retainedEpochs.clear();
         if (this.releaseDeferred) this.releaseDeferred();
@@ -1695,6 +1798,7 @@ class ScrollPlanCommitGate {
         if (this.releaseDeferred) this.releaseDeferred();
         if (this.pending) {
             this.clearTimer(this.pending.timer);
+            if (this.pending.cancelIdle) this.pending.cancelIdle();
             this.retainedEpochs.add(this.pending.plan.epoch);
             this.pending = null;
         }
@@ -1703,7 +1807,11 @@ class ScrollPlanCommitGate {
         if (this.cancelDeferred) this.cancelDeferred();
         const pending = this.pending;
         this.pending = null;
-        if (pending) { this.clearTimer(pending.timer); this.retainedEpochs.add(pending.plan.epoch); }
+        if (pending) {
+            this.clearTimer(pending.timer);
+            if (pending.cancelIdle) pending.cancelIdle();
+            this.retainedEpochs.add(pending.plan.epoch);
+        }
         if (this.activeEpoch !== null) this.retainedEpochs.add(this.activeEpoch);
         this.activeEpoch = null;
         const epochs = [...this.retainedEpochs];
@@ -1713,6 +1821,7 @@ class ScrollPlanCommitGate {
     schedule(plan, envelope, context) {
         if (this.pending) {
             this.clearTimer(this.pending.timer);
+            if (this.pending.cancelIdle) this.pending.cancelIdle();
             // The newer arm supersedes ownership. Do not cancel an in-flight
             // arm here: its last painted sample is the next Spring origin.
         }
@@ -1741,16 +1850,24 @@ class ScrollPlanCommitGate {
             this.abort(plan.epoch, commit);
         };
         pending.timer = this.setTimer(() => finish(false), this.timeoutMs);
-        try {
-            this.publish(envelope, accepted => {
+        const prepared = accepted => {
+            if (this.pending !== pending || pending.fallback) return;
+            if (!accepted) { finish(false); return; }
+            try { this.publish(envelope, published => {
                 if (this.pending !== pending || pending.fallback) return;
-                if (!accepted || this.currentEpoch() !== plan.epoch) { finish(false); return; }
+                if (!published || this.currentEpoch() !== plan.epoch) { finish(false); return; }
                 try { this.arm(envelope, finish); } catch (error) { finish(false); }
-            });
+            }); } catch (error) { finish(false); }
+        };
+        try {
+            if (this.prepare) this.prepare(context, prepared);
+            else prepared(true);
         } catch (error) { finish(false); }
     }
     baseOffset(offset) {
-        return this.pending ? this.pending.envelope.oldScrollOffsetX : offset;
+        if (!this.pending) return offset;
+        return this.pending.envelope.type === "COLUMN_REINDEX"
+            ? this.pending.envelope.newScrollOffsetX : this.pending.envelope.oldScrollOffsetX;
     }
     deferActivation(window) {
         if (!this.pending) return false;
@@ -2068,6 +2185,13 @@ function createViewportScrollPlan(transaction, context) {
     });
 }
 
+function createViewportReindexPlan(transaction, context) {
+    const plan = createViewportScrollPlan(transaction, context);
+    return plan && Object.assign(plan, { type: "COLUMN_REINDEX",
+        sourceWindowId: context.normalizeUuid(transaction.sourceWindowId),
+        sourceLogicalX: transaction.sourceLogicalX });
+}
+
 function prepareViewportReturnPlan(plan, offset, viewport) {
     if (plan.viewportMotion || plan.scrollTransaction) return plan;
     const windows = plan.windows.map(item => item.placement === "visible"
@@ -2363,6 +2487,7 @@ function loadRuntimeConfig(readValue) {
     return {
         targetOutputName: String(readValue("TargetOutputName", "")).trim(),
         dockIntegration: Boolean(readValue("EnableDockIntegration", false)),
+        alwaysCenterSingleColumn: Boolean(readValue("AlwaysCenterSingleColumn", false)),
         dynamicTrailingWorkspace: Boolean(readValue("DynamicTrailingWorkspace", false)),
         autoRecycleWorkspaces: Boolean(readValue("AutoRecycleWorkspaces", false)),
         primary: {
@@ -2984,6 +3109,7 @@ class LayoutTransaction {
 class InvariantChecker {
     constructor(options) {
         this.appState = options.appState;
+        this.alwaysCenterSingleColumn = options.alwaysCenterSingleColumn === true;
         this.workspaceMembership = options.workspaceMembership || null;
         this.workspaceSnapshots = options.workspaceSnapshots || null;
         this.windowStates = options.windowStates;
@@ -3001,7 +3127,9 @@ class InvariantChecker {
         const columns = this.appState.columns;
         const windows = new Set();
         const uuids = new Set();
-        let expectedLogicalX = 0;
+        let expectedLogicalX = virtualLeadingInset(
+            this.appState.safeRect ? this.appState.safeRect.width : 0,
+            this.appState.innerGap, this.alwaysCenterSingleColumn);
 
         columns.forEach((column, index) => {
             const uuid = this.normalizeUuid(column.window.internalId);
@@ -3995,7 +4123,7 @@ class RuntimeBridge {
         });
     }
 
-    publish(snapshot, reason) {
+    publish(snapshot, reason, callback = () => {}) {
         const envelope = this.envelopeSnapshot(snapshot);
         this.invoke(
             this.service,
@@ -4003,21 +4131,24 @@ class RuntimeBridge {
             this.interfaceName,
             "PublishState",
             JSON.stringify(envelope),
-            accepted => this.debug(`[cc-bridge] PUBLISH reason=${reason}` +
-                ` generation=${this.generationValue}` +
-                ` columns=${envelope.columns.length} accepted=${accepted}`)
+            accepted => {
+                this.debug(`[cc-bridge] PUBLISH reason=${reason}` +
+                    ` generation=${this.generationValue}` +
+                    ` columns=${envelope.columns.length} accepted=${accepted}`);
+                callback(accepted);
+            }
         );
         return envelope;
     }
 
-    commit(snapshot, reason) {
+    commit(snapshot, reason, callback = () => {}) {
         this.generationValue += 1;
-        return this.publish(snapshot, reason);
+        return this.publish(snapshot, reason, callback);
     }
 
     publishMotionPlan(plan, callback) {
         const envelope = Object.assign({}, plan, {
-            protocol: plan.type === "SCROLL" ? 2 : this.protocol,
+            protocol: plan.type === "SCROLL" || plan.type === "COLUMN_REINDEX" ? 2 : this.protocol,
             sessionId: this.sessionIdValue,
         });
         this.invoke(this.service, this.path, this.interfaceName,
@@ -5476,6 +5607,7 @@ const geometryCommitter = new GeometryCommitter({
 });
 const invariantChecker = new InvariantChecker({
     appState: mainScreenState,
+    alwaysCenterSingleColumn: runtimeConfig.alwaysCenterSingleColumn,
     workspaceMembership,
     windowStates: states,
     workspaceSnapshots,
@@ -5526,6 +5658,10 @@ const motionPlanCommitGate = new MotionPlanCommitGate({
 });
 
 const scrollPlanCommitGate = new ScrollPlanCommitGate({
+    prepare: (context, callback) => {
+        if (!context.membershipReason) { callback(true); return; }
+        if (!commitRuntimeState(context.membershipReason, callback)) callback(false);
+    },
     publish: (envelope, callback) => runtimeBridge.publishMotionPlan(envelope, callback),
     arm: (envelope, callback) => runtimeBridge.armScrollPlan(envelope, callback),
     disarm: (epoch, callback) => runtimeBridge.disarmScrollPlan(epoch, callback),
@@ -6071,10 +6207,10 @@ function publishRuntimeState(reason) {
     return runtimeBridge.publish(createRuntimeSnapshot(), reason);
 }
 
-function commitRuntimeState(reason) {
+function commitRuntimeState(reason, callback = () => {}) {
     focusRingController.publish();
     if (workspaceTransferController && workspaceTransferController.isProcessing()) return null;
-    return runtimeBridge.commit(createRuntimeSnapshot(), reason);
+    return runtimeBridge.commit(createRuntimeSnapshot(), reason, callback);
 }
 
 function rejectRuntimeCommand(reason) {
@@ -6187,7 +6323,8 @@ function recomputeLogicalLayout() {
     const layout = deriveColumnLayout(
         mainScreenState.columns,
         mainScreenState.safeRect.width,
-        mainScreenState.innerGap
+        mainScreenState.innerGap,
+        { alwaysCenterSingleColumn: runtimeConfig.alwaysCenterSingleColumn }
     );
     mainScreenState.columns.forEach((column, index) => {
         column.pixelWidth = layout[index].pixelWidth;
@@ -6212,7 +6349,9 @@ function ensureColumnVisible(column) {
     if (!column || !mainScreenState.safeRect) return;
     const oldOffset = mainScreenState.scrollOffsetX;
     mainScreenState.scrollOffsetX = scrollOffsetToRevealColumn(
-        oldOffset,
+        runtimeConfig.alwaysCenterSingleColumn && mainScreenState.columns.length > 1
+            ? Math.max(oldOffset, virtualLeadingInset(mainScreenState.safeRect.width,
+                mainScreenState.innerGap, true)) : oldOffset,
         column,
         stripWidth(),
         mainScreenState.safeRect.width
@@ -6321,7 +6460,7 @@ function endLayoutTransaction(reason, epoch) {
     layoutTransaction.end(reason, epoch);
 }
 
-function relayoutImpl(reason, scrollOffsets, widthTransition) {
+function relayoutImpl(reason, scrollOffsets, widthTransition, previousSingleLayout) {
     if (!mainScreenState.enabled) {
         warn(`[cc-scroll] relayout skipped: disabled reason=${reason}`);
         return;
@@ -6331,6 +6470,12 @@ function relayoutImpl(reason, scrollOffsets, widthTransition) {
     if (!mainScreenState.safeRect) return;
     recomputeLogicalLayout();
     clampScrollOffset();
+    const singleTransition = classifySingleColumnTransition(previousSingleLayout, mainScreenState);
+    // A reindexed survivor has a different logical origin. Never combine its
+    // new logical X with the old camera to invent a Scroll v2 source pose.
+    const reindexed = singleTransition === "reindex" || singleTransition === "rebase" ||
+        Boolean(scrollPlanCommitGate.pending && scrollPlanCommitGate.pending.staticFallback);
+    if (reindexed) scrollOffsets = undefined;
     const presentedColumn = presentationColumn();
     contextualWideCoordinator.prepareLayoutTransition(presentedColumn, widthTransition);
     const wideExitColumn = widthTransition && widthTransition.column.widthMode !== "full"
@@ -6356,7 +6501,9 @@ function relayoutImpl(reason, scrollOffsets, widthTransition) {
         clipPartial: true,
     });
     const directionalFocus = reason === "focus-next" || reason === "focus-previous";
-    if (directionalFocus && !plan.viewportMotion && !plan.scrollTransaction && scrollPlanCommitGate.pending) {
+    const singleScroll = singleTransition === "scroll";
+    if (!reindexed && (directionalFocus || singleScroll) && !plan.viewportMotion && !plan.scrollTransaction &&
+            (scrollPlanCommitGate.pending || (singleScroll && deferredScrollParking.pending))) {
         // Equal committed offsets do not imply equal painted positions. Reverse
         // the pending Spring through the same native ACK gate instead of snap.
         plan = prepareViewportReturnPlan(plan, mainScreenState.scrollOffsetX, mainScreenState.safeRect);
@@ -6394,7 +6541,22 @@ function relayoutImpl(reason, scrollOffsets, widthTransition) {
         motionPlanCommitGate.schedule(plan, envelope, { wideExitColumn });
         return;
     }
-    if (plan.scrollTransaction && (directionalFocus || plan.scrollTransaction.clipPartial)) {
+    if (singleTransition === "reindex") {
+        const reindexPlan = prepareSingleColumnReindexPlan(plan, previousSingleLayout, mainScreenState.scrollOffsetX);
+        if (reindexPlan) {
+            const envelope = createViewportReindexPlan(reindexPlan.scrollTransaction, {
+                workspaceId: mainScreenState.activeWorkspaceId,
+                targetOutput: mainScreenState.targetOutput.name,
+                issuedAt: Date.now(), normalizeUuid: normalizeWindowUuid,
+            });
+            if (envelope) {
+                motionPlanCommitGate.cancel(); deferredScrollParking.pause();
+                scrollPlanCommitGate.schedule(reindexPlan, envelope, { wideExitColumn, membershipReason: reason });
+                return true;
+            }
+        }
+    }
+    if (!reindexed && plan.scrollTransaction && (directionalFocus || singleScroll || plan.scrollTransaction.clipPartial)) {
         const envelope = createViewportScrollPlan(plan.scrollTransaction, {
             workspaceId: mainScreenState.activeWorkspaceId,
             targetOutput: mainScreenState.targetOutput.name,
@@ -6406,12 +6568,17 @@ function relayoutImpl(reason, scrollOffsets, widthTransition) {
             deferredScrollParking.pause();
             // Hydration installs new UUID membership before Bridge validates the plan.
             if (reason === "workspace-mount") commitRuntimeState(reason);
-            scrollPlanCommitGate.schedule(plan, envelope, { wideExitColumn });
-            return;
+            scrollPlanCommitGate.schedule(plan, envelope, { wideExitColumn,
+                membershipReason: singleScroll ? reason : null });
+            return singleScroll;
         }
     }
     motionPlanCommitGate.cancel();
     scrollPlanCommitGate.cancel();
+    if (reindexed) {
+        scrollPlanCommitGate.commitWhenDisarmed(plan, { wideExitColumn }, mainScreenState.scrollOffsetX);
+        return;
+    }
     commitLayoutPlan(plan, wideExitColumn, null);
 }
 
@@ -6441,13 +6608,13 @@ function activateColumnWhenReady(window) {
     }
 }
 
-function relayout(reason, scrollOffsets, widthTransition) {
+function relayout(reason, scrollOffsets, widthTransition, previousSingleLayout) {
     if (reason !== "workspace-mount" && workspaceTransferController &&
             workspaceTransferController.deferLayout()) return;
     if (reason !== "workspace-mount" && !workspaceMountController.canUseActiveWorkspace()) return;
     const epoch = beginLayoutTransaction(reason);
     try {
-        relayoutImpl(reason, scrollOffsets, widthTransition);
+        return relayoutImpl(reason, scrollOffsets, widthTransition, previousSingleLayout);
     } finally {
         endLayoutTransaction(reason, epoch);
     }
@@ -6596,6 +6763,7 @@ function prepareInitialColumn(window) {
 }
 
 function removeColumn(window, reason, activateSuccessor = true) {
+    const previousSingleLayout = captureSingleColumnLayout(mainScreenState, runtimeConfig.alwaysCenterSingleColumn);
     workspaceSnapshots.removeWindow(normalizeWindowUuid(window.internalId));
     contextualWideCoordinator.cancelForWindow(window);
     const index = columnIndexForWindow(window);
@@ -6643,6 +6811,10 @@ function removeColumn(window, reason, activateSuccessor = true) {
     if (!workspaceMountController.canUseActiveWorkspace()) return;
     if (!mainScreenState.columns.length) {
         mainScreenState.scrollOffsetX = 0;
+        if (previousSingleLayout) {
+            motionPlanCommitGate.cancel();
+            scrollPlanCommitGate.cancel();
+        }
         commitRuntimeState(reason);
         return;
     }
@@ -6660,20 +6832,21 @@ function removeColumn(window, reason, activateSuccessor = true) {
         ensureColumnVisible(nextFocusedColumn);
     }
     const newScrollOffsetX = mainScreenState.scrollOffsetX;
-    relayout(reason, {
+    const publishedBeforeArm = relayout(reason, {
         oldScrollOffsetX,
         newScrollOffsetX,
-    });
+    }, undefined, previousSingleLayout);
 
     if (activateSuccessor && removedFocusedColumn && nextFocusedColumn &&
             workspace.activeWindow !== nextFocusedColumn.window) {
-        workspace.activeWindow = nextFocusedColumn.window;
+        if (runtimeConfig.alwaysCenterSingleColumn) activateColumnWhenReady(nextFocusedColumn.window);
+        else workspace.activeWindow = nextFocusedColumn.window;
     }
     debug(`[cc-scroll] REMOVE_WINDOW column=${removedColumn.id}` +
         ` index=${index} focused=${removedFocusedColumn}` +
         ` next=${nextFocusedColumn ? nextFocusedColumn.id : "<none>"}` +
         ` reason=${reason}`);
-    commitRuntimeState(reason);
+    if (!publishedBeforeArm) commitRuntimeState(reason);
 }
 
 function initializeScrollLayout(previousState) {
@@ -6698,6 +6871,7 @@ function adoptNewWindowAsColumn(window, reason, focusNew = true) {
         return false;
     }
 
+    const previousSingleLayout = captureSingleColumnLayout(mainScreenState, runtimeConfig.alwaysCenterSingleColumn);
     cancelPendingDockScroll(reason);
     const windowState = stateFor(window);
     if (windowState.floating || isLayoutMode(windowState.layoutMode) ||
@@ -6732,14 +6906,16 @@ function adoptNewWindowAsColumn(window, reason, focusNew = true) {
     else columnStore.focusColumn(focusedColumn);
     recomputeLogicalLayout();
     if (focusNew || !focusedColumn) ensureColumnVisible(column);
+    else if (classifySingleColumnTransition(previousSingleLayout, mainScreenState) === "reindex")
+        ensureColumnVisible(focusedColumn);
     const newScrollOffsetX = mainScreenState.scrollOffsetX;
-    relayout(reason, {
+    const publishedBeforeArm = relayout(reason, {
         oldScrollOffsetX,
         newScrollOffsetX,
-    });
+    }, undefined, previousSingleLayout);
     debug(`[cc-scroll] ADOPT_NEW index=${insertionIndex}` +
         ` focused=${focusNew} caption=${window.caption}`);
-    commitRuntimeState(reason);
+    if (!publishedBeforeArm) commitRuntimeState(reason);
     return true;
 }
 
@@ -6749,6 +6925,14 @@ function setAdoptionPhase(window, windowState, phase, reason) {
 
 function settleAdoptionGeometry(window, index, reason) {
     const column = mainScreenState.columns[index];
+    if (runtimeConfig.alwaysCenterSingleColumn &&
+            ((scrollPlanCommitGate.pending && scrollPlanCommitGate.pending.plan.windows.some(item => item.column === column)) ||
+             (deferredScrollParking.pending && scrollPlanCommitGate.activeEpoch === deferredScrollParking.pending.epoch))) {
+        // Adoption settling cannot cancel its own pending arm or the shared
+        // Spring just because the real target frame is already configured.
+        const expected = projectedRectForColumn(column);
+        return { column, expected, settled: !scrollPlanCommitGate.pending && sameRect(window.frameGeometry, expected) };
+    }
     const oldScrollOffsetX = mainScreenState.scrollOffsetX;
     columnStore.focusIndex(index);
     recomputeLogicalLayout();

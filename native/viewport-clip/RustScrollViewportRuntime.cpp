@@ -34,9 +34,13 @@ bool RustScrollViewportRuntime::updateContext(const QJsonObject &state) {
     return accepted(cc_niri_scroll_update_context(m_handle,&decoded.dto));
 }
 bool RustScrollViewportRuntime::arm(const QJsonObject &plan,ViewportMotionBackend::TimePoint now,const QHash<QString,QRectF> &frames,bool smooth) {
-    const ProtocolAdapter::ScrollPlan decoded(plan,[this](const QString &id) { return intern(id); });
     std::vector<CcNiriWindowFrame> physical; physical.reserve(frames.size());
     for (auto it=frames.cbegin();it!=frames.cend();++it) physical.push_back({intern(it.key()),rect(it.value())});
+    if (plan.value(QStringLiteral("type")) == QJsonValue(QStringLiteral("COLUMN_REINDEX"))) {
+        const ProtocolAdapter::ReindexPlan decoded(plan,[this](const QString &id) { return intern(id); });
+        return accepted(cc_niri_scroll_arm_reindex(m_handle,&decoded.dto,now.count(),physical.data(),physical.size(),smooth));
+    }
+    const ProtocolAdapter::ScrollPlan decoded(plan,[this](const QString &id) { return intern(id); });
     return accepted(cc_niri_scroll_arm_with_policy(m_handle,&decoded.dto,now.count(),physical.data(),physical.size(),smooth));
 }
 CcNiriScrollRetargetStatus RustScrollViewportRuntime::retargetStatus() const {

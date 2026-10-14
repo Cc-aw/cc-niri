@@ -16,6 +16,12 @@ bool RustScrollPlanSequence::updateContext(const QJsonObject &state) {
 }
 bool RustScrollPlanSequence::hasAuthority() const { return accepted(cc_niri_scroll_sequence_authority(m_handle)); }
 CcNiriProtocolResult RustScrollPlanSequence::plan(const QJsonObject &plan,bool observe) const {
+    if (plan.value(QStringLiteral("type")) == QJsonValue(QStringLiteral("COLUMN_REINDEX"))) {
+        const ProtocolAdapter::ReindexPlan decoded(plan,[this](const QString &id) {
+            const auto result=cc_niri_scroll_sequence_intern(m_handle,text(id)); check(result.status); return result.value;
+        });
+        const auto result=cc_niri_scroll_sequence_reindex(m_handle,&decoded.dto,observe); check(result.status); return result;
+    }
     const ProtocolAdapter::ScrollPlan decoded(plan,[this](const QString &id) {
         const auto result=cc_niri_scroll_sequence_intern(m_handle,text(id)); check(result.status); return result.value;
     });

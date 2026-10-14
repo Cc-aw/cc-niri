@@ -6,6 +6,8 @@
 int main()
 {
     static_assert(sizeof(CcNiriScrollTuningStatus) == 80);
+    static_assert(sizeof(CcNiriScrollPlan) == 184);
+    static_assert(sizeof(CcNiriReindexPlan) == 200);
     auto *scroll = cc_niri_scroll_create(1);
     const auto stable = cc_niri_scroll_tuning_status(scroll, 0);
     const auto smooth = cc_niri_scroll_tuning_status(scroll, 1);
@@ -17,8 +19,11 @@ int main()
         && cc_niri_scroll_tuning_status(nullptr, 1).status == CC_NIRI_FFI_INVALID_HANDLE
         && cc_niri_scroll_prepare_frame_with_output(scroll, 0, 2, 1.5, 60).status == CC_NIRI_FFI_INVALID_DTO
         && cc_niri_scroll_prepare_frame_with_output(nullptr, 0, 1, 1.5, 60).status == CC_NIRI_FFI_INVALID_HANDLE;
+    const bool reindexOk = cc_niri_scroll_arm_reindex(scroll, nullptr, 0, nullptr, 0, 0).status == CC_NIRI_FFI_INVALID_DTO
+        && cc_niri_scroll_arm_reindex(nullptr, nullptr, 0, nullptr, 0, 0).status == CC_NIRI_FFI_INVALID_HANDLE
+        && cc_niri_scroll_sequence_reindex(nullptr, nullptr, 0).status == CC_NIRI_FFI_INVALID_HANDLE;
     cc_niri_scroll_destroy(scroll);
-    if (!tuningOk) { std::cerr << "Scroll tuning DTO/status contract failed\n"; return 1; }
+    if (!tuningOk || !reindexOk) { std::cerr << "Scroll tuning / reindex DTO/status contract failed\n"; return 1; }
     const char *version = cc_niri_rust_core_version();
     if (!version || std::strcmp(version, "0.1.0") != 0
         || cc_niri_rust_core_version() != version) {

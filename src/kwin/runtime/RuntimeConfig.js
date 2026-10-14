@@ -6,6 +6,7 @@ function loadRuntimeConfig(readValue) {
     return {
         targetOutputName: String(readValue("TargetOutputName", "")).trim(),
         dockIntegration: Boolean(readValue("EnableDockIntegration", false)),
+        alwaysCenterSingleColumn: Boolean(readValue("AlwaysCenterSingleColumn", false)),
         dynamicTrailingWorkspace: Boolean(readValue("DynamicTrailingWorkspace", false)),
         autoRecycleWorkspaces: Boolean(readValue("AutoRecycleWorkspaces", false)),
         primary: {

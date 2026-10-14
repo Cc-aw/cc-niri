@@ -312,6 +312,97 @@ pub struct ValidatedScrollPlan {
     issued_at: i64,
 }
 impl ValidatedScrollPlan {
+    /// Explicit coordinate-basis change. Ordinary SCROLL validation is untouched.
+    /// Only one surviving, already visible, same-width window supplies the old basis.
+    pub fn new_reindex(
+        wire: ScrollPlan,
+        source: WindowId,
+        source_logical_x: f64,
+        windows: &WindowRegistry,
+    ) -> Result<(Self, f64), NativeError> {
+        let epoch = Epoch::from_json(wire.epoch)?;
+        let issued_at = integer(wire.issued_at).ok_or(NativeError::InvalidEpoch)?;
+        let invalid = || NativeError::InvalidProtocol;
+        if !wire.shape_valid
+            || wire.protocol != 2.0
+            || wire.kind != Text::from_utf8("COLUMN_REINDEX")
+            || !wire.session.valid()
+            || !wire.workspace.valid()
+            || !wire.output.valid()
+            || !wire.viewport.valid_viewport()
+            || !wire.old_offset.is_finite()
+            || wire.old_offset < 0.0
+            || !wire.new_offset.is_finite()
+            || wire.new_offset < 0.0
+            || wire.retarget_only > 1
+            || wire.clip_partial > 1
+            || wire.entries.is_empty()
+            || wire.entries.len() > 2
+            || !source_logical_x.is_finite()
+            || source_logical_x < 0.0
+        {
+            return Err(invalid());
+        }
+        let origin = wire
+            .entries
+            .iter()
+            .find(|e| e.window_id == source)
+            .ok_or_else(invalid)?;
+        let shift = origin.logical_x - source_logical_x;
+        let from = source_logical_x - wire.old_offset;
+        if !shift.is_finite()
+            || shift == 0.0
+            || shift.abs() > wire.viewport.width * 2.0
+            || !(wire.old_offset + shift).is_finite()
+            || !from.is_finite()
+            || from < 0.0
+            || from + origin.pixel_width > wire.viewport.width
+            || origin.old_placement != Placement::Visible
+            || origin.new_placement != Placement::Visible
+        {
+            return Err(invalid());
+        }
+        let mut owners = HashSet::new();
+        let mut columns = HashSet::new();
+        for entry in &wire.entries {
+            let column = integer(entry.column_id).ok_or_else(invalid)?;
+            let left = entry.logical_x - wire.new_offset;
+            let right = left + entry.pixel_width;
+            if !windows
+                .label(entry.window_id)
+                .is_some_and(Text::canonical_window)
+                || !owners.insert(entry.window_id)
+                || !columns.insert(column)
+                || !entry.logical_x.is_finite()
+                || entry.logical_x < 0.0
+                || !entry.pixel_width.is_finite()
+                || entry.pixel_width <= 0.0
+                || entry.pixel_width > wire.viewport.width / 2.0
+                || entry.pixel_width != origin.pixel_width
+                || !left.is_finite()
+                || !right.is_finite()
+                || entry.new_placement
+                    != if left >= 0.0 && right <= wire.viewport.width {
+                        Placement::Visible
+                    } else {
+                        Placement::Parked
+                    }
+                || (entry.window_id != source
+                    && (entry.old_placement != Placement::Parked
+                        || entry.new_placement != Placement::Visible))
+            {
+                return Err(invalid());
+            }
+        }
+        Ok((
+            Self {
+                wire,
+                epoch,
+                issued_at,
+            },
+            shift,
+        ))
+    }
     pub fn new(wire: ScrollPlan, windows: &WindowRegistry) -> Result<Self, NativeError> {
         let epoch = Epoch::from_json(wire.epoch)?;
         let issued_at = integer(wire.issued_at).ok_or(NativeError::InvalidEpoch)?;

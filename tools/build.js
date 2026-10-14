@@ -26,6 +26,7 @@ const targets = [
             "src/kwin/layout/Geometry.js",
             "src/kwin/layout/SafeArea.js",
             "src/kwin/layout/ColumnLayout.js",
+            "src/kwin/layout/SingleColumnTransition.js",
             "src/kwin/layout/ColumnWidthController.js",
             "src/kwin/layout/Projection.js",
             "src/kwin/layout/Parking.js",

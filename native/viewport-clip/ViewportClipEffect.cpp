@@ -349,7 +349,8 @@ void CcNiriViewportClipEffect::onMotionPlanChanged(const QString &json)
     const QJsonDocument document = QJsonDocument::fromJson(json.toUtf8());
     if (!document.isObject()) return;
     const QJsonObject plan = document.object();
-    if (plan.value(QStringLiteral("type")).toString() == QStringLiteral("SCROLL")) {
+    if (plan.value(QStringLiteral("type")) == QJsonValue(QStringLiteral("SCROLL"))
+        || plan.value(QStringLiteral("type")) == QJsonValue(QStringLiteral("COLUMN_REINDEX"))) {
         observeScrollPlan(plan);
         return;
     }
@@ -485,7 +486,9 @@ bool CcNiriViewportClipEffect::ArmScrollPlan(const QString &json)
         if (plan.value(QStringLiteral("retargetOnly")) == QJsonValue(true)) continue;
         if (entry.value(QStringLiteral("oldPlacement")) != QJsonValue(QStringLiteral("visible"))) continue;
         const auto id = entry.value(QStringLiteral("windowId")).toString();
-        const QRectF oldRect(viewport.value(QStringLiteral("x")).toDouble() + entry.value(QStringLiteral("logicalX")).toDouble()
+        const auto sourceX = plan.value(QStringLiteral("type")) == QJsonValue(QStringLiteral("COLUMN_REINDEX"))
+            ? plan.value(QStringLiteral("sourceLogicalX")).toDouble() : entry.value(QStringLiteral("logicalX")).toDouble();
+        const QRectF oldRect(viewport.value(QStringLiteral("x")).toDouble() + sourceX
             - plan.value(QStringLiteral("oldScrollOffsetX")).toDouble(), viewport.value(QStringLiteral("y")).toDouble(),
             entry.value(QStringLiteral("pixelWidth")).toDouble(), viewport.value(QStringLiteral("height")).toDouble());
         const auto near = [](const QRectF &a, const QRectF &b) {

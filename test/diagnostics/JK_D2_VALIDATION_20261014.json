@@ -62,7 +62,28 @@
   },
   "candidatePath": "/tmp/cc-niri-jk-d2-destdir-wpoab_fr/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-viewport-clip.so",
   "discoveryPath": "/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-viewport-clip.so",
-  "deployed": false,
-  "liveAB": "PENDING; no live desktop operation this phase",
-  "wholeProjectMemory": "NOT MEASURED"
+  "deployed": true,
+  "deployment": {
+    "date": "2026-10-14",
+    "status": "PASS: installed validated candidate, components started, workspace/focus/window set restored",
+    "frameDeltaClampingEnabled": false,
+    "projectionCacheEnabled": false,
+    "blurModified": false,
+    "backupPath": "/home/cc/.local/state/cc-niri/backups/jk-d2-deploy-20261014-165707",
+    "installedSha256": "1c8c3d0174c572e3412d4e1c968bb3811e23e718f9aff7b0be2bc541b6372726",
+    "rollbackSha256": "737c5dbf9bbf682ed59a384f52d1676be8cfbeab8b90f4450ac4e35785c4678d"
+  },
+  "liveAB": "PASS short functional and user visual acceptance; 33-50ms real presentation intervals remain, no FPS benefit established",
+  "wholeProjectMemory": "NOT MEASURED",
+  "shortAcceptance": {
+    "date": "2026-10-14",
+    "report": "test/JK_SHORT_ACCEPTANCE_20261014.md",
+    "summary": "test/diagnostics/JK_SHORT_ACCEPTANCE_20261014.json",
+    "actions": 40,
+    "userFeedback": "没有明显异常",
+    "finalProjectionCacheEnabled": false,
+    "finalFrameDeltaClampingEnabled": false,
+    "longStability": "SKIPPED at user request",
+    "memoryBudget": "NOT MEASURED"
+  }
 }

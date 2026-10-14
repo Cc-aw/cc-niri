@@ -1,6 +1,21 @@
 # Rust Native R7：J/K D1a 桌面投影预计算结果
 
-**实现与离线门禁 PASS；未部署，实机 A/B 与视觉验收 PENDING。** 按用户要求不调整 Blur/Contrast。此次仅 D1a，不加入 D2 时间步长限制或其它曲线改动。
+**实现与离线门禁 PASS；2026-10-14已部署，后续短功能与用户目测验收 PASS，缓存当前关闭。** 未覆盖完整实机场景与内存预算，长时间测试按用户要求SKIPPED。最初部署按用户要求跳过实机测试，仅确认正常启动和恢复桌面状态；后续短验收见下文。Blur/Contrast不调整，此阶段仅D1a，不加入D2或其它曲线改动。
+
+2026-10-14后续：用户要求简单验收，已完成投影缓存单独开/关短对照及40次整体J/K输入，**短功能及用户目测 PASS**；该负载投影调用减少，仍有33–50ms实际呈现间隔，不能宣称已消除掉帧。最终恢复缓存关闭，长时间稳定性按用户要求SKIPPED。详见[短验收结果](JK_SHORT_ACCEPTANCE_20261014.md)；不扩称完整S01–S14或内存预算通过。
+
+## 部署记录（2026-10-14）
+
+用户在获知预计验收时长后授权直接部署、不执行实机测试。更新前重新备份当时的配置、布局、实际各输出工作区与焦点，按既有 save-state → stop → immutable install → start 路径，仅更新 Clip。安装SHA与通过离线门禁的候选一致；未重启KWin/Plasma，未运行J/K、capture或Blur A/B。
+
+- 启动确认 **PASS**：JS、Motion、Clip、Ring已加载，Bridge active；新插件报告 `projectionCacheEnabled:false`，工作区动画启用且420ms不变，已安装JS字节未变。
+- 桌面恢复 **PASS**：各输出工作区、实际焦点、窗口集合与部署前一致。
+- 实机A/B、H/L/Wide/Ring视觉验收和长期内存测试 **NOT MEASURED / PENDING**；此次部署不代表流畅度或资源预算验收通过。
+- 用户目测反馈（2026-10-14）：部署后“比较流畅”。当前缓存关闭的日常使用观感 **PASS（用户反馈，未定量采样）**；未据此宣称缓存开启后的改善、完整场景验收或内存预算通过。
+- 持久备份：`/home/cc/.local/state/cc-niri/backups/jk-d1a-deploy-20261014-091706`（0700），含旧库、前后配置/布局/Native状态、实际工作区/焦点、命令日志与metadata。
+- 当前安装SHA：`737c5dbf9bbf682ed59a384f52d1676be8cfbeab8b90f4450ac4e35785c4678d`。旧不可变库仍保留，SHA `024557e2565edd03796136671eda16c91bbf64985ebb568a1727f7893d04be3a`；需要回退时先保存当前状态并安全stop，再原子恢复discovery链接到旧库并start，不回写整个旧kwinrc。
+
+首次部署辅助脚本的KWin loadScript参数推断失败，在读取平台状态阶段即退出，尚未停启或改动组件；改用明确的双字符串D-Bus签名后部署成功。
 
 ## 范围与策略
 
@@ -54,16 +69,17 @@ Native Clip 增加 `Effect-cc-niri-viewport-clip / WorkspaceProjectionCache`，*
 | BUILD_TESTING=OFF Release两插件+Bridge | PASS；无Golden/differential/cache-test target，production nm boundary通过 |
 | 编译器拒绝路径 | PASS；policy覆盖GCC15/17、非GNU、非指定路径；实际configure拒绝/usr/bin/c++ |
 | DESTDIR安装暂存与manifest | PASS；唯一Clip路径在/home/cc/.local下，未写discovery链接 |
-| 实机缓存off/on同窗口A/B、S01–S14、H/L/Wide/Ring/停启 | PENDING；需先由用户决定部署 |
+| 安装与正常启动/桌面恢复 | PASS；2026-10-14部署，缓存false |
+| 实机缓存off/on同窗口A/B、S01–S14、H/L/Wide/Ring | PENDING；用户选择跳过实机测试 |
 | 新flag实际GPU/FPS改善 | NOT MEASURED，不宣称解决掉帧 |
 
 最终日志：`/tmp/cc-niri-jk-d1a-native-final.log`、`debug.log`、`release.log`、`umbrella-final.log`、`production-final.log`、`bridge-production.log`、`reject.log`（共同前缀`cc-niri-jk-d1a-`）。第一次生产审计脚本使用了错误的umbrella产物子路径，改为真实bin目录后审计成功；没有降低门禁要求。
 
 源与候选hash、验证汇总：[`diagnostics/JK_D1A_VALIDATION_20261013.json`](diagnostics/JK_D1A_VALIDATION_20261013.json)。CPP源码、测试和这份阶段报告作为D1a独立变更保存，README/doc索引中此前的单列居中与D0内容不混入该变更。
 
-## 待决定的部署与回退
+## 部署前准备与回退方案（历史记录，当前结果见上文）
 
-本轮还未修改当前Native discovery链接、kwinrc或运行组件。当前Blur/Contrast与单列居中保持原状态。D2为独立选做观感策略，本轮没有实现；D1b按用户决定不实施。
+以下为2026-10-13离线实现完成时的准备记录，当时尚未修改Native discovery链接、kwinrc或运行组件。Blur/Contrast与单列居中保持原状态。D2为独立选做观感策略，本轮没有实现；D1b按用户决定不实施。
 
 候选已经过现有安装入口的DESTDIR暂存；构建ELF与安装后的ELF可能因install RPATH调整而不同，部署核对以暂存安装字节为准：
 

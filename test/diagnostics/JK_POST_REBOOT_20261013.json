@@ -1,0 +1,127 @@
+{
+  "rows": [
+    {
+      "label": "alternating-100ms",
+      "inputs": 6,
+      "events": 6,
+      "arms": 6,
+      "fps": 55.78806430153343,
+      "maxIntervalMs": 33.333999999999946,
+      "longIntervals": 4,
+      "transitionMs": 946.0111850000001,
+      "armDelayMs": [
+        1.315135,
+        26.357303,
+        4.938243999999997,
+        21.538626000000022,
+        1.048371999999972,
+        20.634015000000034
+      ]
+    },
+    {
+      "label": "reverse-100ms",
+      "inputs": 2,
+      "events": 2,
+      "arms": 2,
+      "fps": 54.18302639293917,
+      "maxIntervalMs": 49.974000000000004,
+      "longIntervals": 2,
+      "transitionMs": 523.002953,
+      "armDelayMs": [
+        1.149403,
+        1.4843490000000088
+      ]
+    },
+    {
+      "label": "single-1-back",
+      "inputs": 1,
+      "events": 1,
+      "arms": 1,
+      "fps": 55.20711067585505,
+      "maxIntervalMs": 50.028000000000006,
+      "longIntervals": 1,
+      "transitionMs": 420.123731,
+      "armDelayMs": [
+        1.217295
+      ]
+    },
+    {
+      "label": "single-1-out",
+      "inputs": 1,
+      "events": 1,
+      "arms": 1,
+      "fps": 55.21373717780984,
+      "maxIntervalMs": 49.99300000000001,
+      "longIntervals": 1,
+      "transitionMs": 410.345437,
+      "armDelayMs": [
+        2.266189
+      ]
+    },
+    {
+      "label": "single-2-back",
+      "inputs": 1,
+      "events": 1,
+      "arms": 1,
+      "fps": 57.383121015785576,
+      "maxIntervalMs": 33.337999999999994,
+      "longIntervals": 1,
+      "transitionMs": 397.48759199999995,
+      "armDelayMs": [
+        1.4555129999999998
+      ]
+    },
+    {
+      "label": "single-2-out",
+      "inputs": 1,
+      "events": 1,
+      "arms": 1,
+      "fps": 54.768940273166606,
+      "maxIntervalMs": 33.344,
+      "longIntervals": 2,
+      "transitionMs": 393.711886,
+      "armDelayMs": [
+        2.269344
+      ]
+    }
+  ],
+  "medianArmDelayMs": 1.8752690000000043,
+  "maxArmDelayMs": 26.357303,
+  "installedMainSha256": "2154436e0c97251eecadadd13bb533dfedfd2146cb0dd1fff34693ad6c9814f2",
+  "sourceMainSha256": "2154436e0c97251eecadadd13bb533dfedfd2146cb0dd1fff34693ad6c9814f2",
+  "installedMatchesSource": true,
+  "logIssueLines": [],
+  "meta": {
+    "bootId": "64a1334b-e6a6-486e-90e1-33f87642f6a0",
+    "uptime": "619.16 9503.77",
+    "utc": "2026-10-13T06:59:17.951499+00:00",
+    "kwinPid": 2035,
+    "columnCounts": [
+      2,
+      2
+    ],
+    "input": "KGlobalAccel action; physical keyboard path excluded",
+    "forward": "J",
+    "scriptLoaded": true,
+    "effects": {
+      "cc-niri-viewport-clip": true,
+      "cc-niri-focus-ring": true,
+      "cc-niri-maximize-scroll-transition": true
+    },
+    "configCenterLines": [
+      "AlwaysCenterSingleColumn=true"
+    ],
+    "focusRestored": true,
+    "outputsRestored": true,
+    "diagnosticRestoreProbeCorrection": "Diagnostic JS const variable collision fixed; no production modification",
+    "trials": [
+      "alternating-100ms",
+      "reverse-100ms",
+      "single-2-back",
+      "single-2-out",
+      "single-1-back",
+      "single-1-out"
+    ],
+    "oldDeploymentBackupAvailable": false
+  }
+}

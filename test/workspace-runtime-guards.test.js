@@ -6,6 +6,7 @@ const path = require("node:path");
 const vm = require("node:vm");
 const { WorkspaceMembership } = require("../src/kwin/workspace/WorkspaceMembership");
 const { WindowPolicy, WindowDisposition } = require("../src/kwin/policy/WindowPolicy");
+const { LayoutEligibility } = require("../src/kwin/policy/LayoutEligibility");
 const { FloatingController } = require("../src/kwin/lifecycle/FloatingController");
 const { InvariantChecker } = require("../src/kwin/stability/InvariantChecker");
 const { StabilitySupervisor } = require("../src/kwin/stability/StabilitySupervisor");
@@ -36,9 +37,20 @@ const stateFor = window => {
     if (!states.has(window)) states.set(window, { floating: true, managedByScrollLayout: false });
     return states.get(window);
 };
+const workspaceMountController = {
+    canUseActiveWorkspace: () => true,
+    initialize: () => { startupMounted += 1; return true; },
+};
+const layoutEligibility = new LayoutEligibility({
+    windowPolicy: policy,
+    membership,
+    isEnabled: () => appState.enabled,
+    getPrimaryOutput: () => appState.targetOutput,
+    isPrimaryReady: () => workspaceMountController.canUseActiveWorkspace(),
+});
 const context = vm.createContext({
     windowPolicy: policy, workspaceMembership: membership, mainScreenState: appState,
-    workspaceMountController: { canUseActiveWorkspace: () => true, initialize: () => { startupMounted += 1; return true; } },
+    workspaceMountController, layoutEligibility,
     workspaceTransferController: { onWindowAdded: () => {} },
     workspaceSnapshots: { removeWindow: () => false },
     stateFor, columnIndexForWindow: () => -1, COLUMN_WIDTH_HALF: "half", debug: () => {},
@@ -98,6 +110,8 @@ appState.viewport = { mode: "pair", wideColumnId: null };
 const parking = new ParkingManager({ stateFor, getState: window => states.get(window),
     refreshSafeArea: () => {}, getSafeRect: () => appState.safeRect, debug: () => {} });
 Object.assign(context, {
+    runtimeConfig: { alwaysCenterSingleColumn: false },
+    captureSingleColumnLayout: () => null,
     focusRingController: { publish: () => {} },
     contextualWideCoordinator: { cancelForWindow: () => {} },
     columnIndexForWindow: () => 0, cancelPendingDockScroll: () => {},

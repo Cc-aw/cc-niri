@@ -11,6 +11,10 @@
       <label>Enable optional CC Scroll Tasks integration</label>
       <default>false</default>
     </entry>
+    <entry name="AlwaysCenterSingleColumn" type="Bool">
+      <label>Center the only half-width column on the primary workspace</label>
+      <default>false</default>
+    </entry>
     <entry name="DynamicTrailingWorkspace" type="Bool">
       <label>Keep an empty workspace at the end</label>
       <default>false</default>

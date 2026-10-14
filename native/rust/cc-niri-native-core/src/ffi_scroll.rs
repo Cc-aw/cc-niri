@@ -51,6 +51,12 @@ pub struct FfiPlan {
     clip_partial: u32,
 }
 #[repr(C)]
+pub struct FfiReindexPlan {
+    pub(super) plan: FfiPlan,
+    pub(super) source_id: u64,
+    pub(super) source_logical_x: f64,
+}
+#[repr(C)]
 pub struct FfiScrollStatus {
     epoch: i64,
     active: u32,
@@ -253,6 +259,38 @@ pub unsafe extern "C" fn cc_niri_scroll_arm_with_policy(
             .map(|f| (WindowId(f.window_id), f.rect.into()))
             .collect();
         Ok(h.0.arm_with_policy(p, now, &frames, smooth != 0))
+    })())
+}
+/// # Safety
+/// Live exclusive handle and synchronous borrowed reindex DTO/frames buffers.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_arm_reindex(
+    handle: *mut ScrollHandle,
+    plan: *const FfiReindexPlan,
+    now: i64,
+    frames: *const FfiWindowFrame,
+    frames_len: u64,
+    smooth: u32,
+) -> FfiSpringBoolResult {
+    bool_result((|| {
+        let h = unsafe { handle.as_mut() }.ok_or(INVALID_HANDLE)?;
+        if smooth > 1 {
+            return Err(INVALID_DTO);
+        }
+        let p = unsafe { plan.as_ref() }.ok_or(INVALID_DTO)?;
+        let wire = unsafe { decode_plan(&p.plan)? };
+        let frames = unsafe { slice(frames, frames_len)? }
+            .iter()
+            .map(|f| (WindowId(f.window_id), f.rect.into()))
+            .collect();
+        Ok(h.0.arm_reindex(
+            wire,
+            WindowId(p.source_id),
+            p.source_logical_x,
+            now,
+            &frames,
+            smooth != 0,
+        ))
     })())
 }
 #[repr(C)]
@@ -747,6 +785,11 @@ mod tests {
                 cc_niri_scroll_arm(null, std::ptr::null(), 0, std::ptr::null(), 0).status,
                 INVALID_HANDLE
             );
+            assert_eq!(
+                cc_niri_scroll_arm_reindex(null, std::ptr::null(), 0, std::ptr::null(), 0, 0)
+                    .status,
+                INVALID_HANDLE
+            );
             assert_eq!(cc_niri_scroll_cancel(null, empty, 0), INVALID_HANDLE);
             assert_eq!(cc_niri_scroll_clear(null), INVALID_HANDLE);
             assert_eq!(cc_niri_scroll_remove(null, 0), INVALID_HANDLE);
@@ -777,6 +820,11 @@ mod tests {
                 INVALID_HANDLE
             );
             let h = cc_niri_scroll_create(1);
+            assert_eq!(
+                cc_niri_scroll_arm_reindex(h, std::ptr::null(), 0, std::ptr::null(), 0, 0).status,
+                INVALID_DTO
+            );
+            assert_eq!(std::mem::size_of::<FfiReindexPlan>(), 200);
             assert_eq!(cc_niri_scroll_tuning_status(h, 2).status, INVALID_DTO);
             assert_eq!(
                 cc_niri_scroll_prepare_frame_with_output(h, 0, 2, 1.5, 60.0).status,

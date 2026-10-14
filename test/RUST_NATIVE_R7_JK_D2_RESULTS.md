@@ -1,6 +1,18 @@
 # Rust Native R7：J/K D2 可选帧时间增量限制
 
-**实现与全部离线门禁 PASS；未部署、未启用，实机验收 PENDING。** Blur/Contrast、420ms曲线、H/L Spring、Pair/Wide、Ring和单列居中不修改。当前用户正在使用的桌面仍为2026-10-14部署的D1a版本，缓存关闭；其“目测比较流畅”反馈不作为D2验收。
+**实现与全部离线门禁 PASS；2026-10-14已部署，短功能与用户目测验收 PASS，D2选项当前关闭。** 未覆盖完整实机场景与内存预算，长时间测试按用户要求SKIPPED。Blur/Contrast、420ms曲线、H/L Spring、Pair/Wide、Ring和单列居中不修改。投影缓存与D2时间限制均关闭；此前D1a版本的“目测比较流畅”反馈不作为D2开启后的验收。
+
+2026-10-14后续：按用户要求完成短验收，包含D2单独开启、40次J/K/快速反向/连续切换与配置恢复，**短功能及用户目测 PASS**；用户反馈无明显异常。真实33–50ms呈现间隔仍存在，不宣称FPS改善；长时间稳定性按用户要求SKIPPED。当前配置恢复关闭。详见[短验收结果](JK_SHORT_ACCEPTANCE_20261014.md)；以下开发/部署阶段的PENDING按该限定范围更新，不扩称完整S01–S14。
+
+## 部署记录（2026-10-14）
+
+用户授权部署后，重新备份当时的配置、布局、实际各输出工作区和焦点，通过save-state → stop → immutable Clip安装 → start更新，仅替换Clip，不重启KWin/Plasma。
+
+- 安装及启动确认 **PASS**：安装SHA与已验证候选一致；JS、Motion、Clip正常加载，Bridge active；Ring加载状态与部署前一致，已安装JS字节未改。
+- 状态保持 **PASS**：`frameDeltaClampingEnabled:false`、`projectionCacheEnabled:false`；Blur加载状态、动画profile和duration均与部署前一致。实际工作区、焦点及窗口集合恢复。
+- 实机J/K、A/B与视觉回归 **NOT MEASURED / PENDING**：本轮只部署和确认启动，没有执行快捷键测试或capture；长期内存验收仍未测量。
+- 持久备份（0700）：`/home/cc/.local/state/cc-niri/backups/jk-d2-deploy-20261014-165707`，含旧库、前后配置/布局/Native状态、实际工作区与焦点、metadata及命令日志。
+- 当前Clip安装SHA：`1c8c3d0174c572e3412d4e1c968bb3811e23e718f9aff7b0be2bc541b6372726`。回退库SHA：`737c5dbf9bbf682ed59a384f52d1676be8cfbeab8b90f4450ac4e35785c4678d`，旧不可变库保留。
 
 ## 时间策略与架构
 
@@ -38,7 +50,8 @@ Native workspaceMotion增加 `frameDeltaClampingEnabled`、`frameDeltaClampingRe
 | BUILD_TESTING=OFF Release两插件+Bridge，production boundary | PASS；无reference/differential/projection测试target，无旧C++算法符号 |
 | 编译器拒绝路径 | PASS；实际拒绝/usr/bin/c++，完整CTest中的policy检查保留 |
 | DESTDIR候选安装暂存/manifest/nm | PASS；未修改用户discovery链接 |
-| 4K60同负载off/on/off实际帧+视觉验收，S01–S14 | PENDING；本轮未部署 |
+| D2安装与启动/桌面恢复 | PASS；2026-10-14部署，D2选项关闭 |
+| 4K60同负载off/on/off实际帧+视觉验收，S01–S14 | PENDING；本轮仅部署 |
 | 实际FPS、deadline延迟、最大可见跳跃改善 | NOT MEASURED；合成数据不是实机结果 |
 
 构建基于包含单列居中等既有dirty修改的完整本机工作树，独立提交只包含D2新增路径，不覆盖/混入这些先前修改。所有Cargo使用1.99.0与locked，CMake固定/usr/bin/g++ GNU16，构建串行、每次parallel2。
@@ -49,6 +62,6 @@ Debug/Release的同一组合成60Hz输入均得到：单次50.000001ms物理间�
 
 ## 部署与回退
 
-本轮只开发与离线验证，不改用户kwinrc/discovery链接，不停启用户组件、不主动J/K。取得部署决定后，刷新实际配置/布局/焦点备份，走save-state → stop → immutable Clip安装 → start。选项仍默认关闭；实机比较保持D1缓存及Blur配置固定，分别记录真实framePresented分布、painted pose步幅和实际arm到finish墙钟时间，注明无paint-to-present join。
+开发阶段仅做离线验证；随后已按用户决定部署，当前结果见上文。选项仍默认关闭；后续实机比较保持D1缓存及Blur配置固定，分别记录真实framePresented分布、painted pose步幅和实际arm到finish墙钟时间，注明无paint-to-present join。
 
-回退先将新键恢复到测试前值/缺失状态，在idle时同步reconfigureEffect使其生效；如需回退代码，保存当前状态并安全stop，原子恢复D1a不可变Clip链接再start。当前已部署D1a安装SHA `737c5dbf9bbf682ed59a384f52d1676be8cfbeab8b90f4450ac4e35785c4678d`，备份仍在`/home/cc/.local/state/cc-niri/backups/jk-d1a-deploy-20261014-091706`。不回写整份旧kwinrc，不覆盖已映射.so，不重启KWin/Plasma。
+回退先将新键恢复到测试前值/缺失状态，在idle时同步reconfigureEffect使其生效；如需回退代码，保存当前状态并安全stop，原子恢复D1a不可变Clip链接再start。D1a回退库安装SHA `737c5dbf9bbf682ed59a384f52d1676be8cfbeab8b90f4450ac4e35785c4678d`，部署时的新备份在`/home/cc/.local/state/cc-niri/backups/jk-d2-deploy-20261014-165707`。不回写整份旧kwinrc，不覆盖已映射.so，不重启KWin/Plasma。

@@ -2,7 +2,7 @@
 use super::protocol_views::{
     id_result, slice, text, text_result, FfiIdResult, FfiTextResult, U16View,
 };
-use super::scroll::{decode_plan, FfiContext, FfiPlan};
+use super::scroll::{decode_plan, FfiContext, FfiPlan, FfiReindexPlan};
 use super::{FfiSpringBoolResult, INVALID_HANDLE, OK};
 use crate::focus_ring_context::{Candidate, EligibilitySnapshot, FocusRingContext};
 use crate::native_protocol::{
@@ -123,6 +123,37 @@ pub unsafe extern "C" fn cc_niri_scroll_sequence_plan(
         });
         // Observer tokens are local to one envelope; retain no closed-window
         // registry across publications. Runtime tokens remain stable per handle.
+        h.windows = WindowRegistry::default();
+        Ok(result)
+    })())
+}
+/// # Safety
+/// Live exclusive handle and borrowed typed DTO buffers. Tokens are message-local.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_sequence_reindex(
+    handle: *mut SequenceHandle,
+    plan: *const FfiReindexPlan,
+    observe: u32,
+) -> ProtocolResult {
+    result((|| {
+        let h = unsafe { handle.as_mut() }.ok_or(INVALID_HANDLE)?;
+        let p = unsafe { plan.as_ref() }.ok_or(INVALID_DTO)?;
+        let wire = unsafe { decode_plan(&p.plan)? };
+        let validation = ValidatedScrollPlan::new_reindex(
+            wire,
+            crate::native_protocol::WindowId(p.source_id),
+            p.source_logical_x,
+            &h.windows,
+        );
+        let result = validation.and_then(|(mut validated, _)| {
+            if observe != 0 {
+                h.sequence
+                    .observe_validated(&mut validated)
+                    .map(|d| d as u32)
+            } else {
+                Ok(PlanDisposition::Accepted as u32)
+            }
+        });
         h.windows = WindowRegistry::default();
         Ok(result)
     })())

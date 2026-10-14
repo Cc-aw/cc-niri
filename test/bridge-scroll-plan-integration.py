@@ -151,7 +151,73 @@ with tempfile.TemporaryDirectory(prefix="cc-niri-scroll-") as directory:
                     transitionToken="partial-width", targetWindowUuid="b")), "clipping must preserve Legacy completion"
         command = json.loads(str(bus.get_object(service, object_path).get_dbus_method("TakePendingCommand", interface)()))
         assert command["type"] == "finalize-contextual-wide-exit" and command["motionCompleted"]
-        print("PASS isolated SCROLL DBus payload, FIFO authority, duplicate, workspace, restart and explicit return")
+        # Fixed leading inset changes neither the protocol nor its nonnegative
+        # bounds. New column membership must be accepted before this motion.
+        first = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+        second = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+        single_columns = [dict(uuid=first, widthMode="half")]
+        centered_state = dict(protocol=2, sessionId="single-center", generation=0,
+                              workspaceId="A", targetOutput="eDP-1", columns=single_columns,
+                              workspaces=[dict(id="A", columns=single_columns)])
+        assert call("PublishState", centered_state)
+        centered_plan = dict(protocol=2, type="SCROLL", sessionId="single-center", workspaceId="A",
+                             targetOutput="eDP-1", epoch=1, issuedAt=1003,
+                             oldScrollOffsetX=0, newScrollOffsetX=630, viewport=plan["viewport"], entries=[
+                                 dict(windowId=first, columnId=1, logicalX=630, pixelWidth=1252,
+                                      oldPlacement="visible", newPlacement="visible"),
+                                 dict(windowId=second, columnId=2, logicalX=1890, pixelWidth=1252,
+                                      oldPlacement="parked", newPlacement="visible")])
+        assert not call("PublishMotionPlan", centered_plan), "new UUID passed before authoritative state"
+        pair_columns = single_columns + [dict(uuid=second, widthMode="half")]
+        centered_state.update(generation=1, columns=pair_columns, workspaces=[dict(id="A", columns=pair_columns)])
+        assert call("PublishState", centered_state)
+        assert call("PublishMotionPlan", centered_plan), "leading-inset 1->2 rejected"
+        drain(lambda: ("MotionPlanChanged", centered_plan) in events)
+        assert events[-2:] == [("StateChanged", centered_state), ("MotionPlanChanged", centered_plan)]
+        centered_state.update(generation=2, columns=single_columns, workspaces=[dict(id="A", columns=single_columns)])
+        assert call("PublishState", centered_state)
+        center_return = copy.deepcopy(centered_plan)
+        center_return.update(epoch=2, oldScrollOffsetX=630, newScrollOffsetX=0)
+        center_return["entries"] = [center_return["entries"][0]]
+        assert call("PublishMotionPlan", center_return), "leading-inset right removal rejected"
+        negative = copy.deepcopy(center_return)
+        negative.update(epoch=3, oldScrollOffsetX=-630)
+        assert not call("PublishMotionPlan", negative), "negative offset became legal"
+        left_insert = copy.deepcopy(centered_plan)
+        left_insert.update(type="COLUMN_REINDEX", epoch=3, sourceWindowId=first, sourceLogicalX=630)
+        left_insert["entries"] = [
+            dict(windowId=second, columnId=2, logicalX=630, pixelWidth=1252,
+                 oldPlacement="parked", newPlacement="visible"),
+            dict(windowId=first, columnId=1, logicalX=1890, pixelWidth=1252,
+                 oldPlacement="visible", newPlacement="visible")]
+        assert not call("PublishMotionPlan", left_insert), "typed reindex passed before new membership"
+        pair_columns.reverse()
+        centered_state.update(generation=3, columns=pair_columns, workspaces=[dict(id="A", columns=pair_columns)])
+        assert call("PublishState", centered_state)
+        assert call("PublishMotionPlan", left_insert), "typed left insertion rejected"
+        drain(lambda: ("MotionPlanChanged", left_insert) in events)
+        assert events[-2:] == [("StateChanged", centered_state), ("MotionPlanChanged", left_insert)]
+        assert call("PublishMotionPlan", left_insert), "typed duplicate not idempotent"
+        malformed = copy.deepcopy(left_insert)
+        malformed["sourceLogicalX"] = "630"
+        assert not call("PublishMotionPlan", malformed), "untyped source basis accepted"
+        malformed = copy.deepcopy(left_insert)
+        malformed["sourceLogicalX"] = 631
+        assert not call("PublishMotionPlan", malformed), "conflicting same epoch basis accepted"
+        centered_state.update(generation=4, columns=single_columns, workspaces=[dict(id="A", columns=single_columns)])
+        assert call("PublishState", centered_state)
+        close_left = copy.deepcopy(center_return)
+        close_left.update(type="COLUMN_REINDEX", epoch=4, sourceWindowId=first, sourceLogicalX=1890)
+        assert call("PublishMotionPlan", close_left), "typed close-left center rejected"
+        drain(lambda: ("MotionPlanChanged", close_left) in events)
+        assert not call("PublishMotionPlan", center_return), "SCROLL bypassed shared epoch barrier"
+        malformed = copy.deepcopy(close_left)
+        malformed.update(epoch=5, oldScrollOffsetX=-630)
+        assert not call("PublishMotionPlan", malformed), "typed wire negative offset accepted"
+        ordinary = copy.deepcopy(center_return)
+        ordinary.update(epoch=5, oldScrollOffsetX=0, newScrollOffsetX=630)
+        assert call("PublishMotionPlan", ordinary), "canonical SCROLL after reindex rejected"
+        print("PASS isolated SCROLL / typed reindex DBus payload, FIFO membership, shared epochs, duplicate, restart and source validation")
     finally:
         if server is not None:
             stop()

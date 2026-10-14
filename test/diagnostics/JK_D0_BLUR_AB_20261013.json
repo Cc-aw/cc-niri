@@ -1,0 +1,2062 @@
+{
+  "environment": {
+    "head": "b77a40eb1e0a0fd66d053c5996a13bc88e75518b",
+    "kwinPid": 2035,
+    "utc": "2026-10-13T09:18:12.105241+00:00",
+    "columnCounts": [
+      2,
+      3
+    ],
+    "forward": "J",
+    "blurInitiallyLoaded": true,
+    "contrastLoaded": false,
+    "slideLoaded": false,
+    "bootId": "64a1334b-e6a6-486e-90e1-33f87642f6a0",
+    "input": "KGlobalAccel registered shortcut action; excludes physical keyboard"
+  },
+  "restoration": {
+    "evidence": "/home/cc/.local/state/cc-niri/diagnostics/jk-d0-20261013-171812",
+    "validMembership": true,
+    "trials": 18,
+    "requests": 36,
+    "blurRestored": true,
+    "desktopRestored": true,
+    "focusRestored": true,
+    "windowSetUnchanged": true,
+    "configUnchanged": true,
+    "outputConfigUnchanged": true
+  },
+  "groups": [
+    {
+      "group": "A1-on",
+      "requests": 12,
+      "transitionCount": 6,
+      "intervalCount": 188,
+      "p50Ms": 16.664999999999964,
+      "p95Ms": 16.8069,
+      "p99Ms": 16.86394000000004,
+      "maxMs": 16.97199999999998,
+      "intervalsOver25Ms": 0,
+      "fps": 59.99644489151016,
+      "medianArmDelayMs": 0.9480785000000083,
+      "maxArmDelayMs": 1.175166,
+      "trials": [
+        {
+          "label": "alternating-100ms",
+          "requests": 6,
+          "desktopEvents": 6,
+          "arms": 6,
+          "membershipUnchanged": true,
+          "captureRpcMs": 0.944382,
+          "armDelayMs": [
+            0.6838059999999999,
+            1.0319119999999913,
+            0.9570520000000045,
+            1.0377210000000332,
+            1.036487999999963,
+            0.7498069999999757
+          ],
+          "analysis": {
+            "association": "output-only-no-paint-to-present-join",
+            "boundary": "desktopChanged-to-native-finish-plus-one-refresh",
+            "percentileMethod": "linear-interpolation-of-observed-intervals",
+            "source": "KWin::RenderLoop::framePresented",
+            "outputs": [
+              {
+                "output": "HDMI-A-1",
+                "refreshHz": 60,
+                "transitions": [],
+                "aggregate": {
+                  "intervalCount": 0,
+                  "p50Ms": null,
+                  "p95Ms": null,
+                  "p99Ms": null,
+                  "maxMs": null,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": null,
+                  "validTransitionCount": 0,
+                  "excludedTransitionCount": 0
+                }
+              },
+              {
+                "output": "DP-1",
+                "refreshHz": 60,
+                "transitions": [
+                  {
+                    "startMs": 1.163121,
+                    "finishMs": 927.589041,
+                    "endBoundaryMs": 944.2557076666666,
+                    "durationMs": 926.4259199999999,
+                    "desktopChangeCount": 6,
+                    "complete": true,
+                    "validForComparison": true,
+                    "limitations": [],
+                    "presentationStats": {
+                      "intervalCount": 56,
+                      "intervalsMs": [
+                        16.677,
+                        16.657,
+                        16.65,
+                        16.701,
+                        16.653000000000006,
+                        16.673000000000002,
+                        16.62899999999999,
+                        16.718999999999994,
+                        16.650000000000006,
+                        16.701999999999998,
+                        16.685000000000002,
+                        16.649,
+                        16.595,
+                        16.757000000000005,
+                        16.609999999999985,
+                        16.738000000000028,
+                        16.577999999999975,
+                        16.65500000000003,
+                        16.664999999999964,
+                        16.66900000000004,
+                        16.694999999999993,
+                        16.666999999999973,
+                        16.788999999999987,
+                        16.549000000000035,
+                        16.664999999999964,
+                        16.783000000000015,
+                        16.581999999999994,
+                        16.66900000000004,
+                        16.726,
+                        16.60699999999997,
+                        16.599999999999966,
+                        16.692000000000007,
+                        16.84400000000005,
+                        16.50400000000002,
+                        16.659999999999968,
+                        16.710000000000036,
+                        16.663999999999987,
+                        16.629999999999995,
+                        16.826999999999998,
+                        16.57299999999998,
+                        16.595000000000027,
+                        16.644000000000005,
+                        16.97199999999998,
+                        16.385999999999967,
+                        16.897000000000048,
+                        16.529999999999973,
+                        16.644999999999982,
+                        16.616999999999962,
+                        16.684000000000083,
+                        16.760999999999967,
+                        16.609000000000037,
+                        16.617999999999938,
+                        16.656000000000063,
+                        16.66599999999994,
+                        16.769999999999982,
+                        16.533999999999992
+                      ],
+                      "invalidIntervals": 0,
+                      "p50Ms": 16.661999999999978,
+                      "p95Ms": 16.83125000000001,
+                      "p99Ms": 16.930750000000018,
+                      "maxMs": 16.97199999999998,
+                      "meanPresentedFps": 60.000085714408165,
+                      "intervalsOver25Ms": 0,
+                      "intervalsOver1_5Refresh": 0
+                    },
+                    "firstPresentationLatencyMs": 1.197128,
+                    "firstPaintCallbackLatencyMs": 7.622252999999999,
+                    "longPresentationIntervals": []
+                  }
+                ],
+                "aggregate": {
+                  "intervalCount": 56,
+                  "p50Ms": 16.661999999999978,
+                  "p95Ms": 16.83125000000001,
+                  "p99Ms": 16.930750000000018,
+                  "maxMs": 16.97199999999998,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": 60.000085714408165,
+                  "validTransitionCount": 1,
+                  "excludedTransitionCount": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "label": "reverse-100ms",
+          "requests": 2,
+          "desktopEvents": 2,
+          "arms": 2,
+          "membershipUnchanged": true,
+          "captureRpcMs": 0.924098,
+          "armDelayMs": [
+            0.751503,
+            0.9391050000000121
+          ],
+          "analysis": {
+            "association": "output-only-no-paint-to-present-join",
+            "boundary": "desktopChanged-to-native-finish-plus-one-refresh",
+            "percentileMethod": "linear-interpolation-of-observed-intervals",
+            "source": "KWin::RenderLoop::framePresented",
+            "outputs": [
+              {
+                "output": "HDMI-A-1",
+                "refreshHz": 60,
+                "transitions": [],
+                "aggregate": {
+                  "intervalCount": 0,
+                  "p50Ms": null,
+                  "p95Ms": null,
+                  "p99Ms": null,
+                  "maxMs": null,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": null,
+                  "validTransitionCount": 0,
+                  "excludedTransitionCount": 0
+                }
+              },
+              {
+                "output": "DP-1",
+                "refreshHz": 60,
+                "transitions": [
+                  {
+                    "startMs": 1.22093,
+                    "finishMs": 532.226366,
+                    "endBoundaryMs": 548.8930326666666,
+                    "durationMs": 531.005436,
+                    "desktopChangeCount": 2,
+                    "complete": true,
+                    "validForComparison": true,
+                    "limitations": [],
+                    "presentationStats": {
+                      "intervalCount": 32,
+                      "intervalsMs": [
+                        16.643,
+                        16.660999999999998,
+                        16.669000000000004,
+                        16.659999999999997,
+                        16.664,
+                        16.667,
+                        16.664999999999992,
+                        16.854000000000013,
+                        16.55499999999998,
+                        16.674000000000007,
+                        16.682999999999993,
+                        16.601000000000028,
+                        16.702999999999975,
+                        16.68900000000002,
+                        16.646999999999963,
+                        16.62900000000002,
+                        16.718000000000018,
+                        16.647999999999968,
+                        16.629999999999995,
+                        16.66900000000004,
+                        16.70599999999996,
+                        16.635000000000048,
+                        16.626999999999953,
+                        16.701000000000022,
+                        16.644999999999982,
+                        16.653999999999996,
+                        16.67100000000005,
+                        16.663999999999987,
+                        16.663999999999987,
+                        16.738999999999976,
+                        16.614000000000033,
+                        16.66300000000001
+                      ],
+                      "invalidIntervals": 0,
+                      "p50Ms": 16.663999999999987,
+                      "p95Ms": 16.727449999999997,
+                      "p99Ms": 16.818350000000002,
+                      "maxMs": 16.854000000000013,
+                      "meanPresentedFps": 60.00240009600384,
+                      "intervalsOver25Ms": 0,
+                      "intervalsOver1_5Refresh": 0
+                    },
+                    "firstPresentationLatencyMs": 7.550457000000001,
+                    "firstPaintCallbackLatencyMs": 14.295290000000001,
+                    "longPresentationIntervals": []
+                  }
+                ],
+                "aggregate": {
+                  "intervalCount": 32,
+                  "p50Ms": 16.663999999999987,
+                  "p95Ms": 16.727449999999997,
+                  "p99Ms": 16.818350000000002,
+                  "maxMs": 16.854000000000013,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": 60.00240009600384,
+                  "validTransitionCount": 1,
+                  "excludedTransitionCount": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "label": "single-1-back",
+          "requests": 1,
+          "desktopEvents": 1,
+          "arms": 1,
+          "membershipUnchanged": true,
+          "captureRpcMs": 2.619645,
+          "armDelayMs": [
+            0.450688
+          ],
+          "analysis": {
+            "association": "output-only-no-paint-to-present-join",
+            "boundary": "desktopChanged-to-native-finish-plus-one-refresh",
+            "percentileMethod": "linear-interpolation-of-observed-intervals",
+            "source": "KWin::RenderLoop::framePresented",
+            "outputs": [
+              {
+                "output": "HDMI-A-1",
+                "refreshHz": 60,
+                "transitions": [],
+                "aggregate": {
+                  "intervalCount": 0,
+                  "p50Ms": null,
+                  "p95Ms": null,
+                  "p99Ms": null,
+                  "maxMs": null,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": null,
+                  "validTransitionCount": 0,
+                  "excludedTransitionCount": 0
+                }
+              },
+              {
+                "output": "DP-1",
+                "refreshHz": 60,
+                "transitions": [
+                  {
+                    "startMs": 1.771758,
+                    "finishMs": 420.805454,
+                    "endBoundaryMs": 437.4721206666667,
+                    "durationMs": 419.033696,
+                    "desktopChangeCount": 1,
+                    "complete": true,
+                    "validForComparison": true,
+                    "limitations": [],
+                    "presentationStats": {
+                      "intervalCount": 25,
+                      "intervalsMs": [
+                        16.655,
+                        16.676000000000002,
+                        16.689999999999998,
+                        16.674999999999997,
+                        16.709000000000003,
+                        16.592,
+                        16.69399999999999,
+                        16.637,
+                        16.729000000000013,
+                        16.598000000000013,
+                        16.660999999999973,
+                        16.67100000000002,
+                        16.808999999999997,
+                        16.563999999999993,
+                        16.708999999999975,
+                        16.66300000000001,
+                        16.619000000000028,
+                        16.757000000000005,
+                        16.71199999999999,
+                        16.57099999999997,
+                        16.859000000000037,
+                        16.611999999999966,
+                        16.496000000000038,
+                        16.74399999999997,
+                        16.56600000000003
+                      ],
+                      "invalidIntervals": 0,
+                      "p50Ms": 16.67100000000002,
+                      "p95Ms": 16.7986,
+                      "p99Ms": 16.847000000000026,
+                      "maxMs": 16.859000000000037,
+                      "meanPresentedFps": 59.999808000614394,
+                      "intervalsOver25Ms": 0,
+                      "intervalsOver1_5Refresh": 0
+                    },
+                    "firstPresentationLatencyMs": 11.623275,
+                    "firstPaintCallbackLatencyMs": 4.759048,
+                    "longPresentationIntervals": []
+                  }
+                ],
+                "aggregate": {
+                  "intervalCount": 25,
+                  "p50Ms": 16.67100000000002,
+                  "p95Ms": 16.7986,
+                  "p99Ms": 16.847000000000026,
+                  "maxMs": 16.859000000000037,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": 59.999808000614394,
+                  "validTransitionCount": 1,
+                  "excludedTransitionCount": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "label": "single-1-out",
+          "requests": 1,
+          "desktopEvents": 1,
+          "arms": 1,
+          "membershipUnchanged": true,
+          "captureRpcMs": 0.709778,
+          "armDelayMs": [
+            1.016477
+          ],
+          "analysis": {
+            "association": "output-only-no-paint-to-present-join",
+            "boundary": "desktopChanged-to-native-finish-plus-one-refresh",
+            "percentileMethod": "linear-interpolation-of-observed-intervals",
+            "source": "KWin::RenderLoop::framePresented",
+            "outputs": [
+              {
+                "output": "HDMI-A-1",
+                "refreshHz": 60,
+                "transitions": [],
+                "aggregate": {
+                  "intervalCount": 0,
+                  "p50Ms": null,
+                  "p95Ms": null,
+                  "p99Ms": null,
+                  "maxMs": null,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": null,
+                  "validTransitionCount": 0,
+                  "excludedTransitionCount": 0
+                }
+              },
+              {
+                "output": "DP-1",
+                "refreshHz": 60,
+                "transitions": [
+                  {
+                    "startMs": 1.381189,
+                    "finishMs": 422.876651,
+                    "endBoundaryMs": 439.54331766666667,
+                    "durationMs": 421.495462,
+                    "desktopChangeCount": 1,
+                    "complete": true,
+                    "validForComparison": true,
+                    "limitations": [],
+                    "presentationStats": {
+                      "intervalCount": 25,
+                      "intervalsMs": [
+                        16.665999999999997,
+                        16.698,
+                        16.641999999999996,
+                        16.66600000000001,
+                        16.664,
+                        16.664999999999992,
+                        16.66900000000001,
+                        16.69199999999998,
+                        16.686000000000007,
+                        16.647999999999996,
+                        16.66300000000001,
+                        16.66900000000001,
+                        16.75,
+                        16.700999999999993,
+                        16.67999999999998,
+                        16.682999999999993,
+                        16.551000000000045,
+                        16.68199999999996,
+                        16.65300000000002,
+                        16.851999999999975,
+                        16.492999999999995,
+                        16.628000000000043,
+                        16.718999999999994,
+                        16.649,
+                        16.651999999999987
+                      ],
+                      "invalidIntervals": 0,
+                      "p50Ms": 16.66600000000001,
+                      "p95Ms": 16.7438,
+                      "p99Ms": 16.82751999999998,
+                      "maxMs": 16.851999999999975,
+                      "meanPresentedFps": 59.99217702011658,
+                      "intervalsOver25Ms": 0,
+                      "intervalsOver1_5Refresh": 0
+                    },
+                    "firstPresentationLatencyMs": 14.696173000000002,
+                    "firstPaintCallbackLatencyMs": 7.246441,
+                    "longPresentationIntervals": []
+                  }
+                ],
+                "aggregate": {
+                  "intervalCount": 25,
+                  "p50Ms": 16.66600000000001,
+                  "p95Ms": 16.7438,
+                  "p99Ms": 16.82751999999998,
+                  "maxMs": 16.851999999999975,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": 59.99217702011658,
+                  "validTransitionCount": 1,
+                  "excludedTransitionCount": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "label": "single-2-back",
+          "requests": 1,
+          "desktopEvents": 1,
+          "arms": 1,
+          "membershipUnchanged": true,
+          "captureRpcMs": 0.747795,
+          "armDelayMs": [
+            0.7722449999999998
+          ],
+          "analysis": {
+            "association": "output-only-no-paint-to-present-join",
+            "boundary": "desktopChanged-to-native-finish-plus-one-refresh",
+            "percentileMethod": "linear-interpolation-of-observed-intervals",
+            "source": "KWin::RenderLoop::framePresented",
+            "outputs": [
+              {
+                "output": "HDMI-A-1",
+                "refreshHz": 60,
+                "transitions": [],
+                "aggregate": {
+                  "intervalCount": 0,
+                  "p50Ms": null,
+                  "p95Ms": null,
+                  "p99Ms": null,
+                  "maxMs": null,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": null,
+                  "validTransitionCount": 0,
+                  "excludedTransitionCount": 0
+                }
+              },
+              {
+                "output": "DP-1",
+                "refreshHz": 60,
+                "transitions": [
+                  {
+                    "startMs": 1.153853,
+                    "finishMs": 422.757429,
+                    "endBoundaryMs": 439.4240956666667,
+                    "durationMs": 421.603576,
+                    "desktopChangeCount": 1,
+                    "complete": true,
+                    "validForComparison": true,
+                    "limitations": [],
+                    "presentationStats": {
+                      "intervalCount": 25,
+                      "intervalsMs": [
+                        16.700000000000003,
+                        16.645,
+                        16.662000000000006,
+                        16.671999999999997,
+                        16.688999999999993,
+                        16.676000000000002,
+                        16.661000000000016,
+                        16.675999999999988,
+                        16.77799999999999,
+                        16.575000000000017,
+                        16.639999999999986,
+                        16.77000000000001,
+                        16.58099999999999,
+                        16.65100000000001,
+                        16.692000000000007,
+                        16.676999999999964,
+                        16.621000000000038,
+                        16.802999999999997,
+                        16.560000000000002,
+                        16.651999999999987,
+                        16.774,
+                        16.625999999999976,
+                        16.61500000000001,
+                        16.730999999999995,
+                        16.64100000000002
+                      ],
+                      "invalidIntervals": 0,
+                      "p50Ms": 16.662000000000006,
+                      "p95Ms": 16.777199999999993,
+                      "p99Ms": 16.796999999999997,
+                      "maxMs": 16.802999999999997,
+                      "meanPresentedFps": 59.985411547911546,
+                      "intervalsOver25Ms": 0,
+                      "intervalsOver1_5Refresh": 0
+                    },
+                    "firstPresentationLatencyMs": 12.845955,
+                    "firstPaintCallbackLatencyMs": 4.5975,
+                    "longPresentationIntervals": []
+                  }
+                ],
+                "aggregate": {
+                  "intervalCount": 25,
+                  "p50Ms": 16.662000000000006,
+                  "p95Ms": 16.777199999999993,
+                  "p99Ms": 16.796999999999997,
+                  "maxMs": 16.802999999999997,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": 59.985411547911546,
+                  "validTransitionCount": 1,
+                  "excludedTransitionCount": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "label": "single-2-out",
+          "requests": 1,
+          "desktopEvents": 1,
+          "arms": 1,
+          "membershipUnchanged": true,
+          "captureRpcMs": 0.670923,
+          "armDelayMs": [
+            1.175166
+          ],
+          "analysis": {
+            "association": "output-only-no-paint-to-present-join",
+            "boundary": "desktopChanged-to-native-finish-plus-one-refresh",
+            "percentileMethod": "linear-interpolation-of-observed-intervals",
+            "source": "KWin::RenderLoop::framePresented",
+            "outputs": [
+              {
+                "output": "HDMI-A-1",
+                "refreshHz": 60,
+                "transitions": [],
+                "aggregate": {
+                  "intervalCount": 0,
+                  "p50Ms": null,
+                  "p95Ms": null,
+                  "p99Ms": null,
+                  "maxMs": null,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": null,
+                  "validTransitionCount": 0,
+                  "excludedTransitionCount": 0
+                }
+              },
+              {
+                "output": "DP-1",
+                "refreshHz": 60,
+                "transitions": [
+                  {
+                    "startMs": 1.517072,
+                    "finishMs": 413.244655,
+                    "endBoundaryMs": 429.9113216666667,
+                    "durationMs": 411.72758300000004,
+                    "desktopChangeCount": 1,
+                    "complete": true,
+                    "validForComparison": true,
+                    "limitations": [],
+                    "presentationStats": {
+                      "intervalCount": 25,
+                      "intervalsMs": [
+                        16.669,
+                        16.668999999999997,
+                        16.673000000000002,
+                        16.699000000000005,
+                        16.62599999999999,
+                        16.664,
+                        16.671000000000006,
+                        16.659999999999997,
+                        16.711000000000013,
+                        16.658999999999992,
+                        16.664999999999992,
+                        16.638000000000005,
+                        16.708,
+                        16.66300000000001,
+                        16.85499999999996,
+                        16.572000000000003,
+                        16.68900000000002,
+                        16.617999999999995,
+                        16.62700000000001,
+                        16.708000000000027,
+                        16.595999999999947,
+                        16.715000000000032,
+                        16.82299999999998,
+                        16.46199999999999,
+                        16.677999999999997
+                      ],
+                      "invalidIntervals": 0,
+                      "p50Ms": 16.668999999999997,
+                      "p95Ms": 16.80139999999999,
+                      "p99Ms": 16.847319999999964,
+                      "maxMs": 16.85499999999996,
+                      "meanPresentedFps": 59.99260891058222,
+                      "intervalsOver25Ms": 0,
+                      "intervalsOver1_5Refresh": 0
+                    },
+                    "firstPresentationLatencyMs": 6.226034,
+                    "firstPaintCallbackLatencyMs": 14.220917,
+                    "longPresentationIntervals": []
+                  }
+                ],
+                "aggregate": {
+                  "intervalCount": 25,
+                  "p50Ms": 16.668999999999997,
+                  "p95Ms": 16.80139999999999,
+                  "p99Ms": 16.847319999999964,
+                  "maxMs": 16.85499999999996,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": 59.99260891058222,
+                  "validTransitionCount": 1,
+                  "excludedTransitionCount": 0
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "group": "B-off",
+      "requests": 12,
+      "transitionCount": 6,
+      "intervalCount": 187,
+      "p50Ms": 16.667,
+      "p95Ms": 16.825699999999976,
+      "p99Ms": 16.87042000000001,
+      "maxMs": 16.89699999999999,
+      "intervalsOver25Ms": 0,
+      "fps": 60.00022459977122,
+      "medianArmDelayMs": 1.040357500000006,
+      "maxArmDelayMs": 3.635432,
+      "trials": [
+        {
+          "label": "alternating-100ms",
+          "requests": 6,
+          "desktopEvents": 6,
+          "arms": 6,
+          "membershipUnchanged": true,
+          "captureRpcMs": 0.509633,
+          "armDelayMs": [
+            1.172728,
+            1.0397450000000106,
+            1.2297049999999956,
+            0.966370999999981,
+            1.1239249999999856,
+            0.9702359999999999
+          ],
+          "analysis": {
+            "association": "output-only-no-paint-to-present-join",
+            "boundary": "desktopChanged-to-native-finish-plus-one-refresh",
+            "percentileMethod": "linear-interpolation-of-observed-intervals",
+            "source": "KWin::RenderLoop::framePresented",
+            "outputs": [
+              {
+                "output": "HDMI-A-1",
+                "refreshHz": 60,
+                "transitions": [],
+                "aggregate": {
+                  "intervalCount": 0,
+                  "p50Ms": null,
+                  "p95Ms": null,
+                  "p99Ms": null,
+                  "maxMs": null,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": null,
+                  "validTransitionCount": 0,
+                  "excludedTransitionCount": 0
+                }
+              },
+              {
+                "output": "DP-1",
+                "refreshHz": 60,
+                "transitions": [
+                  {
+                    "startMs": 1.435878,
+                    "finishMs": 919.871636,
+                    "endBoundaryMs": 936.5383026666666,
+                    "durationMs": 918.435758,
+                    "desktopChangeCount": 6,
+                    "complete": true,
+                    "validForComparison": true,
+                    "limitations": [],
+                    "presentationStats": {
+                      "intervalCount": 55,
+                      "intervalsMs": [
+                        16.713,
+                        16.685000000000002,
+                        16.613999999999997,
+                        16.666000000000004,
+                        16.670999999999992,
+                        16.682000000000002,
+                        16.66000000000001,
+                        16.84099999999998,
+                        16.53800000000001,
+                        16.84700000000001,
+                        16.43599999999998,
+                        16.643,
+                        16.701999999999998,
+                        16.703000000000003,
+                        16.686999999999983,
+                        16.63900000000001,
+                        16.670999999999992,
+                        16.597000000000037,
+                        16.742999999999995,
+                        16.63299999999998,
+                        16.71199999999999,
+                        16.821000000000026,
+                        16.641999999999996,
+                        16.48599999999999,
+                        16.66300000000001,
+                        16.72800000000001,
+                        16.66300000000001,
+                        16.617999999999995,
+                        16.699000000000012,
+                        16.598999999999933,
+                        16.694000000000074,
+                        16.770999999999958,
+                        16.76800000000003,
+                        16.463999999999942,
+                        16.680000000000064,
+                        16.658999999999992,
+                        16.80200000000002,
+                        16.551999999999907,
+                        16.68500000000006,
+                        16.664999999999964,
+                        16.675000000000068,
+                        16.656999999999925,
+                        16.835000000000036,
+                        16.423999999999978,
+                        16.873000000000047,
+                        16.53699999999992,
+                        16.746000000000095,
+                        16.68999999999994,
+                        16.642000000000053,
+                        16.674999999999955,
+                        16.638000000000034,
+                        16.649,
+                        16.630999999999972,
+                        16.83000000000004,
+                        16.442000000000007
+                      ],
+                      "invalidIntervals": 0,
+                      "p50Ms": 16.670999999999992,
+                      "p95Ms": 16.83680000000002,
+                      "p99Ms": 16.858960000000025,
+                      "maxMs": 16.873000000000047,
+                      "meanPresentedFps": 59.99873457214357,
+                      "intervalsOver25Ms": 0,
+                      "intervalsOver1_5Refresh": 0
+                    },
+                    "firstPresentationLatencyMs": 12.268595,
+                    "firstPaintCallbackLatencyMs": 4.9268730000000005,
+                    "longPresentationIntervals": []
+                  }
+                ],
+                "aggregate": {
+                  "intervalCount": 55,
+                  "p50Ms": 16.670999999999992,
+                  "p95Ms": 16.83680000000002,
+                  "p99Ms": 16.858960000000025,
+                  "maxMs": 16.873000000000047,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": 59.99873457214357,
+                  "validTransitionCount": 1,
+                  "excludedTransitionCount": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "label": "reverse-100ms",
+          "requests": 2,
+          "desktopEvents": 2,
+          "arms": 2,
+          "membershipUnchanged": true,
+          "captureRpcMs": 0.880601,
+          "armDelayMs": [
+            0.659879,
+            1.0409700000000015
+          ],
+          "analysis": {
+            "association": "output-only-no-paint-to-present-join",
+            "boundary": "desktopChanged-to-native-finish-plus-one-refresh",
+            "percentileMethod": "linear-interpolation-of-observed-intervals",
+            "source": "KWin::RenderLoop::framePresented",
+            "outputs": [
+              {
+                "output": "HDMI-A-1",
+                "refreshHz": 60,
+                "transitions": [],
+                "aggregate": {
+                  "intervalCount": 0,
+                  "p50Ms": null,
+                  "p95Ms": null,
+                  "p99Ms": null,
+                  "maxMs": null,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": null,
+                  "validTransitionCount": 0,
+                  "excludedTransitionCount": 0
+                }
+              },
+              {
+                "output": "DP-1",
+                "refreshHz": 60,
+                "transitions": [
+                  {
+                    "startMs": 1.106676,
+                    "finishMs": 529.939005,
+                    "endBoundaryMs": 546.6056716666666,
+                    "durationMs": 528.832329,
+                    "desktopChangeCount": 2,
+                    "complete": true,
+                    "validForComparison": true,
+                    "limitations": [],
+                    "presentationStats": {
+                      "intervalCount": 32,
+                      "intervalsMs": [
+                        16.695,
+                        16.635,
+                        16.671999999999997,
+                        16.668,
+                        16.656000000000006,
+                        16.671999999999997,
+                        16.727000000000004,
+                        16.73299999999999,
+                        16.580000000000013,
+                        16.650999999999982,
+                        16.672000000000025,
+                        16.631,
+                        16.69799999999998,
+                        16.811000000000007,
+                        16.49199999999999,
+                        16.69999999999999,
+                        16.80600000000004,
+                        16.644000000000005,
+                        16.66799999999995,
+                        16.797000000000025,
+                        16.456999999999994,
+                        16.793000000000006,
+                        16.550999999999988,
+                        16.615999999999985,
+                        16.85600000000005,
+                        16.56099999999998,
+                        16.584000000000003,
+                        16.74599999999998,
+                        16.636000000000024,
+                        16.711000000000013,
+                        16.58099999999996,
+                        16.638000000000034
+                      ],
+                      "invalidIntervals": 0,
+                      "p50Ms": 16.667999999999974,
+                      "p95Ms": 16.808250000000026,
+                      "p99Ms": 16.842050000000036,
+                      "maxMs": 16.85600000000005,
+                      "meanPresentedFps": 59.99947500459371,
+                      "intervalsOver25Ms": 0,
+                      "intervalsOver1_5Refresh": 0
+                    },
+                    "firstPresentationLatencyMs": 7.189548,
+                    "firstPaintCallbackLatencyMs": 14.745651,
+                    "longPresentationIntervals": []
+                  }
+                ],
+                "aggregate": {
+                  "intervalCount": 32,
+                  "p50Ms": 16.667999999999974,
+                  "p95Ms": 16.808250000000026,
+                  "p99Ms": 16.842050000000036,
+                  "maxMs": 16.85600000000005,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": 59.99947500459371,
+                  "validTransitionCount": 1,
+                  "excludedTransitionCount": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "label": "single-1-back",
+          "requests": 1,
+          "desktopEvents": 1,
+          "arms": 1,
+          "membershipUnchanged": true,
+          "captureRpcMs": 0.511421,
+          "armDelayMs": [
+            0.8263409999999999
+          ],
+          "analysis": {
+            "association": "output-only-no-paint-to-present-join",
+            "boundary": "desktopChanged-to-native-finish-plus-one-refresh",
+            "percentileMethod": "linear-interpolation-of-observed-intervals",
+            "source": "KWin::RenderLoop::framePresented",
+            "outputs": [
+              {
+                "output": "HDMI-A-1",
+                "refreshHz": 60,
+                "transitions": [],
+                "aggregate": {
+                  "intervalCount": 0,
+                  "p50Ms": null,
+                  "p95Ms": null,
+                  "p99Ms": null,
+                  "maxMs": null,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": null,
+                  "validTransitionCount": 0,
+                  "excludedTransitionCount": 0
+                }
+              },
+              {
+                "output": "DP-1",
+                "refreshHz": 60,
+                "transitions": [
+                  {
+                    "startMs": 1.088986,
+                    "finishMs": 412.27894,
+                    "endBoundaryMs": 428.94560666666666,
+                    "durationMs": 411.189954,
+                    "desktopChangeCount": 1,
+                    "complete": true,
+                    "validForComparison": true,
+                    "limitations": [],
+                    "presentationStats": {
+                      "intervalCount": 24,
+                      "intervalsMs": [
+                        16.621,
+                        16.702000000000005,
+                        16.633000000000003,
+                        16.673999999999992,
+                        16.653999999999996,
+                        16.674000000000007,
+                        16.857,
+                        16.533999999999992,
+                        16.634000000000015,
+                        16.667,
+                        16.710999999999984,
+                        16.75400000000002,
+                        16.613999999999976,
+                        16.670000000000016,
+                        16.58499999999998,
+                        16.735000000000014,
+                        16.57299999999998,
+                        16.789000000000044,
+                        16.61099999999999,
+                        16.71199999999999,
+                        16.58499999999998,
+                        16.766999999999996,
+                        16.741000000000042,
+                        16.49599999999998
+                      ],
+                      "invalidIntervals": 0,
+                      "p50Ms": 16.66850000000001,
+                      "p95Ms": 16.785700000000038,
+                      "p99Ms": 16.84136000000001,
+                      "maxMs": 16.857,
+                      "meanPresentedFps": 60.001050018375324,
+                      "intervalsOver25Ms": 0,
+                      "intervalsOver1_5Refresh": 0
+                    },
+                    "firstPresentationLatencyMs": 23.250688,
+                    "firstPaintCallbackLatencyMs": 4.965320999999999,
+                    "longPresentationIntervals": []
+                  }
+                ],
+                "aggregate": {
+                  "intervalCount": 24,
+                  "p50Ms": 16.66850000000001,
+                  "p95Ms": 16.785700000000038,
+                  "p99Ms": 16.84136000000001,
+                  "maxMs": 16.857,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": 60.001050018375324,
+                  "validTransitionCount": 1,
+                  "excludedTransitionCount": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "label": "single-1-out",
+          "requests": 1,
+          "desktopEvents": 1,
+          "arms": 1,
+          "membershipUnchanged": true,
+          "captureRpcMs": 0.802817,
+          "armDelayMs": [
+            0.782472
+          ],
+          "analysis": {
+            "association": "output-only-no-paint-to-present-join",
+            "boundary": "desktopChanged-to-native-finish-plus-one-refresh",
+            "percentileMethod": "linear-interpolation-of-observed-intervals",
+            "source": "KWin::RenderLoop::framePresented",
+            "outputs": [
+              {
+                "output": "HDMI-A-1",
+                "refreshHz": 60,
+                "transitions": [],
+                "aggregate": {
+                  "intervalCount": 0,
+                  "p50Ms": null,
+                  "p95Ms": null,
+                  "p99Ms": null,
+                  "maxMs": null,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": null,
+                  "validTransitionCount": 0,
+                  "excludedTransitionCount": 0
+                }
+              },
+              {
+                "output": "DP-1",
+                "refreshHz": 60,
+                "transitions": [
+                  {
+                    "startMs": 1.191309,
+                    "finishMs": 411.673506,
+                    "endBoundaryMs": 428.34017266666666,
+                    "durationMs": 410.482197,
+                    "desktopChangeCount": 1,
+                    "complete": true,
+                    "validForComparison": true,
+                    "limitations": [],
+                    "presentationStats": {
+                      "intervalCount": 25,
+                      "intervalsMs": [
+                        16.652,
+                        16.625999999999998,
+                        16.71,
+                        16.637000000000008,
+                        16.69099999999999,
+                        16.63600000000001,
+                        16.661,
+                        16.735,
+                        16.724999999999994,
+                        16.580000000000013,
+                        16.659999999999997,
+                        16.663999999999987,
+                        16.89699999999999,
+                        16.437000000000012,
+                        16.81400000000002,
+                        16.564999999999998,
+                        16.777999999999963,
+                        16.581999999999994,
+                        16.56800000000004,
+                        16.870000000000005,
+                        16.49599999999998,
+                        16.726,
+                        16.634000000000015,
+                        16.653999999999996,
+                        16.630999999999972
+                      ],
+                      "invalidIntervals": 0,
+                      "p50Ms": 16.653999999999996,
+                      "p95Ms": 16.85880000000001,
+                      "p99Ms": 16.890519999999995,
+                      "maxMs": 16.89699999999999,
+                      "meanPresentedFps": 60.00542449037393,
+                      "intervalsOver25Ms": 0,
+                      "intervalsOver1_5Refresh": 0
+                    },
+                    "firstPresentationLatencyMs": 5.5397929999999995,
+                    "firstPaintCallbackLatencyMs": 14.104163999999999,
+                    "longPresentationIntervals": []
+                  }
+                ],
+                "aggregate": {
+                  "intervalCount": 25,
+                  "p50Ms": 16.653999999999996,
+                  "p95Ms": 16.85880000000001,
+                  "p99Ms": 16.890519999999995,
+                  "maxMs": 16.89699999999999,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": 60.00542449037393,
+                  "validTransitionCount": 1,
+                  "excludedTransitionCount": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "label": "single-2-back",
+          "requests": 1,
+          "desktopEvents": 1,
+          "arms": 1,
+          "membershipUnchanged": true,
+          "captureRpcMs": 2.806357,
+          "armDelayMs": [
+            3.635432
+          ],
+          "analysis": {
+            "association": "output-only-no-paint-to-present-join",
+            "boundary": "desktopChanged-to-native-finish-plus-one-refresh",
+            "percentileMethod": "linear-interpolation-of-observed-intervals",
+            "source": "KWin::RenderLoop::framePresented",
+            "outputs": [
+              {
+                "output": "HDMI-A-1",
+                "refreshHz": 60,
+                "transitions": [],
+                "aggregate": {
+                  "intervalCount": 0,
+                  "p50Ms": null,
+                  "p95Ms": null,
+                  "p99Ms": null,
+                  "maxMs": null,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": null,
+                  "validTransitionCount": 0,
+                  "excludedTransitionCount": 0
+                }
+              },
+              {
+                "output": "DP-1",
+                "refreshHz": 60,
+                "transitions": [
+                  {
+                    "startMs": 5.060722,
+                    "finishMs": 423.66035,
+                    "endBoundaryMs": 440.3270166666667,
+                    "durationMs": 418.599628,
+                    "desktopChangeCount": 1,
+                    "complete": true,
+                    "validForComparison": true,
+                    "limitations": [],
+                    "presentationStats": {
+                      "intervalCount": 25,
+                      "intervalsMs": [
+                        16.715999999999998,
+                        16.626000000000005,
+                        16.738999999999997,
+                        16.643,
+                        16.653000000000006,
+                        16.67,
+                        16.664999999999992,
+                        16.653999999999996,
+                        16.72,
+                        16.771000000000015,
+                        16.649999999999977,
+                        16.55200000000002,
+                        16.700999999999993,
+                        16.664999999999992,
+                        16.62900000000002,
+                        16.646000000000015,
+                        16.708999999999946,
+                        16.674000000000035,
+                        16.825999999999965,
+                        16.499000000000024,
+                        16.720000000000027,
+                        16.69199999999995,
+                        16.66700000000003,
+                        16.70799999999997,
+                        16.496000000000038
+                      ],
+                      "invalidIntervals": 0,
+                      "p50Ms": 16.66700000000003,
+                      "p95Ms": 16.764600000000012,
+                      "p99Ms": 16.812799999999978,
+                      "maxMs": 16.825999999999965,
+                      "meanPresentedFps": 59.99649620462164,
+                      "intervalsOver25Ms": 0,
+                      "intervalsOver1_5Refresh": 0
+                    },
+                    "firstPresentationLatencyMs": 11.198853999999999,
+                    "firstPaintCallbackLatencyMs": 4.320086,
+                    "longPresentationIntervals": []
+                  }
+                ],
+                "aggregate": {
+                  "intervalCount": 25,
+                  "p50Ms": 16.66700000000003,
+                  "p95Ms": 16.764600000000012,
+                  "p99Ms": 16.812799999999978,
+                  "maxMs": 16.825999999999965,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": 59.99649620462164,
+                  "validTransitionCount": 1,
+                  "excludedTransitionCount": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "label": "single-2-out",
+          "requests": 1,
+          "desktopEvents": 1,
+          "arms": 1,
+          "membershipUnchanged": true,
+          "captureRpcMs": 2.712736,
+          "armDelayMs": [
+            3.506037
+          ],
+          "analysis": {
+            "association": "output-only-no-paint-to-present-join",
+            "boundary": "desktopChanged-to-native-finish-plus-one-refresh",
+            "percentileMethod": "linear-interpolation-of-observed-intervals",
+            "source": "KWin::RenderLoop::framePresented",
+            "outputs": [
+              {
+                "output": "HDMI-A-1",
+                "refreshHz": 60,
+                "transitions": [],
+                "aggregate": {
+                  "intervalCount": 0,
+                  "p50Ms": null,
+                  "p95Ms": null,
+                  "p99Ms": null,
+                  "maxMs": null,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": null,
+                  "validTransitionCount": 0,
+                  "excludedTransitionCount": 0
+                }
+              },
+              {
+                "output": "DP-1",
+                "refreshHz": 60,
+                "transitions": [
+                  {
+                    "startMs": 4.88372,
+                    "finishMs": 427.787505,
+                    "endBoundaryMs": 444.4541716666667,
+                    "durationMs": 422.903785,
+                    "desktopChangeCount": 1,
+                    "complete": true,
+                    "validForComparison": true,
+                    "limitations": [],
+                    "presentationStats": {
+                      "intervalCount": 26,
+                      "intervalsMs": [
+                        16.673000000000002,
+                        16.697999999999997,
+                        16.604,
+                        16.698999999999998,
+                        16.67,
+                        16.655,
+                        16.659999999999997,
+                        16.825000000000003,
+                        16.634000000000015,
+                        16.581999999999994,
+                        16.790999999999997,
+                        16.538999999999987,
+                        16.726,
+                        16.560000000000002,
+                        16.735000000000014,
+                        16.650999999999982,
+                        16.701999999999998,
+                        16.766999999999996,
+                        16.491000000000042,
+                        16.71599999999995,
+                        16.801000000000045,
+                        16.537999999999954,
+                        16.611000000000047,
+                        16.675999999999988,
+                        16.700999999999965,
+                        16.613
+                      ],
+                      "invalidIntervals": 0,
+                      "p50Ms": 16.6715,
+                      "p95Ms": 16.798500000000033,
+                      "p99Ms": 16.819000000000013,
+                      "maxMs": 16.825000000000003,
+                      "meanPresentedFps": 60.00212315205,
+                      "intervalsOver25Ms": 0,
+                      "intervalsOver1_5Refresh": 0
+                    },
+                    "firstPresentationLatencyMs": 0.8194319999999999,
+                    "firstPaintCallbackLatencyMs": 5.6777940000000005,
+                    "longPresentationIntervals": []
+                  }
+                ],
+                "aggregate": {
+                  "intervalCount": 26,
+                  "p50Ms": 16.6715,
+                  "p95Ms": 16.798500000000033,
+                  "p99Ms": 16.819000000000013,
+                  "maxMs": 16.825000000000003,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": 60.00212315205,
+                  "validTransitionCount": 1,
+                  "excludedTransitionCount": 0
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "group": "A2-on",
+      "requests": 12,
+      "transitionCount": 6,
+      "intervalCount": 185,
+      "p50Ms": 16.668000000000006,
+      "p95Ms": 16.781000000000006,
+      "p99Ms": 16.865800000000007,
+      "maxMs": 16.932999999999993,
+      "intervalsOver25Ms": 0,
+      "fps": 59.99759361002926,
+      "medianArmDelayMs": 1.027179500000003,
+      "maxArmDelayMs": 5.302295000000015,
+      "trials": [
+        {
+          "label": "alternating-100ms",
+          "requests": 6,
+          "desktopEvents": 6,
+          "arms": 6,
+          "membershipUnchanged": true,
+          "captureRpcMs": 0.921366,
+          "armDelayMs": [
+            0.89967,
+            1.084027000000006,
+            0.8238159999999937,
+            5.302295000000015,
+            4.931399000000056,
+            4.963549
+          ],
+          "analysis": {
+            "association": "output-only-no-paint-to-present-join",
+            "boundary": "desktopChanged-to-native-finish-plus-one-refresh",
+            "percentileMethod": "linear-interpolation-of-observed-intervals",
+            "source": "KWin::RenderLoop::framePresented",
+            "outputs": [
+              {
+                "output": "HDMI-A-1",
+                "refreshHz": 60,
+                "transitions": [],
+                "aggregate": {
+                  "intervalCount": 0,
+                  "p50Ms": null,
+                  "p95Ms": null,
+                  "p99Ms": null,
+                  "maxMs": null,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": null,
+                  "validTransitionCount": 0,
+                  "excludedTransitionCount": 0
+                }
+              },
+              {
+                "output": "DP-1",
+                "refreshHz": 60,
+                "transitions": [
+                  {
+                    "startMs": 1.367734,
+                    "finishMs": 935.526133,
+                    "endBoundaryMs": 952.1927996666666,
+                    "durationMs": 934.1583989999999,
+                    "desktopChangeCount": 6,
+                    "complete": true,
+                    "validForComparison": true,
+                    "limitations": [],
+                    "presentationStats": {
+                      "intervalCount": 56,
+                      "intervalsMs": [
+                        16.573999999999998,
+                        16.718,
+                        16.654000000000003,
+                        16.66599999999999,
+                        16.664,
+                        16.622,
+                        16.694000000000003,
+                        16.67200000000001,
+                        16.67999999999998,
+                        16.698000000000008,
+                        16.671999999999997,
+                        16.595,
+                        16.727000000000004,
+                        16.593999999999994,
+                        16.67100000000002,
+                        16.740999999999985,
+                        16.68599999999998,
+                        16.611000000000047,
+                        16.663999999999987,
+                        16.870000000000005,
+                        16.492999999999995,
+                        16.75799999999998,
+                        16.711000000000013,
+                        16.524999999999977,
+                        16.658000000000015,
+                        16.65100000000001,
+                        16.742999999999995,
+                        16.607000000000028,
+                        16.82299999999998,
+                        16.557999999999993,
+                        16.60600000000005,
+                        16.67599999999993,
+                        16.692999999999984,
+                        16.633000000000038,
+                        16.66700000000003,
+                        16.66599999999994,
+                        16.628000000000043,
+                        16.706999999999994,
+                        16.730999999999995,
+                        16.604000000000042,
+                        16.676999999999907,
+                        16.677999999999997,
+                        16.696000000000026,
+                        16.676000000000045,
+                        16.699999999999932,
+                        16.628000000000043,
+                        16.764999999999986,
+                        16.601999999999975,
+                        16.706000000000017,
+                        16.531000000000063,
+                        16.711000000000013,
+                        16.763999999999896,
+                        16.670000000000073,
+                        16.634000000000015,
+                        16.736999999999966,
+                        16.557999999999993
+                      ],
+                      "invalidIntervals": 0,
+                      "p50Ms": 16.67150000000001,
+                      "p95Ms": 16.76424999999992,
+                      "p99Ms": 16.844149999999992,
+                      "maxMs": 16.870000000000005,
+                      "meanPresentedFps": 59.99931429355094,
+                      "intervalsOver25Ms": 0,
+                      "intervalsOver1_5Refresh": 0
+                    },
+                    "firstPresentationLatencyMs": 8.397644,
+                    "firstPaintCallbackLatencyMs": 14.807076999999998,
+                    "longPresentationIntervals": []
+                  }
+                ],
+                "aggregate": {
+                  "intervalCount": 56,
+                  "p50Ms": 16.67150000000001,
+                  "p95Ms": 16.76424999999992,
+                  "p99Ms": 16.844149999999992,
+                  "maxMs": 16.870000000000005,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": 59.99931429355094,
+                  "validTransitionCount": 1,
+                  "excludedTransitionCount": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "label": "reverse-100ms",
+          "requests": 2,
+          "desktopEvents": 2,
+          "arms": 2,
+          "membershipUnchanged": true,
+          "captureRpcMs": 0.656338,
+          "armDelayMs": [
+            0.970332,
+            0.798254
+          ],
+          "analysis": {
+            "association": "output-only-no-paint-to-present-join",
+            "boundary": "desktopChanged-to-native-finish-plus-one-refresh",
+            "percentileMethod": "linear-interpolation-of-observed-intervals",
+            "source": "KWin::RenderLoop::framePresented",
+            "outputs": [
+              {
+                "output": "HDMI-A-1",
+                "refreshHz": 60,
+                "transitions": [],
+                "aggregate": {
+                  "intervalCount": 0,
+                  "p50Ms": null,
+                  "p95Ms": null,
+                  "p99Ms": null,
+                  "maxMs": null,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": null,
+                  "validTransitionCount": 0,
+                  "excludedTransitionCount": 0
+                }
+              },
+              {
+                "output": "DP-1",
+                "refreshHz": 60,
+                "transitions": [
+                  {
+                    "startMs": 1.306739,
+                    "finishMs": 519.622482,
+                    "endBoundaryMs": 536.2891486666666,
+                    "durationMs": 518.315743,
+                    "desktopChangeCount": 2,
+                    "complete": true,
+                    "validForComparison": true,
+                    "limitations": [],
+                    "presentationStats": {
+                      "intervalCount": 30,
+                      "intervalsMs": [
+                        16.663000000000004,
+                        16.662,
+                        16.701999999999998,
+                        16.653000000000006,
+                        16.666999999999987,
+                        16.709999999999994,
+                        16.721000000000004,
+                        16.616000000000014,
+                        16.62899999999999,
+                        16.741000000000014,
+                        16.681999999999988,
+                        16.545000000000016,
+                        16.670999999999992,
+                        16.82899999999998,
+                        16.605999999999995,
+                        16.559000000000026,
+                        16.706999999999994,
+                        16.682000000000016,
+                        16.75200000000001,
+                        16.688999999999965,
+                        16.543999999999983,
+                        16.86500000000001,
+                        16.609000000000037,
+                        16.62299999999999,
+                        16.69599999999997,
+                        16.692000000000007,
+                        16.586000000000013,
+                        16.781000000000006,
+                        16.64500000000004,
+                        16.527999999999906
+                      ],
+                      "invalidIntervals": 0,
+                      "p50Ms": 16.66899999999999,
+                      "p95Ms": 16.80739999999999,
+                      "p99Ms": 16.85456,
+                      "maxMs": 16.86500000000001,
+                      "meanPresentedFps": 59.993400725920154,
+                      "intervalsOver25Ms": 0,
+                      "intervalsOver1_5Refresh": 0
+                    },
+                    "firstPresentationLatencyMs": 27.169351,
+                    "firstPaintCallbackLatencyMs": 6.085526,
+                    "longPresentationIntervals": []
+                  }
+                ],
+                "aggregate": {
+                  "intervalCount": 30,
+                  "p50Ms": 16.66899999999999,
+                  "p95Ms": 16.80739999999999,
+                  "p99Ms": 16.85456,
+                  "maxMs": 16.86500000000001,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": 59.993400725920154,
+                  "validTransitionCount": 1,
+                  "excludedTransitionCount": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "label": "single-1-back",
+          "requests": 1,
+          "desktopEvents": 1,
+          "arms": 1,
+          "membershipUnchanged": true,
+          "captureRpcMs": 2.853026,
+          "armDelayMs": [
+            3.994184
+          ],
+          "analysis": {
+            "association": "output-only-no-paint-to-present-join",
+            "boundary": "desktopChanged-to-native-finish-plus-one-refresh",
+            "percentileMethod": "linear-interpolation-of-observed-intervals",
+            "source": "KWin::RenderLoop::framePresented",
+            "outputs": [
+              {
+                "output": "HDMI-A-1",
+                "refreshHz": 60,
+                "transitions": [],
+                "aggregate": {
+                  "intervalCount": 0,
+                  "p50Ms": null,
+                  "p95Ms": null,
+                  "p99Ms": null,
+                  "maxMs": null,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": null,
+                  "validTransitionCount": 0,
+                  "excludedTransitionCount": 0
+                }
+              },
+              {
+                "output": "DP-1",
+                "refreshHz": 60,
+                "transitions": [
+                  {
+                    "startMs": 5.449604,
+                    "finishMs": 417.91068,
+                    "endBoundaryMs": 434.5773466666667,
+                    "durationMs": 412.461076,
+                    "desktopChangeCount": 1,
+                    "complete": true,
+                    "validForComparison": true,
+                    "limitations": [],
+                    "presentationStats": {
+                      "intervalCount": 24,
+                      "intervalsMs": [
+                        16.710000000000004,
+                        16.678999999999995,
+                        16.618000000000002,
+                        16.664,
+                        16.661999999999992,
+                        16.679000000000002,
+                        16.652000000000015,
+                        16.787999999999982,
+                        16.629999999999995,
+                        16.683999999999997,
+                        16.64100000000002,
+                        16.623999999999995,
+                        16.66300000000001,
+                        16.636999999999972,
+                        16.696000000000026,
+                        16.774999999999977,
+                        16.61099999999999,
+                        16.65500000000003,
+                        16.682000000000016,
+                        16.763999999999953,
+                        16.573000000000036,
+                        16.665999999999997,
+                        16.642999999999972,
+                        16.641999999999996
+                      ],
+                      "invalidIntervals": 0,
+                      "p50Ms": 16.6625,
+                      "p95Ms": 16.773349999999972,
+                      "p99Ms": 16.78500999999998,
+                      "maxMs": 16.787999999999982,
+                      "meanPresentedFps": 59.99430054144857,
+                      "intervalsOver25Ms": 0,
+                      "intervalsOver1_5Refresh": 0
+                    },
+                    "firstPresentationLatencyMs": 24.164241999999998,
+                    "firstPaintCallbackLatencyMs": 7.683725,
+                    "longPresentationIntervals": []
+                  }
+                ],
+                "aggregate": {
+                  "intervalCount": 24,
+                  "p50Ms": 16.6625,
+                  "p95Ms": 16.773349999999972,
+                  "p99Ms": 16.78500999999998,
+                  "maxMs": 16.787999999999982,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": 59.99430054144857,
+                  "validTransitionCount": 1,
+                  "excludedTransitionCount": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "label": "single-1-out",
+          "requests": 1,
+          "desktopEvents": 1,
+          "arms": 1,
+          "membershipUnchanged": true,
+          "captureRpcMs": 0.671455,
+          "armDelayMs": [
+            0.8931259999999999
+          ],
+          "analysis": {
+            "association": "output-only-no-paint-to-present-join",
+            "boundary": "desktopChanged-to-native-finish-plus-one-refresh",
+            "percentileMethod": "linear-interpolation-of-observed-intervals",
+            "source": "KWin::RenderLoop::framePresented",
+            "outputs": [
+              {
+                "output": "HDMI-A-1",
+                "refreshHz": 60,
+                "transitions": [],
+                "aggregate": {
+                  "intervalCount": 0,
+                  "p50Ms": null,
+                  "p95Ms": null,
+                  "p99Ms": null,
+                  "maxMs": null,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": null,
+                  "validTransitionCount": 0,
+                  "excludedTransitionCount": 0
+                }
+              },
+              {
+                "output": "DP-1",
+                "refreshHz": 60,
+                "transitions": [
+                  {
+                    "startMs": 1.236952,
+                    "finishMs": 421.134106,
+                    "endBoundaryMs": 437.80077266666666,
+                    "durationMs": 419.897154,
+                    "desktopChangeCount": 1,
+                    "complete": true,
+                    "validForComparison": true,
+                    "limitations": [],
+                    "presentationStats": {
+                      "intervalCount": 25,
+                      "intervalsMs": [
+                        16.685000000000002,
+                        16.65,
+                        16.678000000000004,
+                        16.679000000000002,
+                        16.662999999999997,
+                        16.793999999999997,
+                        16.590999999999994,
+                        16.607,
+                        16.671999999999997,
+                        16.67500000000001,
+                        16.667,
+                        16.68100000000001,
+                        16.688999999999993,
+                        16.668999999999983,
+                        16.62100000000001,
+                        16.675999999999988,
+                        16.668000000000006,
+                        16.658999999999992,
+                        16.66700000000003,
+                        16.700999999999965,
+                        16.621000000000038,
+                        16.71799999999996,
+                        16.735000000000014,
+                        16.538999999999987,
+                        16.69100000000003
+                      ],
+                      "invalidIntervals": 0,
+                      "p50Ms": 16.671999999999997,
+                      "p95Ms": 16.731600000000004,
+                      "p99Ms": 16.77984,
+                      "maxMs": 16.793999999999997,
+                      "meanPresentedFps": 59.99577629734866,
+                      "intervalsOver25Ms": 0,
+                      "intervalsOver1_5Refresh": 0
+                    },
+                    "firstPresentationLatencyMs": 14.24072,
+                    "firstPaintCallbackLatencyMs": 5.259710999999999,
+                    "longPresentationIntervals": []
+                  }
+                ],
+                "aggregate": {
+                  "intervalCount": 25,
+                  "p50Ms": 16.671999999999997,
+                  "p95Ms": 16.731600000000004,
+                  "p99Ms": 16.77984,
+                  "maxMs": 16.793999999999997,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": 59.99577629734866,
+                  "validTransitionCount": 1,
+                  "excludedTransitionCount": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "label": "single-2-back",
+          "requests": 1,
+          "desktopEvents": 1,
+          "arms": 1,
+          "membershipUnchanged": true,
+          "captureRpcMs": 0.849772,
+          "armDelayMs": [
+            1.204144
+          ],
+          "analysis": {
+            "association": "output-only-no-paint-to-present-join",
+            "boundary": "desktopChanged-to-native-finish-plus-one-refresh",
+            "percentileMethod": "linear-interpolation-of-observed-intervals",
+            "source": "KWin::RenderLoop::framePresented",
+            "outputs": [
+              {
+                "output": "HDMI-A-1",
+                "refreshHz": 60,
+                "transitions": [],
+                "aggregate": {
+                  "intervalCount": 0,
+                  "p50Ms": null,
+                  "p95Ms": null,
+                  "p99Ms": null,
+                  "maxMs": null,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": null,
+                  "validTransitionCount": 0,
+                  "excludedTransitionCount": 0
+                }
+              },
+              {
+                "output": "DP-1",
+                "refreshHz": 60,
+                "transitions": [
+                  {
+                    "startMs": 1.636179,
+                    "finishMs": 424.350712,
+                    "endBoundaryMs": 441.0173786666667,
+                    "durationMs": 422.71453299999996,
+                    "desktopChangeCount": 1,
+                    "complete": true,
+                    "validForComparison": true,
+                    "limitations": [],
+                    "presentationStats": {
+                      "intervalCount": 25,
+                      "intervalsMs": [
+                        16.725999999999996,
+                        16.624000000000002,
+                        16.657999999999994,
+                        16.655,
+                        16.671000000000006,
+                        16.662999999999997,
+                        16.700999999999993,
+                        16.63500000000002,
+                        16.662999999999982,
+                        16.781000000000006,
+                        16.62700000000001,
+                        16.605999999999995,
+                        16.65700000000001,
+                        16.742999999999995,
+                        16.668000000000006,
+                        16.661999999999978,
+                        16.790999999999997,
+                        16.50999999999999,
+                        16.670000000000016,
+                        16.627999999999986,
+                        16.769000000000005,
+                        16.711000000000013,
+                        16.593999999999994,
+                        16.619000000000028,
+                        16.652999999999963
+                      ],
+                      "invalidIntervals": 0,
+                      "p50Ms": 16.661999999999978,
+                      "p95Ms": 16.778600000000004,
+                      "p99Ms": 16.7886,
+                      "maxMs": 16.790999999999997,
+                      "meanPresentedFps": 59.99736011615489,
+                      "intervalsOver25Ms": 0,
+                      "intervalsOver1_5Refresh": 0
+                    },
+                    "firstPresentationLatencyMs": 15.291894000000001,
+                    "firstPaintCallbackLatencyMs": 4.784781,
+                    "longPresentationIntervals": []
+                  }
+                ],
+                "aggregate": {
+                  "intervalCount": 25,
+                  "p50Ms": 16.661999999999978,
+                  "p95Ms": 16.778600000000004,
+                  "p99Ms": 16.7886,
+                  "maxMs": 16.790999999999997,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": 59.99736011615489,
+                  "validTransitionCount": 1,
+                  "excludedTransitionCount": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "label": "single-2-out",
+          "requests": 1,
+          "desktopEvents": 1,
+          "arms": 1,
+          "membershipUnchanged": true,
+          "captureRpcMs": 0.579627,
+          "armDelayMs": [
+            0.784586
+          ],
+          "analysis": {
+            "association": "output-only-no-paint-to-present-join",
+            "boundary": "desktopChanged-to-native-finish-plus-one-refresh",
+            "percentileMethod": "linear-interpolation-of-observed-intervals",
+            "source": "KWin::RenderLoop::framePresented",
+            "outputs": [
+              {
+                "output": "HDMI-A-1",
+                "refreshHz": 60,
+                "transitions": [],
+                "aggregate": {
+                  "intervalCount": 0,
+                  "p50Ms": null,
+                  "p95Ms": null,
+                  "p99Ms": null,
+                  "maxMs": null,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": null,
+                  "validTransitionCount": 0,
+                  "excludedTransitionCount": 0
+                }
+              },
+              {
+                "output": "DP-1",
+                "refreshHz": 60,
+                "transitions": [
+                  {
+                    "startMs": 1.081921,
+                    "finishMs": 412.252253,
+                    "endBoundaryMs": 428.9189196666667,
+                    "durationMs": 411.170332,
+                    "desktopChangeCount": 1,
+                    "complete": true,
+                    "validForComparison": true,
+                    "limitations": [],
+                    "presentationStats": {
+                      "intervalCount": 25,
+                      "intervalsMs": [
+                        16.605999999999998,
+                        16.669000000000004,
+                        16.665999999999997,
+                        16.662,
+                        16.697000000000003,
+                        16.631,
+                        16.932999999999993,
+                        16.464000000000013,
+                        16.73599999999999,
+                        16.68100000000001,
+                        16.62899999999999,
+                        16.717000000000013,
+                        16.58699999999999,
+                        16.721000000000004,
+                        16.670999999999992,
+                        16.591999999999985,
+                        16.677999999999997,
+                        16.682999999999993,
+                        16.783000000000015,
+                        16.492999999999995,
+                        16.704000000000008,
+                        16.684000000000026,
+                        16.690999999999974,
+                        16.769000000000005,
+                        16.49200000000002
+                      ],
+                      "invalidIntervals": 0,
+                      "p50Ms": 16.677999999999997,
+                      "p95Ms": 16.780200000000015,
+                      "p99Ms": 16.897,
+                      "maxMs": 16.932999999999993,
+                      "meanPresentedFps": 60.003984264555164,
+                      "intervalsOver25Ms": 0,
+                      "intervalsOver1_5Refresh": 0
+                    },
+                    "firstPresentationLatencyMs": 4.112871999999999,
+                    "firstPaintCallbackLatencyMs": 11.072717,
+                    "longPresentationIntervals": []
+                  }
+                ],
+                "aggregate": {
+                  "intervalCount": 25,
+                  "p50Ms": 16.677999999999997,
+                  "p95Ms": 16.780200000000015,
+                  "p99Ms": 16.897,
+                  "maxMs": 16.932999999999993,
+                  "intervalsOver25Ms": 0,
+                  "meanPresentedFps": 60.003984264555164,
+                  "validTransitionCount": 1,
+                  "excludedTransitionCount": 0
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "conclusion": "INCONCLUSIVE: symptom not reproduced; Blur OFF has no demonstrated benefit"
+}

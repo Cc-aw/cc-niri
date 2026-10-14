@@ -47,7 +47,7 @@ class RuntimeBridge {
         });
     }
 
-    publish(snapshot, reason) {
+    publish(snapshot, reason, callback = () => {}) {
         const envelope = this.envelopeSnapshot(snapshot);
         this.invoke(
             this.service,
@@ -55,21 +55,24 @@ class RuntimeBridge {
             this.interfaceName,
             "PublishState",
             JSON.stringify(envelope),
-            accepted => this.debug(`[cc-bridge] PUBLISH reason=${reason}` +
-                ` generation=${this.generationValue}` +
-                ` columns=${envelope.columns.length} accepted=${accepted}`)
+            accepted => {
+                this.debug(`[cc-bridge] PUBLISH reason=${reason}` +
+                    ` generation=${this.generationValue}` +
+                    ` columns=${envelope.columns.length} accepted=${accepted}`);
+                callback(accepted);
+            }
         );
         return envelope;
     }
 
-    commit(snapshot, reason) {
+    commit(snapshot, reason, callback = () => {}) {
         this.generationValue += 1;
-        return this.publish(snapshot, reason);
+        return this.publish(snapshot, reason, callback);
     }
 
     publishMotionPlan(plan, callback) {
         const envelope = Object.assign({}, plan, {
-            protocol: plan.type === "SCROLL" ? 2 : this.protocol,
+            protocol: plan.type === "SCROLL" || plan.type === "COLUMN_REINDEX" ? 2 : this.protocol,
             sessionId: this.sessionIdValue,
         });
         this.invoke(this.service, this.path, this.interfaceName,

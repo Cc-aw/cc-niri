@@ -21,6 +21,13 @@ function createViewportScrollPlan(transaction, context) {
     });
 }
 
+function createViewportReindexPlan(transaction, context) {
+    const plan = createViewportScrollPlan(transaction, context);
+    return plan && Object.assign(plan, { type: "COLUMN_REINDEX",
+        sourceWindowId: context.normalizeUuid(transaction.sourceWindowId),
+        sourceLogicalX: transaction.sourceLogicalX });
+}
+
 function prepareViewportReturnPlan(plan, offset, viewport) {
     if (plan.viewportMotion || plan.scrollTransaction) return plan;
     const windows = plan.windows.map(item => item.placement === "visible"
@@ -56,5 +63,5 @@ function createWidthViewportClipPlan(plan, context) {
 }
 
 /* cjs:start */
-module.exports = { createViewportScrollPlan, prepareViewportReturnPlan, createWidthViewportClipPlan };
+module.exports = { createViewportScrollPlan, createViewportReindexPlan, prepareViewportReturnPlan, createWidthViewportClipPlan };
 /* cjs:end */

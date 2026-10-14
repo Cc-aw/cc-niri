@@ -1,0 +1,130 @@
+{
+  "active": false,
+  "animationProfile": "smooth60",
+  "animationProfileFallback": "",
+  "clipHandoffActive": false,
+  "clockFallbackCount": 0,
+  "clockFallbackReasons": {
+    "invalidPrediction": 0,
+    "missingPrediction": 0,
+    "regressedPrediction": 0
+  },
+  "completed": false,
+  "decorationGeometryBackend": "Rust",
+  "epoch": 229,
+  "lastRetarget": {
+    "brakeDistance": 0,
+    "brakeMs": 0,
+    "initialVelocity": 0,
+    "lower": 0,
+    "reason": "none",
+    "savedVelocity": 0,
+    "strategy": "rest",
+    "upper": 1260
+  },
+  "nativeProtocolBackend": "Rust",
+  "paintClip": "viewport-with-decoration-outsets",
+  "retargetBrakedCount": 0,
+  "retargetCarriedCount": 0,
+  "retargetDegradedCount": 0,
+  "retargetDegradedReasons": {
+    "coverage": 0,
+    "invalidMath": 0,
+    "noBrakeSpace": 0
+  },
+  "retargetKeptCount": 0,
+  "scrollClockSource": "predicted-presentation",
+  "scrollContinuousFullRepaintRequests": 0,
+  "scrollOutputRepaintRequests": 374,
+  "scrollRepaintFallbackFullRequests": 0,
+  "scrollRepaintScope": "target-output-continuation",
+  "scrollRetargetPolicy": "bounded-last-painted-position-and-velocity",
+  "scrollRuntimeBackend": "Rust",
+  "scrollSpringStiffness": 600,
+  "scrollTargetOutput": "",
+  "scrollVisualCompletedCount": 12,
+  "scrollVisualSettleEnabled": false,
+  "scrollVisualSettleFallback": "awaiting-frame",
+  "scrollVisualSettleFallbackReasons": {
+    "invalidScale": 0,
+    "missingOutput": 0,
+    "unknownRefresh": 0
+  },
+  "scrollVisualSettleOutputScale": 0,
+  "scrollVisualSettlePhysicalPx": 0.25,
+  "scrollVisualSettleRefreshHz": 0,
+  "sessionId": "1a132b6d2b1-d511330d",
+  "targetOutput": "DP-1",
+  "workspaceAnimationActive": false,
+  "workspaceAnimationBackend": "RustFiniteCurve",
+  "workspaceAnimationDuration": 420,
+  "workspaceAnimationEnabled": true,
+  "workspaceDepartureVisual": "freeze-wide-until-compositor-idle",
+  "workspaceId": "31eafe4f-3d45-43d7-90ae-aac50adc1398",
+  "workspaceMotion": {
+    "acceleration": {
+      "x": 0,
+      "y": 0
+    },
+    "active": false,
+    "brakeDistanceCells": {
+      "x": 0,
+      "y": 0
+    },
+    "brakeXMs": 0,
+    "brakeYMs": 0,
+    "brakedC1": 0,
+    "carriedC1": 0,
+    "carriedC2": 0,
+    "durationMs": 420,
+    "epoch": 111,
+    "gesture": false,
+    "initialAcceleration": {
+      "x": 0,
+      "y": 0
+    },
+    "initialVelocity": {
+      "x": 0,
+      "y": 0
+    },
+    "kept": 0,
+    "liveBinding": false,
+    "origin": {
+      "x": 0,
+      "y": 3
+    },
+    "point": {
+      "x": 0,
+      "y": 2
+    },
+    "reasons": [
+      "none",
+      "none"
+    ],
+    "reset": 0,
+    "sampleNs": 2788863374332,
+    "savedAcceleration": {
+      "x": 0,
+      "y": 0
+    },
+    "savedVelocity": {
+      "x": 0,
+      "y": 0
+    },
+    "startNs": 2788428879781,
+    "strategies": [
+      "rest",
+      "rest"
+    ],
+    "target": {
+      "x": 0,
+      "y": 2
+    },
+    "velocity": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  "workspaceRemovalGate": "compositor-idle",
+  "workspaceRetargetPolicy": "bounded-last-painted-quintic-derivatives"
+}

@@ -163,5 +163,30 @@ int main(int argc, char **argv)
     rejected(next);
     next["sessionId"] = state["sessionId"];
     rejected(next);
-    qInfo("PASS SCROLL protocol, ownership, sessions, epochs, observer and legacy Wide isolation");
+    state["sessionId"] = "center"; state["generation"] = 0;
+    CHECK(bridge.PublishState(json(state))); CHECK(observer.updateContext(state));
+    QJsonObject reindex = next;
+    reindex["sessionId"] = "center"; reindex["type"] = "COLUMN_REINDEX";
+    reindex["epoch"] = 1; reindex["oldScrollOffsetX"] = 630; reindex["newScrollOffsetX"] = 0;
+    reindex["sourceWindowId"] = "b"; reindex["sourceLogicalX"] = 1890;
+    reindex["entries"] = QJsonArray{entry("b", 2, 630, "visible", "visible")};
+    CHECK(bridge.PublishMotionPlan(json(reindex)));
+    CHECK(observer.observe(reindex) == CcNiri::ScrollPlanDisposition::Accepted);
+    const int reindexSignals = emitted;
+    CHECK(bridge.PublishMotionPlan(json(reindex)) && emitted == reindexSignals);
+    CHECK(observer.observe(reindex) == CcNiri::ScrollPlanDisposition::Duplicate);
+    for (const char *field : {"sourceWindowId", "sourceLogicalX"}) {
+        auto malformed = reindex; malformed["epoch"] = 2; malformed.remove(field); rejected(malformed, false);
+        malformed = reindex; malformed["epoch"] = 2; malformed[field] = 123; rejected(malformed, false);
+    }
+    auto malformed = reindex; malformed["epoch"] = 2; malformed["sourceLogicalX"] = "1890"; rejected(malformed, false);
+    malformed = reindex; malformed["epoch"] = 2; malformed["sourceWindowId"] = "a"; rejected(malformed, false);
+    malformed = reindex; malformed["epoch"] = 2; malformed["oldScrollOffsetX"] = -630; rejected(malformed, false);
+    auto ordinary = reindex; ordinary["type"] = "SCROLL"; ordinary["epoch"] = 0; rejected(ordinary, false);
+    ordinary["epoch"] = 2;
+    ordinary["oldScrollOffsetX"] = 0; ordinary["newScrollOffsetX"] = 630;
+    CHECK(bridge.PublishMotionPlan(json(ordinary))); // shared epoch barrier and canonical basis
+    CHECK(observer.observe(ordinary) == CcNiri::ScrollPlanDisposition::Accepted);
+    CHECK(observer.observe(reindex) == CcNiri::ScrollPlanDisposition::Rejected);
+    qInfo("PASS SCROLL / typed reindex protocol, ownership, sessions, shared epochs and legacy Wide isolation");
 }

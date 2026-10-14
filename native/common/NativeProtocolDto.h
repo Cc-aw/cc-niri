@@ -67,4 +67,14 @@ struct ScrollPlan {
     ScrollPlan(const ScrollPlan &) = delete;
     ScrollPlan &operator=(const ScrollPlan &) = delete;
 };
+struct ReindexPlan {
+    ScrollPlan plan;
+    CcNiriReindexPlan dto;
+    template<class Intern> ReindexPlan(const QJsonObject &value, Intern intern)
+        : plan(value, intern), dto{plan.dto,
+              intern(value.value(QStringLiteral("sourceWindowId")).toString()),
+              number(value.value(QStringLiteral("sourceLogicalX")))} {}
+    ReindexPlan(const ReindexPlan &) = delete;
+    ReindexPlan &operator=(const ReindexPlan &) = delete;
+};
 }
