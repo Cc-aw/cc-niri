@@ -12,6 +12,7 @@
 static_assert(sizeof(CcNiriPoint) == 16 && alignof(CcNiriPoint) == 8);
 static_assert(sizeof(CcNiriWorkspaceSample) == 24 && sizeof(CcNiriWorkspaceProjection) == 24);
 static_assert(sizeof(CcNiriWorkspaceState) == 280 && alignof(CcNiriWorkspaceState) == 8);
+static_assert(sizeof(CcNiriWorkspaceClockState) == 64 && alignof(CcNiriWorkspaceClockState) == 8);
 namespace {
 using Handle = std::unique_ptr<CcNiriWorkspace, decltype(&cc_niri_workspace_destroy)>;
 void require(bool condition, const char *message)
@@ -165,4 +166,80 @@ void smoothRetargetPolynomialAndBrake()
     std::puts("Workspace smooth C0/C1, conditional C2, bounded brake and long-double oracle passed");
 }
 }
-int main() { endpointsAndProjection(); continuityAndErrors(); sixtyHzFrameDisplacement(); smoothRetargetPolynomialAndBrake(); }
+static void logicalClockContract()
+{
+    constexpr int64_t interval = 16666667;
+    constexpr int64_t start = 1000000000;
+    double peakOff = 0, peakOn = 0;
+    int64_t finishedOff = 0, finishedOn = 0;
+    for (bool enabled : {false, true}) {
+        auto motion = create();
+        require(cc_niri_workspace_clock_configure(motion.get(), enabled).value, "clock configure rejected");
+        const auto event = cc_niri_workspace_clock_event(motion.get(), start);
+        require(cc_niri_workspace_start_with_policy(motion.get(), {0,0}, {0,1}, 1, event.logical_ns, 420000000, 1).value, "clock start failed");
+        double previous = 0, peak = 0;
+        int64_t finished = 0;
+        // One 50ms physical gap near peak velocity. Both variants receive the
+        // SAME physical inputs; these synthetic data are not framePresented.
+        for (int frame = 1; frame < 60; ++frame) {
+            const int64_t real = start + frame*interval + (frame >= 10 ? 2*interval : 0);
+            const auto clock = cc_niri_workspace_clock_frame(motion.get(), real, real-1000000, 60000);
+            require(clock.status == CC_NIRI_FFI_OK && clock.advance, "clock frame failed");
+            const auto sample = cc_niri_workspace_advance(motion.get(), clock.logical_ns);
+            const auto state = cc_niri_workspace_state(motion.get());
+            const long double u = std::min(1.0L, static_cast<long double>(clock.logical_ns-start)/420000000);
+            near(sample.point.y, double(10*std::pow(u,3)-15*std::pow(u,4)+6*std::pow(u,5)), "logical polynomial oracle failed");
+            require(state.time_ns == clock.logical_ns && state.started_at_ns == start, "mixed clock domains");
+            peak = std::max(peak, sample.point.y-previous);
+            previous = sample.point.y;
+            require(cc_niri_workspace_mark_painted(motion.get()).value, "clock paint anchor failed");
+            const auto duplicate = cc_niri_workspace_clock_frame(motion.get(), real, real, 60000);
+            require(!duplicate.advance && duplicate.logical_ns == clock.logical_ns, "same frame advanced twice");
+            if (!sample.active) { finished = real-start; break; }
+        }
+        require(finished > 0, "clamped motion failed to finish");
+        if (enabled) { peakOn = peak; finishedOn = finished; }
+        else { peakOff = peak; finishedOff = finished; }
+    }
+    require(peakOn < peakOff && finishedOn > finishedOff, "visual/time tradeoff not exposed");
+    std::printf("Synthetic same 50ms gap (not FPS): peak cell step off=%.9f on=%.9f, wall completion off=%.3fms on=%.3fms\n", peakOff, peakOn, finishedOff/1e6, finishedOn/1e6);
+    for (const double target : {0.0, 2.0}) {
+        auto motion = create();
+        require(cc_niri_workspace_configure(motion.get(), 1, 5, 0).value, "clock grid rejected");
+        require(cc_niri_workspace_clock_configure(motion.get(), 1).value, "retarget clock rejected");
+        auto clock = cc_niri_workspace_clock_event(motion.get(), start);
+        require(cc_niri_workspace_start_with_policy(motion.get(), {0,0}, {0,1}, 1, clock.logical_ns, 420000000, 1).value, "retarget start failed");
+        for (int n = 1; n <= 6; ++n) {
+            clock = cc_niri_workspace_clock_frame(motion.get(), start+n*interval, start+n*interval-1, 60000);
+            cc_niri_workspace_advance(motion.get(), clock.logical_ns);
+            cc_niri_workspace_mark_painted(motion.get());
+        }
+        const auto painted = cc_niri_workspace_state(motion.get());
+        // A sampled but unpainted frame cannot become the retarget anchor.
+        clock = cc_niri_workspace_clock_frame(motion.get(), start+9*interval, start+9*interval-1, 60000);
+        cc_niri_workspace_advance(motion.get(), clock.logical_ns);
+        clock = cc_niri_workspace_clock_event(motion.get(), start+10*interval);
+        require(cc_niri_workspace_start_with_policy(motion.get(), {0,1}, {0,target}, 2, clock.logical_ns, 420000000, 1).value, "logical retarget rejected");
+        const auto initial = cc_niri_workspace_state(motion.get());
+        near(initial.point.y, painted.point.y, "clamped retarget C0 failed");
+        near(initial.initial_velocity.y, painted.velocity.y, "clamped retarget C1 failed");
+        if (initial.strategies[1] == 1) near(initial.initial_acceleration.y, painted.acceleration.y, "clamped C2 failed");
+        require(initial.started_at_ns == clock.logical_ns && initial.brake_y_ns <= 50000000 && std::abs(initial.brake_distance.y) <= .02, "clamped anchor time/brake failed");
+        clock = cc_niri_workspace_clock_event(motion.get(), start+11*interval);
+        require(cc_niri_workspace_gesture(motion.get(), {0,.5}, 3, clock.logical_ns).value, "mapped gesture rejected");
+        near(cc_niri_workspace_state(motion.get()).point.y, .5, "gesture pose changed");
+        require(cc_niri_workspace_start_with_policy(motion.get(), {0,0}, {0,1}, 4, clock.logical_ns, 420000000, 1).value, "gesture release rejected");
+        near(cc_niri_workspace_state(motion.get()).initial_velocity.y, 0, "gesture inherited stale velocity");
+        clock = cc_niri_workspace_clock_frame(motion.get(), start+2000000000, start+2000000000, 60000);
+        require(clock.reason == 5 && clock.limiting == 0, "pause fallback not absolute");
+        require(!cc_niri_workspace_advance(motion.get(), clock.logical_ns).active, "paused animation stuck");
+        require(cc_niri_workspace_clock_configure(motion.get(), 1).value, "idle clock reset rejected");
+        require(cc_niri_workspace_clock_state(motion.get()).lag_ns == 0, "reset retained lag");
+    }
+    require(cc_niri_workspace_clock_event(nullptr, 0).status == CC_NIRI_FFI_INVALID_HANDLE, "null clock event");
+    require(cc_niri_workspace_clock_frame(nullptr, 1, 0, 60000).status == CC_NIRI_FFI_INVALID_HANDLE, "null clock frame");
+    require(cc_niri_workspace_clock_configure(nullptr, 1).status == CC_NIRI_FFI_INVALID_HANDLE, "null clock configure");
+    require(cc_niri_workspace_clock_state(nullptr).status == CC_NIRI_FFI_INVALID_HANDLE, "null clock state");
+    std::puts("PASS logical clock ABI, physical-input preservation, retarget/gesture/pause and idle reset");
+}
+int main() { endpointsAndProjection(); continuityAndErrors(); sixtyHzFrameDisplacement(); smoothRetargetPolynomialAndBrake(); logicalClockContract(); }

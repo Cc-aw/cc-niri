@@ -84,6 +84,26 @@ CcNiriSpringBoolResult cc_niri_workspace_gesture(CcNiriWorkspace *handle,CcNiriP
 CcNiriWorkspaceSample cc_niri_workspace_advance(CcNiriWorkspace *handle,int64_t now_ns);
 CcNiriWorkspaceProjection cc_niri_workspace_projection(const CcNiriWorkspace *handle,CcNiriPoint desktop,double width,double height,double gap_x,double gap_y);
 
+/* Optional logical sampling clock, default disabled; no scheduler. Each output
+ * binding owns its clock inside the Workspace handle. Existing motion APIs
+ * retain their raw timestamp semantics: when enabled, map start/gesture events
+ * and real outer frames here, then use logical_ns for ALL motion timestamps.
+ * mark_painted continues to commit the actual sampled pose. Presentation
+ * timestamps are never rewritten. Positive predictions identify a frame
+ * revision and are deduplicated; nested/offscreen passes must be filtered.
+ * Invalid prediction/refresh, rate changes, >250ms pause/lag latch absolute
+ * fallback until idle configure or binding destruction. Configure rejects
+ * active motions and invalid booleans without mutation. No call allocates. */
+typedef struct {
+    int64_t logical_ns,real_ns,lag_ns;
+    uint64_t clamped_frames,fallback_count;
+    uint32_t enabled,limiting,reason,advance,status,reserved;
+} CcNiriWorkspaceClockState;
+CcNiriSpringBoolResult cc_niri_workspace_clock_configure(CcNiriWorkspace *handle,uint32_t enabled);
+CcNiriWorkspaceClockState cc_niri_workspace_clock_event(CcNiriWorkspace *handle,int64_t now_ns);
+CcNiriWorkspaceClockState cc_niri_workspace_clock_frame(CcNiriWorkspace *handle,int64_t predicted_ns,int64_t monotonic_ns,uint32_t refresh_millihz);
+CcNiriWorkspaceClockState cc_niri_workspace_clock_state(const CcNiriWorkspace *handle);
+
 /* Scroll state is uniquely owned, with independent deep clones/copies.
  * All DTO buffers are borrowed for the call, valid/aligned for their lengths;
  * UTF-16 preserves Qt string units without sharing any Qt object. Nonempty null

@@ -94,6 +94,10 @@ public:
         return m_depth == 1 && output && m_passes[0].real && m_passes[0].output == output;
     }
     bool nested() const { return m_depth > 1; }
+    uintptr_t currentOutput() const
+    {
+        return m_depth && m_depth <= m_passes.size() ? m_passes[m_depth-1].output : 0;
+    }
     void forget(uintptr_t output)
     {
         for (auto &pass : m_passes) if (pass.output == output) pass = {};

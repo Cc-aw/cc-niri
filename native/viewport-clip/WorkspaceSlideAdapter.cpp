@@ -53,7 +53,7 @@ WorkspaceSlideAdapter::WorkspaceSlideAdapter(CcNiriViewportClipEffect *owner) : 
         finishAll();
     });
     connect(effects, &EffectsHandler::desktopRemoved, this, [this](VirtualDesktop *) { finishAll(); });
-    connect(effects, &EffectsHandler::desktopGridSizeChanged, this, [this](const QSize &) { invalidateProjections(); });
+    connect(effects, &EffectsHandler::desktopGridSizeChanged, this, [this](const QSize &) { outputFactsChanged(); });
     connect(effects, &EffectsHandler::currentActivityAboutToChange, this, [this]() {
         m_switchingActivity = true;
         finishAll();
@@ -80,6 +80,9 @@ void WorkspaceSlideAdapter::reconfigure()
     m_enabled = enabled;
     m_projectionCacheEnabled = config.readEntry("WorkspaceProjectionCache", false);
     m_smooth = config.readEntry("AnimationProfile", QStringLiteral("stable")) == QStringLiteral("smooth60");
+    // Stable's historical retarget policy is not the painted-derivative
+    // contract required by this option. Leave that profile untouched.
+    m_frameDeltaClamping = m_smooth && config.readEntry("WorkspaceFrameDeltaClamping", false);
     m_duration = std::clamp(config.readEntry("WorkspaceDuration", 420), 240, 800);
     const KConfigGroup slide(effects->config(), QStringLiteral("Effect-slide"));
     m_horizontalGap = slide.readEntry("HorizontalGap", 45u);
@@ -113,6 +116,9 @@ std::shared_ptr<WorkspaceSlideAdapter::ScreenBinding> WorkspaceSlideAdapter::pre
     auto binding = m_screens.value(output);
     if (!binding) {
         binding = std::make_shared<ScreenBinding>();
+        const auto clock = cc_niri_workspace_clock_configure(binding->motion, m_frameDeltaClamping);
+        workspaceCheck(clock.status);
+        if (!clock.value) return {};
         m_screens.insert(output, binding);
         for (auto *window : effects->stackingOrder()) {
             if (window->screen() == output) bindWindow(*binding, window);
@@ -135,7 +141,11 @@ void WorkspaceSlideAdapter::desktopChanged(VirtualDesktop *previous, VirtualDesk
     if (!previous || !current) return;
     auto binding = prepare(output, moving);
     if (!binding) return;
-    const auto now = workspaceNow();
+    const auto realNow = workspaceNow();
+    const auto clock = m_frameDeltaClamping
+        ? cc_niri_workspace_clock_event(binding->motion, realNow) : CcNiriWorkspaceClockState{};
+    workspaceCheck(clock.status);
+    const auto now = m_frameDeltaClamping ? clock.logical_ns : realNow;
     const auto result = cc_niri_workspace_start_with_policy(binding->motion, desktopPoint(previous), desktopPoint(current),
         ++m_epoch, m_smooth ? now : std::max(now, binding->lastSampleTime), qint64(m_duration) * 1000000, m_smooth);
     workspaceCheck(result.status);
@@ -153,8 +163,13 @@ void WorkspaceSlideAdapter::desktopChanging(VirtualDesktop *desktop, QPointF off
     if (!binding) return;
     auto point = desktopPoint(desktop);
     point.x += offset.x(); point.y += offset.y();
+    const auto realNow = workspaceNow();
+    const auto clock = m_frameDeltaClamping
+        ? cc_niri_workspace_clock_event(binding->motion, realNow) : CcNiriWorkspaceClockState{};
+    workspaceCheck(clock.status);
+    const auto now = m_frameDeltaClamping ? clock.logical_ns : realNow;
     const auto result = cc_niri_workspace_gesture(binding->motion, point, ++m_epoch,
-        std::max(workspaceNow(), binding->lastSampleTime));
+        std::max(now, binding->lastSampleTime));
     workspaceCheck(result.status);
     if (!result.value) { finish(output); return; }
     observe(output, *binding, 3);
@@ -179,12 +194,28 @@ void WorkspaceSlideAdapter::prePaintScreen(ScreenPrePaintData &data)
     binding->projections.clear();
     if (m_captureDeadline && workspaceNow() > m_captureDeadline) m_captureDeadline = 0;
     // Use the compositor's predicted presentation time once per output pass.
-    const auto now = data.view ? data.view->nextPresentationTimestamp().count() : workspaceNow();
-    const auto sample = cc_niri_workspace_advance(binding->motion, now);
-    workspaceCheck(sample.status);
-    binding->lastSampleTime = std::max(binding->lastSampleTime, now);
-    binding->finished = !sample.active;
-    binding->painted = false;
+    auto now = data.view ? data.view->nextPresentationTimestamp().count() : workspaceNow();
+    bool advance = true;
+    if (m_frameDeltaClamping) {
+        // The existing pass router filters nested/offscreen/overflow paints;
+        // it is not another animation scheduler. Rust owns numerical policy.
+        if (!m_projectionPasses.canCache(reinterpret_cast<uintptr_t>(data.screen))) {
+            data.mask |= Effect::PAINT_SCREEN_TRANSFORMED;
+            return;
+        }
+        const auto clock = cc_niri_workspace_clock_frame(binding->motion,
+            data.view->nextPresentationTimestamp().count(), workspaceNow(), data.view->refreshRate());
+        workspaceCheck(clock.status);
+        now = clock.logical_ns;
+        advance = clock.advance;
+    }
+    if (advance) {
+        const auto sample = cc_niri_workspace_advance(binding->motion, now);
+        workspaceCheck(sample.status);
+        binding->lastSampleTime = std::max(binding->lastSampleTime, now);
+        binding->finished = !sample.active;
+        binding->painted = false;
+    }
     if (m_projectionCacheEnabled && m_projectionPasses.canCache(reinterpret_cast<uintptr_t>(data.screen))) {
         const auto screenRect = data.screen->geometry();
         const auto desktops = effects->desktops();
@@ -210,7 +241,9 @@ void WorkspaceSlideAdapter::prePaintWindow(EffectWindow *window, WindowPrePaintD
 }
 void WorkspaceSlideAdapter::postPaintScreen()
 {
+    const bool realOuter = m_projectionPasses.canCache(m_projectionPasses.currentOutput());
     auto *output = reinterpret_cast<LogicalOutput *>(m_projectionPasses.leave());
+    if (m_frameDeltaClamping && !realOuter) return;
     const auto binding = m_screens.value(output);
     if (!binding) return;
     binding->projections.clear();
@@ -245,7 +278,8 @@ bool WorkspaceSlideAdapter::paintWindow(const RenderTarget &target, const Render
         // Cache invalidation (e.g. another output's nested capture) does not
         // invalidate this pose. A retarget or later motion sample does.
         if (revision == binding->motionRevision && sampleTime == binding->lastSampleTime
-            && alive() && !binding->painted && !clipped.isEmpty()) {
+            && alive() && !binding->painted && !clipped.isEmpty()
+            && (!m_frameDeltaClamping || m_projectionPasses.canCache(reinterpret_cast<uintptr_t>(output)))) {
             const auto marked = cc_niri_workspace_mark_painted(binding->motion);
             workspaceCheck(marked.status);
             binding->painted = true;
@@ -272,6 +306,8 @@ void WorkspaceSlideAdapter::finish(LogicalOutput *output)
     if (!binding) return;
     m_lastOutput = output;
     m_lastState = cc_niri_workspace_state(binding->motion);
+    m_lastClock = cc_niri_workspace_clock_state(binding->motion);
+    workspaceCheck(m_lastClock.status);
     workspaceCheck(m_lastState.status);
     observe(output, *binding, 2);
     const auto windows = binding->windows.keys();
@@ -294,11 +330,16 @@ void WorkspaceSlideAdapter::watchDesktop(VirtualDesktop *desktop)
     if (desktop) connect(desktop, &VirtualDesktop::aboutToBeDestroyed,
         this, &WorkspaceSlideAdapter::invalidateProjections, Qt::UniqueConnection);
 }
+void WorkspaceSlideAdapter::outputFactsChanged()
+{
+    if (m_frameDeltaClamping) finishAll();
+    else invalidateProjections();
+}
 void WorkspaceSlideAdapter::watchOutput(LogicalOutput *output)
 {
     if (!output) return;
-    connect(output, &LogicalOutput::geometryChanged, this, &WorkspaceSlideAdapter::invalidateProjections, Qt::UniqueConnection);
-    connect(output, &LogicalOutput::scaleChanged, this, &WorkspaceSlideAdapter::invalidateProjections, Qt::UniqueConnection);
+    connect(output, &LogicalOutput::geometryChanged, this, &WorkspaceSlideAdapter::outputFactsChanged, Qt::UniqueConnection);
+    connect(output, &LogicalOutput::scaleChanged, this, &WorkspaceSlideAdapter::outputFactsChanged, Qt::UniqueConnection);
 }
 static QJsonObject workspaceStateJson(const CcNiriWorkspaceState &s)
 {
@@ -325,6 +366,13 @@ static QJsonObject workspaceStateJson(const CcNiriWorkspaceState &s)
         {QStringLiteral("kept"), qint64(s.counts[4])}, {QStringLiteral("active"), bool(s.active)},
         {QStringLiteral("gesture"), bool(s.gesture)}};
 }
+static QJsonObject workspaceClockJson(const CcNiriWorkspaceClockState &s)
+{
+    return {{QStringLiteral("enabled"), bool(s.enabled)}, {QStringLiteral("limiting"), bool(s.limiting)},
+        {QStringLiteral("logicalNs"), qint64(s.logical_ns)}, {QStringLiteral("realNs"), qint64(s.real_ns)},
+        {QStringLiteral("lagMs"), s.lag_ns/1000000.0}, {QStringLiteral("clampedFrames"), qint64(s.clamped_frames)},
+        {QStringLiteral("fallbackCount"), qint64(s.fallback_count)}, {QStringLiteral("fallbackReason"), int(s.reason)}};
+}
 QJsonObject WorkspaceSlideAdapter::status() const
 {
     auto state = m_lastState;
@@ -334,6 +382,10 @@ QJsonObject WorkspaceSlideAdapter::status() const
     auto row = workspaceStateJson(state);
     row.insert(QStringLiteral("liveBinding"), bool(binding));
     row.insert(QStringLiteral("projectionCacheEnabled"), m_projectionCacheEnabled);
+    row.insert(QStringLiteral("frameDeltaClampingEnabled"), m_frameDeltaClamping);
+    row.insert(QStringLiteral("frameDeltaClampingRequiresSmooth60"), true);
+    row.insert(QStringLiteral("samplingClock"), workspaceClockJson(binding
+        ? cc_niri_workspace_clock_state(binding->motion) : m_lastClock));
     return row;
 }
 void WorkspaceSlideAdapter::startCapture(qint64 now)
@@ -354,7 +406,9 @@ void WorkspaceSlideAdapter::observe(LogicalOutput *output, ScreenBinding &screen
     workspaceCheck(state.status);
     for (qsizetype i = 0; i < m_captureOutputs.size(); ++i) {
         if (m_captureOutputs[i].output == output) {
-            m_captureRecords[m_captureCount++] = {state, now, uint32_t(i+1), kind};
+            const auto clock = cc_niri_workspace_clock_state(screen.motion);
+            workspaceCheck(clock.status);
+            m_captureRecords[m_captureCount++] = {state, clock, now, uint32_t(i+1), kind};
             return;
         }
     }
@@ -367,6 +421,7 @@ QJsonObject WorkspaceSlideAdapter::capture() const
     for (size_t i = 0; i < m_captureCount; ++i) {
         const auto &r = m_captureRecords[i];
         auto row = workspaceStateJson(r.state);
+        row.insert(QStringLiteral("samplingClock"), workspaceClockJson(r.clock));
         row.insert(QStringLiteral("output"), int(r.output)); row.insert(QStringLiteral("kind"), int(r.kind));
         row.insert(QStringLiteral("atMs"), (r.at-m_captureStart)/1000000.0);
         row.insert(QStringLiteral("sampleMs"), (r.state.time_ns-m_captureStart)/1000000.0);
@@ -381,6 +436,7 @@ QJsonObject WorkspaceSlideAdapter::capture() const
             {QStringLiteral("cachedFrames"), qint64(m_captureProjectionFrames)},
             {QStringLiteral("cachedWindowPasses"), qint64(m_captureProjectionHits)},
             {QStringLiteral("fallbackWindowPasses"), qint64(m_captureProjectionFallbacks)}}},
+        {QStringLiteral("frameDeltaClampingEnabled"), m_frameDeltaClamping},
         {QStringLiteral("outputs"), outputs}, {QStringLiteral("records"), records}};
 }
 }

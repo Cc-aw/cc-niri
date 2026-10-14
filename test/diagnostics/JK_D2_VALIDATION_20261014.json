@@ -1,0 +1,68 @@
+{
+  "scope": "D2 only; no Blur, trajectory or actual presentation-time change",
+  "defaultEnabled": false,
+  "requiresProfile": "smooth60",
+  "configGroup": "Effect-cc-niri-viewport-clip",
+  "configKey": "WorkspaceFrameDeltaClamping",
+  "clockOwner": "Rust inside per-output existing Workspace handle; compositor remains scheduler",
+  "clockDtoBytes": 64,
+  "captureBufferAddedBytes": 32768,
+  "pauseOrLagLimitNs": 250000000,
+  "syntheticSamePhysicalInputs": {
+    "physicalGapMs": 50.000001,
+    "peakCellStepOff": 0.209061468,
+    "peakCellStepOn": 0.074317332,
+    "wallCompletionOffMs": 433.333,
+    "wallCompletionOnMs": 466.667,
+    "actualFramePresented": "NOT MEASURED; offline synthetic contract, not FPS evidence"
+  },
+  "validation": {
+    "native-final": {
+      "status": "PASS",
+      "log": "/tmp/cc-niri-jk-d2-native-final.log"
+    },
+    "debug": {
+      "status": "PASS",
+      "log": "/tmp/cc-niri-jk-d2-debug.log"
+    },
+    "release": {
+      "status": "PASS",
+      "log": "/tmp/cc-niri-jk-d2-release.log"
+    },
+    "umbrella": {
+      "status": "PASS",
+      "log": "/tmp/cc-niri-jk-d2-umbrella.log"
+    },
+    "production": {
+      "status": "PASS",
+      "log": "/tmp/cc-niri-jk-d2-production.log",
+      "noReferenceTargets": true
+    },
+    "compiler-rejection": {
+      "status": "PASS",
+      "log": "/tmp/cc-niri-jk-d2-reject.log"
+    }
+  },
+  "sourceSha256": {
+    "native/rust/cc-niri-native-core/src/workspace_clock.rs": "e0d80a17467352b8736051c85f5b773ed9c5eaa2d49c9af836d70ac6d64644a4",
+    "native/rust/cc-niri-native-core/src/ffi_workspace.rs": "5185ffa5aad21caf4758af1e5be3f28157f9ae2a2c7375c6c442625189e558fb",
+    "native/rust/cc-niri-native-core/src/lib.rs": "4b298e47cccb2021d0a0e2b15b96c6e3dd2a1d776fa679e3eee98d70d6e253d5",
+    "native/rust/include/cc_niri_native_core.h": "57bc33b0758dc1ad1ad63647970d81f7a9567992cafe6ab05468ca71496a9940",
+    "native/rust/tests/WorkspaceMotionContractTest.cpp": "52bed28ec6b461b6c63845e389f170c70a8edd77c9372038aea4df6bddf4d4bd",
+    "native/viewport-clip/WorkspaceProjectionCache.h": "68099fac34cf43b691a14a60342909abdc305e5fef072c4fde974343cc29ec28",
+    "native/viewport-clip/WorkspaceSlideAdapter.cpp": "d379b18c766c6c2794f78a04b8f69746bffe1da597200feacc34f0b9f5c590f7",
+    "native/viewport-clip/WorkspaceSlideAdapter.h": "3e02b7e9591acda775acaf360c572b08b5562950ba31e8f3c27ecb22ed85493b",
+    "native/viewport-clip/tests/WorkspaceProjectionCacheTest.cpp": "46d7b1e7c792306b3f7bcfc1b1171cc24fdd8981323b2a423114c358cee8fcc5"
+  },
+  "sourceScope": "Full local working tree including prior centering changes; commit isolates D2",
+  "artifactSha256": {
+    "testedClipRelWithDebInfo": "a8bbe99547cc69cabf55c68277e8e195320fffc18d33608ecd5b9c0d1b5a9953",
+    "installStagedClip": "1c8c3d0174c572e3412d4e1c968bb3811e23e718f9aff7b0be2bc541b6372726",
+    "currentInstalledClip": "737c5dbf9bbf682ed59a384f52d1676be8cfbeab8b90f4450ac4e35785c4678d"
+  },
+  "candidatePath": "/tmp/cc-niri-jk-d2-destdir-wpoab_fr/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-viewport-clip.so",
+  "discoveryPath": "/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-viewport-clip.so",
+  "deployed": false,
+  "liveAB": "PENDING; no live desktop operation this phase",
+  "wholeProjectMemory": "NOT MEASURED"
+}

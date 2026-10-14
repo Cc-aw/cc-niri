@@ -22,5 +22,6 @@ mod allocation_checks;
 
 pub mod focus_ring_context;
 pub mod native_protocol;
+pub mod workspace_clock;
 pub mod workspace_curve;
 pub mod workspace_motion;

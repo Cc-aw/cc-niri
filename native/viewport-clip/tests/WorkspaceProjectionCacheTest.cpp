@@ -195,6 +195,27 @@ int main(int argc, char **argv)
     check(scopes.leave() == 0 && scopes.leave() == 0 && scopes.leave() == 8, "overflow safely returns to tracked scopes");
     for (size_t i = 0; i < 7; ++i) scopes.leave();
     check(scopes.leave() == 0, "unbalanced post is harmless");
+    // The same platform scopes also protect the optional Rust sampling clock:
+    // nested/offscreen/overflow passes cannot consume an output's logical time.
+    auto clockMotion = std::unique_ptr<CcNiriWorkspace, decltype(&cc_niri_workspace_destroy)>(
+        cc_niri_workspace_create(), cc_niri_workspace_destroy);
+    check(cc_niri_workspace_clock_configure(clockMotion.get(), 1).value, "clock opt in");
+    cc_niri_workspace_clock_event(clockMotion.get(), 1000000000);
+    const auto tick = [&](int64_t predicted) {
+        if (scopes.canCache(scopes.currentOutput()))
+            return cc_niri_workspace_clock_frame(clockMotion.get(), predicted, predicted-1, 60000).advance;
+        return uint32_t(0);
+    };
+    scopes.enter(1, false); check(!tick(1016666667), "offscreen must not tick"); scopes.leave();
+    scopes.enter(1, true); check(tick(1016666667), "real outer clock tick");
+    scopes.enter(2, true); check(!tick(1033333334), "nested other output must not tick");
+    check(scopes.currentOutput() == 2, "nested post routes current output"); scopes.leave();
+    check(scopes.currentOutput() == 1 && !tick(1016666667), "parent repeat has no second tick"); scopes.leave();
+    for (size_t i = 0; i < 10; ++i) scopes.enter(i+1, true);
+    check(!scopes.currentOutput() && !tick(1100000000), "untracked overflow has no clock");
+    for (size_t i = 0; i < 10; ++i) scopes.leave();
+    scopes.enter(1, true); check(tick(1066666667), "next real frame advances after filtering"); scopes.leave();
+    check(cc_niri_workspace_clock_state(clockMotion.get()).lag_ns == 33333333, "nested filtering preserves physical delta");
     check(sizeof(Cache) <= 256 && sizeof(scopes) <= 144, "fixed small platform caches");
     std::printf("PASS Rust projection parity, lifecycle, nesting, no C++ allocation; cache=%zu pass-stack=%zu bytes; calls=27->9 membership=243->54\n", sizeof(Cache), sizeof(scopes));
 }

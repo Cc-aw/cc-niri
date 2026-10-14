@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 use super::{FfiSpringBoolResult, INVALID_HANDLE, OK};
 use crate::native_protocol::Epoch;
+use crate::workspace_clock::{ClockState, WorkspaceClock};
 use crate::workspace_motion::{Point, WorkspaceMotion, WorkspaceState};
 
-pub struct WorkspaceHandle(WorkspaceMotion);
+pub struct WorkspaceHandle(WorkspaceMotion, WorkspaceClock);
 #[repr(C)]
 pub struct WorkspaceSample {
     point: Point,
@@ -19,7 +20,84 @@ pub struct WorkspaceProjection {
 
 #[no_mangle]
 pub extern "C" fn cc_niri_workspace_create() -> *mut WorkspaceHandle {
-    Box::into_raw(Box::new(WorkspaceHandle(WorkspaceMotion::default())))
+    Box::into_raw(Box::new(WorkspaceHandle(
+        WorkspaceMotion::default(),
+        WorkspaceClock::default(),
+    )))
+}
+/// # Safety
+/// Live exclusively borrowed handle. Configuration is allowed only when idle;
+/// destruction/reset of the binding drops all accumulated clock lag.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_workspace_clock_configure(
+    handle: *mut WorkspaceHandle,
+    enabled: u32,
+) -> FfiSpringBoolResult {
+    match unsafe { handle.as_mut() } {
+        Some(h) if enabled <= 1 && h.0.state().active == 0 => {
+            h.1.configure(enabled != 0);
+            FfiSpringBoolResult {
+                value: 1,
+                status: OK,
+            }
+        }
+        Some(_) => FfiSpringBoolResult {
+            value: 0,
+            status: OK,
+        },
+        None => FfiSpringBoolResult {
+            value: 0,
+            status: INVALID_HANDLE,
+        },
+    }
+}
+/// # Safety
+/// Live exclusively borrowed handle. Maps a control event to this binding's
+/// logical domain; pass the result to start/gesture, never mix wall time into it.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_workspace_clock_event(
+    handle: *mut WorkspaceHandle,
+    now: i64,
+) -> ClockState {
+    match unsafe { handle.as_mut() } {
+        Some(h) => h.1.event(now),
+        None => ClockState {
+            status: INVALID_HANDLE,
+            ..ClockState::default()
+        },
+    }
+}
+/// # Safety
+/// Live exclusively borrowed handle. Caller supplies outer real output passes
+/// only, compositor prediction and monotonic fallback (ns), integer milli-Hz.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_workspace_clock_frame(
+    handle: *mut WorkspaceHandle,
+    prediction: i64,
+    monotonic: i64,
+    refresh_millihz: u32,
+) -> ClockState {
+    match unsafe { handle.as_mut() } {
+        Some(h) => h.1.frame(prediction, monotonic, refresh_millihz),
+        None => ClockState {
+            status: INVALID_HANDLE,
+            ..ClockState::default()
+        },
+    }
+}
+/// # Safety
+/// Live shared borrowed handle without concurrent mutation.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_workspace_clock_state(
+    handle: *const WorkspaceHandle,
+) -> ClockState {
+    match unsafe { handle.as_ref() } {
+        Some(h) => h.1.state(),
+        None => ClockState {
+            status: INVALID_HANDLE,
+            ..ClockState::default()
+        },
+    }
 }
 /// # Safety
 /// Non-null handle transfers one live owned allocation, destroyed exactly once.
@@ -197,6 +275,62 @@ pub unsafe extern "C" fn cc_niri_workspace_projection(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn clock_ffi_null_idle_configure_and_frame_queries_allocate_nothing() {
+        assert_eq!(std::mem::size_of::<ClockState>(), 64);
+        unsafe {
+            let null = std::ptr::null_mut();
+            assert_eq!(
+                cc_niri_workspace_clock_configure(null, 1).status,
+                INVALID_HANDLE
+            );
+            assert_eq!(
+                cc_niri_workspace_clock_event(null, 0).status,
+                INVALID_HANDLE
+            );
+            assert_eq!(
+                cc_niri_workspace_clock_frame(null, 1, 0, 60_000).status,
+                INVALID_HANDLE
+            );
+            assert_eq!(cc_niri_workspace_clock_state(null).status, INVALID_HANDLE);
+            let h = cc_niri_workspace_create();
+            assert_eq!(cc_niri_workspace_clock_configure(h, 2).value, 0);
+            assert_eq!(cc_niri_workspace_clock_state(h).enabled, 0);
+            assert_eq!(cc_niri_workspace_clock_configure(h, 1).value, 1);
+            let start = cc_niri_workspace_clock_event(h, 0).logical_ns;
+            assert_eq!(
+                cc_niri_workspace_start_with_policy(
+                    h,
+                    Point::default(),
+                    Point { x: 0.0, y: 1.0 },
+                    1,
+                    start,
+                    420_000_000,
+                    1
+                )
+                .value,
+                1
+            );
+            assert_eq!(cc_niri_workspace_clock_configure(h, 0).value, 0);
+            assert_eq!(cc_niri_workspace_clock_state(h).enabled, 1);
+            assert_eq!(
+                crate::allocation_checks::count(|| {
+                    for n in 1..1001 {
+                        let real = n * 16_666_667;
+                        let c = cc_niri_workspace_clock_frame(h, real, real - 1, 60_000);
+                        cc_niri_workspace_advance(h, c.logical_ns);
+                        cc_niri_workspace_mark_painted(h);
+                        cc_niri_workspace_clock_state(h);
+                        cc_niri_workspace_clock_event(h, real);
+                    }
+                }),
+                0
+            );
+            assert_eq!(cc_niri_workspace_clock_configure(h, 0).value, 1);
+            assert_eq!(cc_niri_workspace_clock_state(h).lag_ns, 0);
+            cc_niri_workspace_destroy(h);
+        }
+    }
     #[test]
     fn ffi_ownership_null_and_zero_allocation_contract() {
         assert_eq!(std::mem::size_of::<Point>(), 16);

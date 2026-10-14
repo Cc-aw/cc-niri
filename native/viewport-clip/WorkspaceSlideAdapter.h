@@ -65,17 +65,19 @@ private:
     void bindWindow(ScreenBinding &screen, EffectWindow *window);
     void unbindWindow(ScreenBinding &screen, EffectWindow *window);
     void invalidateProjections();
+    void outputFactsChanged();
     void watchDesktop(VirtualDesktop *desktop);
     void watchOutput(LogicalOutput *output);
     void observe(LogicalOutput *output, ScreenBinding &screen, uint32_t kind);
     struct CaptureOutput { QPointer<LogicalOutput> output; QString name; };
-    struct CaptureRecord { CcNiriWorkspaceState state; qint64 at; uint32_t output,kind; };
+    struct CaptureRecord { CcNiriWorkspaceState state; CcNiriWorkspaceClockState clock; qint64 at; uint32_t output,kind; };
     QList<CaptureOutput> m_captureOutputs;
     std::array<CaptureRecord, 512> m_captureRecords{};
     size_t m_captureCount = 0;
     qint64 m_captureStart = 0, m_captureDeadline = 0;
     bool m_captureTruncated = false;
     CcNiriWorkspaceState m_lastState{};
+    CcNiriWorkspaceClockState m_lastClock{};
     QPointer<LogicalOutput> m_lastOutput;
     CcNiriViewportClipEffect *m_owner;
     QHash<LogicalOutput *, std::shared_ptr<ScreenBinding>> m_screens;
@@ -92,5 +94,6 @@ private:
     bool m_smooth = false;
     bool m_switchingActivity = false;
     bool m_projectionCacheEnabled = false;
+    bool m_frameDeltaClamping = false;
 };
 }
