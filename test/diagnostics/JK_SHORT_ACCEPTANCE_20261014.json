@@ -1,0 +1,1915 @@
+{
+  "scope": "User-authorized short acceptance; no long stability test",
+  "rawEvidence": "/home/cc/.local/state/cc-niri/diagnostics/jk-short-20261014-172247",
+  "environment": {
+    "head": "dc53613efe6727c117125382b6c3479333fd3728",
+    "kwinPid": 2035,
+    "kwinElapsedSeconds": 95604,
+    "utc": "2026-10-14T09:22:47.743573+00:00",
+    "columnCounts": [
+      2,
+      3
+    ],
+    "forward": "J",
+    "input": "KGlobalAccel action; physical keyboard path excluded",
+    "blurInitiallyLoaded": true,
+    "ringInitiallyLoaded": true,
+    "longStabilityTest": "SKIPPED at user request; uptime is not PSS evidence"
+  },
+  "association": "output-only-no-paint-to-present-join",
+  "groups": {
+    "A0-off-off": {
+      "trials": [
+        {
+          "label": "continuing-80ms",
+          "requests": 4,
+          "transitions": [
+            {
+              "startMs": 1.896855,
+              "finishMs": 693.708592,
+              "endBoundaryMs": 710.3752586666666,
+              "durationMs": 691.811737,
+              "desktopChangeCount": 4,
+              "complete": true,
+              "validForComparison": true,
+              "limitations": [],
+              "presentationStats": {
+                "intervalCount": 34,
+                "intervalsMs": [
+                  16.658,
+                  16.708,
+                  16.633000000000003,
+                  16.700999999999993,
+                  49.965,
+                  16.698000000000008,
+                  16.643,
+                  16.67999999999998,
+                  16.64100000000002,
+                  16.73999999999998,
+                  33.26599999999999,
+                  16.664000000000044,
+                  16.69599999999997,
+                  16.670000000000016,
+                  33.303,
+                  16.666999999999973,
+                  16.67500000000001,
+                  33.36700000000002,
+                  50.028999999999996,
+                  16.59499999999997,
+                  16.70500000000004,
+                  16.651999999999987,
+                  16.672999999999945,
+                  16.66700000000003,
+                  16.670000000000073,
+                  16.636999999999944,
+                  16.69500000000005,
+                  16.656999999999925,
+                  16.690000000000055,
+                  16.649999999999977,
+                  16.673000000000002,
+                  16.635999999999967,
+                  16.706000000000017,
+                  16.614000000000033
+                ],
+                "invalidIntervals": 0,
+                "p50Ms": 16.672999999999973,
+                "p95Ms": 39.17629999999998,
+                "p99Ms": 50.00788,
+                "maxMs": 50.028999999999996,
+                "meanPresentedFps": 49.75677716573689,
+                "intervalsOver25Ms": 5,
+                "intervalsOver1_5Refresh": 5
+              },
+              "firstPresentationLatencyMs": 24.403912000000002,
+              "firstPaintCallbackLatencyMs": 5.353866999999999,
+              "longPresentationIntervals": [
+                {
+                  "fromMs": 93.000767,
+                  "toMs": 142.965767,
+                  "intervalMs": 49.965,
+                  "sinceDesktopChangeMs": 91.103912,
+                  "presentationIntervalIndex": 4
+                },
+                {
+                  "fromMs": 226.367767,
+                  "toMs": 259.633767,
+                  "intervalMs": 33.26599999999999,
+                  "sinceDesktopChangeMs": 224.470912,
+                  "presentationIntervalIndex": 10
+                },
+                {
+                  "fromMs": 309.663767,
+                  "toMs": 342.966767,
+                  "intervalMs": 33.303,
+                  "sinceDesktopChangeMs": 307.766912,
+                  "presentationIntervalIndex": 14
+                },
+                {
+                  "fromMs": 376.308767,
+                  "toMs": 409.675767,
+                  "intervalMs": 33.36700000000002,
+                  "sinceDesktopChangeMs": 374.411912,
+                  "presentationIntervalIndex": 17
+                },
+                {
+                  "fromMs": 409.675767,
+                  "toMs": 459.704767,
+                  "intervalMs": 50.028999999999996,
+                  "sinceDesktopChangeMs": 407.778912,
+                  "presentationIntervalIndex": 18
+                }
+              ]
+            }
+          ],
+          "membershipAndOrderUnchanged": true,
+          "paintSamplePeakStepCells": 0.16576993522308592,
+          "retargetContinuity": [
+            {
+              "axis": "y",
+              "strategy": "carry-c2",
+              "positionErrorCells": 0.0,
+              "velocityError": 0.0,
+              "brakeMs": 0,
+              "brakeDistanceCells": 0,
+              "accelerationError": 0.0
+            },
+            {
+              "axis": "y",
+              "strategy": "brake-c1",
+              "positionErrorCells": 0.0,
+              "velocityError": 0.0,
+              "brakeMs": 8.600834,
+              "brakeDistanceCells": 0.01999999917406142
+            },
+            {
+              "axis": "y",
+              "strategy": "brake-c1",
+              "positionErrorCells": 0.0,
+              "velocityError": 0.0,
+              "brakeMs": 32.759029,
+              "brakeDistanceCells": 0.019999999713538674
+            }
+          ]
+        },
+        {
+          "label": "reverse-100ms",
+          "requests": 2,
+          "transitions": [
+            {
+              "startMs": 1.680694,
+              "finishMs": 556.934886,
+              "endBoundaryMs": 573.6015526666666,
+              "durationMs": 555.254192,
+              "desktopChangeCount": 2,
+              "complete": true,
+              "validForComparison": true,
+              "limitations": [],
+              "presentationStats": {
+                "intervalCount": 30,
+                "intervalsMs": [
+                  16.668999999999997,
+                  16.660000000000004,
+                  16.688000000000002,
+                  16.715999999999994,
+                  49.95599999999999,
+                  16.65900000000002,
+                  16.697000000000003,
+                  16.62299999999999,
+                  16.668000000000006,
+                  16.663999999999987,
+                  16.697000000000003,
+                  33.32499999999999,
+                  16.64300000000003,
+                  16.661999999999978,
+                  16.716000000000008,
+                  16.613999999999976,
+                  16.677999999999997,
+                  16.69500000000005,
+                  16.674999999999955,
+                  16.65900000000005,
+                  16.637999999999977,
+                  16.67500000000001,
+                  16.656000000000006,
+                  16.668000000000006,
+                  16.71999999999997,
+                  16.660000000000025,
+                  16.65399999999994,
+                  16.65300000000002,
+                  16.72300000000007,
+                  16.602999999999952
+                ],
+                "invalidIntervals": 0,
+                "p50Ms": 16.668000000000006,
+                "p95Ms": 25.85409999999998,
+                "p99Ms": 45.13301,
+                "maxMs": 49.95599999999999,
+                "meanPresentedFps": 54.544066151043424,
+                "intervalsOver25Ms": 2,
+                "intervalsOver1_5Refresh": 2
+              },
+              "firstPresentationLatencyMs": 20.883745,
+              "firstPaintCallbackLatencyMs": 5.153638,
+              "longPresentationIntervals": [
+                {
+                  "fromMs": 89.297439,
+                  "toMs": 139.253439,
+                  "intervalMs": 49.95599999999999,
+                  "sinceDesktopChangeMs": 87.616745,
+                  "presentationIntervalIndex": 4
+                },
+                {
+                  "fromMs": 239.261439,
+                  "toMs": 272.586439,
+                  "intervalMs": 33.32499999999999,
+                  "sinceDesktopChangeMs": 237.580745,
+                  "presentationIntervalIndex": 11
+                }
+              ]
+            }
+          ],
+          "membershipAndOrderUnchanged": true,
+          "paintSamplePeakStepCells": 0.1610949720625856,
+          "retargetContinuity": [
+            {
+              "axis": "y",
+              "strategy": "brake-c1",
+              "positionErrorCells": 0.0,
+              "velocityError": 0.0,
+              "brakeMs": 10.368135,
+              "brakeDistanceCells": 0.01999999917461178
+            }
+          ]
+        },
+        {
+          "label": "single-back",
+          "requests": 1,
+          "transitions": [
+            {
+              "startMs": 1.916966,
+              "finishMs": 396.635491,
+              "endBoundaryMs": 413.3021576666667,
+              "durationMs": 394.718525,
+              "desktopChangeCount": 1,
+              "complete": true,
+              "validForComparison": true,
+              "limitations": [],
+              "presentationStats": {
+                "intervalCount": 21,
+                "intervalsMs": [
+                  16.664,
+                  16.707,
+                  16.65999999999999,
+                  16.67200000000001,
+                  33.35499999999999,
+                  16.626000000000005,
+                  16.646000000000015,
+                  16.692999999999984,
+                  33.334,
+                  16.641999999999996,
+                  16.655,
+                  16.68599999999998,
+                  16.66300000000001,
+                  16.697000000000003,
+                  16.670999999999992,
+                  16.629999999999995,
+                  16.65500000000003,
+                  16.716000000000008,
+                  16.632000000000005,
+                  16.834000000000003,
+                  16.53099999999995
+                ],
+                "invalidIntervals": 0,
+                "p50Ms": 16.664,
+                "p95Ms": 33.334,
+                "p99Ms": 33.35079999999999,
+                "maxMs": 33.35499999999999,
+                "meanPresentedFps": 54.777512005404716,
+                "intervalsOver25Ms": 2,
+                "intervalsOver1_5Refresh": 2
+              },
+              "firstPresentationLatencyMs": 27.175185000000003,
+              "firstPaintCallbackLatencyMs": 4.5038990000000005,
+              "longPresentationIntervals": [
+                {
+                  "fromMs": 95.795151,
+                  "toMs": 129.150151,
+                  "intervalMs": 33.35499999999999,
+                  "sinceDesktopChangeMs": 93.878185,
+                  "presentationIntervalIndex": 4
+                },
+                {
+                  "fromMs": 179.115151,
+                  "toMs": 212.449151,
+                  "intervalMs": 33.334,
+                  "sinceDesktopChangeMs": 177.198185,
+                  "presentationIntervalIndex": 8
+                }
+              ]
+            }
+          ],
+          "membershipAndOrderUnchanged": true,
+          "paintSamplePeakStepCells": 0.14829995534492046,
+          "retargetContinuity": []
+        },
+        {
+          "label": "single-out",
+          "requests": 1,
+          "transitions": [
+            {
+              "startMs": 1.918978,
+              "finishMs": 403.351456,
+              "endBoundaryMs": 420.01812266666667,
+              "durationMs": 401.432478,
+              "desktopChangeCount": 1,
+              "complete": true,
+              "validForComparison": true,
+              "limitations": [],
+              "presentationStats": {
+                "intervalCount": 23,
+                "intervalsMs": [
+                  16.653000000000002,
+                  16.672,
+                  16.622999999999998,
+                  33.324,
+                  16.674999999999997,
+                  16.713000000000008,
+                  33.339,
+                  16.607,
+                  16.667,
+                  16.679000000000002,
+                  16.659999999999997,
+                  16.677999999999997,
+                  16.664999999999992,
+                  16.710000000000036,
+                  16.60899999999998,
+                  16.678999999999974,
+                  16.698000000000036,
+                  16.668999999999983,
+                  16.660000000000025,
+                  16.66999999999996,
+                  16.69300000000004,
+                  16.617999999999995,
+                  16.650999999999954
+                ],
+                "invalidIntervals": 0,
+                "p50Ms": 16.66999999999996,
+                "p95Ms": 31.662899999999976,
+                "p99Ms": 33.335699999999996,
+                "maxMs": 33.339,
+                "meanPresentedFps": 55.20724319030657,
+                "intervalsOver25Ms": 2,
+                "intervalsOver1_5Refresh": 2
+              },
+              "firstPresentationLatencyMs": 0.6404799999999997,
+              "firstPaintCallbackLatencyMs": 5.3239339999999995,
+              "longPresentationIntervals": [
+                {
+                  "fromMs": 52.507458,
+                  "toMs": 85.831458,
+                  "intervalMs": 33.324,
+                  "sinceDesktopChangeMs": 50.58848,
+                  "presentationIntervalIndex": 3
+                },
+                {
+                  "fromMs": 119.219458,
+                  "toMs": 152.558458,
+                  "intervalMs": 33.339,
+                  "sinceDesktopChangeMs": 117.30048000000001,
+                  "presentationIntervalIndex": 6
+                }
+              ]
+            }
+          ],
+          "membershipAndOrderUnchanged": true,
+          "paintSamplePeakStepCells": 0.12565967453341953,
+          "retargetContinuity": []
+        }
+      ],
+      "projectionCalls": 2150,
+      "cachedFrames": 0,
+      "cachedWindowPasses": 0,
+      "fallbackWindowPasses": 1290,
+      "maxClockLagMs": 0,
+      "clockFallbackCountMax": 0,
+      "clockClampedFramesMax": 0,
+      "secondaryDesktopEvents": 0,
+      "presentation": {
+        "intervalCount": 108,
+        "p95Ms": 33.33725,
+        "p99Ms": 49.96437,
+        "maxMs": 50.028999999999996,
+        "intervalsOver25Ms": 11,
+        "meanPresentedFps": 53.11512851647971
+      },
+      "validTransitions": 4,
+      "excludedTransitions": 0,
+      "singleTransitionWallMs": {
+        "single-back": 394.718525,
+        "single-out": 401.432478
+      },
+      "firstPresentationLatencyMaxMs": 27.175185000000003,
+      "firstPaintCallbackLatencyMaxMs": 5.353866999999999,
+      "paintSamplePeakStepCells": 0.16576993522308592
+    },
+    "A1-off-off": {
+      "trials": [
+        {
+          "label": "continuing-80ms",
+          "requests": 4,
+          "transitions": [
+            {
+              "startMs": 1.48997,
+              "finishMs": 668.005504,
+              "endBoundaryMs": 684.6721706666666,
+              "durationMs": 666.515534,
+              "desktopChangeCount": 4,
+              "complete": true,
+              "validForComparison": true,
+              "limitations": [],
+              "presentationStats": {
+                "intervalCount": 35,
+                "intervalsMs": [
+                  16.668,
+                  16.671,
+                  16.658,
+                  50.015,
+                  16.656000000000006,
+                  16.676999999999992,
+                  16.668000000000006,
+                  16.658999999999992,
+                  16.668000000000006,
+                  33.371999999999986,
+                  16.680000000000007,
+                  16.673999999999978,
+                  16.660000000000025,
+                  33.27600000000001,
+                  16.670999999999992,
+                  16.661999999999978,
+                  16.65900000000005,
+                  16.74399999999997,
+                  16.63299999999998,
+                  16.75400000000002,
+                  16.57499999999999,
+                  16.701000000000022,
+                  16.670999999999992,
+                  16.766999999999996,
+                  16.55800000000005,
+                  16.650999999999954,
+                  16.649999999999977,
+                  16.74599999999998,
+                  16.68100000000004,
+                  16.604000000000042,
+                  16.727999999999952,
+                  16.678999999999974,
+                  16.590000000000032,
+                  16.70399999999995,
+                  16.632000000000062
+                ],
+                "invalidIntervals": 0,
+                "p50Ms": 16.670999999999992,
+                "p95Ms": 33.3048,
+                "p99Ms": 44.356379999999945,
+                "maxMs": 50.015,
+                "meanPresentedFps": 53.84101824133698,
+                "intervalsOver25Ms": 3,
+                "intervalsOver1_5Refresh": 3
+              },
+              "firstPresentationLatencyMs": 32.551862,
+              "firstPaintCallbackLatencyMs": 4.9326740000000004,
+              "longPresentationIntervals": [
+                {
+                  "fromMs": 84.038832,
+                  "toMs": 134.053832,
+                  "intervalMs": 50.015,
+                  "sinceDesktopChangeMs": 82.548862,
+                  "presentationIntervalIndex": 3
+                },
+                {
+                  "fromMs": 217.381832,
+                  "toMs": 250.753832,
+                  "intervalMs": 33.371999999999986,
+                  "sinceDesktopChangeMs": 215.891862,
+                  "presentationIntervalIndex": 9
+                },
+                {
+                  "fromMs": 300.767832,
+                  "toMs": 334.043832,
+                  "intervalMs": 33.27600000000001,
+                  "sinceDesktopChangeMs": 299.27786199999997,
+                  "presentationIntervalIndex": 13
+                }
+              ]
+            }
+          ],
+          "membershipAndOrderUnchanged": true,
+          "paintSamplePeakStepCells": 0.15387438333995296,
+          "retargetContinuity": [
+            {
+              "axis": "y",
+              "strategy": "carry-c2",
+              "positionErrorCells": 0.0,
+              "velocityError": 0.0,
+              "brakeMs": 0,
+              "brakeDistanceCells": 0,
+              "accelerationError": 0.0
+            },
+            {
+              "axis": "y",
+              "strategy": "carry-c1",
+              "positionErrorCells": 0.0,
+              "velocityError": 0.0,
+              "brakeMs": 0,
+              "brakeDistanceCells": 0
+            },
+            {
+              "axis": "y",
+              "strategy": "brake-c1",
+              "positionErrorCells": 0.0,
+              "velocityError": 0.0,
+              "brakeMs": 11.493817,
+              "brakeDistanceCells": 0.01999999851631256
+            }
+          ]
+        },
+        {
+          "label": "reverse-100ms",
+          "requests": 2,
+          "transitions": [
+            {
+              "startMs": 1.860692,
+              "finishMs": 553.242903,
+              "endBoundaryMs": 569.9095696666666,
+              "durationMs": 551.382211,
+              "desktopChangeCount": 2,
+              "complete": true,
+              "validForComparison": true,
+              "limitations": [],
+              "presentationStats": {
+                "intervalCount": 29,
+                "intervalsMs": [
+                  16.702,
+                  16.656999999999996,
+                  16.659999999999997,
+                  16.682000000000002,
+                  49.956,
+                  16.73599999999999,
+                  16.610000000000014,
+                  16.656999999999982,
+                  16.656000000000006,
+                  16.733000000000004,
+                  49.94200000000001,
+                  16.658000000000015,
+                  16.685000000000002,
+                  16.651999999999987,
+                  16.670999999999992,
+                  16.71199999999999,
+                  16.665999999999997,
+                  16.650000000000034,
+                  16.675999999999988,
+                  16.666999999999973,
+                  16.68900000000002,
+                  16.67700000000002,
+                  16.625999999999976,
+                  16.701999999999998,
+                  16.675999999999988,
+                  16.661,
+                  16.673000000000002,
+                  16.659999999999968,
+                  16.68500000000006
+                ],
+                "invalidIntervals": 0,
+                "p50Ms": 16.673000000000002,
+                "p95Ms": 36.65959999999993,
+                "p99Ms": 49.95208000000001,
+                "maxMs": 49.956,
+                "meanPresentedFps": 52.71989194240079,
+                "intervalsOver25Ms": 2,
+                "intervalsOver1_5Refresh": 2
+              },
+              "firstPresentationLatencyMs": 17.390021,
+              "firstPaintCallbackLatencyMs": 5.139193,
+              "longPresentationIntervals": [
+                {
+                  "fromMs": 85.951713,
+                  "toMs": 135.907713,
+                  "intervalMs": 49.956,
+                  "sinceDesktopChangeMs": 84.091021,
+                  "presentationIntervalIndex": 4
+                },
+                {
+                  "fromMs": 219.299713,
+                  "toMs": 269.241713,
+                  "intervalMs": 49.94200000000001,
+                  "sinceDesktopChangeMs": 217.439021,
+                  "presentationIntervalIndex": 10
+                }
+              ]
+            }
+          ],
+          "membershipAndOrderUnchanged": true,
+          "paintSamplePeakStepCells": 0.15611357751665778,
+          "retargetContinuity": [
+            {
+              "axis": "y",
+              "strategy": "brake-c1",
+              "positionErrorCells": 0.0,
+              "velocityError": 0.0,
+              "brakeMs": 10.576202,
+              "brakeDistanceCells": 0.01999999980570027
+            }
+          ]
+        },
+        {
+          "label": "single-back",
+          "requests": 1,
+          "transitions": [
+            {
+              "startMs": 1.398755,
+              "finishMs": 394.01748,
+              "endBoundaryMs": 410.68414666666666,
+              "durationMs": 392.618725,
+              "desktopChangeCount": 1,
+              "complete": true,
+              "validForComparison": true,
+              "limitations": [],
+              "presentationStats": {
+                "intervalCount": 21,
+                "intervalsMs": [
+                  16.67,
+                  16.665999999999997,
+                  16.652,
+                  16.674000000000007,
+                  50.00099999999999,
+                  16.711000000000013,
+                  16.674999999999983,
+                  16.610000000000014,
+                  16.708,
+                  16.62100000000001,
+                  16.673999999999978,
+                  16.670999999999992,
+                  16.672000000000025,
+                  16.65100000000001,
+                  16.700999999999965,
+                  16.664000000000044,
+                  16.71599999999995,
+                  16.632000000000005,
+                  16.629999999999995,
+                  16.726,
+                  16.613
+                ],
+                "invalidIntervals": 0,
+                "p50Ms": 16.670999999999992,
+                "p95Ms": 16.726,
+                "p99Ms": 43.34600000000002,
+                "maxMs": 50.00099999999999,
+                "meanPresentedFps": 54.78194178505653,
+                "intervalsOver25Ms": 1,
+                "intervalsOver1_5Refresh": 1
+              },
+              "firstPresentationLatencyMs": 25.034236999999997,
+              "firstPaintCallbackLatencyMs": 4.766475,
+              "longPresentationIntervals": [
+                {
+                  "fromMs": 93.094992,
+                  "toMs": 143.095992,
+                  "intervalMs": 50.00099999999999,
+                  "sinceDesktopChangeMs": 91.69623700000001,
+                  "presentationIntervalIndex": 4
+                }
+              ]
+            }
+          ],
+          "membershipAndOrderUnchanged": true,
+          "paintSamplePeakStepCells": 0.1664845031083777,
+          "retargetContinuity": []
+        },
+        {
+          "label": "single-out",
+          "requests": 1,
+          "transitions": [
+            {
+              "startMs": 1.861751,
+              "finishMs": 400.808198,
+              "endBoundaryMs": 417.4748646666667,
+              "durationMs": 398.946447,
+              "desktopChangeCount": 1,
+              "complete": true,
+              "validForComparison": true,
+              "limitations": [],
+              "presentationStats": {
+                "intervalCount": 21,
+                "intervalsMs": [
+                  16.741,
+                  16.616999999999997,
+                  16.644999999999996,
+                  49.988000000000014,
+                  16.70399999999998,
+                  16.668000000000006,
+                  16.692000000000007,
+                  16.639999999999986,
+                  16.624000000000024,
+                  16.673000000000002,
+                  16.661999999999978,
+                  16.664999999999992,
+                  16.70300000000003,
+                  16.625999999999976,
+                  16.677999999999997,
+                  16.66300000000001,
+                  16.697000000000003,
+                  16.670999999999992,
+                  16.644999999999982,
+                  16.694000000000017,
+                  16.641999999999996
+                ],
+                "invalidIntervals": 0,
+                "p50Ms": 16.668000000000006,
+                "p95Ms": 16.741,
+                "p99Ms": 43.33860000000003,
+                "maxMs": 49.988000000000014,
+                "meanPresentedFps": 54.78194178505653,
+                "intervalsOver25Ms": 1,
+                "intervalsOver1_5Refresh": 1
+              },
+              "firstPresentationLatencyMs": 31.293927000000004,
+              "firstPaintCallbackLatencyMs": 4.412861,
+              "longPresentationIntervals": [
+                {
+                  "fromMs": 83.158678,
+                  "toMs": 133.146678,
+                  "intervalMs": 49.988000000000014,
+                  "sinceDesktopChangeMs": 81.296927,
+                  "presentationIntervalIndex": 3
+                }
+              ]
+            }
+          ],
+          "membershipAndOrderUnchanged": true,
+          "paintSamplePeakStepCells": 0.15205694765684985,
+          "retargetContinuity": []
+        }
+      ],
+      "projectionCalls": 2160,
+      "cachedFrames": 0,
+      "cachedWindowPasses": 0,
+      "fallbackWindowPasses": 1296,
+      "maxClockLagMs": 0,
+      "clockFallbackCountMax": 0,
+      "clockClampedFramesMax": 0,
+      "secondaryDesktopEvents": 0,
+      "presentation": {
+        "intervalCount": 106,
+        "p95Ms": 33.34799999999999,
+        "p99Ms": 50.00034999999999,
+        "maxMs": 50.015,
+        "intervalsOver25Ms": 7,
+        "meanPresentedFps": 53.8942401801898
+      },
+      "validTransitions": 4,
+      "excludedTransitions": 0,
+      "singleTransitionWallMs": {
+        "single-back": 392.618725,
+        "single-out": 398.946447
+      },
+      "firstPresentationLatencyMaxMs": 32.551862,
+      "firstPaintCallbackLatencyMaxMs": 5.139193,
+      "paintSamplePeakStepCells": 0.1664845031083777
+    },
+    "A2-off-off": {
+      "trials": [
+        {
+          "label": "continuing-80ms",
+          "requests": 4,
+          "transitions": [
+            {
+              "startMs": 1.735649,
+              "finishMs": 674.718237,
+              "endBoundaryMs": 691.3849036666667,
+              "durationMs": 672.9825880000001,
+              "desktopChangeCount": 4,
+              "complete": true,
+              "validForComparison": true,
+              "limitations": [],
+              "presentationStats": {
+                "intervalCount": 35,
+                "intervalsMs": [
+                  16.592000000000002,
+                  16.705,
+                  16.675000000000004,
+                  16.646,
+                  49.97500000000001,
+                  16.696999999999974,
+                  16.678000000000026,
+                  16.647999999999996,
+                  16.712999999999994,
+                  16.644000000000005,
+                  33.337999999999965,
+                  16.624000000000024,
+                  16.69799999999998,
+                  33.289000000000044,
+                  16.71599999999995,
+                  16.656000000000006,
+                  16.67500000000001,
+                  16.658999999999992,
+                  33.291,
+                  16.670000000000016,
+                  16.692999999999984,
+                  16.709000000000003,
+                  16.638000000000034,
+                  16.629999999999995,
+                  16.664000000000044,
+                  16.723999999999933,
+                  16.68399999999997,
+                  16.62600000000009,
+                  16.88900000000001,
+                  16.618999999999915,
+                  16.551000000000045,
+                  16.61500000000001,
+                  16.673999999999978,
+                  16.630999999999972,
+                  16.666000000000054
+                ],
+                "invalidIntervals": 0,
+                "p50Ms": 16.673999999999978,
+                "p95Ms": 33.30509999999999,
+                "p99Ms": 44.31841999999994,
+                "maxMs": 49.97500000000001,
+                "meanPresentedFps": 52.50509299402042,
+                "intervalsOver25Ms": 4,
+                "intervalsOver1_5Refresh": 4
+              },
+              "firstPresentationLatencyMs": 22.001362,
+              "firstPaintCallbackLatencyMs": 4.968400000000001,
+              "longPresentationIntervals": [
+                {
+                  "fromMs": 90.355011,
+                  "toMs": 140.330011,
+                  "intervalMs": 49.97500000000001,
+                  "sinceDesktopChangeMs": 88.61936200000001,
+                  "presentationIntervalIndex": 4
+                },
+                {
+                  "fromMs": 223.710011,
+                  "toMs": 257.048011,
+                  "intervalMs": 33.337999999999965,
+                  "sinceDesktopChangeMs": 221.974362,
+                  "presentationIntervalIndex": 10
+                },
+                {
+                  "fromMs": 290.370011,
+                  "toMs": 323.659011,
+                  "intervalMs": 33.289000000000044,
+                  "sinceDesktopChangeMs": 288.63436199999995,
+                  "presentationIntervalIndex": 13
+                },
+                {
+                  "fromMs": 390.365011,
+                  "toMs": 423.656011,
+                  "intervalMs": 33.291,
+                  "sinceDesktopChangeMs": 388.62936199999996,
+                  "presentationIntervalIndex": 18
+                }
+              ]
+            }
+          ],
+          "membershipAndOrderUnchanged": true,
+          "paintSamplePeakStepCells": 0.16228733280501606,
+          "retargetContinuity": [
+            {
+              "axis": "y",
+              "strategy": "carry-c2",
+              "positionErrorCells": 0.0,
+              "velocityError": 0.0,
+              "brakeMs": 0,
+              "brakeDistanceCells": 0,
+              "accelerationError": 0.0
+            },
+            {
+              "axis": "y",
+              "strategy": "brake-c1",
+              "positionErrorCells": 0.0,
+              "velocityError": 0.0,
+              "brakeMs": 8.643815,
+              "brakeDistanceCells": 0.01999999924570648
+            },
+            {
+              "axis": "y",
+              "strategy": "brake-c1",
+              "positionErrorCells": 0.0,
+              "velocityError": 0.0,
+              "brakeMs": 43.417895,
+              "brakeDistanceCells": 0.019999999933986042
+            }
+          ]
+        },
+        {
+          "label": "reverse-100ms",
+          "requests": 2,
+          "transitions": [
+            {
+              "startMs": 1.666924,
+              "finishMs": 545.217872,
+              "endBoundaryMs": 561.8845386666667,
+              "durationMs": 543.5509480000001,
+              "desktopChangeCount": 2,
+              "complete": true,
+              "validForComparison": true,
+              "limitations": [],
+              "presentationStats": {
+                "intervalCount": 28,
+                "intervalsMs": [
+                  16.661999999999995,
+                  16.661,
+                  16.621000000000002,
+                  16.732,
+                  49.98100000000001,
+                  16.629999999999995,
+                  16.745000000000005,
+                  16.667,
+                  16.659999999999997,
+                  16.63899999999998,
+                  33.34899999999999,
+                  16.602000000000032,
+                  16.750999999999976,
+                  33.283000000000015,
+                  16.673000000000002,
+                  16.67199999999997,
+                  16.66700000000003,
+                  16.661,
+                  16.61899999999997,
+                  16.672000000000025,
+                  16.69999999999999,
+                  16.699000000000012,
+                  16.841000000000008,
+                  16.569999999999993,
+                  16.569000000000017,
+                  16.620999999999924,
+                  16.662000000000035,
+                  16.68399999999997
+                ],
+                "invalidIntervals": 0,
+                "p50Ms": 16.667000000000016,
+                "p95Ms": 33.3259,
+                "p99Ms": 45.49036000000001,
+                "maxMs": 49.98100000000001,
+                "meanPresentedFps": 52.5039706127776,
+                "intervalsOver25Ms": 3,
+                "intervalsOver1_5Refresh": 3
+              },
+              "firstPresentationLatencyMs": 26.191754,
+              "firstPaintCallbackLatencyMs": 5.262669,
+              "longPresentationIntervals": [
+                {
+                  "fromMs": 94.534678,
+                  "toMs": 144.515678,
+                  "intervalMs": 49.98100000000001,
+                  "sinceDesktopChangeMs": 92.867754,
+                  "presentationIntervalIndex": 4
+                },
+                {
+                  "fromMs": 227.856678,
+                  "toMs": 261.205678,
+                  "intervalMs": 33.34899999999999,
+                  "sinceDesktopChangeMs": 226.189754,
+                  "presentationIntervalIndex": 10
+                },
+                {
+                  "fromMs": 294.558678,
+                  "toMs": 327.841678,
+                  "intervalMs": 33.283000000000015,
+                  "sinceDesktopChangeMs": 292.891754,
+                  "presentationIntervalIndex": 13
+                }
+              ]
+            }
+          ],
+          "membershipAndOrderUnchanged": true,
+          "paintSamplePeakStepCells": 0.10504291686706524,
+          "retargetContinuity": [
+            {
+              "axis": "y",
+              "strategy": "brake-c1",
+              "positionErrorCells": 0.0,
+              "velocityError": 0.0,
+              "brakeMs": 11.115579,
+              "brakeDistanceCells": 0.019999998241704158
+            }
+          ]
+        },
+        {
+          "label": "single-back",
+          "requests": 1,
+          "transitions": [
+            {
+              "startMs": 1.646713,
+              "finishMs": 402.616519,
+              "endBoundaryMs": 419.28318566666667,
+              "durationMs": 400.969806,
+              "desktopChangeCount": 1,
+              "complete": true,
+              "validForComparison": true,
+              "limitations": [],
+              "presentationStats": {
+                "intervalCount": 23,
+                "intervalsMs": [
+                  16.629,
+                  16.678999999999995,
+                  16.692000000000007,
+                  16.72699999999999,
+                  16.626000000000005,
+                  33.28699999999999,
+                  16.707000000000022,
+                  16.619999999999976,
+                  16.72,
+                  16.646000000000015,
+                  16.631,
+                  16.668000000000006,
+                  16.670999999999992,
+                  16.69500000000002,
+                  16.674999999999955,
+                  16.69300000000004,
+                  16.649,
+                  16.658999999999992,
+                  16.673000000000002,
+                  16.64699999999999,
+                  16.685000000000002,
+                  16.673000000000002,
+                  16.627999999999986
+                ],
+                "invalidIntervals": 0,
+                "p50Ms": 16.673000000000002,
+                "p95Ms": 16.72629999999999,
+                "p99Ms": 29.643800000000013,
+                "maxMs": 33.28699999999999,
+                "meanPresentedFps": 57.50287514375719,
+                "intervalsOver25Ms": 1,
+                "intervalsOver1_5Refresh": 1
+              },
+              "firstPresentationLatencyMs": 16.744417,
+              "firstPaintCallbackLatencyMs": 5.400177,
+              "longPresentationIntervals": [
+                {
+                  "fromMs": 101.74413,
+                  "toMs": 135.03113,
+                  "intervalMs": 33.28699999999999,
+                  "sinceDesktopChangeMs": 100.097417,
+                  "presentationIntervalIndex": 5
+                }
+              ]
+            }
+          ],
+          "membershipAndOrderUnchanged": true,
+          "paintSamplePeakStepCells": 0.11138461201796845,
+          "retargetContinuity": []
+        },
+        {
+          "label": "single-out",
+          "requests": 1,
+          "transitions": [
+            {
+              "startMs": 1.605987,
+              "finishMs": 404.173462,
+              "endBoundaryMs": 420.84012866666666,
+              "durationMs": 402.56747499999994,
+              "desktopChangeCount": 1,
+              "complete": true,
+              "validForComparison": true,
+              "limitations": [],
+              "presentationStats": {
+                "intervalCount": 22,
+                "intervalsMs": [
+                  16.690999999999995,
+                  16.674000000000007,
+                  16.67,
+                  16.631,
+                  50.03499999999998,
+                  16.656000000000006,
+                  16.640000000000015,
+                  16.715000000000003,
+                  16.61099999999999,
+                  16.745000000000005,
+                  16.650000000000006,
+                  16.683999999999997,
+                  16.61700000000002,
+                  16.714999999999975,
+                  16.810000000000002,
+                  16.5,
+                  16.608000000000004,
+                  16.668999999999983,
+                  16.663999999999987,
+                  16.701000000000022,
+                  16.665999999999997,
+                  16.651999999999987
+                ],
+                "invalidIntervals": 0,
+                "p50Ms": 16.66749999999999,
+                "p95Ms": 16.80675,
+                "p99Ms": 43.057749999999956,
+                "maxMs": 50.03499999999998,
+                "meanPresentedFps": 54.99945000549995,
+                "intervalsOver25Ms": 1,
+                "intervalsOver1_5Refresh": 1
+              },
+              "firstPresentationLatencyMs": 18.539132000000002,
+              "firstPaintCallbackLatencyMs": 4.278033,
+              "longPresentationIntervals": [
+                {
+                  "fromMs": 86.811119,
+                  "toMs": 136.846119,
+                  "intervalMs": 50.03499999999998,
+                  "sinceDesktopChangeMs": 85.205132,
+                  "presentationIntervalIndex": 4
+                }
+              ]
+            }
+          ],
+          "membershipAndOrderUnchanged": true,
+          "paintSamplePeakStepCells": 0.15755158307412342,
+          "retargetContinuity": []
+        }
+      ],
+      "projectionCalls": 2160,
+      "cachedFrames": 0,
+      "cachedWindowPasses": 0,
+      "fallbackWindowPasses": 1296,
+      "maxClockLagMs": 0,
+      "clockFallbackCountMax": 0,
+      "clockClampedFramesMax": 0,
+      "secondaryDesktopEvents": 0,
+      "presentation": {
+        "intervalCount": 108,
+        "p95Ms": 33.290300000000016,
+        "p99Ms": 49.98058000000001,
+        "maxMs": 50.03499999999998,
+        "intervalsOver25Ms": 9,
+        "meanPresentedFps": 54.00326719766546
+      },
+      "validTransitions": 4,
+      "excludedTransitions": 0,
+      "singleTransitionWallMs": {
+        "single-back": 400.969806,
+        "single-out": 402.56747499999994
+      },
+      "firstPresentationLatencyMaxMs": 26.191754,
+      "firstPaintCallbackLatencyMaxMs": 5.400177,
+      "paintSamplePeakStepCells": 0.16228733280501606
+    },
+    "B-cache-on": {
+      "trials": [
+        {
+          "label": "continuing-80ms",
+          "requests": 4,
+          "transitions": [
+            {
+              "startMs": 1.697779,
+              "finishMs": 665.541471,
+              "endBoundaryMs": 682.2081376666666,
+              "durationMs": 663.843692,
+              "desktopChangeCount": 4,
+              "complete": true,
+              "validForComparison": true,
+              "limitations": [],
+              "presentationStats": {
+                "intervalCount": 36,
+                "intervalsMs": [
+                  16.689999999999998,
+                  16.683000000000007,
+                  16.670999999999992,
+                  49.94500000000001,
+                  16.671999999999997,
+                  16.698999999999984,
+                  16.64100000000002,
+                  16.667,
+                  16.664999999999992,
+                  16.674000000000007,
+                  16.665999999999997,
+                  16.65700000000001,
+                  16.712999999999965,
+                  33.289000000000044,
+                  16.662999999999954,
+                  16.688000000000045,
+                  16.641999999999996,
+                  16.69799999999998,
+                  16.668999999999983,
+                  16.665999999999997,
+                  16.668000000000006,
+                  16.661,
+                  16.698000000000036,
+                  16.668999999999983,
+                  16.668000000000006,
+                  16.638000000000034,
+                  16.705999999999904,
+                  16.65700000000004,
+                  16.68100000000004,
+                  16.773000000000025,
+                  16.659999999999968,
+                  16.524999999999977,
+                  16.83299999999997,
+                  16.555000000000064,
+                  16.605999999999995,
+                  16.680999999999926
+                ],
+                "invalidIntervals": 0,
+                "p50Ms": 16.668999999999983,
+                "p95Ms": 20.94699999999999,
+                "p99Ms": 44.1154,
+                "maxMs": 49.94500000000001,
+                "meanPresentedFps": 55.381462901342545,
+                "intervalsOver25Ms": 2,
+                "intervalsOver1_5Refresh": 2
+              },
+              "firstPresentationLatencyMs": 29.862728,
+              "firstPaintCallbackLatencyMs": 5.037443000000001,
+              "longPresentationIntervals": [
+                {
+                  "fromMs": 81.604507,
+                  "toMs": 131.549507,
+                  "intervalMs": 49.94500000000001,
+                  "sinceDesktopChangeMs": 79.906728,
+                  "presentationIntervalIndex": 3
+                },
+                {
+                  "fromMs": 281.603507,
+                  "toMs": 314.892507,
+                  "intervalMs": 33.289000000000044,
+                  "sinceDesktopChangeMs": 279.90572799999995,
+                  "presentationIntervalIndex": 13
+                }
+              ]
+            }
+          ],
+          "membershipAndOrderUnchanged": true,
+          "paintSamplePeakStepCells": 0.15011318678404462,
+          "retargetContinuity": [
+            {
+              "axis": "y",
+              "strategy": "carry-c2",
+              "positionErrorCells": 0.0,
+              "velocityError": 0.0,
+              "brakeMs": 0,
+              "brakeDistanceCells": 0,
+              "accelerationError": 0.0
+            },
+            {
+              "axis": "y",
+              "strategy": "carry-c1",
+              "positionErrorCells": 0.0,
+              "velocityError": 0.0,
+              "brakeMs": 0,
+              "brakeDistanceCells": 0
+            },
+            {
+              "axis": "y",
+              "strategy": "brake-c1",
+              "positionErrorCells": 0.0,
+              "velocityError": 0.0,
+              "brakeMs": 11.483888,
+              "brakeDistanceCells": 0.019999999594068743
+            }
+          ]
+        },
+        {
+          "label": "reverse-100ms",
+          "requests": 2,
+          "transitions": [
+            {
+              "startMs": 1.67265,
+              "finishMs": 548.192658,
+              "endBoundaryMs": 564.8593246666667,
+              "durationMs": 546.5200080000001,
+              "desktopChangeCount": 2,
+              "complete": true,
+              "validForComparison": true,
+              "limitations": [],
+              "presentationStats": {
+                "intervalCount": 28,
+                "intervalsMs": [
+                  16.657999999999998,
+                  16.672999999999995,
+                  16.68400000000001,
+                  49.97399999999999,
+                  16.674000000000007,
+                  16.667,
+                  16.669999999999987,
+                  16.649,
+                  16.705000000000013,
+                  50.00999999999999,
+                  16.627999999999986,
+                  16.701999999999998,
+                  16.698000000000036,
+                  16.59299999999996,
+                  16.698000000000036,
+                  16.805999999999983,
+                  16.507000000000005,
+                  16.814999999999998,
+                  16.55200000000002,
+                  16.620000000000005,
+                  16.714,
+                  16.664999999999964,
+                  16.624000000000024,
+                  16.826999999999998,
+                  16.786999999999978,
+                  16.57400000000007,
+                  16.51899999999989,
+                  16.687000000000012
+                ],
+                "invalidIntervals": 0,
+                "p50Ms": 16.6735,
+                "p95Ms": 38.37254999999995,
+                "p99Ms": 50.00027999999999,
+                "maxMs": 50.00999999999999,
+                "meanPresentedFps": 52.49540665191796,
+                "intervalsOver25Ms": 2,
+                "intervalsOver1_5Refresh": 2
+              },
+              "firstPresentationLatencyMs": 29.033642,
+              "firstPaintCallbackLatencyMs": 5.319571,
+              "longPresentationIntervals": [
+                {
+                  "fromMs": 80.721292,
+                  "toMs": 130.695292,
+                  "intervalMs": 49.97399999999999,
+                  "sinceDesktopChangeMs": 79.048642,
+                  "presentationIntervalIndex": 3
+                },
+                {
+                  "fromMs": 214.060292,
+                  "toMs": 264.070292,
+                  "intervalMs": 50.00999999999999,
+                  "sinceDesktopChangeMs": 212.387642,
+                  "presentationIntervalIndex": 9
+                }
+              ]
+            }
+          ],
+          "membershipAndOrderUnchanged": true,
+          "paintSamplePeakStepCells": 0.14889775243198766,
+          "retargetContinuity": [
+            {
+              "axis": "y",
+              "strategy": "brake-c1",
+              "positionErrorCells": 0.0,
+              "velocityError": 0.0,
+              "brakeMs": 10.908351,
+              "brakeDistanceCells": 0.019999998306214142
+            }
+          ]
+        },
+        {
+          "label": "single-back",
+          "requests": 1,
+          "transitions": [
+            {
+              "startMs": 1.534056,
+              "finishMs": 389.680952,
+              "endBoundaryMs": 406.3476186666667,
+              "durationMs": 388.14689599999997,
+              "desktopChangeCount": 1,
+              "complete": true,
+              "validForComparison": true,
+              "limitations": [],
+              "presentationStats": {
+                "intervalCount": 21,
+                "intervalsMs": [
+                  16.683000000000003,
+                  16.648999999999994,
+                  16.659000000000006,
+                  16.688999999999993,
+                  49.989999999999995,
+                  16.698000000000008,
+                  16.665999999999997,
+                  16.65100000000001,
+                  16.635999999999996,
+                  16.716000000000008,
+                  16.619,
+                  16.665999999999997,
+                  16.711000000000013,
+                  16.627999999999986,
+                  16.726,
+                  16.687000000000012,
+                  16.716999999999985,
+                  16.742999999999995,
+                  16.548999999999978,
+                  16.79000000000002,
+                  16.468000000000018
+                ],
+                "invalidIntervals": 0,
+                "p50Ms": 16.683000000000003,
+                "p95Ms": 16.79000000000002,
+                "p99Ms": 43.35000000000002,
+                "maxMs": 49.989999999999995,
+                "meanPresentedFps": 54.78151306539087,
+                "intervalsOver25Ms": 1,
+                "intervalsOver1_5Refresh": 1
+              },
+              "firstPresentationLatencyMs": 20.440344,
+              "firstPaintCallbackLatencyMs": 4.926410000000001,
+              "longPresentationIntervals": [
+                {
+                  "fromMs": 88.6544,
+                  "toMs": 138.6444,
+                  "intervalMs": 49.989999999999995,
+                  "sinceDesktopChangeMs": 87.12034399999999,
+                  "presentationIntervalIndex": 4
+                }
+              ]
+            }
+          ],
+          "membershipAndOrderUnchanged": true,
+          "paintSamplePeakStepCells": 0.09938996892538587,
+          "retargetContinuity": []
+        },
+        {
+          "label": "single-out",
+          "requests": 1,
+          "transitions": [
+            {
+              "startMs": 1.790928,
+              "finishMs": 396.751899,
+              "endBoundaryMs": 413.41856566666667,
+              "durationMs": 394.960971,
+              "desktopChangeCount": 1,
+              "complete": true,
+              "validForComparison": true,
+              "limitations": [],
+              "presentationStats": {
+                "intervalCount": 21,
+                "intervalsMs": [
+                  16.684000000000005,
+                  16.715999999999994,
+                  16.62100000000001,
+                  50.016000000000005,
+                  16.664999999999992,
+                  16.62700000000001,
+                  16.700999999999993,
+                  16.698999999999984,
+                  16.668000000000006,
+                  16.616000000000014,
+                  16.72,
+                  16.615999999999985,
+                  16.744000000000028,
+                  16.60699999999997,
+                  16.701000000000022,
+                  16.668000000000006,
+                  16.650999999999954,
+                  16.636000000000024,
+                  16.711000000000013,
+                  16.738,
+                  16.565999999999974
+                ],
+                "invalidIntervals": 0,
+                "p50Ms": 16.668000000000006,
+                "p95Ms": 16.744000000000028,
+                "p99Ms": 43.36160000000004,
+                "maxMs": 50.016000000000005,
+                "meanPresentedFps": 54.77722623776968,
+                "intervalsOver25Ms": 1,
+                "intervalsOver1_5Refresh": 1
+              },
+              "firstPresentationLatencyMs": 27.213369999999998,
+              "firstPaintCallbackLatencyMs": 5.095051,
+              "longPresentationIntervals": [
+                {
+                  "fromMs": 79.025298,
+                  "toMs": 129.041298,
+                  "intervalMs": 50.016000000000005,
+                  "sinceDesktopChangeMs": 77.23437000000001,
+                  "presentationIntervalIndex": 3
+                }
+              ]
+            }
+          ],
+          "membershipAndOrderUnchanged": true,
+          "paintSamplePeakStepCells": 0.14610535176185224,
+          "retargetContinuity": []
+        }
+      ],
+      "projectionCalls": 1555,
+      "cachedFrames": 115,
+      "cachedWindowPasses": 690,
+      "fallbackWindowPasses": 588,
+      "maxClockLagMs": 0,
+      "clockFallbackCountMax": 0,
+      "clockClampedFramesMax": 0,
+      "secondaryDesktopEvents": 0,
+      "presentation": {
+        "intervalCount": 106,
+        "p95Ms": 29.175000000000026,
+        "p99Ms": 50.008999999999986,
+        "maxMs": 50.016000000000005,
+        "intervalsOver25Ms": 6,
+        "meanPresentedFps": 54.35537854162469
+      },
+      "validTransitions": 4,
+      "excludedTransitions": 0,
+      "singleTransitionWallMs": {
+        "single-back": 388.14689599999997,
+        "single-out": 394.960971
+      },
+      "firstPresentationLatencyMaxMs": 29.862728,
+      "firstPaintCallbackLatencyMaxMs": 5.319571,
+      "paintSamplePeakStepCells": 0.15011318678404462
+    },
+    "C-clock-on": {
+      "trials": [
+        {
+          "label": "continuing-80ms",
+          "requests": 4,
+          "transitions": [
+            {
+              "startMs": 1.708961,
+              "finishMs": 697.329645,
+              "endBoundaryMs": 713.9963116666667,
+              "durationMs": 695.620684,
+              "desktopChangeCount": 4,
+              "complete": true,
+              "validForComparison": true,
+              "limitations": [],
+              "presentationStats": {
+                "intervalCount": 37,
+                "intervalsMs": [
+                  16.613999999999997,
+                  16.722,
+                  16.659999999999997,
+                  50.010000000000005,
+                  16.61099999999999,
+                  16.723000000000013,
+                  16.712999999999994,
+                  16.622000000000014,
+                  16.675999999999988,
+                  16.622000000000014,
+                  16.662999999999982,
+                  16.690000000000026,
+                  16.678999999999974,
+                  33.30799999999999,
+                  16.64100000000002,
+                  16.676999999999964,
+                  33.35400000000004,
+                  16.632000000000005,
+                  16.698999999999955,
+                  16.66900000000004,
+                  16.67199999999997,
+                  16.676000000000045,
+                  16.653999999999996,
+                  16.661999999999978,
+                  16.645999999999958,
+                  16.735000000000014,
+                  16.673999999999978,
+                  16.773000000000025,
+                  16.742000000000075,
+                  16.490999999999985,
+                  16.626999999999953,
+                  16.783000000000015,
+                  16.586000000000013,
+                  16.668999999999983,
+                  16.642000000000053,
+                  16.646999999999935,
+                  16.635999999999967
+                ],
+                "invalidIntervals": 0,
+                "p50Ms": 16.66900000000004,
+                "p95Ms": 33.3172,
+                "p99Ms": 44.01384000000003,
+                "maxMs": 50.010000000000005,
+                "meanPresentedFps": 54.14898287721353,
+                "intervalsOver25Ms": 3,
+                "intervalsOver1_5Refresh": 3
+              },
+              "firstPresentationLatencyMs": 28.443101000000002,
+              "firstPaintCallbackLatencyMs": 5.122870000000001,
+              "longPresentationIntervals": [
+                {
+                  "fromMs": 80.148062,
+                  "toMs": 130.158062,
+                  "intervalMs": 50.010000000000005,
+                  "sinceDesktopChangeMs": 78.439101,
+                  "presentationIntervalIndex": 3
+                },
+                {
+                  "fromMs": 280.157062,
+                  "toMs": 313.465062,
+                  "intervalMs": 33.30799999999999,
+                  "sinceDesktopChangeMs": 278.448101,
+                  "presentationIntervalIndex": 13
+                },
+                {
+                  "fromMs": 346.783062,
+                  "toMs": 380.137062,
+                  "intervalMs": 33.35400000000004,
+                  "sinceDesktopChangeMs": 345.074101,
+                  "presentationIntervalIndex": 16
+                }
+              ]
+            }
+          ],
+          "membershipAndOrderUnchanged": true,
+          "paintSamplePeakStepCells": 0.07616450389817664,
+          "retargetContinuity": [
+            {
+              "axis": "y",
+              "strategy": "carry-c2",
+              "positionErrorCells": 0.0,
+              "velocityError": 0.0,
+              "brakeMs": 0,
+              "brakeDistanceCells": 0,
+              "accelerationError": 0.0
+            },
+            {
+              "axis": "y",
+              "strategy": "carry-c2",
+              "positionErrorCells": 0.0,
+              "velocityError": 0.0,
+              "brakeMs": 0,
+              "brakeDistanceCells": 0,
+              "accelerationError": 0.0
+            },
+            {
+              "axis": "y",
+              "strategy": "brake-c1",
+              "positionErrorCells": 0.0,
+              "velocityError": 0.0,
+              "brakeMs": 9.100888,
+              "brakeDistanceCells": 0.019999998276699696
+            }
+          ]
+        },
+        {
+          "label": "reverse-100ms",
+          "requests": 2,
+          "transitions": [
+            {
+              "startMs": 1.783809,
+              "finishMs": 603.648593,
+              "endBoundaryMs": 620.3152596666666,
+              "durationMs": 601.864784,
+              "desktopChangeCount": 2,
+              "complete": true,
+              "validForComparison": true,
+              "limitations": [],
+              "presentationStats": {
+                "intervalCount": 32,
+                "intervalsMs": [
+                  16.663000000000004,
+                  16.662,
+                  16.711999999999996,
+                  16.62400000000001,
+                  16.671999999999997,
+                  33.331999999999994,
+                  16.665999999999997,
+                  16.676999999999992,
+                  16.735000000000014,
+                  16.63499999999999,
+                  16.65900000000002,
+                  49.95799999999997,
+                  16.69100000000003,
+                  16.701999999999998,
+                  33.27799999999996,
+                  16.661,
+                  16.711000000000013,
+                  16.660000000000025,
+                  16.692999999999984,
+                  16.67900000000003,
+                  16.637,
+                  16.726,
+                  16.641999999999996,
+                  16.65799999999996,
+                  16.670000000000016,
+                  16.633000000000038,
+                  16.706000000000017,
+                  16.616999999999962,
+                  16.673000000000002,
+                  16.70799999999997,
+                  16.652000000000044,
+                  16.646999999999935
+                ],
+                "invalidIntervals": 0,
+                "p50Ms": 16.671000000000006,
+                "p95Ms": 33.302299999999974,
+                "p99Ms": 44.80394,
+                "maxMs": 49.95799999999997,
+                "meanPresentedFps": 53.329866891985354,
+                "intervalsOver25Ms": 3,
+                "intervalsOver1_5Refresh": 3
+              },
+              "firstPresentationLatencyMs": 17.775412999999997,
+              "firstPaintCallbackLatencyMs": 5.113612,
+              "longPresentationIntervals": [
+                {
+                  "fromMs": 102.892222,
+                  "toMs": 136.224222,
+                  "intervalMs": 33.331999999999994,
+                  "sinceDesktopChangeMs": 101.108413,
+                  "presentationIntervalIndex": 5
+                },
+                {
+                  "fromMs": 219.596222,
+                  "toMs": 269.554222,
+                  "intervalMs": 49.95799999999997,
+                  "sinceDesktopChangeMs": 217.81241300000002,
+                  "presentationIntervalIndex": 11
+                },
+                {
+                  "fromMs": 302.947222,
+                  "toMs": 336.225222,
+                  "intervalMs": 33.27799999999996,
+                  "sinceDesktopChangeMs": 301.163413,
+                  "presentationIntervalIndex": 14
+                }
+              ]
+            }
+          ],
+          "membershipAndOrderUnchanged": true,
+          "paintSamplePeakStepCells": 0.05195796546854514,
+          "retargetContinuity": [
+            {
+              "axis": "y",
+              "strategy": "brake-c1",
+              "positionErrorCells": 0.0,
+              "velocityError": 0.0,
+              "brakeMs": 11.93249,
+              "brakeDistanceCells": 0.019999998826968107
+            }
+          ]
+        },
+        {
+          "label": "single-back",
+          "requests": 1,
+          "transitions": [
+            {
+              "startMs": 1.466825,
+              "finishMs": 443.673481,
+              "endBoundaryMs": 460.34014766666667,
+              "durationMs": 442.20665599999995,
+              "desktopChangeCount": 1,
+              "complete": true,
+              "validForComparison": true,
+              "limitations": [],
+              "presentationStats": {
+                "intervalCount": 24,
+                "intervalsMs": [
+                  16.634,
+                  16.677,
+                  16.638000000000005,
+                  16.685000000000002,
+                  49.996999999999986,
+                  16.656000000000006,
+                  16.72800000000001,
+                  16.597999999999985,
+                  16.704000000000008,
+                  16.65299999999999,
+                  16.662000000000006,
+                  16.665999999999997,
+                  16.706999999999994,
+                  16.66900000000004,
+                  16.664999999999964,
+                  16.668000000000006,
+                  16.66500000000002,
+                  16.664999999999964,
+                  16.62900000000002,
+                  16.704000000000008,
+                  16.680999999999983,
+                  16.656000000000006,
+                  16.673000000000002,
+                  16.63299999999998
+                ],
+                "invalidIntervals": 0,
+                "p50Ms": 16.66550000000001,
+                "p95Ms": 16.724850000000007,
+                "p99Ms": 42.345129999999976,
+                "maxMs": 49.996999999999986,
+                "meanPresentedFps": 55.38721432313363,
+                "intervalsOver25Ms": 1,
+                "intervalsOver1_5Refresh": 1
+              },
+              "firstPresentationLatencyMs": 24.556098,
+              "firstPaintCallbackLatencyMs": 5.064029,
+              "longPresentationIntervals": [
+                {
+                  "fromMs": 92.656923,
+                  "toMs": 142.653923,
+                  "intervalMs": 49.996999999999986,
+                  "sinceDesktopChangeMs": 91.190098,
+                  "presentationIntervalIndex": 4
+                }
+              ]
+            }
+          ],
+          "membershipAndOrderUnchanged": true,
+          "paintSamplePeakStepCells": 0.07425391425568284,
+          "retargetContinuity": []
+        },
+        {
+          "label": "single-out",
+          "requests": 1,
+          "transitions": [
+            {
+              "startMs": 1.788934,
+              "finishMs": 433.746421,
+              "endBoundaryMs": 450.4130876666667,
+              "durationMs": 431.957487,
+              "desktopChangeCount": 1,
+              "complete": true,
+              "validForComparison": true,
+              "limitations": [],
+              "presentationStats": {
+                "intervalCount": 24,
+                "intervalsMs": [
+                  16.644999999999996,
+                  16.678000000000004,
+                  16.650999999999996,
+                  16.646,
+                  33.30499999999999,
+                  16.682999999999993,
+                  16.68300000000002,
+                  16.644999999999982,
+                  16.670000000000016,
+                  16.656000000000006,
+                  16.708,
+                  16.629999999999995,
+                  16.73999999999998,
+                  16.632000000000005,
+                  16.66500000000002,
+                  16.637,
+                  16.659999999999968,
+                  16.706999999999994,
+                  16.63100000000003,
+                  16.663999999999987,
+                  16.694000000000017,
+                  16.642999999999972,
+                  16.674000000000035,
+                  16.66999999999996
+                ],
+                "invalidIntervals": 0,
+                "p50Ms": 16.664500000000004,
+                "p95Ms": 16.735199999999985,
+                "p99Ms": 29.495049999999985,
+                "maxMs": 33.30499999999999,
+                "meanPresentedFps": 57.60686673851524,
+                "intervalsOver25Ms": 1,
+                "intervalsOver1_5Refresh": 1
+              },
+              "firstPresentationLatencyMs": 31.124584000000002,
+              "firstPaintCallbackLatencyMs": 4.575867,
+              "longPresentationIntervals": [
+                {
+                  "fromMs": 99.533518,
+                  "toMs": 132.838518,
+                  "intervalMs": 33.30499999999999,
+                  "sinceDesktopChangeMs": 97.744584,
+                  "presentationIntervalIndex": 4
+                }
+              ]
+            }
+          ],
+          "membershipAndOrderUnchanged": true,
+          "paintSamplePeakStepCells": 0.07426879817595156,
+          "retargetContinuity": []
+        }
+      ],
+      "projectionCalls": 2300,
+      "cachedFrames": 0,
+      "cachedWindowPasses": 0,
+      "fallbackWindowPasses": 1380,
+      "maxClockLagMs": 79.109343,
+      "clockFallbackCountMax": 0,
+      "clockClampedFramesMax": 22,
+      "secondaryDesktopEvents": 0,
+      "presentation": {
+        "intervalCount": 117,
+        "p95Ms": 33.30559999999999,
+        "p99Ms": 49.99075999999998,
+        "maxMs": 50.010000000000005,
+        "intervalsOver25Ms": 8,
+        "meanPresentedFps": 54.84540393171232
+      },
+      "validTransitions": 4,
+      "excludedTransitions": 0,
+      "singleTransitionWallMs": {
+        "single-back": 442.20665599999995,
+        "single-out": 431.957487
+      },
+      "firstPresentationLatencyMaxMs": 31.124584000000002,
+      "firstPaintCallbackLatencyMaxMs": 5.122870000000001,
+      "paintSamplePeakStepCells": 0.07616450389817664
+    }
+  },
+  "restoration": {
+    "evidence": "/home/cc/.local/state/cc-niri/diagnostics/jk-short-20261014-172247",
+    "trials": 20,
+    "requests": 40,
+    "error": null,
+    "desktopRestored": true,
+    "focusRestored": true,
+    "windowSetUnchanged": true,
+    "membershipAndOrderRestored": true,
+    "preferencesRestored": true,
+    "blurUnchanged": true,
+    "ringLoadUnchanged": true,
+    "configBytesUnchanged": true,
+    "outputConfigUnchanged": true,
+    "captureActiveAfter": false
+  },
+  "longStability": "SKIPPED at user request",
+  "memoryBudget": "NOT MEASURED; existing uptime is not controlled PSS evidence",
+  "visualAcceptance": "PASS: user reported no obvious flicker, black gaps or jumps during the short test",
+  "result": "PASS short functional and visual acceptance; real 33-50ms presentation intervals remain; no long-memory conclusion"
+}
