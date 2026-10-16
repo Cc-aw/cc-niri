@@ -3,6 +3,7 @@
 #include "FocusRingPaintFrame.h"
 #include "FocusRingStrokeItem.h"
 #include "../common/CompositorFrameContext.h"
+#include "../common/LoadedComponentPath.h"
 #include "core/output.h"
 #include "effect/effecthandler.h"
 #include "scene/windowitem.h"
@@ -257,6 +258,7 @@ bool CcNiriFocusRingEffect::isActive() const {
 }
 bool CcNiriFocusRingEffect::blocksDirectScanout() const { return isActive(); }
 QString CcNiriFocusRingEffect::GetFocusRingStatus() const {
+    static const char component[]="cc-niri-focus-ring/component";
     const auto owner = visualFor(m_owner.data());
     int rasterizations = 0, transitions = 0;
     QJsonArray visuals;
@@ -271,6 +273,7 @@ QString CcNiriFocusRingEffect::GetFocusRingStatus() const {
     }
     return QString::fromUtf8(QJsonDocument(QJsonObject{
         {QStringLiteral("coreBackend"), QString::fromLatin1(CcNiri::FocusRingCoreBackendName)},
+        {QStringLiteral("binaryPath"), CcNiri::loadedComponentPath(component)},
         {QStringLiteral("phase"), QStringLiteral("focus-gain-f3")},
         {QStringLiteral("eligibilitySource"), QStringLiteral("layout-script")},
         {QStringLiteral("eligibilityEnabled"), m_context.enabled},

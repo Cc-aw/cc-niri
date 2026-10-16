@@ -3,10 +3,17 @@
 function loadRuntimeConfig(readValue) {
     const number = (key, fallback) =>
         Math.max(0, Number(readValue(key, fallback)) || 0);
+    const requestedScrollGap = Number(readValue("ScrollLayoutGap", 16));
+    const requestedTopGap = Number(readValue("ScrollLayoutTopGap", -1));
     return {
         targetOutputName: String(readValue("TargetOutputName", "")).trim(),
         dockIntegration: Boolean(readValue("EnableDockIntegration", false)),
         alwaysCenterSingleColumn: Boolean(readValue("AlwaysCenterSingleColumn", false)),
+        scrollLayoutV2Enabled: Boolean(readValue("ScrollLayoutV2Enabled", false)),
+        scrollLayoutTopGap: Number.isFinite(requestedTopGap)
+            ? Math.min(1000, Math.max(-1, Math.floor(requestedTopGap))) : -1,
+        scrollLayoutGap: Number.isFinite(requestedScrollGap)
+            ? Math.min(1000, Math.max(0, Math.floor(requestedScrollGap))) : 16,
         dynamicTrailingWorkspace: Boolean(readValue("DynamicTrailingWorkspace", false)),
         autoRecycleWorkspaces: Boolean(readValue("AutoRecycleWorkspaces", false)),
         primary: {

@@ -1,0 +1,13 @@
+{
+  "scope": "read-only snapshots; installed SHA does not identify loaded ELF",
+  "installed_artifact_hashes_unchanged": true,
+  "installed_artifacts": {
+    "/home/cc/.local/share/kwin/scripts/cc-niri-maximize/contents/code/main.js": "2154436e0c97251eecadadd13bb533dfedfd2146cb0dd1fff34693ad6c9814f2",
+    "/home/cc/.local/libexec/cc-niri-bridge": "2f923a1a158fafb3bf61bf7234aa13562702d164ba97e904b116e3823d76b3f6",
+    "/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-viewport-clip.so": "1c8c3d0174c572e3412d4e1c968bb3811e23e718f9aff7b0be2bc541b6372726",
+    "/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-focus-ring.so": "994e939d1c9e314d150728b13dbc250adc462f5deef652bb857f2d76716defa4"
+  },
+  "script_loaded_unchanged": true,
+  "bridge_service_state_unchanged": true,
+  "loaded_effect_names_unchanged": true
+}

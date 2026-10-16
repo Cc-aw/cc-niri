@@ -1,0 +1,131 @@
+{
+  "status": "PREPARED_NOT_DEPLOYED",
+  "created_utc": "2026-10-16T03:00:30.528405+00:00",
+  "private_directory": "/tmp/cc-niri-p6-20261016-prepared",
+  "manifest": "/tmp/cc-niri-p6-20261016-prepared/manifest.json",
+  "manifest_sha256": "d21ab4ef4f77691ef301ca279fdc134f9e75bf767201e3fd6d78e33f69fdd112",
+  "environment_sha256": "7f24d59deac53ed2b26bc1717305eb728b7143cc40c43fc122fffbbad18fc9e2",
+  "private_directory_mode": "0o700",
+  "source_files": 535,
+  "backup_components": 10,
+  "present_backups": 10,
+  "immutable_native_rollback_ready": true,
+  "build_types": {
+    "bridge": "Release",
+    "clip": "RelWithDebInfo",
+    "ring": "RelWithDebInfo"
+  },
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "/home/cc/cc_niri/tools/scroll-layout-v2-p6.py",
+        "verify",
+        "/tmp/cc-niri-p6-20261016-prepared/manifest.json",
+        "--current",
+        "--require-validated"
+      ],
+      "exit_code": 0,
+      "result": {
+        "status": "PASS",
+        "scope": "candidate/backup integrity",
+        "deployed": false
+      }
+    },
+    {
+      "command": [
+        "/tmp/cc-niri-p6-20261016-prepared/rollback.sh"
+      ],
+      "exit_code": 0,
+      "result": {
+        "status": "DRY_RUN",
+        "writes": false,
+        "sequence": [
+          "verified safe stop",
+          "immutable native links",
+          "Bridge/control/packages",
+          "configuration/snapshot",
+          "start previous version"
+        ]
+      }
+    }
+  ],
+  "read_only_output_observation": [
+    {
+      "name": "HDMI-A-1",
+      "scale": 1,
+      "priority": 2,
+      "position": {
+        "x": 2560,
+        "y": 0
+      },
+      "mode": {
+        "id": "15",
+        "name": "2560x1440@60",
+        "refreshRate": 60,
+        "size": {
+          "height": 1440,
+          "width": 2560
+        }
+      }
+    },
+    {
+      "name": "DP-1",
+      "scale": 1.5,
+      "priority": 1,
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "mode": {
+        "id": "35",
+        "name": "3840x2160@60",
+        "refreshRate": 60,
+        "size": {
+          "height": 2160,
+          "width": 3840
+        }
+      }
+    }
+  ],
+  "recovery_endpoint": {
+    "exit_code": 1,
+    "interpretation": "installed V1 Bridge lacks new ephemeral recovery endpoint; expected, not a V2 deployment"
+  },
+  "installed_components_unchanged": [
+    {
+      "path": "/home/cc/.local/share/kwin/scripts/cc-niri-maximize/contents/code/main.js",
+      "before_sha256": "2154436e0c97251eecadadd13bb533dfedfd2146cb0dd1fff34693ad6c9814f2",
+      "after_sha256": "2154436e0c97251eecadadd13bb533dfedfd2146cb0dd1fff34693ad6c9814f2",
+      "unchanged": true
+    },
+    {
+      "path": "/home/cc/.local/libexec/cc-niri-bridge",
+      "before_sha256": "2f923a1a158fafb3bf61bf7234aa13562702d164ba97e904b116e3823d76b3f6",
+      "after_sha256": "2f923a1a158fafb3bf61bf7234aa13562702d164ba97e904b116e3823d76b3f6",
+      "unchanged": true
+    },
+    {
+      "path": "/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-viewport-clip.so",
+      "before_sha256": "1c8c3d0174c572e3412d4e1c968bb3811e23e718f9aff7b0be2bc541b6372726",
+      "after_sha256": "1c8c3d0174c572e3412d4e1c968bb3811e23e718f9aff7b0be2bc541b6372726",
+      "unchanged": true
+    },
+    {
+      "path": "/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-focus-ring.so",
+      "before_sha256": "994e939d1c9e314d150728b13dbc250adc462f5deef652bb857f2d76716defa4",
+      "after_sha256": "994e939d1c9e314d150728b13dbc250adc462f5deef652bb857f2d76716defa4",
+      "unchanged": true
+    }
+  ],
+  "user_desktop_mutations": false,
+  "real_desktop_capture_started": false,
+  "pss_baseline": "NOT MEASURED",
+  "live_acceptance": "PENDING",
+  "limitations": [
+    "Private backup contains configuration/window data and is not copied to repository",
+    "Rollback execute and user-desktop stop/start/install were not run",
+    "Recheck configuration and immutable files, refresh backup before actual deployment",
+    "Private /tmp directory may be removed; retain during authorized trial"
+  ]
+}

@@ -1,0 +1,1787 @@
+{
+  "started_utc": "2026-10-16T05:53:01.125548+00:00",
+  "status": "INCONCLUSIVE",
+  "scale": 1.5,
+  "ime": "fcitx5",
+  "scope": "production Release Clip + Rust + Bridge + Ring, private virtual Mesa KWin; P0 raw injector only",
+  "artifacts": {
+    "build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so": "7a8039ba94be81bda84b9bdd6bbba169cde548978c7da1643d377d0ed97700db",
+    "build/bridge/cc-niri-bridge": "e970bb838b54525739a6b1e7d7721b54c3a8f4abacee2a9b48175bf70ce8b278",
+    "build/scroll-layout-v2-p0-fixture/plugins/kwin/effects/plugins/cc-niri-p0-input-fixture.so": "be0d6ef4f751c56c6e2ca2330f2e2e3609733118adf46c4de813787e1ecec990",
+    "build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so": "8a832d78835047ccffb973369d05b756b0cbbf2ec1f6d91decaab800144577ac"
+  },
+  "checks": {
+    "raw_injector_has_no_p0_projection": true,
+    "exact_build_tree_plugins_loaded": true,
+    "native_capability_explicit": true,
+    "bridge_requires_membership": true,
+    "actual_painted_camera_and_scope": true,
+    "p4_source_has_real_per_client_frames": true,
+    "p4_source_uses_actual_camera_and_pass": true,
+    "p4_source_preserves_natural_partial_visual": true,
+    "right_partial_strict_output": true,
+    "visible_nonexclusive_panel_reserves_measured_50px": false,
+    "full_entry_frames_keep_16px_gap_below_panel": false
+  },
+  "plans": [
+    {
+      "protocol": 3,
+      "type": "PARTIAL_SCROLL",
+      "sessionId": "p3-private",
+      "workspaceId": "cfb7ba31-62e9-42b1-9f6e-c8cfd3ca98d2",
+      "targetOutput": "Virtual-0",
+      "epoch": 1,
+      "issuedAt": 1792129982295,
+      "scopeRevision": 1,
+      "maxCamera": 1696,
+      "clipPartial": true,
+      "retargetOnly": true,
+      "oldScrollOffsetX": 212,
+      "newScrollOffsetX": 212,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "layoutRect": {
+        "x": 0,
+        "y": 66,
+        "width": 2560,
+        "height": 1358
+      },
+      "entries": [
+        {
+          "windowId": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+          "columnId": 1,
+          "logicalX": 652,
+          "pixelWidth": 1680,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        },
+        {
+          "windowId": "76c730a9-9ef7-4b2d-abd4-de61472d75da",
+          "columnId": 2,
+          "logicalX": 2348,
+          "pixelWidth": 1256,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        }
+      ]
+    }
+  ],
+  "geometry": [
+    {
+      "phase": "bootstrap",
+      "kind": "p3-geometry",
+      "label": "initial-safe-client-ack",
+      "ready": true,
+      "workspaceId": "cfb7ba31-62e9-42b1-9f6e-c8cfd3ca98d2",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "76c730a9-9ef7-4b2d-abd4-de61472d75da",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "407f4df3-0ab3-46a0-a799-050cb7e4f8b6",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "efa8609d-49f6-482f-9c5f-9300b54257e9",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    }
+  ],
+  "captures": [
+    {
+      "name": "right-partial",
+      "samples": [
+        {
+          "output": 0,
+          "x": 450,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 1304,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 2110,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 2135,
+          "y": 300,
+          "expected": "#000000",
+          "actual": "#000000"
+        },
+        {
+          "output": 0,
+          "x": 2140,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 0,
+          "x": 2559,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 1,
+          "expected": "#000000",
+          "actual": "#000000",
+          "scope": "entire-secondary-framebuffer"
+        }
+      ]
+    }
+  ],
+  "support": "KWin \u6280\u672f\u652f\u6301\u4fe1\u606f\uff1a\n\u8bf7\u5728\u5bfb\u6c42\u6280\u672f\u652f\u6301\u65f6 (\u4f8b\u5982 https://discuss.kde.org \u7f51\u7ad9) \u63d0\u4f9b\u4ee5\u4e0b\u4fe1\u606f\u3002\n\u8fd9\u4e9b\u4fe1\u606f\u5305\u62ec\u5173\u4e8e\u5f53\u524d\u6b63\u5728\u8fd0\u884c\u7684 Kwin \u5b9e\u4f8b\u7684\u76f8\u5173\u4fe1\u606f\u3001\n\u4f7f\u7528\u7684\u9009\u9879\u3001OpenGL \u9a71\u52a8\u7a0b\u5e8f\u3001\u6b63\u5728\u8fd0\u884c\u7684\u7279\u6548\u7b49\u3002\n\u8bf7\u4e0d\u8981\u5c06\u672c\u6bb5\u6587\u5b57\u4e0b\u65b9\u7684\u4fe1\u606f\u76f4\u63a5\u7c98\u8d34\u5230\u6280\u672f\u652f\u6301\u8ba8\u8bba\u4e32\uff0c\n\u800c\u5e94\u5c06\u5b83\u4eec\u7c98\u8d34\u5230\u5728\u7ebf\u526a\u8d34\u677f\u7f51\u7ad9 (\u4f8b\u5982 https://paste.kde.org)\u3002\n\n==========================\n\nVersion\n=======\nKWin version: 6.7.5\nQt Version: 6.11.2\nQt compile version: 6.11.2\nXCB compile version: 1.17.0\n\nOperation Mode: Wayland\n\nBuild Options\n=============\nKWIN_BUILD_DECORATIONS: yes\nKWIN_BUILD_TABBOX: yes\nKWIN_BUILD_ACTIVITIES: yes\nHAVE_X11_XCB: yes\n\nDecoration\n==========\nPlugin: org.kde.breeze\nTheme: \nPlugin recommends border size: None\nonAllDesktopsAvailable: false\nalphaChannelSupported: true\ncloseOnDoubleClickOnMenu: false\nalwaysShowExcludeFromCapture: false\ndecorationButtonsLeft: 0, 2, 12\ndecorationButtonsRight: 6, 3, 4, 5\nborderSize: 0\ngridUnit: 12\nfont: Noto Sans Arabic,12,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0\nsmallSpacing: 3\nlargeSpacing: 12\n\nLogicalOutput backend\n==============\nName: KWin::VirtualBackend\n\nCursor\n======\nthemeName: default\nthemeSize: 24\n\nOptions\n=======\nfocusPolicy: ClickToFocus\nxwaylandCrashPolicy: 1\nxwaylandMaxCrashCount: 3\nnextFocusPrefersMouse: false\nclickRaise: true\nautoRaise: false\nautoRaiseInterval: 0\ndelayFocusInterval: 0\nseparateScreenFocus: true\nplacement: 5\nactivationDesktopPolicy: SwitchToOtherDesktop\nfocusPolicyIsReasonable: true\nborderSnapZone: 10\nwindowSnapZone: 10\ncenterSnapZone: 0\nsnapOnlyWhenOverlapping: false\nedgeBarrier: 100\ncornerBarrier: 1\nrollOverDesktops: false\nperOutputVirtualDesktops: false\nfocusStealingPreventionLevel: 1\noperationTitlebarDblClick: 5000\noperationMaxButtonLeftClick: 5000\noperationMaxButtonMiddleClick: 5013\noperationMaxButtonRightClick: 5012\ncommandActiveTitlebar1: MouseRaise\ncommandActiveTitlebar2: MouseNothing\ncommandActiveTitlebar3: MouseOperationsMenu\ncommandInactiveTitlebar1: MouseActivateAndRaise\ncommandInactiveTitlebar2: MouseNothing\ncommandInactiveTitlebar3: MouseOperationsMenu\ncommandWindow1: MouseActivateRaiseOnReleaseAndPassClick\ncommandWindow2: MouseActivateAndPassClick\ncommandWindow3: MouseActivateAndPassClick\ncommandWindowWheel: MouseNothing\ncommandAll1: MouseUnrestrictedMove\ncommandAll2: MouseToggleRaiseAndLower\ncommandAll3: MouseUnrestrictedResize\nkeyCmdAllModKey: 16777250\ndoubleClickBorderToMaximize: true\ncondensedTitle: false\nelectricBorderMaximize: true\nelectricBorderTiling: true\nelectricBorderAllScreenCorner: true\nelectricBorderCornerRatio: 0.25\nborderlessMaximizedWindows: false\nkillPingTimeout: 5000\ncompositingMode: 1\nallowTearing: true\ninteractiveWindowMoveEnabled: true\npictureInPictureHomeCorner: BottomRightCorner\npictureInPictureMargin: 20\noverlayVirtualKeyboardOnWindows: false\n\nScreen Edges\n============\ndesktopSwitching: false\ndesktopSwitchingMovingClients: false\ncursorPushBackDistance: 1x1\nactionTopLeft: 0\nactionTop: 0\nactionTopRight: 0\nactionRight: 0\nactionBottomRight: 0\nactionBottom: 0\nactionBottomLeft: 0\nactionLeft: 0\n\nScreens\n=======\nNumber of Screens: 2\n\nScreen 0:\n---------\nName: Virtual-0\nEnabled: 1\nGeometry: 0,0,3840x2160\nPhysical size: -1x-1mm\nScale: 1\nRefresh Rate: 60000\nAdaptive Sync: incapable\nScreen 1:\n---------\nName: Virtual-1\nEnabled: 1\nGeometry: 3840,0,3840x2160\nPhysical size: -1x-1mm\nScale: 1\nRefresh Rate: 60000\nAdaptive Sync: incapable\n\nCompositing\n===========\nCompositing is active\nCompositing Type: OpenGL\nOpenGL vendor string: Intel\nOpenGL renderer string: Mesa Intel(R) UHD Graphics (CML GT2)\nOpenGL version string: 4.6 (Core Profile) Mesa 26.2.3\nOpenGL platform interface: EGL\nOpenGL shading language version string: 4.60\nDriver: Intel\nGPU class: Comet Lake\nOpenGL version: 4.6\nGLSL version: 4.60\nMesa version: 26.2.3\nLinux kernel version: 7.2.8\nDirect rendering: Requires strict binding: no\nVirtual Machine:  no\nOpenGL 2 Shaders are used\n\nLoaded Effects:\n---------------\nshakecursor\noutputlocator\ncolorpicker\nzoom\nscreenedge\nblur\nslidingpopups\nslidingnotifications\nslide\ndialogparent\nwindowview\ntileseditor\noverview\nhighlightwindow\nblendchanges\nstartupfeedback\nkwin4_effect_shapecorners\nsystembell\nscreentransform\nkscreen\n\nCurrently Active Effects:\n-------------------------\nblur\nkwin4_effect_shapecorners\n\nEffect Settings:\n----------------\nshakecursor:\n\noutputlocator:\n\ncolorpicker:\n\nzoom:\nzoomFactor: 1.2\nmouseTracking: 0\nfocusDelay: 350\nmoveFactor: 20\ntargetZoom: 1\n\nscreenedge:\n\nblur:\n\nslidingpopups:\nslideInDuration: 200\nslideOutDuration: 200\n\nslidingnotifications:\n\nslide:\nhorizontalGap: 45\nverticalGap: 20\nslideBackground: true\n\ndialogparent:\npluginId: dialogparent\nisActiveFullScreenEffect: false\n\nwindowview:\nactiveView: \ndelegate: \nanimationDuration: 300\nignoreMinimized: false\nmode: ModeCurrentDesktop\npartialActivationFactor: 0\ngestureInProgress: false\nsearchText: \nselectedIds: \n\ntileseditor:\nactiveView: \ndelegate: \nanimationDuration: 200\n\noverview:\nactiveView: \ndelegate: \nanimationDuration: 300\nignoreMinimized: false\nfilterWindows: true\norganizedGrid: true\noverviewPartialActivationFactor: 0\noverviewGestureInProgress: false\ntransitionPartialActivationFactor: 0\ntransitionGestureInProgress: false\ngridPartialActivationFactor: 0\ngridGestureInProgress: false\nsearchText: \n\nhighlightwindow:\n\nblendchanges:\n\nstartupfeedback:\ntype: 1\n\nkwin4_effect_shapecorners:\n\nsystembell:\n\nscreentransform:\n\nkscreen:\n\n\nLoaded Plugins:\n---------------\nBounceKeysPlugin\nKeyNotificationPlugin\nMouseKeysPlugin\nSlowKeysPlugin\nStickyKeysPlugin\nTouchpadShortcutsPlugin\nbuttonsrebind\neis\nkrunnerintegration\nnightlight\nscreencast\nscreenshot\n\nAvailable Plugins:\n------------------\nBounceKeysPlugin\nKeyNotificationPlugin\nMouseKeysPlugin\nSlowKeysPlugin\nStickyKeysPlugin\nTouchpadShortcutsPlugin\nbuttonsrebind\neis\ngamecontroller\nkrunnerintegration\nnightlight\nscreencast\nscreenshot\n",
+  "capability": {
+    "binaryPath": "/home/cc/cc_niri/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+    "enabled": true,
+    "inputPolicy": "two-click",
+    "pendingButtons": 0,
+    "pendingTouches": 0,
+    "protocol": 3,
+    "type": "PARTIAL_SCROLL"
+  },
+  "loaded_binary_paths": {
+    "clip": "/home/cc/cc_niri/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+    "ring": "/home/cc/cc_niri/build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so"
+  },
+  "initial_painted": {
+    "active": true,
+    "cameraX": 212,
+    "clipPartial": true,
+    "completed": true,
+    "entries": [
+      {
+        "uuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+        "visualRect": {
+          "height": 1358,
+          "width": 1680,
+          "x": 440,
+          "y": 66
+        }
+      },
+      {
+        "uuid": "76c730a9-9ef7-4b2d-abd4-de61472d75da",
+        "visualRect": {
+          "height": 1358,
+          "width": 1256,
+          "x": 2136,
+          "y": 66
+        }
+      }
+    ],
+    "epoch": 1,
+    "sampleSerial": 3,
+    "scopeRevision": 1,
+    "sessionId": "p3-private",
+    "targetOutput": "Virtual-0",
+    "valid": true,
+    "workspaceId": "cfb7ba31-62e9-42b1-9f6e-c8cfd3ca98d2"
+  },
+  "column_geometry_source": {
+    "active": true,
+    "cameraX": 212,
+    "clipPartial": true,
+    "completed": true,
+    "entries": [
+      {
+        "acknowledged": true,
+        "columnId": 1,
+        "frameRect": {
+          "height": 1358,
+          "width": 1680,
+          "x": 440,
+          "y": 66
+        },
+        "logicalX": 652,
+        "owned": true,
+        "painted": true,
+        "velocityX": 0,
+        "velocityY": 0,
+        "visualRect": {
+          "height": 1358,
+          "width": 1680,
+          "x": 440,
+          "y": 66
+        },
+        "windowId": "d37f09d4-71c7-4817-b9fc-1680a81c0972"
+      },
+      {
+        "acknowledged": true,
+        "columnId": 2,
+        "frameRect": {
+          "height": 1358,
+          "width": 1256,
+          "x": 1304,
+          "y": 66
+        },
+        "logicalX": 2348,
+        "owned": true,
+        "painted": true,
+        "velocityX": 0,
+        "velocityY": 0,
+        "visualRect": {
+          "height": 1358,
+          "width": 1256,
+          "x": 2136,
+          "y": 66
+        },
+        "windowId": "76c730a9-9ef7-4b2d-abd4-de61472d75da"
+      }
+    ],
+    "epoch": 1,
+    "layoutRect": {
+      "height": 1358,
+      "width": 2560,
+      "x": 0,
+      "y": 66
+    },
+    "maxCamera": 1696,
+    "protocol": 4,
+    "sampleSerial": 3,
+    "scopeRevision": 1,
+    "sessionId": "p3-private",
+    "targetOutput": "Virtual-0",
+    "type": "COLUMN_GEOMETRY_SOURCE",
+    "valid": true,
+    "viewport": {
+      "height": 1440,
+      "width": 2560,
+      "x": 0,
+      "y": 0
+    },
+    "workspaceId": "cfb7ba31-62e9-42b1-9f6e-c8cfd3ca98d2"
+  },
+  "p5_runs": [
+    {
+      "phase": "bootstrap",
+      "kind": "p5-checkpoint",
+      "label": "initial",
+      "v2": true,
+      "enabled": true,
+      "epoch": 1,
+      "workspaceId": "cfb7ba31-62e9-42b1-9f6e-c8cfd3ca98d2",
+      "currentWorkspaceId": "cfb7ba31-62e9-42b1-9f6e-c8cfd3ca98d2",
+      "camera": 0,
+      "focusedUuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+      "activeUuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+      "snapshot": {
+        "workspaceId": "cfb7ba31-62e9-42b1-9f6e-c8cfd3ca98d2",
+        "workspaceIndex": 0,
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+        "presentation": {
+          "windowUuid": null,
+          "mode": "normal"
+        },
+        "columns": [
+          {
+            "uuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+            "widthMode": "half",
+            "previousNonFullWidthMode": "half",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "half",
+              "previousNonFullWidthMode": "half"
+            }
+          },
+          {
+            "uuid": "76c730a9-9ef7-4b2d-abd4-de61472d75da",
+            "widthMode": "half",
+            "previousNonFullWidthMode": "half",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "half",
+              "previousNonFullWidthMode": "half"
+            }
+          },
+          {
+            "uuid": "407f4df3-0ab3-46a0-a799-050cb7e4f8b6",
+            "widthMode": "half",
+            "previousNonFullWidthMode": "half",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "half",
+              "previousNonFullWidthMode": "half"
+            }
+          },
+          {
+            "uuid": "efa8609d-49f6-482f-9c5f-9300b54257e9",
+            "widthMode": "half",
+            "previousNonFullWidthMode": "half",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "half",
+              "previousNonFullWidthMode": "half"
+            }
+          }
+        ],
+        "viewportAnchor": null,
+        "viewportAnchorV2": {
+          "version": 1,
+          "uuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+          "delta": -652,
+          "basis": {
+            "outputRect": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "workingArea": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "gap": 16,
+            "physicalScale": 1.5
+          }
+        },
+        "workspaces": [
+          {
+            "id": "cfb7ba31-62e9-42b1-9f6e-c8cfd3ca98d2",
+            "columns": [
+              {
+                "uuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "76c730a9-9ef7-4b2d-abd4-de61472d75da",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "407f4df3-0ab3-46a0-a799-050cb7e4f8b6",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "efa8609d-49f6-482f-9c5f-9300b54257e9",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              }
+            ],
+            "focusedUuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            },
+            "viewportAnchorV2": {
+              "version": 1,
+              "uuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+              "delta": -652,
+              "basis": {
+                "outputRect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "workingArea": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "gap": 16,
+                "physicalScale": 1.5
+              }
+            },
+            "dormantViewportV1": {
+              "version": 1,
+              "mode": "pair",
+              "wideUuid": null
+            }
+          }
+        ]
+      },
+      "errors": [],
+      "columns": [
+        {
+          "uuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+          "caption": "CC_NIRI_P0_A",
+          "widthMode": "half",
+          "previous": "half",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 1,
+          "minimized": false,
+          "frame": {
+            "x": 652,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          }
+        },
+        {
+          "uuid": "76c730a9-9ef7-4b2d-abd4-de61472d75da",
+          "caption": "CC_NIRI_P0_B",
+          "widthMode": "half",
+          "previous": "half",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 1,
+          "minimized": false,
+          "frame": {
+            "x": 1304,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          }
+        },
+        {
+          "uuid": "407f4df3-0ab3-46a0-a799-050cb7e4f8b6",
+          "caption": "CC_NIRI_P0_C",
+          "widthMode": "half",
+          "previous": "half",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 0,
+          "minimized": true,
+          "frame": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "uuid": "efa8609d-49f6-482f-9c5f-9300b54257e9",
+          "caption": "CC_NIRI_P0_D",
+          "widthMode": "half",
+          "previous": "half",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 0,
+          "minimized": true,
+          "frame": {
+            "x": 652,
+            "y": 0,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "stopped": false,
+      "stopConfirmed": false,
+      "pending": false
+    }
+  ],
+  "p6-panel_last_status": {
+    "active": true,
+    "animationProfile": "smooth60",
+    "animationProfileFallback": "",
+    "clipHandoffActive": false,
+    "clipPartial": true,
+    "clockFallbackCount": 0,
+    "clockFallbackReasons": {
+      "invalidPrediction": 0,
+      "missingPrediction": 0,
+      "regressedPrediction": 0
+    },
+    "completed": true,
+    "decorationGeometryBackend": "Rust",
+    "epoch": 1,
+    "lastRetarget": {
+      "brakeDistance": 0,
+      "brakeMs": 0,
+      "initialVelocity": 0,
+      "lower": 0,
+      "reason": "none",
+      "savedVelocity": 0,
+      "strategy": "rest",
+      "upper": 3816
+    },
+    "nativeProtocolBackend": "Rust",
+    "paintClip": "strict-output",
+    "retargetBrakedCount": 0,
+    "retargetCarriedCount": 0,
+    "retargetDegradedCount": 0,
+    "retargetDegradedReasons": {
+      "coverage": 0,
+      "invalidMath": 0,
+      "noBrakeSpace": 0
+    },
+    "retargetKeptCount": 0,
+    "scrollClockSource": "predicted-presentation",
+    "scrollContinuousFullRepaintRequests": 0,
+    "scrollOutputRepaintRequests": 0,
+    "scrollRepaintFallbackFullRequests": 0,
+    "scrollRepaintScope": "target-output-continuation",
+    "scrollRetargetPolicy": "bounded-last-painted-position-and-velocity",
+    "scrollRuntimeBackend": "Rust",
+    "scrollSpringStiffness": 600,
+    "scrollTargetOutput": "Virtual-0",
+    "scrollVisualCompletedCount": 0,
+    "scrollVisualSettleEnabled": true,
+    "scrollVisualSettleFallback": "none",
+    "scrollVisualSettleFallbackReasons": {
+      "invalidScale": 0,
+      "missingOutput": 0,
+      "unknownRefresh": 0
+    },
+    "scrollVisualSettleOutputScale": 1.5,
+    "scrollVisualSettlePhysicalPx": 0.25,
+    "scrollVisualSettleRefreshHz": 60,
+    "sessionId": "1a1434563dc-65b8e84c",
+    "targetOutput": "Virtual-0",
+    "workspaceAnimationActive": false,
+    "workspaceAnimationBackend": "RustFiniteCurve",
+    "workspaceAnimationDuration": 420,
+    "workspaceAnimationEnabled": false,
+    "workspaceDepartureVisual": "freeze-wide-until-compositor-idle",
+    "workspaceId": "cfb7ba31-62e9-42b1-9f6e-c8cfd3ca98d2",
+    "workspaceMotion": {
+      "acceleration": {
+        "x": 0,
+        "y": 0
+      },
+      "active": false,
+      "brakeDistanceCells": {
+        "x": 0,
+        "y": 0
+      },
+      "brakeXMs": 0,
+      "brakeYMs": 0,
+      "brakedC1": 0,
+      "carriedC1": 0,
+      "carriedC2": 0,
+      "durationMs": 0,
+      "epoch": 0,
+      "frameDeltaClampingEnabled": false,
+      "frameDeltaClampingRequiresSmooth60": true,
+      "gesture": false,
+      "initialAcceleration": {
+        "x": 0,
+        "y": 0
+      },
+      "initialVelocity": {
+        "x": 0,
+        "y": 0
+      },
+      "kept": 0,
+      "liveBinding": false,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "point": {
+        "x": 0,
+        "y": 0
+      },
+      "projectionCacheEnabled": false,
+      "reasons": [
+        "none",
+        "none"
+      ],
+      "reset": 0,
+      "sampleNs": 0,
+      "samplingClock": {
+        "clampedFrames": 0,
+        "enabled": false,
+        "fallbackCount": 0,
+        "fallbackReason": 0,
+        "lagMs": 0,
+        "limiting": false,
+        "logicalNs": 0,
+        "realNs": 0
+      },
+      "savedAcceleration": {
+        "x": 0,
+        "y": 0
+      },
+      "savedVelocity": {
+        "x": 0,
+        "y": 0
+      },
+      "startNs": 0,
+      "strategies": [
+        "rest",
+        "rest"
+      ],
+      "target": {
+        "x": 0,
+        "y": 0
+      },
+      "velocity": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "workspaceRemovalGate": "compositor-idle",
+    "workspaceRetargetPolicy": "last-painted-position-quintic-zero-velocity"
+  },
+  "p6-panel_last_source": {
+    "active": true,
+    "cameraX": 0,
+    "clipPartial": true,
+    "completed": true,
+    "entries": [
+      {
+        "acknowledged": true,
+        "columnId": 1,
+        "frameRect": {
+          "height": 1408,
+          "width": 1256,
+          "x": 652,
+          "y": 16
+        },
+        "logicalX": 652,
+        "owned": true,
+        "painted": true,
+        "velocityX": 0,
+        "velocityY": 0,
+        "visualRect": {
+          "height": 1408,
+          "width": 1256,
+          "x": 652,
+          "y": 16
+        },
+        "windowId": "d37f09d4-71c7-4817-b9fc-1680a81c0972"
+      },
+      {
+        "acknowledged": true,
+        "columnId": 2,
+        "frameRect": {
+          "height": 1408,
+          "width": 1256,
+          "x": 1304,
+          "y": 16
+        },
+        "logicalX": 1924,
+        "owned": true,
+        "painted": true,
+        "velocityX": 0,
+        "velocityY": 0,
+        "visualRect": {
+          "height": 1408,
+          "width": 1256,
+          "x": 1924,
+          "y": 16
+        },
+        "windowId": "76c730a9-9ef7-4b2d-abd4-de61472d75da"
+      }
+    ],
+    "epoch": 1,
+    "layoutRect": {
+      "height": 1408,
+      "width": 2560,
+      "x": 0,
+      "y": 16
+    },
+    "maxCamera": 3816,
+    "protocol": 4,
+    "sampleSerial": 23,
+    "scopeRevision": 1,
+    "sessionId": "1a1434563dc-65b8e84c",
+    "targetOutput": "Virtual-0",
+    "type": "COLUMN_GEOMETRY_SOURCE",
+    "valid": true,
+    "viewport": {
+      "height": 1440,
+      "width": 2560,
+      "x": 0,
+      "y": 0
+    },
+    "workspaceId": "cfb7ba31-62e9-42b1-9f6e-c8cfd3ca98d2"
+  },
+  "scroll_capture": {
+    "active": true,
+    "association": "output-only-no-paint-to-present-join",
+    "captureId": 1,
+    "clockDomain": "steady-clock-monotonic-relative-ms",
+    "continuousRepaintFallbackFullRequests": 0,
+    "continuousRepaintFullRequests": 0,
+    "durationMs": 10000,
+    "lifecycle": [
+      {
+        "atMs": 362.003588,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": -1,
+        "initialVelocity": 0,
+        "kind": 2,
+        "output": 0,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 5,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 402.943913,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": -1,
+        "initialVelocity": 0,
+        "kind": 2,
+        "output": 0,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 6,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 408.780377,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": 0,
+        "initialVelocity": 0,
+        "kind": 1,
+        "output": 0,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 6,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 471.602126,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": 1,
+        "initialVelocity": 0,
+        "kind": 0,
+        "output": 1,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 8,
+        "savedVelocity": 0
+      }
+    ],
+    "outputs": [
+      {
+        "fullRepaintRequests": 2,
+        "name": "Virtual-0",
+        "refreshHz": 60,
+        "removed": false,
+        "scale": 1.5,
+        "targetRepaintRequests": 0,
+        "token": 1
+      },
+      {
+        "fullRepaintRequests": 2,
+        "name": "Virtual-1",
+        "refreshHz": 60,
+        "removed": false,
+        "scale": 1.5,
+        "targetRepaintRequests": 0,
+        "token": 2
+      }
+    ],
+    "paintedFrames": [
+      {
+        "epoch": 1,
+        "eventMs": -783.736193,
+        "fallback": 0,
+        "frame": 11,
+        "initialVelocity": 0,
+        "initialX": 212,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 197.604945,
+        "predictedMs": 212.19329,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 4,
+        "sampleMs": 212.19329,
+        "scale": 1.5,
+        "startMs": -783.736193,
+        "target": 212,
+        "v": 0,
+        "x": 212
+      },
+      {
+        "epoch": 1,
+        "eventMs": -783.736193,
+        "fallback": 0,
+        "frame": 12,
+        "initialVelocity": 0,
+        "initialX": 212,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 212.147091,
+        "predictedMs": 228.859956,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 4,
+        "sampleMs": 228.859956,
+        "scale": 1.5,
+        "startMs": -783.736193,
+        "target": 212,
+        "v": 0,
+        "x": 212
+      },
+      {
+        "epoch": 1,
+        "eventMs": -783.736193,
+        "fallback": 0,
+        "frame": 13,
+        "initialVelocity": 0,
+        "initialX": 212,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 228.741994,
+        "predictedMs": 245.526622,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 4,
+        "sampleMs": 245.526622,
+        "scale": 1.5,
+        "startMs": -783.736193,
+        "target": 212,
+        "v": 0,
+        "x": 212
+      },
+      {
+        "epoch": 1,
+        "eventMs": -783.736193,
+        "fallback": 0,
+        "frame": 14,
+        "initialVelocity": 0,
+        "initialX": 212,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 245.781836,
+        "predictedMs": 262.193288,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 4,
+        "sampleMs": 262.193288,
+        "scale": 1.5,
+        "startMs": -783.736193,
+        "target": 212,
+        "v": 0,
+        "x": 212
+      },
+      {
+        "epoch": 1,
+        "eventMs": -783.736193,
+        "fallback": 0,
+        "frame": 15,
+        "initialVelocity": 0,
+        "initialX": 212,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 262.385074,
+        "predictedMs": 278.859954,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 4,
+        "sampleMs": 278.859954,
+        "scale": 1.5,
+        "startMs": -783.736193,
+        "target": 212,
+        "v": 0,
+        "x": 212
+      },
+      {
+        "epoch": 1,
+        "eventMs": -783.736193,
+        "fallback": 0,
+        "frame": 16,
+        "initialVelocity": 0,
+        "initialX": 212,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 278.874334,
+        "predictedMs": 295.52662,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 4,
+        "sampleMs": 295.52662,
+        "scale": 1.5,
+        "startMs": -783.736193,
+        "target": 212,
+        "v": 0,
+        "x": 212
+      },
+      {
+        "epoch": 1,
+        "eventMs": -783.736193,
+        "fallback": 0,
+        "frame": 17,
+        "initialVelocity": 0,
+        "initialX": 212,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 295.359899,
+        "predictedMs": 312.193286,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 4,
+        "sampleMs": 312.193286,
+        "scale": 1.5,
+        "startMs": -783.736193,
+        "target": 212,
+        "v": 0,
+        "x": 212
+      },
+      {
+        "epoch": 1,
+        "eventMs": -783.736193,
+        "fallback": 0,
+        "frame": 18,
+        "initialVelocity": 0,
+        "initialX": 212,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 303.762083,
+        "predictedMs": 328.859952,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 4,
+        "sampleMs": 328.859952,
+        "scale": 1.5,
+        "startMs": -783.736193,
+        "target": 212,
+        "v": 0,
+        "x": 212
+      },
+      {
+        "epoch": 1,
+        "eventMs": -783.736193,
+        "fallback": 0,
+        "frame": 19,
+        "initialVelocity": 0,
+        "initialX": 212,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 312.397759,
+        "predictedMs": 345.526618,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 4,
+        "sampleMs": 345.526618,
+        "scale": 1.5,
+        "startMs": -783.736193,
+        "target": 212,
+        "v": 0,
+        "x": 212
+      },
+      {
+        "epoch": 1,
+        "eventMs": -783.736193,
+        "fallback": 0,
+        "frame": 20,
+        "initialVelocity": 0,
+        "initialX": 212,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 355.769368,
+        "predictedMs": 362.193284,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 4,
+        "sampleMs": 362.193284,
+        "scale": 1.5,
+        "startMs": -783.736193,
+        "target": 212,
+        "v": 0,
+        "x": 212
+      },
+      {
+        "epoch": 1,
+        "eventMs": 471.54871,
+        "fallback": 0,
+        "frame": 21,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 483.775497,
+        "predictedMs": 495.526612,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 8,
+        "sampleMs": 495.526612,
+        "scale": 1.5,
+        "startMs": 471.54871,
+        "target": 0,
+        "v": 0,
+        "x": 0
+      },
+      {
+        "epoch": 1,
+        "eventMs": 471.54871,
+        "fallback": 0,
+        "frame": 22,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 495.392951,
+        "predictedMs": 512.193278,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 8,
+        "sampleMs": 512.193278,
+        "scale": 1.5,
+        "startMs": 471.54871,
+        "target": 0,
+        "v": 0,
+        "x": 0
+      },
+      {
+        "epoch": 1,
+        "eventMs": 471.54871,
+        "fallback": 0,
+        "frame": 23,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 511.952454,
+        "predictedMs": 528.859944,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 8,
+        "sampleMs": 528.859944,
+        "scale": 1.5,
+        "startMs": 471.54871,
+        "target": 0,
+        "v": 0,
+        "x": 0
+      }
+    ],
+    "positionUnit": "logical-px",
+    "presentations": [
+      {
+        "atMs": 212.19329,
+        "output": 1
+      },
+      {
+        "atMs": 228.859956,
+        "output": 1
+      },
+      {
+        "atMs": 245.526622,
+        "output": 1
+      },
+      {
+        "atMs": 262.193288,
+        "output": 1
+      },
+      {
+        "atMs": 278.859954,
+        "output": 1
+      },
+      {
+        "atMs": 295.52662,
+        "output": 1
+      },
+      {
+        "atMs": 295.52662,
+        "output": 1
+      },
+      {
+        "atMs": 312.193286,
+        "output": 1
+      },
+      {
+        "atMs": 328.859952,
+        "output": 1
+      },
+      {
+        "atMs": 362.193284,
+        "output": 1
+      },
+      {
+        "atMs": 395.526616,
+        "output": 1
+      },
+      {
+        "atMs": 412.193282,
+        "output": 1
+      },
+      {
+        "atMs": 412.193282,
+        "output": 2
+      },
+      {
+        "atMs": 428.859948,
+        "output": 1
+      },
+      {
+        "atMs": 478.859946,
+        "output": 1
+      },
+      {
+        "atMs": 478.859946,
+        "output": 2
+      },
+      {
+        "atMs": 495.526612,
+        "output": 1
+      },
+      {
+        "atMs": 512.193278,
+        "output": 1
+      },
+      {
+        "atMs": 512.193278,
+        "output": 1
+      }
+    ],
+    "repaintFullRequests": 2,
+    "repaintOutputRequests": 0,
+    "repaintScope": "ViewportClipEffect-full-events-and-profile-dependent-continuation-excludes-workspace-adapter",
+    "truncated": false,
+    "velocityUnit": "logical-px-per-second",
+    "version": 1
+  },
+  "error": "AssertionError()",
+  "records": [
+    {
+      "phase": "bootstrap",
+      "kind": "private-shortcut-service",
+      "stub": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_D",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 840.0,
+      "y": 679.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 840.0,
+          "y": 679.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 628.0,
+      "y": 679.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 628.0,
+          "y": 679.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 574.66796875,
+      "y": 649.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 574.66796875,
+          "y": 649.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 840.0,
+      "y": 654.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 840.0,
+          "y": 654.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p3-geometry",
+      "label": "initial-safe-client-ack",
+      "ready": true,
+      "workspaceId": "cfb7ba31-62e9-42b1-9f6e-c8cfd3ca98d2",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "76c730a9-9ef7-4b2d-abd4-de61472d75da",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "407f4df3-0ab3-46a0-a799-050cb7e4f8b6",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "efa8609d-49f6-482f-9c5f-9300b54257e9",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p5-target",
+      "intent": {
+        "kind": "scroll-layout-v2-intent",
+        "sessionId": "1a1434563dc-65b8e84c",
+        "requiredCapability": "v2-column-geometry",
+        "epoch": 1,
+        "scopeRevision": 1,
+        "workspaceId": "cfb7ba31-62e9-42b1-9f6e-c8cfd3ca98d2",
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+        "cameraTargetX": 0,
+        "maxCamera": 3816,
+        "geometry": {
+          "outputRect": {
+            "x": 0,
+            "y": 0,
+            "width": 2560,
+            "height": 1440
+          },
+          "workingArea": {
+            "x": 0,
+            "y": 0,
+            "width": 2560,
+            "height": 1440
+          },
+          "gap": 16,
+          "physicalScale": 1.5,
+          "diagnostics": []
+        },
+        "entries": [
+          {
+            "uuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+            "columnId": 1,
+            "widthMode": "half",
+            "logicalX": 652,
+            "pixelWidth": 1256,
+            "visualRect": {
+              "x": 652,
+              "y": 16,
+              "width": 1256,
+              "height": 1408
+            },
+            "visibleRect": {
+              "x": 652,
+              "y": 16,
+              "width": 1256,
+              "height": 1408
+            },
+            "partiallyVisible": false
+          },
+          {
+            "uuid": "76c730a9-9ef7-4b2d-abd4-de61472d75da",
+            "columnId": 2,
+            "widthMode": "half",
+            "logicalX": 1924,
+            "pixelWidth": 1256,
+            "visualRect": {
+              "x": 1924,
+              "y": 16,
+              "width": 1256,
+              "height": 1408
+            },
+            "visibleRect": {
+              "x": 1924,
+              "y": 16,
+              "width": 636,
+              "height": 1408
+            },
+            "partiallyVisible": true
+          },
+          {
+            "uuid": "407f4df3-0ab3-46a0-a799-050cb7e4f8b6",
+            "columnId": 3,
+            "widthMode": "half",
+            "logicalX": 3196,
+            "pixelWidth": 1256,
+            "visualRect": {
+              "x": 3196,
+              "y": 16,
+              "width": 1256,
+              "height": 1408
+            },
+            "visibleRect": null,
+            "partiallyVisible": false
+          },
+          {
+            "uuid": "efa8609d-49f6-482f-9c5f-9300b54257e9",
+            "columnId": 4,
+            "widthMode": "half",
+            "logicalX": 4468,
+            "pixelWidth": 1256,
+            "visualRect": {
+              "x": 4468,
+              "y": 16,
+              "width": 1256,
+              "height": 1408
+            },
+            "visibleRect": null,
+            "partiallyVisible": false
+          }
+        ],
+        "source": null,
+        "continuity": "unavailable",
+        "reason": "workspace-mount"
+      }
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Resize",
+      "spontaneous": true
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Resize",
+      "spontaneous": true
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p5-checkpoint",
+      "label": "initial",
+      "v2": true,
+      "enabled": true,
+      "epoch": 1,
+      "workspaceId": "cfb7ba31-62e9-42b1-9f6e-c8cfd3ca98d2",
+      "currentWorkspaceId": "cfb7ba31-62e9-42b1-9f6e-c8cfd3ca98d2",
+      "camera": 0,
+      "focusedUuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+      "activeUuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+      "snapshot": {
+        "workspaceId": "cfb7ba31-62e9-42b1-9f6e-c8cfd3ca98d2",
+        "workspaceIndex": 0,
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+        "presentation": {
+          "windowUuid": null,
+          "mode": "normal"
+        },
+        "columns": [
+          {
+            "uuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+            "widthMode": "half",
+            "previousNonFullWidthMode": "half",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "half",
+              "previousNonFullWidthMode": "half"
+            }
+          },
+          {
+            "uuid": "76c730a9-9ef7-4b2d-abd4-de61472d75da",
+            "widthMode": "half",
+            "previousNonFullWidthMode": "half",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "half",
+              "previousNonFullWidthMode": "half"
+            }
+          },
+          {
+            "uuid": "407f4df3-0ab3-46a0-a799-050cb7e4f8b6",
+            "widthMode": "half",
+            "previousNonFullWidthMode": "half",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "half",
+              "previousNonFullWidthMode": "half"
+            }
+          },
+          {
+            "uuid": "efa8609d-49f6-482f-9c5f-9300b54257e9",
+            "widthMode": "half",
+            "previousNonFullWidthMode": "half",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "half",
+              "previousNonFullWidthMode": "half"
+            }
+          }
+        ],
+        "viewportAnchor": null,
+        "viewportAnchorV2": {
+          "version": 1,
+          "uuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+          "delta": -652,
+          "basis": {
+            "outputRect": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "workingArea": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "gap": 16,
+            "physicalScale": 1.5
+          }
+        },
+        "workspaces": [
+          {
+            "id": "cfb7ba31-62e9-42b1-9f6e-c8cfd3ca98d2",
+            "columns": [
+              {
+                "uuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "76c730a9-9ef7-4b2d-abd4-de61472d75da",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "407f4df3-0ab3-46a0-a799-050cb7e4f8b6",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "efa8609d-49f6-482f-9c5f-9300b54257e9",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              }
+            ],
+            "focusedUuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            },
+            "viewportAnchorV2": {
+              "version": 1,
+              "uuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+              "delta": -652,
+              "basis": {
+                "outputRect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "workingArea": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "gap": 16,
+                "physicalScale": 1.5
+              }
+            },
+            "dormantViewportV1": {
+              "version": 1,
+              "mode": "pair",
+              "wideUuid": null
+            }
+          }
+        ]
+      },
+      "errors": [],
+      "columns": [
+        {
+          "uuid": "d37f09d4-71c7-4817-b9fc-1680a81c0972",
+          "caption": "CC_NIRI_P0_A",
+          "widthMode": "half",
+          "previous": "half",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 1,
+          "minimized": false,
+          "frame": {
+            "x": 652,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          }
+        },
+        {
+          "uuid": "76c730a9-9ef7-4b2d-abd4-de61472d75da",
+          "caption": "CC_NIRI_P0_B",
+          "widthMode": "half",
+          "previous": "half",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 1,
+          "minimized": false,
+          "frame": {
+            "x": 1304,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          }
+        },
+        {
+          "uuid": "407f4df3-0ab3-46a0-a799-050cb7e4f8b6",
+          "caption": "CC_NIRI_P0_C",
+          "widthMode": "half",
+          "previous": "half",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 0,
+          "minimized": true,
+          "frame": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "uuid": "efa8609d-49f6-482f-9c5f-9300b54257e9",
+          "caption": "CC_NIRI_P0_D",
+          "widthMode": "half",
+          "previous": "half",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 0,
+          "minimized": true,
+          "frame": {
+            "x": 652,
+            "y": 0,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "stopped": false,
+      "stopConfirmed": false,
+      "pending": false
+    }
+  ],
+  "ended_utc": "2026-10-16T05:53:03.756820+00:00"
+}

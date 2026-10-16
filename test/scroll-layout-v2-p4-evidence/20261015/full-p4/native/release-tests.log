@@ -1,0 +1,122 @@
+    Finished `release` profile [optimized] target(s) in 0.00s
+     Running unittests src/lib.rs (native/rust/target/release/deps/cc_niri_native_core-7d6051405dbb479e)
+
+running 109 tests
+test column_geometry_tests::actual_old_and_new_surface_sizes_are_never_scaled_or_accepted_by_near ... ok
+test column_geometry_tests::caller_cannot_supply_another_camera_scope_or_fabricate_frame_proof ... ok
+test column_geometry_tests::clipped_transit_finishes_on_target_ack_without_fabricating_a_client_paint ... ok
+test column_geometry_tests::completion_requires_all_real_target_ack_paints_and_monotonic_frame_identity ... ok
+test column_geometry_tests::close_freezes_departure_until_deleted_and_omitted_live_owner_is_rejected ... ok
+test column_geometry_tests::confirmed_cancel_hydration_preserves_predicted_clock_barrier ... ok
+test column_geometry_tests::culled_reentry_preserves_real_zero_coverage_pose_without_faking_draws ... ok
+test column_geometry_tests::geometry_retarget_and_departure_use_client_paint_even_before_first_new_draw ... ok
+test column_geometry_tests::geometry_source_is_platform_checked_and_failed_arms_consume_the_shared_epoch ... ok
+test column_geometry_tests::half_two_thirds_full_half_preserves_camera_bounds_and_natural_client_size ... ok
+test column_geometry_tests::incoming_requires_hidden_real_source_and_closed_unknown_rows_never_project ... ok
+test column_geometry_tests::issued_observation_can_rebase_only_real_numeric_drift_at_arm ... ok
+test column_geometry_tests::issued_retarget_survives_real_completion_shrinking_the_old_camera_bound ... ok
+test column_geometry_tests::late_old_ack_revokes_completed_proof_without_idle_repaint_loop ... ok
+test column_geometry_tests::malformed_geometry_and_client_ack_data_are_rejected ... ok
+test column_geometry_tests::real_scroll_owner_composes_geometry_camera_ack_and_all_client_completion ... ok
+test column_geometry_tests::reorder_and_close_keep_stable_ids_and_cull_late_client_callbacks ... ok
+test column_geometry_tests::strict_geometry_schema_and_shared_sequence_do_not_relax_legacy ... ok
+test column_geometry_tests::overlapping_natural_surfaces_consume_ambiguous_pairs_without_selecting_a_client ... ok
+test column_geometry_tests::unpainted_prediction_cannot_be_a_retarget_source_and_velocity_is_continuous ... ok
+test column_geometry_tests::wire_cannot_substitute_another_actual_output_layout_or_old_bound ... ok
+test ffi::focus_fade::tests::ownership_invalid_inputs_and_no_allocation_in_queries ... ok
+test ffi::motion::tests::null_entries_and_unique_clone_lifetime ... ok
+test ffi::protocol::tests::geometry_dto_errors_reset_message_tokens_and_keep_existing_sequence ... ok
+test ffi::protocol::tests::abi_errors_unique_clone_and_allocation_contract ... ok
+test ffi::scroll::tests::partial_ffi_status_errors_and_pair_lifetime ... ok
+test ffi::tests::cloned_handle_outlives_original_reference ... ok
+test ffi::tests::ffi_version_matches_core ... ok
+test ffi::tests::null_handles_return_errors ... ok
+test ffi::scroll::tests::ffi_null_buffers_ownership_and_counts ... ok
+test ffi::workspace::tests::clock_ffi_null_idle_configure_and_frame_queries_allocate_nothing ... ok
+test ffi::protocol::tests::observer_transport_errors_and_bounded_window_registry ... ok
+test focus_fade::tests::cancelled_before_first_frame_and_sampling_allocate_nothing ... ok
+test focus_fade::tests::finite_crossfade_and_idle ... ok
+test ffi::ring::tests::null_inputs_and_stack_dto_no_allocation ... ok
+test ffi::workspace::tests::ffi_ownership_null_and_zero_allocation_contract ... ok
+test focus_fade::tests::gain_converges_without_visible_expansion_on_loss_or_regain ... ok
+test focus_fade::tests::rapid_reversal_starts_at_last_sample_without_restarting_same_target ... ok
+test focus_ring::tests::fixed_device_stroke_and_frozen_retarget_sample ... ok
+test focus_ring::tests::gain_profile_mix_is_validated_without_changing_border_geometry ... ok
+test focus_ring::tests::geometry_corners_and_transparent_frames ... ok
+test focus_ring::tests::visual_opacity_is_validated_and_frozen_once ... ok
+test focus_ring_context::tests::permission_hot_path_does_not_allocate ... ok
+test native_protocol::tests::json_epochs_and_native_epochs_have_distinct_ranges ... ok
+test focus_ring_context::tests::retiring_decoration_never_grants_focus_or_bypasses_visibility ... ok
+test partial_input::tests::native_release_stays_protected_until_frame_delivery ... ok
+test partial_input::tests::pairing_native_grab_and_bounded_overflow ... ok
+test partial_input::tests::tablet_touch_and_pointer_ownership_are_independent ... ok
+test focus_ring::tests::boundaries_fallback_and_zero_allocation ... ok
+test focus_ring_context::tests::fail_closed_preserves_sequence_and_tombstones ... ok
+test scroll_retarget::tests::bounded_brake_is_c1_and_degradation_is_explicit ... ok
+test scroll_runtime::partial_tests::client_paint_proof_rejects_near_frames_stale_passes_and_unpainted_epochs ... ok
+test scroll_runtime::partial_tests::client_source_requires_every_actual_client_paint_not_shared_camera ... ok
+test scroll_runtime::partial_tests::partial_failed_arm_cannot_ack_a_duplicate_using_older_active_motion ... ok
+test scroll_runtime::partial_tests::partial_omitted_live_rows_keep_outgoing_ownership_until_park_or_close ... ok
+test scroll_runtime::partial_tests::partial_rejects_resize_spoofing_and_consumes_validated_epochs ... ok
+test scroll_runtime::partial_tests::partial_retarget_inherits_last_painted_pose_and_velocity ... ok
+test scroll_runtime::partial_tests::partial_validator_keeps_legacy_contracts_and_rejects_malformed_geometry ... ok
+test scroll_runtime::partial_tests::strict_output_safe_anchors_and_geometry_ack_input ... ok
+test scroll_runtime::tests::closing_a_held_edge_window_records_a_safe_velocity_reset ... ok
+test scroll_runtime::tests::facts_are_current_scale_changes_recheck_pending_and_fallback_keeps_numerical_tail ... ok
+test scroll_runtime::tests::left_insert_and_reverse_reindex_reuse_painted_pose_not_prediction ... ok
+test scroll_runtime::tests::frame_operations_allocate_nothing ... ok
+test scroll_runtime::tests::full_half_partial_preserves_width_and_static_clip_until_retired ... ok
+test scroll_runtime::tests::pending_frames_do_not_replace_paint_anchor_or_publish_completion ... ok
+test scroll_runtime::tests::reindex_rejects_unknown_basis_and_consumes_accepted_epoch_on_arm_failure ... ok
+test scroll_runtime::tests::rejected_geometry_consumes_sequence_but_preserves_motion ... ok
+test scroll_runtime::tests::retarget_uses_last_painted_offset_and_holds_outgoing ... ok
+test scroll_runtime::tests::same_target_updates_epoch_and_entries_without_restarting_the_curve ... ok
+test scroll_runtime::tests::no_painted_frame_context_changes_and_script_partial_never_inherit_velocity ... ok
+test scroll_runtime::tests::smooth_production_arm_preserves_painted_velocity_and_same_frame_anchor ... ok
+test scroll_runtime::tests::source_projection_bounds_and_registry_lifecycle ... ok
+test scroll_runtime::tests::stable_reindex_without_paint_reverses_at_origin_and_workspace_switch_retires_it ... ok
+test scroll_runtime::tests::smooth_reverse_brakes_within_the_held_region_without_sample_clamping ... ok
+test scroll_runtime::tests::typed_reindex_starts_at_real_old_basis_and_finishes_centered ... ok
+test scroll_runtime::tests::typed_reindex_validates_scope_source_numbers_widths_and_placements ... ok
+test scroll_runtime::tests::unpainted_first_frame_and_invalid_times_preserve_the_static_anchor ... ok
+test scroll_runtime::tests::visual_completion_commits_only_on_paint_and_interruption_uses_painted_velocity ... ok
+test scroll_visual::tests::crossing_requires_future_envelope_and_invalid_facts_fail_closed ... ok
+test spring::tests::completion_uses_both_thresholds_inclusively ... ok
+test spring::tests::invalid_values_fall_back_before_time_handling ... ok
+test spring::tests::time_boundaries_and_history_are_preserved ... ok
+test spring::tests::default_is_monotonic_and_underdamped_can_overshoot ... ok
+test viewport_motion::tests::duplicates_snap_and_rejections_preserve_barriers ... ok
+test viewport_motion::tests::even_subpixel_brake_must_finish_before_visual_snap ... ok
+test viewport_motion::tests::retarget_preserves_position_and_resets_velocity ... ok
+test viewport_motion::tests::timeout_and_extreme_clock_do_not_mutate_sampling_state ... ok
+test workspace_clock::tests::independent_outputs_rejections_and_overflow_are_bounded ... ok
+test workspace_clock::tests::invalid_facts_latch_safe_absolute_fallback_until_reset ... ok
+test workspace_clock::tests::long_frame_retains_lag_and_control_events_do_not_tick ... ok
+test workspace_clock::tests::normal_rates_and_disabled_preserve_absolute_time ... ok
+test workspace_clock::tests::stalled_prediction_and_new_request_after_pause_cannot_stick_or_expire_early ... ok
+test workspace_curve::tests::acceleration_only_degradation_and_hull_rejects_hidden_excursion ... ok
+test workspace_curve::tests::boundaries_derivatives_and_independent_bezier_evaluation ... ok
+test workspace_motion::tests::finite_endpoints_monotonic_and_retarget_from_painted_pose ... ok
+test workspace_curve::tests::envelope_brake_fixed_deadline_and_hard_boundary_reset ... ok
+test workspace_motion::tests::gesture_edges_wrapping_shortest_path_and_grid_rejection ... ok
+test workspace_motion::tests::pending_is_not_painted_same_frame_retarget_and_keep_deadline ... ok
+test workspace_motion::tests::geometry_gestures_and_frame_operations_allocate_nothing ... ok
+test workspace_motion::tests::wrap_grid_no_move_gesture_release_and_output_projection ... ok
+test workspace_motion::tests::painted_derivatives_same_direction_reverse_and_prediction_lead ... ok
+test workspace_motion::tests::stable_policy_and_no_paint_do_not_inherit_and_frame_queries_allocate_nothing ... ok
+test spring::tests::agrees_with_independent_ode ... ok
+test scroll_retarget::tests::analytic_extrema_bound_an_independent_ode ... ok
+test column_geometry_tests::projection_and_ack_queries_allocate_nothing_over_many_shared_frames ... ok
+test scroll_runtime::partial_tests::actual_client_paint_ledger_has_no_hot_path_allocations ... ok
+test scroll_visual::tests::scales_rates_distances_velocities_and_long_frames_keep_tail_inside_threshold ... ok
+test scroll_runtime::partial_tests::partial_pairs_survive_clear_remove_cancel_and_hot_queries_allocate_nothing ... ok
+test column_geometry_tests::composed_geometry_shared_paint_and_cull_hot_path_remains_allocation_free ... ok
+
+test result: ok. 109 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests cc_niri_native_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

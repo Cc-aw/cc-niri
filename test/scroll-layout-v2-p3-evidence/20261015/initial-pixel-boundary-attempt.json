@@ -1,0 +1,1057 @@
+{
+  "started_utc": "2026-10-15T02:19:08.556269+00:00",
+  "status": "FAIL",
+  "scale": 1.0,
+  "scope": "production Release Clip + Rust + Bridge + Ring, private virtual Mesa KWin; P0 raw injector only",
+  "artifacts": {
+    "build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so": "f81cd2c613ab479f54cb002203717f96f6b3f1b618fb79cd638b564870f1c3f2",
+    "build/bridge/cc-niri-bridge": "5c752a8587c8f1aac8ffc5517880199b1e365240f6085edbd3fc423855e074e1",
+    "build/scroll-layout-v2-p0-fixture/plugins/kwin/effects/plugins/cc-niri-p0-input-fixture.so": "be0d6ef4f751c56c6e2ca2330f2e2e3609733118adf46c4de813787e1ecec990",
+    "build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so": "cd85f8b16663871177d78ad0928a75fc168708b5924a9286093b80bfddfe942a"
+  },
+  "checks": {
+    "raw_injector_has_no_p0_projection": true,
+    "native_capability_explicit": true,
+    "bridge_requires_membership": true,
+    "actual_painted_camera_and_scope": true,
+    "right_partial_strict_output": false,
+    "first_click_pair_consumed": true,
+    "focus_intent_only": true,
+    "pair_drained": true,
+    "pending_geometry_never_receives_wrong_click": true,
+    "safe_frames_keep_primary_and_client_width": true,
+    "second_click_native_coordinates": true,
+    "real_ring_shared_frame": true,
+    "left_partial_and_ring_no_secondary_leak": true,
+    "held_pair_recorded": true,
+    "release_after_cancel_consumed": true,
+    "cancel_releases_runtime_and_pairs": true,
+    "injector_still_has_no_p0_policy": true
+  },
+  "plans": [
+    {
+      "protocol": 3,
+      "type": "PARTIAL_SCROLL",
+      "sessionId": "p3-private",
+      "workspaceId": "99b77cb7-5b92-4294-a3f5-b3023417e0e0",
+      "targetOutput": "Virtual-0",
+      "epoch": 1,
+      "issuedAt": 1792030749605,
+      "scopeRevision": 1,
+      "maxCamera": 1696,
+      "clipPartial": true,
+      "retargetOnly": true,
+      "oldScrollOffsetX": 212,
+      "newScrollOffsetX": 212,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "layoutRect": {
+        "x": 0,
+        "y": 66,
+        "width": 2560,
+        "height": 1358
+      },
+      "entries": [
+        {
+          "windowId": "f890851b-9356-4176-8264-e05065deace2",
+          "columnId": 1,
+          "logicalX": 652,
+          "pixelWidth": 1680,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        },
+        {
+          "windowId": "4d4b9010-94ae-4e9b-8edb-ac047f0eb81e",
+          "columnId": 2,
+          "logicalX": 2348,
+          "pixelWidth": 1256,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        }
+      ]
+    },
+    {
+      "protocol": 3,
+      "type": "PARTIAL_SCROLL",
+      "sessionId": "p3-private",
+      "workspaceId": "99b77cb7-5b92-4294-a3f5-b3023417e0e0",
+      "targetOutput": "Virtual-0",
+      "epoch": 2,
+      "issuedAt": 1792030750245,
+      "scopeRevision": 1,
+      "maxCamera": 1696,
+      "clipPartial": true,
+      "retargetOnly": false,
+      "oldScrollOffsetX": 212,
+      "newScrollOffsetX": 1060,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "layoutRect": {
+        "x": 0,
+        "y": 66,
+        "width": 2560,
+        "height": 1358
+      },
+      "entries": [
+        {
+          "windowId": "f890851b-9356-4176-8264-e05065deace2",
+          "columnId": 1,
+          "logicalX": 652,
+          "pixelWidth": 1680,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        },
+        {
+          "windowId": "4d4b9010-94ae-4e9b-8edb-ac047f0eb81e",
+          "columnId": 2,
+          "logicalX": 2348,
+          "pixelWidth": 1256,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        }
+      ]
+    },
+    {
+      "protocol": 3,
+      "type": "PARTIAL_SCROLL",
+      "sessionId": "p3-private",
+      "workspaceId": "99b77cb7-5b92-4294-a3f5-b3023417e0e0",
+      "targetOutput": "Virtual-0",
+      "epoch": 3,
+      "issuedAt": 1792030751435,
+      "scopeRevision": 1,
+      "maxCamera": 1696,
+      "clipPartial": true,
+      "retargetOnly": false,
+      "oldScrollOffsetX": 1060,
+      "newScrollOffsetX": 212,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "layoutRect": {
+        "x": 0,
+        "y": 66,
+        "width": 2560,
+        "height": 1358
+      },
+      "entries": [
+        {
+          "windowId": "f890851b-9356-4176-8264-e05065deace2",
+          "columnId": 1,
+          "logicalX": 652,
+          "pixelWidth": 1680,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        },
+        {
+          "windowId": "4d4b9010-94ae-4e9b-8edb-ac047f0eb81e",
+          "columnId": 2,
+          "logicalX": 2348,
+          "pixelWidth": 1256,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        }
+      ]
+    }
+  ],
+  "geometry": [
+    {
+      "phase": "bootstrap",
+      "kind": "p3-geometry",
+      "label": "initial-safe-client-ack",
+      "ready": true,
+      "workspaceId": "99b77cb7-5b92-4294-a3f5-b3023417e0e0",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "f890851b-9356-4176-8264-e05065deace2",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "4d4b9010-94ae-4e9b-8edb-ac047f0eb81e",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "4548db2b-5ab8-4026-b3a0-b83180456c8e",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "5c1e259b-1b00-487f-8e19-672621a23cbc",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "partial-first-click",
+      "kind": "p3-geometry",
+      "label": "before-js-focus",
+      "ready": true,
+      "workspaceId": "99b77cb7-5b92-4294-a3f5-b3023417e0e0",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "f890851b-9356-4176-8264-e05065deace2",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "4d4b9010-94ae-4e9b-8edb-ac047f0eb81e",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "4548db2b-5ab8-4026-b3a0-b83180456c8e",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "5c1e259b-1b00-487f-8e19-672621a23cbc",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "p3-geometry",
+      "label": "native-arm-then-safe-client-ack",
+      "ready": true,
+      "workspaceId": "99b77cb7-5b92-4294-a3f5-b3023417e0e0",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "f890851b-9356-4176-8264-e05065deace2",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 0,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "4d4b9010-94ae-4e9b-8edb-ac047f0eb81e",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1288,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "4548db2b-5ab8-4026-b3a0-b83180456c8e",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "5c1e259b-1b00-487f-8e19-672621a23cbc",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    }
+  ],
+  "captures": [
+    {
+      "name": "right-partial",
+      "samples": [
+        {
+          "output": 0,
+          "x": 440,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#000000"
+        },
+        {
+          "output": 0,
+          "x": 2118,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#7a9cd8"
+        },
+        {
+          "output": 0,
+          "x": 2135,
+          "y": 300,
+          "expected": "#000000",
+          "actual": "#000000"
+        },
+        {
+          "output": 0,
+          "x": 2140,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 0,
+          "x": 2559,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 1,
+          "expected": "#000000",
+          "actual": "#000000",
+          "scope": "entire-secondary-framebuffer"
+        }
+      ]
+    },
+    {
+      "name": "left-partial-ring",
+      "samples": [
+        {
+          "output": 0,
+          "x": 0,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 1272,
+          "y": 300,
+          "expected": "#000000",
+          "actual": "#000000"
+        },
+        {
+          "output": 0,
+          "x": 1300,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 1,
+          "expected": "#000000",
+          "actual": "#000000",
+          "scope": "entire-secondary-framebuffer"
+        }
+      ]
+    }
+  ],
+  "support": "KWin \u6280\u672f\u652f\u6301\u4fe1\u606f\uff1a\n\u8bf7\u5728\u5bfb\u6c42\u6280\u672f\u652f\u6301\u65f6 (\u4f8b\u5982 https://discuss.kde.org \u7f51\u7ad9) \u63d0\u4f9b\u4ee5\u4e0b\u4fe1\u606f\u3002\n\u8fd9\u4e9b\u4fe1\u606f\u5305\u62ec\u5173\u4e8e\u5f53\u524d\u6b63\u5728\u8fd0\u884c\u7684 Kwin \u5b9e\u4f8b\u7684\u76f8\u5173\u4fe1\u606f\u3001\n\u4f7f\u7528\u7684\u9009\u9879\u3001OpenGL \u9a71\u52a8\u7a0b\u5e8f\u3001\u6b63\u5728\u8fd0\u884c\u7684\u7279\u6548\u7b49\u3002\n\u8bf7\u4e0d\u8981\u5c06\u672c\u6bb5\u6587\u5b57\u4e0b\u65b9\u7684\u4fe1\u606f\u76f4\u63a5\u7c98\u8d34\u5230\u6280\u672f\u652f\u6301\u8ba8\u8bba\u4e32\uff0c\n\u800c\u5e94\u5c06\u5b83\u4eec\u7c98\u8d34\u5230\u5728\u7ebf\u526a\u8d34\u677f\u7f51\u7ad9 (\u4f8b\u5982 https://paste.kde.org)\u3002\n\n==========================\n\nVersion\n=======\nKWin version: 6.7.5\nQt Version: 6.11.2\nQt compile version: 6.11.2\nXCB compile version: 1.17.0\n\nOperation Mode: Wayland\n\nBuild Options\n=============\nKWIN_BUILD_DECORATIONS: yes\nKWIN_BUILD_TABBOX: yes\nKWIN_BUILD_ACTIVITIES: yes\nHAVE_X11_XCB: yes\n\nDecoration\n==========\nPlugin: org.kde.breeze\nTheme: \nPlugin recommends border size: None\nonAllDesktopsAvailable: false\nalphaChannelSupported: true\ncloseOnDoubleClickOnMenu: false\nalwaysShowExcludeFromCapture: false\ndecorationButtonsLeft: 0, 2, 12\ndecorationButtonsRight: 6, 3, 4, 5\nborderSize: 0\ngridUnit: 12\nfont: Noto Sans Arabic,12,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0\nsmallSpacing: 3\nlargeSpacing: 12\n\nLogicalOutput backend\n==============\nName: KWin::VirtualBackend\n\nCursor\n======\nthemeName: default\nthemeSize: 24\n\nOptions\n=======\nfocusPolicy: ClickToFocus\nxwaylandCrashPolicy: 1\nxwaylandMaxCrashCount: 3\nnextFocusPrefersMouse: false\nclickRaise: true\nautoRaise: false\nautoRaiseInterval: 0\ndelayFocusInterval: 0\nseparateScreenFocus: true\nplacement: 5\nactivationDesktopPolicy: SwitchToOtherDesktop\nfocusPolicyIsReasonable: true\nborderSnapZone: 10\nwindowSnapZone: 10\ncenterSnapZone: 0\nsnapOnlyWhenOverlapping: false\nedgeBarrier: 100\ncornerBarrier: 1\nrollOverDesktops: false\nperOutputVirtualDesktops: false\nfocusStealingPreventionLevel: 1\noperationTitlebarDblClick: 5000\noperationMaxButtonLeftClick: 5000\noperationMaxButtonMiddleClick: 5013\noperationMaxButtonRightClick: 5012\ncommandActiveTitlebar1: MouseRaise\ncommandActiveTitlebar2: MouseNothing\ncommandActiveTitlebar3: MouseOperationsMenu\ncommandInactiveTitlebar1: MouseActivateAndRaise\ncommandInactiveTitlebar2: MouseNothing\ncommandInactiveTitlebar3: MouseOperationsMenu\ncommandWindow1: MouseActivateRaiseOnReleaseAndPassClick\ncommandWindow2: MouseActivateAndPassClick\ncommandWindow3: MouseActivateAndPassClick\ncommandWindowWheel: MouseNothing\ncommandAll1: MouseUnrestrictedMove\ncommandAll2: MouseToggleRaiseAndLower\ncommandAll3: MouseUnrestrictedResize\nkeyCmdAllModKey: 16777250\ndoubleClickBorderToMaximize: true\ncondensedTitle: false\nelectricBorderMaximize: true\nelectricBorderTiling: true\nelectricBorderAllScreenCorner: true\nelectricBorderCornerRatio: 0.25\nborderlessMaximizedWindows: false\nkillPingTimeout: 5000\ncompositingMode: 1\nallowTearing: true\ninteractiveWindowMoveEnabled: true\npictureInPictureHomeCorner: BottomRightCorner\npictureInPictureMargin: 20\noverlayVirtualKeyboardOnWindows: false\n\nScreen Edges\n============\ndesktopSwitching: false\ndesktopSwitchingMovingClients: false\ncursorPushBackDistance: 1x1\nactionTopLeft: 0\nactionTop: 0\nactionTopRight: 0\nactionRight: 0\nactionBottomRight: 0\nactionBottom: 0\nactionBottomLeft: 0\nactionLeft: 0\n\nScreens\n=======\nNumber of Screens: 2\n\nScreen 0:\n---------\nName: Virtual-0\nEnabled: 1\nGeometry: 0,0,2560x1440\nPhysical size: -1x-1mm\nScale: 1\nRefresh Rate: 60000\nAdaptive Sync: incapable\nScreen 1:\n---------\nName: Virtual-1\nEnabled: 1\nGeometry: 2560,0,2560x1440\nPhysical size: -1x-1mm\nScale: 1\nRefresh Rate: 60000\nAdaptive Sync: incapable\n\nCompositing\n===========\nCompositing is active\nCompositing Type: OpenGL\nOpenGL vendor string: Intel\nOpenGL renderer string: Mesa Intel(R) UHD Graphics (CML GT2)\nOpenGL version string: 4.6 (Core Profile) Mesa 26.2.3\nOpenGL platform interface: EGL\nOpenGL shading language version string: 4.60\nDriver: Intel\nGPU class: Comet Lake\nOpenGL version: 4.6\nGLSL version: 4.60\nMesa version: 26.2.3\nLinux kernel version: 7.2.8\nDirect rendering: Requires strict binding: no\nVirtual Machine:  no\nOpenGL 2 Shaders are used\n\nLoaded Effects:\n---------------\nshakecursor\noutputlocator\ncolorpicker\nzoom\nscreenedge\nblur\nslidingpopups\nslidingnotifications\nslide\ndialogparent\nwindowview\ntileseditor\noverview\nhighlightwindow\nblendchanges\nstartupfeedback\nkwin4_effect_shapecorners\nsystembell\nscreentransform\nkscreen\n\nCurrently Active Effects:\n-------------------------\nblur\nkwin4_effect_shapecorners\n\nEffect Settings:\n----------------\nshakecursor:\n\noutputlocator:\n\ncolorpicker:\n\nzoom:\nzoomFactor: 1.2\nmouseTracking: 0\nfocusDelay: 350\nmoveFactor: 20\ntargetZoom: 1\n\nscreenedge:\n\nblur:\n\nslidingpopups:\nslideInDuration: 200\nslideOutDuration: 200\n\nslidingnotifications:\n\nslide:\nhorizontalGap: 45\nverticalGap: 20\nslideBackground: true\n\ndialogparent:\npluginId: dialogparent\nisActiveFullScreenEffect: false\n\nwindowview:\nactiveView: \ndelegate: \nanimationDuration: 300\nignoreMinimized: false\nmode: ModeCurrentDesktop\npartialActivationFactor: 0\ngestureInProgress: false\nsearchText: \nselectedIds: \n\ntileseditor:\nactiveView: \ndelegate: \nanimationDuration: 200\n\noverview:\nactiveView: \ndelegate: \nanimationDuration: 300\nignoreMinimized: false\nfilterWindows: true\norganizedGrid: true\noverviewPartialActivationFactor: 0\noverviewGestureInProgress: false\ntransitionPartialActivationFactor: 0\ntransitionGestureInProgress: false\ngridPartialActivationFactor: 0\ngridGestureInProgress: false\nsearchText: \n\nhighlightwindow:\n\nblendchanges:\n\nstartupfeedback:\ntype: 1\n\nkwin4_effect_shapecorners:\n\nsystembell:\n\nscreentransform:\n\nkscreen:\n\n\nLoaded Plugins:\n---------------\nBounceKeysPlugin\nKeyNotificationPlugin\nMouseKeysPlugin\nSlowKeysPlugin\nStickyKeysPlugin\nTouchpadShortcutsPlugin\nbuttonsrebind\neis\nkrunnerintegration\nnightlight\nscreencast\nscreenshot\n\nAvailable Plugins:\n------------------\nBounceKeysPlugin\nKeyNotificationPlugin\nMouseKeysPlugin\nSlowKeysPlugin\nStickyKeysPlugin\nTouchpadShortcutsPlugin\nbuttonsrebind\neis\ngamecontroller\nkrunnerintegration\nnightlight\nscreencast\nscreenshot\n",
+  "capability": {
+    "enabled": true,
+    "inputPolicy": "two-click",
+    "pendingButtons": 0,
+    "pendingTouches": 0,
+    "protocol": 3,
+    "type": "PARTIAL_SCROLL"
+  },
+  "initial_painted": {
+    "active": true,
+    "cameraX": 212,
+    "clipPartial": true,
+    "completed": true,
+    "entries": [
+      {
+        "uuid": "f890851b-9356-4176-8264-e05065deace2",
+        "visualRect": {
+          "height": 1358,
+          "width": 1680,
+          "x": 440,
+          "y": 66
+        }
+      },
+      {
+        "uuid": "4d4b9010-94ae-4e9b-8edb-ac047f0eb81e",
+        "visualRect": {
+          "height": 1358,
+          "width": 1256,
+          "x": 2136,
+          "y": 66
+        }
+      }
+    ],
+    "epoch": 1,
+    "sampleSerial": 1,
+    "scopeRevision": 1,
+    "sessionId": "p3-private",
+    "targetOutput": "Virtual-0",
+    "valid": true,
+    "workspaceId": "99b77cb7-5b92-4294-a3f5-b3023417e0e0"
+  },
+  "focus_request": {
+    "active": true,
+    "clipPartial": true,
+    "completed": true,
+    "epoch": 1,
+    "scopeRevision": 1,
+    "sessionId": "p3-private",
+    "targetOutput": "Virtual-0",
+    "windowUuid": "4d4b9010-94ae-4e9b-8edb-ac047f0eb81e",
+    "workspaceId": "99b77cb7-5b92-4294-a3f5-b3023417e0e0"
+  },
+  "second_click_events": [
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    }
+  ],
+  "ring_status": {
+    "active": true,
+    "activeTransitionCount": 0,
+    "borderAlpha": 0.85,
+    "color": "#7FC8FF",
+    "coreBackend": "Rust",
+    "cornerRadius": 12,
+    "cornerSource": "round-corners",
+    "drawCount": 10,
+    "eligibilityEnabled": true,
+    "eligibilitySource": "layout-script",
+    "eligibleCount": 2,
+    "fadeRepaintRequests": 9,
+    "focusAnimation": true,
+    "focusClock": "clip-shared-presentation",
+    "focusDurationMs": 140,
+    "frameLifetime": "scene-attachment",
+    "generation": 1,
+    "glowAlpha": 0.28,
+    "glowClip": "separate-viewport-native-occlusion",
+    "glowExtent": 7.1,
+    "glowFalloff": "gaussian-three-sigma",
+    "glowGain": true,
+    "glowGainEndExtent": 7.1,
+    "glowGainRenderer": "cached-profile-blend",
+    "glowGainStartExtent": 7.4,
+    "glowOnlyDiagnostic": false,
+    "glowRadius": 1.7,
+    "glowRasterizations": 16,
+    "nativeProtocolBackend": "Rust",
+    "otherOutputPaintSkips": 0,
+    "outgoingDecorationCount": 0,
+    "paintOutputScope": "owner-output-region",
+    "paintOutset": 8,
+    "paintSource": "window-paint-pass",
+    "phase": "focus-gain-f3",
+    "pixelAlignment": "native-child-rounding-compensated",
+    "renderer": "post-window-native-item",
+    "separateGlowClipDrawCount": 10,
+    "sessionId": "p3-private-ring",
+    "sharedFrameSamples": 12,
+    "strokeGeometry": "paint-frame-fixed-width",
+    "targetOutput": "Virtual-0",
+    "viewportOutset": 5,
+    "visuals": [
+      {
+        "focused": true,
+        "glowGainMix": 0,
+        "opacity": 1,
+        "transitionActive": false,
+        "windowUuid": "4d4b9010-94ae-4e9b-8edb-ac047f0eb81e"
+      }
+    ],
+    "width": 2,
+    "windowOpacity": 1,
+    "windowUuid": "4d4b9010-94ae-4e9b-8edb-ac047f0eb81e",
+    "workspaceId": "99b77cb7-5b92-4294-a3f5-b3023417e0e0"
+  },
+  "records": [
+    {
+      "phase": "bootstrap",
+      "kind": "private-shortcut-service",
+      "stub": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_D",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 840.0,
+      "y": 679.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 840.0,
+          "y": 679.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 628.0,
+      "y": 679.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 628.0,
+          "y": 679.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 574.66796875,
+      "y": 649.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 574.66796875,
+          "y": 649.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 840.0,
+      "y": 654.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 840.0,
+          "y": 654.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p3-geometry",
+      "label": "initial-safe-client-ack",
+      "ready": true,
+      "workspaceId": "99b77cb7-5b92-4294-a3f5-b3023417e0e0",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "f890851b-9356-4176-8264-e05065deace2",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "4d4b9010-94ae-4e9b-8edb-ac047f0eb81e",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "4548db2b-5ab8-4026-b3a0-b83180456c8e",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "5c1e259b-1b00-487f-8e19-672621a23cbc",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "partial-first-click",
+      "kind": "mark"
+    },
+    {
+      "phase": "partial-first-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "partial-first-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "partial-first-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "partial-first-click",
+      "kind": "p3-geometry",
+      "label": "before-js-focus",
+      "ready": true,
+      "workspaceId": "99b77cb7-5b92-4294-a3f5-b3023417e0e0",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "f890851b-9356-4176-8264-e05065deace2",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "4d4b9010-94ae-4e9b-8edb-ac047f0eb81e",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "4548db2b-5ab8-4026-b3a0-b83180456c8e",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "5c1e259b-1b00-487f-8e19-672621a23cbc",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "mark"
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1112.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "p3-geometry",
+      "label": "native-arm-then-safe-client-ack",
+      "ready": true,
+      "workspaceId": "99b77cb7-5b92-4294-a3f5-b3023417e0e0",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "f890851b-9356-4176-8264-e05065deace2",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 0,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "4d4b9010-94ae-4e9b-8edb-ac047f0eb81e",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1288,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "4548db2b-5ab8-4026-b3a0-b83180456c8e",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "5c1e259b-1b00-487f-8e19-672621a23cbc",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "second-click",
+      "kind": "mark"
+    },
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "held-pair-retarget-cancel",
+      "kind": "mark"
+    },
+    {
+      "phase": "held-pair-retarget-cancel",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "held-pair-retarget-cancel",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 100.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 100.0,
+          "y": 234.0
+        }
+      ]
+    }
+  ],
+  "ended_utc": "2026-10-15T02:19:11.562838+00:00"
+}

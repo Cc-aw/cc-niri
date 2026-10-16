@@ -16,6 +16,7 @@ public:
         m_scriptPaint = scriptPaint;
     }
     bool active() const { return !m_windows.isEmpty(); }
+    bool owns(const QString &id) const { return m_windows.contains(id); }
     const ScrollViewportRuntimeBackend &runtime() const { return m_runtime; }
     bool scriptPaint() const { return m_scriptPaint; }
     std::optional<ScrollProjection> projection(const QString &id, const QRectF &frame) const {
@@ -23,6 +24,9 @@ public:
     }
     bool inputBlocked(const QString &id, const QPointF &point) const {
         return m_windows.contains(id) && m_runtime.inputBlocked(id, point);
+    }
+    bool partialInputBlocked(const QString &id, const QRectF &frame,const QPointF &point) const {
+        return m_windows.contains(id) && m_runtime.partialInputBlocked(id,frame,point);
     }
     void remove(const QString &id) {
         m_windows.remove(id);

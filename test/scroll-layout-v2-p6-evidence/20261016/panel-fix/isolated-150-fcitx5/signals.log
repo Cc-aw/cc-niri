@@ -1,0 +1,3 @@
+Monitoring signals on object /ccNiriViewportMotion owned by org.kde.KWin
+The name org.kde.KWin is owned by :1.0
+/ccNiriViewportMotion: org.cc.NiriViewportMotion1.PartialScrollFrameReady ('{"active":true,"clipPartial":true,"completed":true,"epoch":1,"protocol":3,"sampleSerial":21,"scopeRevision":1,"sessionId":"1a1434563dc-65b8e84c","targetOutput":"Virtual-0","type":"SCROLL_SOURCE_READY","workspaceId":"cfb7ba31-62e9-42b1-9f6e-c8cfd3ca98d2"}',)

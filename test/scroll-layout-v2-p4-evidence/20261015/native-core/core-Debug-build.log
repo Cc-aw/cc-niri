@@ -1,0 +1,35 @@
+[1/33] Building CXX object rust/CMakeFiles/cc-niri-golden-reference.dir/tests/reference/FocusRingCore.cpp.o
+[2/33] Linking CXX static library rust/libcc-niri-golden-reference.a
+[3/33] Building Rust Native Core (dev)
+   Compiling cc-niri-native-core v0.1.0 (/home/cc/cc_niri/native/rust/cc-niri-native-core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.34s
+[4/33] Building CXX object rust/CMakeFiles/cc-niri-native-adapters.dir/__/viewport-clip/RustSpring.cpp.o
+[5/33] Building CXX object rust/CMakeFiles/cc-niri-native-adapters.dir/__/viewport-clip/RustViewportMotion.cpp.o
+[6/33] Building CXX object rust/CMakeFiles/cc-niri-native-adapters.dir/__/viewport-clip/RustScrollPlanSequence.cpp.o
+[7/33] Building CXX object rust/CMakeFiles/cc-niri-native-adapters.dir/__/viewport-clip/RustScrollViewportRuntime.cpp.o
+[8/33] Building CXX object rust/CMakeFiles/cc-niri-workspace-motion-differential.dir/tests/WorkspaceMotionContractTest.cpp.o
+[9/33] Building CXX object rust/CMakeFiles/cc-niri-ring-differential.dir/tests/FocusRingDifferentialTest.cpp.o
+[10/33] Building CXX object rust/CMakeFiles/cc-niri-native-adapters.dir/__/focus-ring/RustFocusRingContext.cpp.o
+[11/33] Linking CXX static library rust/libcc-niri-native-adapters.a
+[12/33] Building CXX object rust/CMakeFiles/cc-niri-spring-differential.dir/tests/SpringDifferentialTest.cpp.o
+[13/33] Building CXX object rust/CMakeFiles/cc-niri-motion-differential.dir/tests/ViewportMotionDifferentialTest.cpp.o
+[14/33] Building CXX object rust/CMakeFiles/cc-niri-protocol-differential.dir/tests/NativeProtocolDifferentialTest.cpp.o
+[15/33] Building CXX object rust/CMakeFiles/cc-niri-scroll-differential.dir/tests/ScrollRuntimeDifferentialTest.cpp.o
+[16/33] Building CXX object rust/CMakeFiles/cc-niri-rust-animation-frame-tests.dir/__/viewport-clip/tests/AnimationFrameContextTest.cpp.o
+[17/33] Building CXX object rust/CMakeFiles/cc-niri-rust-focus-fade-tests.dir/tests/FocusFadeContractTest.cpp.o
+[18/33] Building CXX object rust/CMakeFiles/cc-niri-rust-motion-tests.dir/__/viewport-clip/tests/ViewportMotionTest.cpp.o
+[19/33] Building CXX object rust/CMakeFiles/cc-niri-rust-ring-context-tests.dir/__/focus-ring/tests/FocusRingContextTest.cpp.o
+[20/33] Building CXX object rust/CMakeFiles/cc-niri-rust-scroll-tests.dir/__/viewport-clip/tests/ScrollViewportRuntimeTest.cpp.o
+[21/33] Building CXX object rust/CMakeFiles/cc-niri-rust-core-smoke-tests.dir/tests/RustCoreSmokeTest.cpp.o
+[22/33] Linking CXX executable rust/cc-niri-workspace-motion-differential
+[23/33] Linking CXX executable rust/cc-niri-ring-differential
+[24/33] Linking CXX executable rust/cc-niri-spring-differential
+[25/33] Linking CXX executable rust/cc-niri-motion-differential
+[26/33] Linking CXX executable rust/cc-niri-protocol-differential
+[27/33] Linking CXX executable rust/cc-niri-scroll-differential
+[28/33] Linking CXX executable rust/cc-niri-rust-animation-frame-tests
+[29/33] Linking CXX executable rust/cc-niri-rust-focus-fade-tests
+[30/33] Linking CXX executable rust/cc-niri-rust-motion-tests
+[31/33] Linking CXX executable rust/cc-niri-rust-scroll-tests
+[32/33] Linking CXX executable rust/cc-niri-rust-ring-context-tests
+[33/33] Linking CXX executable rust/cc-niri-rust-core-smoke-tests

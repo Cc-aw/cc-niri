@@ -1,0 +1,13 @@
+kwin_scene_opengl: eglInitialize failed
+kwin_scene_opengl: Error during eglInitialize  "EGL_NOT_INITIALIZED"
+kwin_scene_opengl: eglInitialize failed
+kwin_scene_opengl: Error during eglInitialize  "EGL_NOT_INITIALIZED"
+Accepting client connections on sockets: QList("cc-niri-p0")
+kwin_screencast: Failed to connect PipeWire context
+ShapeCorners: loading shaders...
+ShapeCorners: shaders loaded.
+ShapeCorners: Writing Breeze config
+cc.niri.focus.ring: [FOCUS_RING] READY isolated post-window border coreBackend= Rust
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "160f3b45-4148-4682-bf1a-288fe00ae5d9"
+ShapeCorners: Writing Breeze config
+kwin_scene_opengl: Could not delete render time query because no context is current

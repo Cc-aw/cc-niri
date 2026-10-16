@@ -61,3 +61,7 @@ python3 tools/sample-memory.py --duration 300 --interval 10 \
 ```
 
 工具仅低频读/proc，输出缺失PSS的原因；不控制服务、桌面、窗口或GPU，不持续采样。`--duration 0`为单次观测；无效、非有限时长或低于10秒的间隔被拒绝。
+
+### 2026-10-16 P6 基线准备
+
+已增加固定负载 context 与 B0/V1/V2 离线校验工具。尚未停止用户组件建立同负载原生 KDE B0，也未采集受控 V1/V2 PSS/Private_Dirty；M0 仍 **NOT MEASURED / Pending**。单个当前进程读数不作为归因基线。

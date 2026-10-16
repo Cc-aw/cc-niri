@@ -1,5 +1,9 @@
 "use strict";
 
+/* cjs:start */
+const { workspaceColumnPreference } = require("./WorkspaceSnapshotStore");
+/* cjs:end */
+
 class WorkspaceTransferController {
     constructor(options) {
         Object.assign(this, options);
@@ -39,8 +43,7 @@ class WorkspaceTransferController {
             this.windowPolicy.canJoinColumn(window) && !state.floating &&
             (!window.fullScreen || column || savedEntry) &&
             window.output === this.appState.targetOutput);
-        const entry = column ? { uuid, widthMode: column.widthMode,
-            previousNonFullWidthMode: column.previousNonFullWidthMode, persistentWide: column.persistentWide }
+        const entry = column ? workspaceColumnPreference(column, uuid, this.scrollLayoutV2Enabled)
             : savedEntry ||
                 state.workspaceColumnPreference || { uuid, widthMode: "half", persistentWide: false };
         const changed = owner !== previous || !eligible;

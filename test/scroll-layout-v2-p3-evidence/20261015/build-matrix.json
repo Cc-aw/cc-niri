@@ -1,0 +1,239 @@
+[
+  {
+    "label": "core-Debug-configure",
+    "argv": [
+      "cmake",
+      "-S",
+      "native",
+      "-B",
+      "build/rust-Debug",
+      "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+      "-DCC_NIRI_BUILD_KWIN_ADAPTERS=OFF",
+      "-DCMAKE_BUILD_TYPE=Debug",
+      "-DBUILD_TESTING=ON"
+    ],
+    "exit_code": 0,
+    "expected": 0
+  },
+  {
+    "label": "core-Debug-build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build/rust-Debug",
+      "--parallel",
+      "2"
+    ],
+    "exit_code": 0,
+    "expected": 0
+  },
+  {
+    "label": "core-Debug-ctest",
+    "argv": [
+      "ctest",
+      "--test-dir",
+      "build/rust-Debug",
+      "--output-on-failure"
+    ],
+    "exit_code": 0,
+    "expected": 0
+  },
+  {
+    "label": "core-Release-configure",
+    "argv": [
+      "cmake",
+      "-S",
+      "native",
+      "-B",
+      "build/rust-Release",
+      "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+      "-DCC_NIRI_BUILD_KWIN_ADAPTERS=OFF",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DBUILD_TESTING=ON"
+    ],
+    "exit_code": 0,
+    "expected": 0
+  },
+  {
+    "label": "core-Release-build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build/rust-Release",
+      "--parallel",
+      "2"
+    ],
+    "exit_code": 0,
+    "expected": 0
+  },
+  {
+    "label": "core-Release-ctest",
+    "argv": [
+      "ctest",
+      "--test-dir",
+      "build/rust-Release",
+      "--output-on-failure"
+    ],
+    "exit_code": 0,
+    "expected": 0
+  },
+  {
+    "label": "umbrella-Debug-configure",
+    "argv": [
+      "cmake",
+      "-S",
+      "native",
+      "-B",
+      "build/native-r7-debug",
+      "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+      "-DCMAKE_BUILD_TYPE=Debug",
+      "-DCC_NIRI_BUILD_KWIN_ADAPTERS=ON",
+      "-DBUILD_TESTING=ON"
+    ],
+    "exit_code": 0,
+    "expected": 0
+  },
+  {
+    "label": "umbrella-Debug-build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build/native-r7-debug",
+      "--parallel",
+      "2"
+    ],
+    "exit_code": 0,
+    "expected": 0
+  },
+  {
+    "label": "umbrella-Debug-ctest",
+    "argv": [
+      "ctest",
+      "--test-dir",
+      "build/native-r7-debug",
+      "--output-on-failure"
+    ],
+    "exit_code": 0,
+    "expected": 0
+  },
+  {
+    "label": "off-native-configure",
+    "argv": [
+      "cmake",
+      "-S",
+      "native",
+      "-B",
+      "build/native-r7-production",
+      "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DBUILD_TESTING=OFF"
+    ],
+    "exit_code": 0,
+    "expected": 0
+  },
+  {
+    "label": "off-native-build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build/native-r7-production",
+      "--parallel",
+      "2"
+    ],
+    "exit_code": 0,
+    "expected": 0
+  },
+  {
+    "label": "off-native-targets",
+    "argv": [
+      "cmake",
+      "--build",
+      "build/native-r7-production",
+      "--target",
+      "help"
+    ],
+    "exit_code": 0,
+    "expected": 0
+  },
+  {
+    "label": "off-bridge-configure",
+    "argv": [
+      "cmake",
+      "-S",
+      "bridge",
+      "-B",
+      "build/bridge-r7-production",
+      "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DBUILD_TESTING=OFF"
+    ],
+    "exit_code": 0,
+    "expected": 0
+  },
+  {
+    "label": "off-bridge-build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build/bridge-r7-production",
+      "--parallel",
+      "2"
+    ],
+    "exit_code": 0,
+    "expected": 0
+  },
+  {
+    "label": "off-bridge-targets",
+    "argv": [
+      "cmake",
+      "--build",
+      "build/bridge-r7-production",
+      "--target",
+      "help"
+    ],
+    "exit_code": 0,
+    "expected": 0
+  },
+  {
+    "label": "off-production-symbols",
+    "argv": [
+      "python3",
+      "tools/check-native-boundary.py",
+      "build/bridge-r7-production/cc-niri-bridge",
+      "build/native-r7-production/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+      "build/native-r7-production/bin/kwin/effects/plugins/cc-niri-focus-ring.so"
+    ],
+    "exit_code": 0,
+    "expected": 0
+  },
+  {
+    "label": "reject-rustc",
+    "argv": [
+      "cmake",
+      "-S",
+      "native",
+      "-B",
+      "/tmp/cc-niri-p3-toolchain-5qkdtqe7/rustc-build",
+      "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+      "-DCC_NIRI_BUILD_KWIN_ADAPTERS=OFF",
+      "-DCC_NIRI_RUSTC_EXECUTABLE=/tmp/cc-niri-p3-toolchain-5qkdtqe7/rustc"
+    ],
+    "exit_code": 1,
+    "expected": 1
+  },
+  {
+    "label": "reject-cargo",
+    "argv": [
+      "cmake",
+      "-S",
+      "native",
+      "-B",
+      "/tmp/cc-niri-p3-toolchain-5qkdtqe7/cargo-build",
+      "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+      "-DCC_NIRI_BUILD_KWIN_ADAPTERS=OFF",
+      "-DCC_NIRI_CARGO_EXECUTABLE=/tmp/cc-niri-p3-toolchain-5qkdtqe7/cargo"
+    ],
+    "exit_code": 1,
+    "expected": 1
+  }
+]

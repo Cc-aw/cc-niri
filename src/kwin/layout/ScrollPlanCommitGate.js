@@ -12,18 +12,18 @@ class ScrollPlanCommitGate {
     abort(epoch, callback = () => {}) {
         const request = { epoch, timer: null };
         this.disarming.add(request);
-        const finish = () => {
+        const finish = confirmed => {
             if (!this.disarming.delete(request)) return;
             this.clearTimer(request.timer);
-            try { callback(); } finally {
+            try { callback(confirmed === true); } finally {
                 if (!this.disarming.size) this.idleCallbacks.splice(0).forEach(fn => fn());
             }
         };
         // A disconnected endpoint must not retain historical requests forever.
         // This is the same finite ACK deadline used by visible fallback commits.
-        request.timer = this.setTimer(finish, this.timeoutMs);
+        request.timer = this.setTimer(() => finish(false), this.timeoutMs);
         try { this.disarm(epoch, finish); } catch (error) {
-            this.warn(`[SCROLL_PLAN] disarm unavailable ${error}`); finish();
+            this.warn(`[SCROLL_PLAN] disarm unavailable ${error}`); finish(false);
         }
     }
     whenIdle(callback) {
@@ -54,6 +54,7 @@ class ScrollPlanCommitGate {
     }
     releaseForWorkspace() {
         if (this.pending) {
+            if (this.pending.cancelGeometry) this.pending.cancelGeometry();
             this.clearTimer(this.pending.timer);
             if (this.pending.cancelIdle) this.pending.cancelIdle();
             this.pending = null;
@@ -67,6 +68,7 @@ class ScrollPlanCommitGate {
         // Pair/Wide plan. Retire its epochs only after that publish ACK.
         if (this.releaseDeferred) this.releaseDeferred();
         if (this.pending) {
+            if (this.pending.cancelGeometry) this.pending.cancelGeometry();
             this.clearTimer(this.pending.timer);
             if (this.pending.cancelIdle) this.pending.cancelIdle();
             this.retainedEpochs.add(this.pending.plan.epoch);
@@ -78,6 +80,7 @@ class ScrollPlanCommitGate {
         const pending = this.pending;
         this.pending = null;
         if (pending) {
+            if (pending.cancelGeometry) pending.cancelGeometry();
             this.clearTimer(pending.timer);
             if (pending.cancelIdle) pending.cancelIdle();
             this.retainedEpochs.add(pending.plan.epoch);
@@ -88,14 +91,24 @@ class ScrollPlanCommitGate {
         this.retainedEpochs.clear();
         epochs.forEach(epoch => this.abort(epoch));
     }
+    supersede() {
+        const pending=this.pending;this.pending=null;
+        if (pending) {
+            if (pending.cancelGeometry) pending.cancelGeometry();
+            this.clearTimer(pending.timer);
+            if (pending.cancelIdle) pending.cancelIdle();
+        }
+    }
     schedule(plan, envelope, context) {
         if (this.pending) {
+            if (this.pending.cancelGeometry) this.pending.cancelGeometry();
             this.clearTimer(this.pending.timer);
             if (this.pending.cancelIdle) this.pending.cancelIdle();
             // The newer arm supersedes ownership. Do not cancel an in-flight
             // arm here: its last painted sample is the next Spring origin.
         }
-        const pending = { plan, envelope, context, activationWindow: null, timer: null };
+        const columnGeometry = envelope.type === "COLUMN_GEOMETRY";
+        const pending = { plan, envelope, context, activationWindow: columnGeometry && context.activationWindow || null, timer: null, phase: "membership" };
         this.pending = pending;
         const commit = () => {
             if (this.pending !== pending) return;
@@ -106,29 +119,95 @@ class ScrollPlanCommitGate {
         };
         const finish = accepted => {
             if (this.pending !== pending || pending.fallback) return;
+            if (columnGeometry) accepted = accepted === true;
             this.clearTimer(pending.timer);
             if (this.currentEpoch() !== plan.epoch) {
+                if (pending.cancelGeometry) pending.cancelGeometry();
+                if (columnGeometry && this.activeEpoch === plan.epoch) this.activeEpoch = null;
                 this.pending = null; this.abort(plan.epoch); return;
             }
-            if (accepted) { pending.nativeAccepted = true; this.activeEpoch = plan.epoch; commit(); return; }
+            if (accepted) {
+                pending.nativeAccepted = true; this.activeEpoch = plan.epoch;
+                if (!columnGeometry) { commit(); return; }
+                const deadline = Number.isInteger(this.geometryTimeoutMs) && this.geometryTimeoutMs > 0 &&
+                    this.geometryTimeoutMs <= 4000 ? this.geometryTimeoutMs : 3500;
+                // A one-shot lifetime deadline, never an animation/completion clock.
+                pending.timer = this.setTimer(() => finish(false), deadline);
+                try {
+                    const cancel = this.columnGeometry.begin(envelope, mayCommit => {
+                        if (this.pending !== pending || this.currentEpoch() !== plan.epoch || !mayCommit())
+                            throw new Error("obsolete geometry commit");
+                        this.commitColumnGeometry(plan, Object.assign({}, context, { nativeScroll: true, deferActivation: true }), mayCommit);
+                    }, ready => {
+                        if (this.pending !== pending || pending.fallback) return;
+                        if (ready !== true || this.currentEpoch() !== plan.epoch ||
+                                (pending.activationWindow && typeof this.activateColumnGeometry !== "function")) {
+                            finish(false); return;
+                        }
+                        this.clearTimer(pending.timer);
+                        this.pending = null;
+                        try {
+                            if (pending.activationWindow && this.activateColumnGeometry)
+                                this.activateColumnGeometry(pending.activationWindow, plan, context);
+                            if (this.currentEpoch() === plan.epoch && this.completeColumnGeometry)
+                                this.completeColumnGeometry(plan, context);
+                        } catch (error) {
+                            this.warn(`[SCROLL_PLAN] geometry completion failed ${error}`);
+                            if (this.activeEpoch === plan.epoch) this.activeEpoch = null;
+                            this.abort(plan.epoch);
+                        }
+                    });
+                    if (typeof cancel !== "function") throw new Error("missing geometry cancellation");
+                    if (this.pending === pending && !pending.fallback) pending.cancelGeometry = cancel;
+                    else if (typeof cancel === "function") cancel();
+                } catch (_error) { finish(false); }
+                return;
+            }
+            if (pending.cancelGeometry) pending.cancelGeometry();
             this.activeEpoch = null;
             pending.fallback = true;
             this.warn(`[SCROLL_PLAN] native fallback epoch=${plan.epoch}`);
+            if (envelope.type === "PARTIAL_SCROLL" || columnGeometry) {
+                // A timeout is not proof that partial paint ownership ended.
+                // Keep safe frames unchanged; JS recovery decides the next plan.
+                this.abort(plan.epoch, cancelled => {
+                    if (this.pending !== pending) return;
+                    this.pending = null;
+                    const failure = columnGeometry ? this.onColumnGeometryFailure : this.onPartialFailure;
+                    if (this.currentEpoch() === plan.epoch && failure)
+                        failure(plan, context, { cancelled });
+                });
+                return;
+            }
             // Normally wait for native ownership removal before legacy geometry
             // signals fire. An unavailable endpoint cannot block layout forever.
             pending.timer = this.setTimer(commit, this.timeoutMs);
             this.abort(plan.epoch, commit);
         };
-        pending.timer = this.setTimer(() => finish(false), this.timeoutMs);
+        pending.timer = this.setTimer(() => {
+            if (!columnGeometry || pending.phase !== "geometry") finish(false);
+        }, this.timeoutMs);
         const prepared = accepted => {
             if (this.pending !== pending || pending.fallback) return;
+            if (columnGeometry && pending.phase !== "membership") return;
+            if (columnGeometry) { accepted = accepted === true; pending.phase = "publish"; }
             if (!accepted) { finish(false); return; }
             try { this.publish(envelope, published => {
                 if (this.pending !== pending || pending.fallback) return;
+                if (columnGeometry && pending.phase !== "publish") return;
+                if (columnGeometry) { published = published === true; pending.phase = "arm"; }
                 if (!published || this.currentEpoch() !== plan.epoch) { finish(false); return; }
-                try { this.arm(envelope, finish); } catch (error) { finish(false); }
+                try { this.arm(envelope, armed => {
+                    if (columnGeometry && pending.phase !== "arm") return;
+                    if (columnGeometry) pending.phase = "geometry";
+                    finish(armed);
+                }); } catch (error) { finish(false); }
             }); } catch (error) { finish(false); }
         };
+        if (columnGeometry && (!this.columnGeometry || typeof this.columnGeometry.begin !== "function" ||
+                typeof this.commitColumnGeometry !== "function")) {
+            finish(false); return;
+        }
         try {
             if (this.prepare) this.prepare(context, prepared);
             else prepared(true);

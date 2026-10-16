@@ -10,6 +10,7 @@ pub fn rust_core_version() -> &'static str {
 
 pub mod viewport_motion;
 
+pub mod partial_input;
 pub mod scroll_retarget;
 pub mod scroll_runtime;
 pub mod scroll_visual;
@@ -20,6 +21,9 @@ pub mod focus_ring;
 #[cfg(test)]
 mod allocation_checks;
 
+pub mod column_geometry;
+#[cfg(test)]
+mod column_geometry_tests;
 pub mod focus_ring_context;
 pub mod native_protocol;
 pub mod workspace_clock;

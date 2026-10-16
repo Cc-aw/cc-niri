@@ -1,0 +1,1500 @@
+
+== generated runtime bundles ==
+
+== production module regression suite ==
+TAP version 13
+# PASS runtime single center, Full/Wide, empty/startup, workspace isolation and snapshot rollback
+# Subtest: test/always-center-single-column-runtime.test.js
+ok 1 - test/always-center-single-column-runtime.test.js
+  ---
+  duration_ms: 414.487323
+  type: 'test'
+  ...
+# PASS single-column membership ACK ordering, generation, failure/timeout, reversal, reindex safety and focusNew
+# Subtest: test/always-center-single-column-transition.test.js
+ok 2 - test/always-center-single-column-transition.test.js
+  ---
+  duration_ms: 576.976166
+  type: 'test'
+  ...
+# PASS single-column inset, disabled compatibility, full geometry, edge dimensions and invariants
+# Subtest: test/always-center-single-column.test.js
+ok 3 - test/always-center-single-column.test.js
+  ---
+  duration_ms: 176.472099
+  type: 'test'
+  ...
+# Subtest: offline animation analysis keeps presentation and motion statistics separate
+ok 4 - offline animation analysis keeps presentation and motion statistics separate
+  ---
+  duration_ms: 58.481527
+  type: 'test'
+  ...
+# PASS half/Full shortcuts, legacy preset migration, editor popup, workspace/reload/transfer and delayed Wayland ACK
+# Subtest: test/column-width-runtime.test.js
+ok 5 - test/column-width-runtime.test.js
+  ---
+  duration_ms: 569.067376
+  type: 'test'
+  ...
+# PASS ContextualViewport is the sole viewport writer
+# Subtest: test/contextual-viewport-owner.test.js
+ok 6 - test/contextual-viewport-owner.test.js
+  ---
+  duration_ms: 163.905543
+  type: 'test'
+  ...
+# PASS focus intent and persistent Wide preference remain separate
+# Subtest: test/contextual-viewport.test.js
+ok 7 - test/contextual-viewport.test.js
+  ---
+  duration_ms: 183.608368
+  type: 'test'
+  ...
+# PASS ContextualWideCoordinator owns parking and exit lifecycles
+# Subtest: test/contextual-wide-coordinator.test.js
+ok 8 - test/contextual-wide-coordinator.test.js
+  ---
+  duration_ms: 177.84136
+  type: 'test'
+  ...
+# PASS controller composition validates and owns runtime controllers
+# Subtest: test/controller-composition.test.js
+ok 9 - test/controller-composition.test.js
+  ---
+  duration_ms: 183.37375
+  type: 'test'
+  ...
+# PASS scoped native completion, deferred parking, stale callbacks and cancellation
+# Subtest: test/deferred-scroll-parking.test.js
+ok 10 - test/deferred-scroll-parking.test.js
+  ---
+  duration_ms: 194.595303
+  type: 'test'
+  ...
+# PASS Phase 10 isolates Dock fork state, IPC, order, presentation, and appearance
+# Subtest: test/dock-fork-modules.test.js
+ok 11 - test/dock-fork-modules.test.js
+  ---
+  duration_ms: 183.928267
+  type: 'test'
+  ...
+# PASS DockScrollController owns stepwise scrolling and activation order
+# Subtest: test/dock-scroll-controller.test.js
+ok 12 - test/dock-scroll-controller.test.js
+  ---
+  duration_ms: 185.73989
+  type: 'test'
+  ...
+# [cc-scroll-tasks] invalid state schema
+# PASS Dock consumes active protocol 1/2 columns without flattening sleeping workspaces
+# Subtest: test/dock-state-protocol.test.js
+ok 13 - test/dock-state-protocol.test.js
+  ---
+  duration_ms: 211.871136
+  type: 'test'
+  ...
+# PASS Dock clicks traverse adjacent viewports through the FIFO Bridge
+# Subtest: test/dock-stepwise-scroll.test.js
+ok 14 - test/dock-stepwise-scroll.test.js
+  ---
+  duration_ms: 180.707505
+  type: 'test'
+  ...
+# PASS Phase 8.5 dock state schema and UUID normalization
+# Subtest: test/dock-sync-schema.test.js
+ok 15 - test/dock-sync-schema.test.js
+  ---
+  duration_ms: 194.568015
+  type: 'test'
+  ...
+# PASS P7 installer: default core-only and explicit Dock paths, compiler selection, lifecycle order, existing Dock/settings preservation and no default Plasma restart
+# Subtest: test/dockless-install.test.js
+ok 16 - test/dockless-install.test.js
+  ---
+  duration_ms: 15705.44057
+  type: 'test'
+  ...
+# PASS P7 Dockless core: default absent planner, disabled UI commands, keyboard workflow, persistence, generic Wide completion/recovery/Ring transport and explicit Dock compatibility
+# Subtest: test/dockless-runtime.test.js
+ok 17 - test/dockless-runtime.test.js
+  ---
+  duration_ms: 456.997405
+  type: 'test'
+  ...
+# PASS production dynamic workspace opt-in, native signals, no focus/column changes and emergency cancellation
+# Subtest: test/dynamic-workspace-runtime.test.js
+ok 18 - test/dynamic-workspace-runtime.test.js
+  ---
+  duration_ms: 287.478162
+  type: 'test'
+  ...
+# PASS dynamic trailing desktop: opt-in, primary occupancy, barriers, native reentry, lifetime and create failures
+# Subtest: test/dynamic-workspace.test.js
+ok 19 - test/dynamic-workspace.test.js
+  ---
+  duration_ms: 201.286634
+  type: 'test'
+  ...
+# PASS animation target follows layout output selection across DP, laptop and hotplug
+# Subtest: test/effect-output-target.test.js
+ok 20 - test/effect-output-target.test.js
+  ---
+  duration_ms: 194.881405
+  type: 'test'
+  ...
+# PASS Phase 10 managed/floating toggle and interactive detach
+# Subtest: test/floating-phase10.test.js
+ok 21 - test/floating-phase10.test.js
+  ---
+  duration_ms: 181.845174
+  type: 'test'
+  ...
+# PASS independent focus eligibility, transaction activation, lifecycle cleanup and effect-on resend
+# Subtest: test/focus-ring-controller.test.js
+ok 22 - test/focus-ring-controller.test.js
+  ---
+  duration_ms: 170.317977
+  type: 'test'
+  ...
+# PASS generated runtime independent channel, active transaction, off/on resync, floating, J/K mount and stop
+# Subtest: test/focus-ring-runtime.test.js
+ok 23 - test/focus-ring-runtime.test.js
+  ---
+  duration_ms: 250.312906
+  type: 'test'
+  ...
+# PASS native per-window focused feedback and lightweight Dock visuals
+# Subtest: test/focused-feedback.test.js
+ok 24 - test/focused-feedback.test.js
+  ---
+  duration_ms: 184.501829
+  type: 'test'
+  ...
+# PASS Full survives generated-runtime H/L, J/K, reload, native transfer and Wide commands
+# Subtest: test/full-column-runtime.test.js
+ok 25 - test/full-column-runtime.test.js
+  ---
+  duration_ms: 305.321103
+  type: 'test'
+  ...
+# PASS Full strip geometry, SCROLL protocol and protocol 1/2 persistent width roundtrip
+# Subtest: test/full-column.test.js
+ok 26 - test/full-column.test.js
+  ---
+  duration_ms: 199.612382
+  type: 'test'
+  ...
+# PASS Full/half visibility, workspace handoff and async ACK focus retention in both resize directions
+# Subtest: test/full-half-partial.test.js
+ok 27 - test/full-half-partial.test.js
+  ---
+  duration_ms: 376.50217
+  type: 'test'
+  ...
+# PASS Full reuses Pair/Wide transactions: ACK ordering, 8px gap, solo, retarget, Wayland ACK and workspace freeze/parking
+# Subtest: test/full-width-animation.test.js
+ok 28 - test/full-width-animation.test.js
+  ---
+  duration_ms: 648.537331
+  type: 'test'
+  ...
+# PASS FullscreenController preserves fullscreen lifecycle semantics
+# Subtest: test/fullscreen-controller.test.js
+ok 29 - test/fullscreen-controller.test.js
+  ---
+  duration_ms: 184.950349
+  type: 'test'
+  ...
+# PASS generated KWin and Effect bundles match source modules
+# Subtest: test/generated-package.test.js
+ok 30 - test/generated-package.test.js
+  ---
+  duration_ms: 364.19024
+  type: 'test'
+  ...
+# PASS V2 safe-area geometry for all eight Quick Tile modes
+# PASS secondary-output 24 px outer gaps and 8 px inner gap
+# Subtest: test/geometry-v2.test.js
+ok 31 - test/geometry-v2.test.js
+  ---
+  duration_ms: 194.754348
+  type: 'test'
+  ...
+# PASS pure LayoutPlan and ordered GeometryCommitter behavior
+# Subtest: test/layout-plan.test.js
+ok 32 - test/layout-plan.test.js
+  ---
+  duration_ms: 214.055159
+  type: 'test'
+  ...
+# Subtest: 5000 lost Native cancel ACKs retire their request and timer at the protocol deadline
+ok 33 - 5000 lost Native cancel ACKs retire their request and timer at the protocol deadline
+  ---
+  duration_ms: 16.642357
+  type: 'test'
+  ...
+# Subtest: 5000 model window closes release Ring watchers, tombstones and window states
+ok 34 - 5000 model window closes release Ring watchers, tombstones and window states
+  ---
+  duration_ms: 206.174035
+  type: 'test'
+  ...
+# Subtest: 5000 snapshot close and workspace recycle cycles leave no historical UUID owners
+ok 35 - 5000 snapshot close and workspace recycle cycles leave no historical UUID owners
+  ---
+  duration_ms: 80.083279
+  type: 'test'
+  ...
+# PASS ColumnStore and WindowStateStore ownership invariants
+# Subtest: test/model-stores.test.js
+ok 34 - test/model-stores.test.js
+  ---
+  duration_ms: 194.980982
+  type: 'test'
+  ...
+# PASS MotionClassifier owns Effect geometry classification
+# Subtest: test/motion-classifier.test.js
+ok 35 - test/motion-classifier.test.js
+  ---
+  duration_ms: 190.274511
+  type: 'test'
+  ...
+# PASS MotionController owns retargetable Effect animation state
+# Subtest: test/motion-controller.test.js
+ok 36 - test/motion-controller.test.js
+  ---
+  duration_ms: 192.110501
+  type: 'test'
+  ...
+# PASS motion-plan gate commits only the current ACKed layout
+# Subtest: test/motion-plan-commit-gate.test.js
+ok 37 - test/motion-plan-commit-gate.test.js
+  ---
+  duration_ms: 202.928869
+  type: 'test'
+  ...
+# PASS MotionProfiles maps every motion type without executing motion
+# Subtest: test/motion-profiles.test.js
+ok 38 - test/motion-profiles.test.js
+  ---
+  duration_ms: 189.7551
+  type: 'test'
+  ...
+# PASS retargetable Motion preserves the current visual state
+# Subtest: test/motion-retarget.test.js
+ok 39 - test/motion-retarget.test.js
+  ---
+  duration_ms: 171.521426
+  type: 'test'
+  ...
+# PASS MotionSampler owns pure Effect motion sampling
+# Subtest: test/motion-sampler.test.js
+ok 40 - test/motion-sampler.test.js
+  ---
+  duration_ms: 203.443776
+  type: 'test'
+  ...
+# PASS MotionTokens is the generated Effect token source
+# Subtest: test/motion-tokens.test.js
+ok 41 - test/motion-tokens.test.js
+  ---
+  duration_ms: 200.259902
+  type: 'test'
+  ...
+# PASS MotionTransaction owns grouped scroll transition state
+# Subtest: test/motion-transaction.test.js
+ok 42 - test/motion-transaction.test.js
+  ---
+  duration_ms: 194.630842
+  type: 'test'
+  ...
+# PASS immutable native deployment preserves mapped inodes and reloads a new canonical path
+# Subtest: test/native-clip-install.test.js
+ok 43 - test/native-clip-install.test.js
+  ---
+  duration_ms: 969.74413
+  type: 'test'
+  ...
+# PASS native ACK reveals incoming before commit while fallback retains hidden commit order
+# Subtest: test/native-incoming-commit.test.js
+ok 44 - test/native-incoming-commit.test.js
+  ---
+  duration_ms: 190.545232
+  type: 'test'
+  ...
+# PASS native motion capability plus typed scoped frame ownership, Wide and fallback boundaries
+# Subtest: test/native-scroll-ownership.test.js
+ok 45 - test/native-scroll-ownership.test.js
+  ---
+  duration_ms: 195.033101
+  type: 'test'
+  ...
+# PASS native viewport clip uses KWin device-space paint region
+# Subtest: test/native-viewport-clip.test.js
+ok 46 - test/native-viewport-clip.test.js
+  ---
+  duration_ms: 195.36536
+  type: 'test'
+  ...
+# PASS OutputController preserves cross-output lifecycle semantics
+# Subtest: test/output-controller.test.js
+ok 47 - test/output-controller.test.js
+  ---
+  duration_ms: 194.943928
+  type: 'test'
+  ...
+# PASS CC-owned parking transitions acquire and release KWin grabs
+# Subtest: test/parking-animation-grabber.test.js
+ok 48 - test/parking-animation-grabber.test.js
+  ---
+  duration_ms: 195.137953
+  type: 'test'
+  ...
+# PASS PresentationController owns presentation state and commits
+# Subtest: test/presentation-controller.test.js
+ok 49 - test/presentation-controller.test.js
+  ---
+  duration_ms: 198.616289
+  type: 'test'
+  ...
+# PASS Phase 9.5 presentation geometry, state paths, and Dock menu
+# Subtest: test/presentation-phase9_5.test.js
+ok 50 - test/presentation-phase9_5.test.js
+  ---
+  duration_ms: 194.839453
+  type: 'test'
+  ...
+# PASS ReorderController unifies Dock and keyboard reorder semantics
+# Subtest: test/reorder-controller.test.js
+ok 51 - test/reorder-controller.test.js
+  ---
+  duration_ms: 211.957862
+  type: 'test'
+  ...
+# PASS RuntimeBridge owns session, generation, schema, and transport
+# Subtest: test/runtime-bridge.test.js
+ok 52 - test/runtime-bridge.test.js
+  ---
+  duration_ms: 203.015207
+  type: 'test'
+  ...
+# PASS runtime config and output topology use production modules
+# Subtest: test/runtime-config-output.test.js
+ok 53 - test/runtime-config-output.test.js
+  ---
+  duration_ms: 210.47111
+  type: 'test'
+  ...
+# PASS terminal lifecycle controls recover before unloading and deploy before restarting
+# Subtest: test/runtime-control.test.js
+ok 54 - test/runtime-control.test.js
+  ---
+  duration_ms: 18063.724739
+  type: 'test'
+  ...
+# PASS CCNiri entry façade and shortcut catalog preserve runtime contract
+# Subtest: test/runtime-entry.test.js
+ok 55 - test/runtime-entry.test.js
+  ---
+  duration_ms: 200.983289
+  type: 'test'
+  ...
+# PASS runtime lifecycle owns idempotent start, stop, signals, and shortcuts
+# Subtest: test/runtime-lifecycle.test.js
+ok 56 - test/runtime-lifecycle.test.js
+  ---
+  duration_ms: 201.346956
+  type: 'test'
+  ...
+# PASS runtime logger classifies categories and avoids disabled lazy work
+# Subtest: test/runtime-logger.test.js
+ok 57 - test/runtime-logger.test.js
+  ---
+  duration_ms: 196.005248
+  type: 'test'
+  ...
+# PASS KWin runtime timer disconnects its exact callback
+# Subtest: test/runtime-timer.test.js
+ok 58 - test/runtime-timer.test.js
+  ---
+  duration_ms: 186.545016
+  type: 'test'
+  ...
+# Subtest: V2 presets use the documented logical widths and uniform vertical gap
+ok 61 - V2 presets use the documented logical widths and uniform vertical gap
+  ---
+  duration_ms: 8.283794
+  type: 'test'
+  ...
+# Subtest: V2 twoThirds center exposes a full-sized right neighbor only to OutputRect
+ok 62 - V2 twoThirds center exposes a full-sized right neighbor only to OutputRect
+  ---
+  duration_ms: 0.832534
+  type: 'test'
+  ...
+# Subtest: V2 left and simultaneous partial neighbors keep their original widths
+ok 63 - V2 left and simultaneous partial neighbors keep their original widths
+  ---
+  duration_ms: 0.818715
+  type: 'test'
+  ...
+# Subtest: V2 H/L target policy preserves prefix/width, fits half minimally and centers twoThirds
+ok 64 - V2 H/L target policy preserves prefix/width, fits half minimally and centers twoThirds
+  ---
+  duration_ms: 1.263355
+  type: 'test'
+  ...
+# Subtest: V2 single and first/last twoThirds can center with a nonnegative camera
+ok 65 - V2 single and first/last twoThirds can center with a nonnegative camera
+  ---
+  duration_ms: 1.344352
+  type: 'test'
+  ...
+# Subtest: V2 Full is an ordinary gap-preserving column, not a Wide presentation
+ok 66 - V2 Full is an ordinary gap-preserving column, not a Wide presentation
+  ---
+  duration_ms: 0.651637
+  type: 'test'
+  ...
+# Subtest: V2 panel WorkingArea, OutputRect and physical scale remain separate
+ok 67 - V2 panel WorkingArea, OutputRect and physical scale remain separate
+  ---
+  duration_ms: 0.558693
+  type: 'test'
+  ...
+# Subtest: V2 matrix covers mixed widths, odd sizes, gap 0/16 and 100/125/150/175/200% rounding
+ok 68 - V2 matrix covers mixed widths, odd sizes, gap 0/16 and 100/125/150/175/200% rounding
+  ---
+  duration_ms: 13.000381
+  type: 'test'
+  ...
+# Subtest: V2 excessive gaps and tiny outputs remain finite and diagnosable
+ok 69 - V2 excessive gaps and tiny outputs remain finite and diagnosable
+  ---
+  duration_ms: 3.060164
+  type: 'test'
+  ...
+# Subtest: V2 missing/invalid WorkArea falls back conservatively instead of covering panels
+ok 70 - V2 missing/invalid WorkArea falls back conservatively instead of covering panels
+  ---
+  duration_ms: 2.841343
+  type: 'test'
+  ...
+# Subtest: P0 right partial keeps client size and real frame on primary
+ok 71 - P0 right partial keeps client size and real frame on primary
+  ---
+  duration_ms: 6.865113
+  type: 'test'
+  ...
+# Subtest: P0 left and simultaneous partial neighbors stay bounded
+ok 72 - P0 left and simultaneous partial neighbors stay bounded
+  ---
+  duration_ms: 0.515683
+  type: 'test'
+  ...
+# Subtest: P0 output origin can be negative; touching edges are not visible
+ok 73 - P0 output origin can be negative; touching edges are not visible
+  ---
+  duration_ms: 0.458284
+  type: 'test'
+  ...
+# Subtest: P0 oversize and nonfinite geometry fail closed
+ok 74 - P0 oversize and nonfinite geometry fail closed
+  ---
+  duration_ms: 0.347365
+  type: 'test'
+  ...
+# Subtest: P0 native rectangle hit test can choose visually covered background B
+ok 75 - P0 native rectangle hit test can choose visually covered background B
+  ---
+  duration_ms: 0.417522
+  type: 'test'
+  ...
+# Subtest: P0 correct window ID still gives wrong local coordinate without remapping
+ok 76 - P0 correct window ID still gives wrong local coordinate without remapping
+  ---
+  duration_ms: 0.368475
+  type: 'test'
+  ...
+# Subtest: P0 surface and expanded Ring clip share strict physical output bound
+ok 77 - P0 surface and expanded Ring clip share strict physical output bound
+  ---
+  duration_ms: 1.183468
+  type: 'test'
+  ...
+# Subtest: P0 fallback consumes press and release even after focus or geometry becomes ready
+ok 78 - P0 fallback consumes press and release even after focus or geometry becomes ready
+  ---
+  duration_ms: 0.416352
+  type: 'test'
+  ...
+# Subtest: P0 fallback does not forward wheel or a second button during suppressed sequence
+ok 79 - P0 fallback does not forward wheel or a second button during suppressed sequence
+  ---
+  duration_ms: 0.721454
+  type: 'test'
+  ...
+# Subtest: P0 fallback waits for actual geometry, not focus intent
+ok 80 - P0 fallback waits for actual geometry, not focus intent
+  ---
+  duration_ms: 1.144039
+  type: 'test'
+  ...
+# Subtest: P0 production GeometryCommitter parks partial without Native ownership
+ok 81 - P0 production GeometryCommitter parks partial without Native ownership
+  ---
+  duration_ms: 1.4368
+  type: 'test'
+  ...
+# Subtest: P0 production GeometryCommitter supersedes an unacknowledged configure
+ok 82 - P0 production GeometryCommitter supersedes an unacknowledged configure
+  ---
+  duration_ms: 0.54877
+  type: 'test'
+  ...
+# Subtest: P0 Native probe refuses --inside on a normal desktop before any app or write
+ok 83 - P0 Native probe refuses --inside on a normal desktop before any app or write
+  ---
+  duration_ms: 215.450055
+  type: 'test'
+  ...
+# Subtest: P0 Native probe refuses --clients on a normal desktop before any app or write
+ok 84 - P0 Native probe refuses --clients on a normal desktop before any app or write
+  ---
+  duration_ms: 166.313659
+  type: 'test'
+  ...
+# Subtest: P0 Native probe refuses --panel on a normal desktop before any app or write
+ok 85 - P0 Native probe refuses --panel on a normal desktop before any app or write
+  ---
+  duration_ms: 159.559816
+  type: 'test'
+  ...
+# Subtest: P2 all focus sources share one camera policy and one epoch per changed focus
+ok 86 - P2 all focus sources share one camera policy and one epoch per changed focus
+  ---
+  duration_ms: 21.274149
+  type: 'test'
+  ...
+# Subtest: P2 rapid H/L uses desired focus while retarget sources retain observed camera
+ok 87 - P2 rapid H/L uses desired focus while retarget sources retain observed camera
+  ---
+  duration_ms: 2.049448
+  type: 'test'
+  ...
+# Subtest: P2 closing left/right/focused mixed columns preserves painted survivor sources
+ok 88 - P2 closing left/right/focused mixed columns preserves painted survivor sources
+  ---
+  duration_ms: 3.090675
+  type: 'test'
+  ...
+# Subtest: P2 last mixed survivor centers with exact painted source and never uses COLUMN_REINDEX
+ok 89 - P2 last mixed survivor centers with exact painted source and never uses COLUMN_REINDEX
+  ---
+  duration_ms: 1.868026
+  type: 'test'
+  ...
+# Subtest: P2 insert/move/reorder preserve IDs, focus identity, independent widths and source pose
+ok 90 - P2 insert/move/reorder preserve IDs, focus identity, independent widths and source pose
+  ---
+  duration_ms: 3.392172
+  type: 'test'
+  ...
+# Subtest: P2 empty -> first column and width shortcut use one event/epoch with no legacy transaction
+ok 91 - P2 empty -> first column and width shortcut use one event/epoch with no legacy transaction
+  ---
+  duration_ms: 1.459557
+  type: 'test'
+  ...
+# Subtest: P2 synchronous adoption/activation/geometry callbacks coalesce and duplicates issue no epoch
+ok 92 - P2 synchronous adoption/activation/geometry callbacks coalesce and duplicates issue no epoch
+  ---
+  duration_ms: 1.174596
+  type: 'test'
+  ...
+# Subtest: P2 mount/restoration queries actual workspace, accepts signed in-memory anchor, rejects old scope ACK
+ok 93 - P2 mount/restoration queries actual workspace, accepts signed in-memory anchor, rejects old scope ACK
+  ---
+  duration_ms: 1.394999
+  type: 'test'
+  ...
+# Subtest: P2 stale/regressed/wrong scope/invalid paint facts are never replaced with fabricated target poses
+ok 94 - P2 stale/regressed/wrong scope/invalid paint facts are never replaced with fabricated target poses
+  ---
+  duration_ms: 3.694193
+  type: 'test'
+  ...
+# Subtest: P2 panel/output geometry changes rebase once; output identity replacement cannot reuse old source
+ok 95 - P2 panel/output geometry changes rebase once; output identity replacement cannot reuse old source
+  ---
+  duration_ms: 1.933686
+  type: 'test'
+  ...
+# Subtest: P2 closed QObject is released even during departure without reading destroyed properties
+ok 96 - P2 closed QObject is released even during departure without reading destroyed properties
+  ---
+  duration_ms: 0.728014
+  type: 'test'
+  ...
+# Subtest: P2 optional Dock, native-only/floating/fullscreen/secondary/sticky and disabled paths stay inert
+ok 97 - P2 optional Dock, native-only/floating/fullscreen/secondary/sticky and disabled paths stay inert
+  ---
+  duration_ms: 0.890132
+  type: 'test'
+  ...
+# Subtest: P2 stop or callback failure during adoption clears bounded state and suppresses targets
+ok 98 - P2 stop or callback failure during adoption clears bounded state and suppresses targets
+  ---
+  duration_ms: 1.477127
+  type: 'test'
+  ...
+# Subtest: P2 repeated insert/close keeps one target, no dead UUIDs and no historical window references
+ok 99 - P2 repeated insert/close keeps one target, no dead UUIDs and no historical window references
+  ---
+  duration_ms: 155.708541
+  type: 'test'
+  ...
+# Subtest: P2 batched membership changes and subsequent unpainted closes retain only verified survivor poses
+ok 100 - P2 batched membership changes and subsequent unpainted closes retain only verified survivor poses
+  ---
+  duration_ms: 3.934995
+  type: 'test'
+  ...
+# Subtest: P2 repeated signed-anchor restoration is idempotent and malformed mount is atomic
+ok 101 - P2 repeated signed-anchor restoration is idempotent and malformed mount is atomic
+  ---
+  duration_ms: 1.028946
+  type: 'test'
+  ...
+# Subtest: P2 persistent cleanup callback failure is observable while model/output references still release
+ok 102 - P2 persistent cleanup callback failure is observable while model/output references still release
+  ---
+  duration_ms: 0.381278
+  type: 'test'
+  ...
+# Subtest: V2 strict half -> twoThirds -> full -> half cycle changes only the active column
+ok 103 - V2 strict half -> twoThirds -> full -> half cycle changes only the active column
+  ---
+  duration_ms: 9.905603
+  type: 'test'
+  ...
+# Subtest: V2 Full toggle remembers half or twoThirds independently for each column
+ok 104 - V2 Full toggle remembers half or twoThirds independently for each column
+  ---
+  duration_ms: 1.574938
+  type: 'test'
+  ...
+# Subtest: V2 model normalizes unsupported widths and invalid Full memory without changing V1
+ok 105 - V2 model normalizes unsupported widths and invalid Full memory without changing V1
+  ---
+  duration_ms: 0.552849
+  type: 'test'
+  ...
+# Subtest: V2 width controller ignores fullscreen/floating/secondary/switching/disabled/null
+ok 106 - V2 width controller ignores fullscreen/floating/secondary/switching/disabled/null
+  ---
+  duration_ms: 0.597468
+  type: 'test'
+  ...
+# Subtest: V2 config defaults off and validates gap separately from all old gaps
+ok 107 - V2 config defaults off and validates gap separately from all old gaps
+  ---
+  duration_ms: 1.949336
+  type: 'test'
+  ...
+# Subtest: P1 production entry fails closed for a manually requested V2 until later phase gates
+ok 108 - P1 production entry fails closed for a manually requested V2 until later phase gates
+  ---
+  duration_ms: 61.679091
+  type: 'test'
+  ...
+# PASS V3 column model, derived positions, clamp, and minimal scrolling
+# PASS V3 H/L activates only after the target geometry is visible
+# PASS V3 deterministic runtime adoption and primary-output departures
+# Subtest: test/scroll-layout-v3.test.js
+ok 64 - test/scroll-layout-v3.test.js
+  ---
+  duration_ms: 211.491422
+  type: 'test'
+  ...
+# PASS explicit SCROLL plans preserve existing geometry/focus and workspace barriers
+# Subtest: test/scroll-motion-plan.test.js
+ok 65 - test/scroll-motion-plan.test.js
+  ---
+  duration_ms: 292.959349
+  type: 'test'
+  ...
+# PASS only matching native continuing bypasses scripted channels; entry/exit/fallback survive
+# PASS native incoming bypass preserves outgoing and fallback
+# PASS native outgoing finalizer suppresses duplicate animation only for owned frame
+# PASS capability loss and unarmed native effect preserve legacy SCROLL
+# PASS all native SCROLL roles skip legacy transaction creation and every animation channel
+# Subtest: test/scroll-native-continuing.test.js
+ok 66 - test/scroll-native-continuing.test.js
+  ---
+  duration_ms: 197.789613
+  type: 'test'
+  ...
+# PASS real outgoing frame, completion parking, workspace and close barriers, legacy fallback
+# Subtest: test/scroll-outgoing-runtime.test.js
+ok 67 - test/scroll-outgoing-runtime.test.js
+  ---
+  duration_ms: 335.624496
+  type: 'test'
+  ...
+# PASS native ACK precedes geometry/focus, timeout/rejection/switch cancel ownership
+# Subtest: test/scroll-plan-commit-gate.test.js
+ok 68 - test/scroll-plan-commit-gate.test.js
+  ---
+  duration_ms: 266.083562
+  type: 'test'
+  ...
+# PASS rapid retarget retains outgoing, latest focus and ACK ownership, focus-only motion, fallback
+# PASS retarget interrupted by workspace switch and outgoing close rejects stale replies
+# Subtest: test/scroll-retarget-runtime.test.js
+ok 69 - test/scroll-retarget-runtime.test.js
+  ---
+  duration_ms: 370.32289
+  type: 'test'
+  ...
+# PASS mid-scroll reversal, uncommitted return, mixed keys, stale completion/ACK, workspace and fallback
+# PASS completed-motion return and refused reversal restore visibility and focus
+# Subtest: test/scroll-reverse-runtime.test.js
+ok 70 - test/scroll-reverse-runtime.test.js
+  ---
+  duration_ms: 481.912852
+  type: 'test'
+  ...
+# PASS V3 full-delta transitions with native-clip-gated safe fallback
+# Subtest: test/scroll-transition-v3.test.js
+ok 71 - test/scroll-transition-v3.test.js
+  ---
+  duration_ms: 199.883681
+  type: 'test'
+  ...
+# Subtest: secondary eligibility uses its own desktop and survives primary switching
+ok 117 - secondary eligibility uses its own desktop and survives primary switching
+  ---
+  duration_ms: 13.39645
+  type: 'test'
+  ...
+# Subtest: secondary maximize signals apply 24px gaps and toggle back to the original geometry
+ok 118 - secondary maximize signals apply 24px gaps and toggle back to the original geometry
+  ---
+  duration_ms: 11.217902
+  type: 'test'
+  ...
+# Subtest: startup adopts a secondary native-maximized window on an independent desktop
+ok 119 - startup adopts a secondary native-maximized window on an independent desktop
+  ---
+  duration_ms: 4.168367
+  type: 'test'
+  ...
+# Subtest: secondary desktop activation adopts native maximize skipped at startup
+ok 120 - secondary desktop activation adopts native maximize skipped at startup
+  ---
+  duration_ms: 4.986667
+  type: 'test'
+  ...
+# Subtest: secondary fullscreen exits back to safe maximize and preserves normal restore geometry
+ok 121 - secondary fullscreen exits back to safe maximize and preserves normal restore geometry
+  ---
+  duration_ms: 4.520455
+  type: 'test'
+  ...
+# Subtest: secondary native tile geometry reset restores gaps without primary adoption
+ok 122 - secondary native tile geometry reset restores gaps without primary adoption
+  ---
+  duration_ms: 4.126911
+  type: 'test'
+  ...
+# Subtest: primary Column maximize keeps its presentation authority
+ok 123 - primary Column maximize keeps its presentation authority
+  ---
+  duration_ms: 6.098077
+  type: 'test'
+  ...
+# PASS deterministic new-window adoption state machine
+# Subtest: test/stability-adoption-state-machine.test.js
+ok 73 - test/stability-adoption-state-machine.test.js
+  ---
+  duration_ms: 213.980171
+  type: 'test'
+  ...
+# PASS stability parking ownership and emergency recovery
+# Subtest: test/stability-parking-recovery.test.js
+ok 74 - test/stability-parking-recovery.test.js
+  ---
+  duration_ms: 206.396244
+  type: 'test'
+  ...
+# PASS stability supervisor delayed verification and fail-safe
+# Subtest: test/stability-supervisor.test.js
+ok 75 - test/stability-supervisor.test.js
+  ---
+  duration_ms: 213.144791
+  type: 'test'
+  ...
+# PASS stability layout transactions and invariant auditing
+# Subtest: test/stability-transactions.test.js
+ok 76 - test/stability-transactions.test.js
+  ---
+  duration_ms: 218.816932
+  type: 'test'
+  ...
+# PASS startup layout restores saved order, late slots, and viewport anchor
+# Subtest: test/startup-layout.test.js
+ok 77 - test/startup-layout.test.js
+  ---
+  duration_ms: 240.620433
+  type: 'test'
+  ...
+# PASS viewport clip diagnostic tint is explicit and non-destructive
+# Subtest: test/viewport-clip-controller.test.js
+ok 78 - test/viewport-clip-controller.test.js
+  ---
+  duration_ms: 209.25706
+  type: 'test'
+  ...
+# PASS desktop topology uses stable IDs and non-wrapping KDE order
+# Subtest: test/virtual-desktop-topology.test.js
+ok 79 - test/virtual-desktop-topology.test.js
+  ---
+  duration_ms: 205.117616
+  type: 'test'
+  ...
+# PASS contextual Wide uses guarded geometry ACK and deferred parking
+# Subtest: test/wide-deferred-transition.test.js
+ok 80 - test/wide-deferred-transition.test.js
+  ---
+  duration_ms: 195.49636
+  type: 'test'
+  ...
+# PASS Wide exit gates incoming neighbor on target geometry ACK
+# Subtest: test/wide-exit-geometry-ack.test.js
+ok 81 - test/wide-exit-geometry-ack.test.js
+  ---
+  duration_ms: 194.243989
+  type: 'test'
+  ...
+# PASS Wide neighbor reversal and no-geometry exit cannot retain old opacity holds
+# Subtest: test/wide-neighbor-race.test.js
+ok 82 - test/wide-neighbor-race.test.js
+  ---
+  duration_ms: 228.855218
+  type: 'test'
+  ...
+# PASS off-screen Wide navigation reveals Pair before a second directional press
+# Subtest: test/wide-offscreen-navigation.test.js
+ok 83 - test/wide-offscreen-navigation.test.js
+  ---
+  duration_ms: 231.874864
+  type: 'test'
+  ...
+# PASS Wide/Pair target and neighbor share edge-coupled geometry
+# Subtest: test/wide-return-transition.test.js
+ok 84 - test/wide-return-transition.test.js
+  ---
+  duration_ms: 209.535354
+  type: 'test'
+  ...
+# PASS directional Wide navigation uses one contextual viewport step
+# Subtest: test/wide-transition-controller.test.js
+ok 85 - test/wide-transition-controller.test.js
+  ---
+  duration_ms: 182.895435
+  type: 'test'
+  ...
+# PASS policy-floating lifecycle, dynamic transitions, and floating isolation
+# Subtest: test/window-policy-lifecycle.test.js
+ok 86 - test/window-policy-lifecycle.test.js
+  ---
+  duration_ms: 210.823679
+  type: 'test'
+  ...
+# PASS WindowPolicy classifies semantic ownership and layout eligibility
+# Subtest: test/window-policy.test.js
+ok 87 - test/window-policy.test.js
+  ---
+  duration_ms: 196.496112
+  type: 'test'
+  ...
+# PASS workspace adoption ordering, native sticky detach and activation without focus stealing
+# Subtest: test/workspace-adoption.test.js
+ok 88 - test/workspace-adoption.test.js
+  ---
+  duration_ms: 192.209068
+  type: 'test'
+  ...
+# PASS workspace animation start/stop isolates one owner and restores enabled/disabled Slide preferences
+# Subtest: test/workspace-animation-cli.test.js
+ok 89 - test/workspace-animation-cli.test.js
+  ---
+  duration_ms: 41744.025986
+  type: 'test'
+  ...
+# PASS read-only workspace API probe records topology, output signals, transfers and late windows
+# Subtest: test/workspace-api-probe.test.js
+ok 90 - test/workspace-api-probe.test.js
+  ---
+  duration_ms: 196.022331
+  type: 'test'
+  ...
+# Subtest: workspace transition analysis excludes idle and preserves long first/tail frames
+ok 142 - workspace transition analysis excludes idle and preserves long first/tail frames
+  ---
+  duration_ms: 70.969992
+  type: 'test'
+  ...
+# Subtest: workspace transition analysis separates completed transitions and output timelines
+ok 143 - workspace transition analysis separates completed transitions and output timelines
+  ---
+  duration_ms: 64.925569
+  type: 'test'
+  ...
+# Subtest: workspace transition analysis marks missing finishes, truncation and invalid samples
+ok 144 - workspace transition analysis marks missing finishes, truncation and invalid samples
+  ---
+  duration_ms: 57.506319
+  type: 'test'
+  ...
+# PASS P6 direct Column move: all nine bindings, current numbering, stable in-flight IDs, occupied/empty targets, actual focus, preferences, motion barriers and dynamic workspaces
+# Subtest: test/workspace-direct-move-runtime.test.js
+ok 92 - test/workspace-direct-move-runtime.test.js
+  ---
+  duration_ms: 787.702067
+  type: 'test'
+  ...
+# PASS P5 direct workspace shortcuts: current order, ID authority, no-op boundaries, primary output, preferences and existing motion/switch barriers
+# Subtest: test/workspace-direct-runtime.test.js
+ok 93 - test/workspace-direct-runtime.test.js
+  ---
+  duration_ms: 604.34355
+  type: 'test'
+  ...
+# PASS production Effect workspace cleanup, stale callbacks, sleeping windows and animation restart
+# Subtest: test/workspace-effect-runtime.test.js
+ok 94 - test/workspace-effect-runtime.test.js
+  ---
+  duration_ms: 192.961175
+  type: 'test'
+  ...
+# PASS workspace membership, mounted ownership and UUID snapshot conflicts are critical invariants
+# Subtest: test/workspace-invariants.test.js
+ok 95 - test/workspace-invariants.test.js
+  ---
+  duration_ms: 183.638937
+  type: 'test'
+  ...
+# PASS workspace membership excludes sticky, multi-desktop and unknown membership
+# Subtest: test/workspace-membership.test.js
+ok 96 - test/workspace-membership.test.js
+  ---
+  duration_ms: 190.16526
+  type: 'test'
+  ...
+# PASS workspace mode CLI uses native per-output desktops and restores rejected settings
+# Subtest: test/workspace-mode-cli.test.js
+ok 97 - test/workspace-mode-cli.test.js
+  ---
+  duration_ms: 2640.251705
+  type: 'test'
+  ...
+# PASS batch workspace mount preserves order, focus, anchor, sleeping parking and recovery
+# PASS workspace Wide viewport restores only its surviving focused UUID with fresh Column ID
+# Subtest: test/workspace-mount-controller.test.js
+ok 98 - test/workspace-mount-controller.test.js
+  ---
+  duration_ms: 210.797256
+  type: 'test'
+  ...
+# PASS P4 managed Column move-and-follow: width/preferences, primary output, source focus, ACK barriers, lifecycle, native failures, dynamic creation and recycling
+# Subtest: test/workspace-move-runtime.test.js
+ok 99 - test/workspace-move-runtime.test.js
+  ---
+  duration_ms: 711.1342
+  type: 'test'
+  ...
+# PASS multi-workspace persistence, protocol 1 migration and atomic invalid-data rejection
+# Subtest: test/workspace-persistence.test.js
+ok 100 - test/workspace-persistence.test.js
+  ---
+  duration_ms: 195.682259
+  type: 'test'
+  ...
+# PASS production recycling: W8 coordination, membership/close/current signals, UUID snapshots, grid and emergency stop
+# Subtest: test/workspace-recycle-runtime.test.js
+ok 101 - test/workspace-recycle-runtime.test.js
+  ---
+  duration_ms: 353.802217
+  type: 'test'
+  ...
+# PASS workspace recycling: opt-in, empty/current/tail policy, all windows, Qt membership, live recheck and removal confirmation
+# Subtest: test/workspace-recycle.test.js
+ok 102 - test/workspace-recycle.test.js
+  ---
+  duration_ms: 211.109387
+  type: 'test'
+  ...
+# PASS generated runtime reloads all workspace snapshots on the actual KDE desktop and reconciles live windows
+# Subtest: test/workspace-reload.test.js
+ok 103 - test/workspace-reload.test.js
+  ---
+  duration_ms: 269.417818
+  type: 'test'
+  ...
+# PASS runtime membership gates protect startup, direct insertion, floating focus and native sticky layout
+# Subtest: test/workspace-runtime-guards.test.js
+ok 104 - test/workspace-runtime-guards.test.js
+  ---
+  duration_ms: 197.364249
+  type: 'test'
+  ...
+# PASS generated runtime mounts native desktop sessions and cancels real stale Dock/Wide callbacks
+# Subtest: test/workspace-runtime-integration.test.js
+ok 105 - test/workspace-runtime-integration.test.js
+  ---
+  duration_ms: 326.875242
+  type: 'test'
+  ...
+# PASS workspace snapshots normalize stable data, protect UUID ownership and migrate protocol 1
+# Subtest: test/workspace-snapshot-store.test.js
+ok 106 - test/workspace-snapshot-store.test.js
+  ---
+  duration_ms: 191.463971
+  type: 'test'
+  ...
+# PASS workspace switch transactions, timeout authority, epoch fencing and stop
+# Subtest: test/workspace-switch-controller.test.js
+ok 107 - test/workspace-switch-controller.test.js
+  ---
+  duration_ms: 197.540021
+  type: 'test'
+  ...
+# PASS production transfer: parked/visible/Wide, inactive/active, native policies, new/closed windows, switch barriers and reentry recovery
+# Subtest: test/workspace-transfer-runtime.test.js
+ok 108 - test/workspace-transfer-runtime.test.js
+  ---
+  duration_ms: 407.9982
+  type: 'test'
+  ...
+# PASS Wide workspace parking waits for compositor idle; J/K/native, both sides, ACKs, stale queries, rejected requests and lifecycle cancellation
+# Subtest: test/workspace-wide-departure.test.js
+ok 109 - test/workspace-wide-departure.test.js
+  ---
+  duration_ms: 510.12962
+  type: 'test'
+  ...
+# PASS Wide workspace departure preserves intermediate target/neighbor pose, Slide lifetime, stale completion and rapid return
+# Subtest: test/workspace-wide-pose.test.js
+ok 110 - test/workspace-wide-pose.test.js
+  ---
+  duration_ms: 176.37398
+  type: 'test'
+  ...
+# PASS production workspace Wide geometry, immediate neighbor isolation, both anchors, pending/stale ACKs and restoration
+# Subtest: test/workspace-wide-restore.test.js
+ok 111 - test/workspace-wide-restore.test.js
+  ---
+  duration_ms: 372.515133
+  type: 'test'
+  ...
+1..164
+# tests 164
+# suites 0
+# pass 164
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 43342.848789
+
+== patch whitespace ==
+
+== Rust formatting ==
+
+== Rust lint ==
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+== Rust unit tests ==
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running unittests src/lib.rs (native/rust/target/debug/deps/cc_niri_native_core-08420114101582e1)
+
+running 71 tests
+test ffi::motion::tests::null_entries_and_unique_clone_lifetime ... ok
+test ffi::focus_fade::tests::ownership_invalid_inputs_and_no_allocation_in_queries ... ok
+test ffi::tests::null_handles_return_errors ... ok
+test ffi::tests::ffi_version_matches_core ... ok
+test ffi::tests::cloned_handle_outlives_original_reference ... ok
+test focus_fade::tests::cancelled_before_first_frame_and_sampling_allocate_nothing ... ok
+test focus_fade::tests::gain_converges_without_visible_expansion_on_loss_or_regain ... ok
+test focus_fade::tests::rapid_reversal_starts_at_last_sample_without_restarting_same_target ... ok
+test ffi::workspace::tests::clock_ffi_null_idle_configure_and_frame_queries_allocate_nothing ... ok
+test focus_fade::tests::finite_crossfade_and_idle ... ok
+test focus_ring::tests::fixed_device_stroke_and_frozen_retarget_sample ... ok
+test focus_ring::tests::gain_profile_mix_is_validated_without_changing_border_geometry ... ok
+test focus_ring::tests::geometry_corners_and_transparent_frames ... ok
+test focus_ring::tests::visual_opacity_is_validated_and_frozen_once ... ok
+test ffi::workspace::tests::ffi_ownership_null_and_zero_allocation_contract ... ok
+test native_protocol::tests::json_epochs_and_native_epochs_have_distinct_ranges ... ok
+test ffi::scroll::tests::ffi_null_buffers_ownership_and_counts ... ok
+test scroll_retarget::tests::bounded_brake_is_c1_and_degradation_is_explicit ... ok
+test scroll_runtime::tests::facts_are_current_scale_changes_recheck_pending_and_fallback_keeps_numerical_tail ... ok
+test scroll_runtime::tests::closing_a_held_edge_window_records_a_safe_velocity_reset ... ok
+test scroll_runtime::tests::left_insert_and_reverse_reindex_reuse_painted_pose_not_prediction ... ok
+test scroll_runtime::tests::pending_frames_do_not_replace_paint_anchor_or_publish_completion ... ok
+test scroll_runtime::tests::reindex_rejects_unknown_basis_and_consumes_accepted_epoch_on_arm_failure ... ok
+test scroll_runtime::tests::rejected_geometry_consumes_sequence_but_preserves_motion ... ok
+test scroll_runtime::tests::retarget_uses_last_painted_offset_and_holds_outgoing ... ok
+test scroll_runtime::tests::no_painted_frame_context_changes_and_script_partial_never_inherit_velocity ... ok
+test scroll_runtime::tests::same_target_updates_epoch_and_entries_without_restarting_the_curve ... ok
+test focus_ring_context::tests::retiring_decoration_never_grants_focus_or_bypasses_visibility ... ok
+test ffi::ring::tests::null_inputs_and_stack_dto_no_allocation ... ok
+test scroll_runtime::tests::source_projection_bounds_and_registry_lifecycle ... ok
+test focus_ring_context::tests::permission_hot_path_does_not_allocate ... ok
+test scroll_runtime::tests::stable_reindex_without_paint_reverses_at_origin_and_workspace_switch_retires_it ... ok
+test scroll_visual::tests::crossing_requires_future_envelope_and_invalid_facts_fail_closed ... ok
+test scroll_runtime::tests::typed_reindex_starts_at_real_old_basis_and_finishes_centered ... ok
+test scroll_runtime::tests::visual_completion_commits_only_on_paint_and_interruption_uses_painted_velocity ... ok
+test scroll_runtime::tests::typed_reindex_validates_scope_source_numbers_widths_and_placements ... ok
+test scroll_runtime::tests::smooth_production_arm_preserves_painted_velocity_and_same_frame_anchor ... ok
+test spring::tests::completion_uses_both_thresholds_inclusively ... ok
+test spring::tests::invalid_values_fall_back_before_time_handling ... ok
+test scroll_runtime::tests::unpainted_first_frame_and_invalid_times_preserve_the_static_anchor ... ok
+test spring::tests::time_boundaries_and_history_are_preserved ... ok
+test viewport_motion::tests::duplicates_snap_and_rejections_preserve_barriers ... ok
+test spring::tests::default_is_monotonic_and_underdamped_can_overshoot ... ok
+test viewport_motion::tests::even_subpixel_brake_must_finish_before_visual_snap ... ok
+test viewport_motion::tests::retarget_preserves_position_and_resets_velocity ... ok
+test scroll_runtime::tests::smooth_reverse_brakes_within_the_held_region_without_sample_clamping ... ok
+test viewport_motion::tests::timeout_and_extreme_clock_do_not_mutate_sampling_state ... ok
+test workspace_clock::tests::independent_outputs_rejections_and_overflow_are_bounded ... ok
+test workspace_clock::tests::invalid_facts_latch_safe_absolute_fallback_until_reset ... ok
+test workspace_clock::tests::long_frame_retains_lag_and_control_events_do_not_tick ... ok
+test workspace_clock::tests::normal_rates_and_disabled_preserve_absolute_time ... ok
+test workspace_clock::tests::stalled_prediction_and_new_request_after_pause_cannot_stick_or_expire_early ... ok
+test ffi::protocol::tests::abi_errors_unique_clone_and_allocation_contract ... ok
+test workspace_curve::tests::acceleration_only_degradation_and_hull_rejects_hidden_excursion ... ok
+test workspace_motion::tests::finite_endpoints_monotonic_and_retarget_from_painted_pose ... ok
+test scroll_runtime::tests::frame_operations_allocate_nothing ... ok
+test workspace_motion::tests::gesture_edges_wrapping_shortest_path_and_grid_rejection ... ok
+test workspace_curve::tests::envelope_brake_fixed_deadline_and_hard_boundary_reset ... ok
+test workspace_motion::tests::pending_is_not_painted_same_frame_retarget_and_keep_deadline ... ok
+test workspace_motion::tests::wrap_grid_no_move_gesture_release_and_output_projection ... ok
+test scroll_runtime::tests::full_half_partial_preserves_width_and_static_clip_until_retired ... ok
+test focus_ring::tests::boundaries_fallback_and_zero_allocation ... ok
+test workspace_motion::tests::painted_derivatives_same_direction_reverse_and_prediction_lead ... ok
+test workspace_curve::tests::boundaries_derivatives_and_independent_bezier_evaluation ... ok
+test ffi::protocol::tests::observer_transport_errors_and_bounded_window_registry ... ok
+test workspace_motion::tests::geometry_gestures_and_frame_operations_allocate_nothing ... ok
+test spring::tests::agrees_with_independent_ode ... ok
+test workspace_motion::tests::stable_policy_and_no_paint_do_not_inherit_and_frame_queries_allocate_nothing ... ok
+test focus_ring_context::tests::fail_closed_preserves_sequence_and_tombstones ... ok
+test scroll_retarget::tests::analytic_extrema_bound_an_independent_ode ... ok
+test scroll_visual::tests::scales_rates_distances_velocities_and_long_frames_keep_tail_inside_threshold ... ok
+
+test result: ok. 71 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests cc_niri_native_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+== Bridge native build ==
+[  2%] Building Rust Native Core (release)
+[  2%] Built target cc-niri-workspace-recycle-qobject-tests_qmlimportscan
+[  4%] Built target cc-niri-workspace-qobject-tests_qmlimportscan
+[  5%] Built target cc-niri-kwin-syntax-tests_qmlimportscan
+    Finished `release` profile [optimized] target(s) in 0.00s
+[  5%] Built target cc-niri-rust-build
+[ 14%] Built target cc-niri-golden-reference
+[ 14%] Built target cc-niri-workspace-recycle-qobject-tests_autogen_timestamp_deps
+[ 14%] Built target cc-niri-workspace-qobject-tests_autogen_timestamp_deps
+[ 14%] Built target cc-niri-kwin-syntax-tests_autogen_timestamp_deps
+[ 23%] Built target cc-niri-native-adapters
+[ 25%] Built target cc-niri-workspace-recycle-qobject-tests_autogen
+[ 26%] Built target cc-niri-workspace-qobject-tests_autogen
+[ 27%] Built target cc-niri-kwin-syntax-tests_autogen
+[ 27%] Built target cc-niri-bridge-tests_autogen_timestamp_deps
+[ 30%] Built target cc-niri-workspace-motion-differential
+[ 33%] Built target cc-niri-ring-differential
+[ 36%] Built target cc-niri-spring-differential
+[ 39%] Built target cc-niri-motion-differential
+[ 42%] Built target cc-niri-protocol-differential
+[ 45%] Built target cc-niri-scroll-differential
+[ 48%] Built target cc-niri-rust-animation-frame-tests
+[ 51%] Built target cc-niri-rust-focus-fade-tests
+[ 54%] Built target cc-niri-rust-motion-tests
+[ 57%] Built target cc-niri-rust-scroll-tests
+[ 60%] Built target cc-niri-rust-ring-context-tests
+[ 63%] Built target cc-niri-rust-core-smoke-tests
+[ 63%] Built target cc-niri-bridge_autogen_timestamp_deps
+[ 63%] Built target cc-scroll-motion-plan-tests_autogen_timestamp_deps
+[ 67%] Built target cc-niri-workspace-recycle-qobject-tests
+[ 72%] Built target cc-niri-workspace-qobject-tests
+[ 76%] Built target cc-niri-kwin-syntax-tests
+[ 77%] Built target cc-niri-bridge-tests_autogen
+[ 79%] Built target cc-niri-bridge_autogen
+[ 80%] Built target cc-scroll-motion-plan-tests_autogen
+[ 86%] Built target cc-niri-bridge-tests
+[ 94%] Built target cc-niri-bridge
+[100%] Built target cc-scroll-motion-plan-tests
+
+== Bridge native persistence tests ==
+Test project /home/cc/cc_niri/build/bridge
+      Start  1: scroll-motion-protocol
+ 1/18 Test  #1: scroll-motion-protocol ..................   Passed    0.01 sec
+      Start  2: workspace-recycle-qobject-lifetime
+ 2/18 Test  #2: workspace-recycle-qobject-lifetime ......   Passed    0.06 sec
+      Start  3: workspace-qobject-lifetime
+ 3/18 Test  #3: workspace-qobject-lifetime ..............   Passed    4.85 sec
+      Start  4: kwin-javascript-syntax
+ 4/18 Test  #4: kwin-javascript-syntax ..................   Passed    0.05 sec
+      Start  5: workspace-persistence
+ 5/18 Test  #5: workspace-persistence ...................   Passed    0.01 sec
+      Start  6: workspace-motion-rust-contract
+ 6/18 Test  #6: workspace-motion-rust-contract ..........   Passed    0.01 sec
+      Start  7: focus-ring-cpp-rust-differential
+ 7/18 Test  #7: focus-ring-cpp-rust-differential ........   Passed    0.03 sec
+      Start  8: spring-cpp-rust-differential
+ 8/18 Test  #8: spring-cpp-rust-differential ............   Passed    0.03 sec
+      Start  9: viewport-motion-cpp-rust-differential
+ 9/18 Test  #9: viewport-motion-cpp-rust-differential ...   Passed    0.35 sec
+      Start 10: native-protocol-cpp-rust-differential
+10/18 Test #10: native-protocol-cpp-rust-differential ...   Passed    2.12 sec
+      Start 11: scroll-runtime-differential
+11/18 Test #11: scroll-runtime-differential .............   Passed    5.29 sec
+      Start 12: scroll-animation-frame-context
+12/18 Test #12: scroll-animation-frame-context ..........   Passed    0.01 sec
+      Start 13: focus-fade-shared-frame-contract
+13/18 Test #13: focus-fade-shared-frame-contract ........   Passed    0.01 sec
+      Start 14: viewport-motion-rust-contract
+14/18 Test #14: viewport-motion-rust-contract ...........   Passed    0.01 sec
+      Start 15: scroll-runtime-contract
+15/18 Test #15: scroll-runtime-contract .................   Passed    0.01 sec
+      Start 16: focus-ring-rust-context-contract
+16/18 Test #16: focus-ring-rust-context-contract ........   Passed    0.01 sec
+      Start 17: rust-core-ffi-smoke
+17/18 Test #17: rust-core-ffi-smoke .....................   Passed    0.01 sec
+      Start 18: native-cxx-toolchain-policy
+18/18 Test #18: native-cxx-toolchain-policy .............   Passed    0.05 sec
+
+100% tests passed, 0 tests failed out of 18
+
+Total Test time (real) =  12.89 sec
+
+== Bridge isolated DBus restart tests ==
+PASS isolated DBus Bridge upgrade handoff, persistent Full protocol 1/2 restart, width mismatch and corruption
+
+== Bridge isolated vertical workspace tests ==
+PASS isolated DBus vertical desktop rows, unsigned variant, stale count, idempotence and unavailable KWin
+
+== Bridge isolated SCROLL protocol tests ==
+PASS isolated SCROLL / typed reindex DBus payload, FIFO membership, shared epochs, duplicate, restart and source validation
+
+== Bridge isolated legacy motion tests ==
+PASS isolated SCROLL / typed reindex DBus payload, FIFO membership, shared epochs, duplicate, restart and source validation
+
+== Bridge isolated legacy compatibility tests ==
+PASS canonical / legacy same owner, state, signals, sequence guards, queue, dedup, deferred commands, upgrade fallback and duplicate-process rejection
+
+== Viewport clip native build ==
+[  1%] Built target cc-niri-workspace-clip-tests_autogen_timestamp_deps
+[  1%] Building Rust Native Core (release)
+[ 13%] Built target cc-niri-golden-reference
+    Finished `release` profile [optimized] target(s) in 0.00s
+[ 15%] Built target cc-niri-workspace-clip-tests_autogen
+[ 15%] Built target cc-niri-rust-build
+[ 20%] Built target cc-niri-workspace-clip-tests
+[ 32%] Built target cc-niri-native-adapters
+[ 32%] Built target cc-niri-viewport-clip_autogen_timestamp_deps
+[ 35%] Built target cc-niri-scroll-viewport-tests
+[ 39%] Built target cc-niri-viewport-motion-tests
+[ 43%] Built target cc-niri-workspace-projection-tests
+[ 47%] Built target cc-niri-workspace-motion-differential
+[ 50%] Built target cc-niri-ring-differential
+[ 54%] Built target cc-niri-spring-differential
+[ 58%] Built target cc-niri-motion-differential
+[ 62%] Built target cc-niri-protocol-differential
+[ 66%] Built target cc-niri-scroll-differential
+[ 73%] Built target cc-niri-rust-focus-fade-tests
+[ 73%] Built target cc-niri-rust-animation-frame-tests
+[ 77%] Built target cc-niri-rust-motion-tests
+[ 81%] Built target cc-niri-rust-scroll-tests
+[ 84%] Built target cc-niri-rust-core-smoke-tests
+[ 88%] Built target cc-niri-rust-ring-context-tests
+[ 90%] Built target cc-niri-viewport-clip_autogen
+[100%] Built target cc-niri-viewport-clip
+
+== Viewport clip workspace barrier tests ==
+Test project /home/cc/cc_niri/build/native-viewport-clip
+      Start  1: appstreamtest
+ 1/18 Test  #1: appstreamtest ...........................   Passed    0.01 sec
+      Start  2: scroll-viewport-runtime
+ 2/18 Test  #2: scroll-viewport-runtime .................   Passed    0.01 sec
+      Start  3: viewport-spring-motion
+ 3/18 Test  #3: viewport-spring-motion ..................   Passed    0.01 sec
+      Start  4: workspace-clip-barrier
+ 4/18 Test  #4: workspace-clip-barrier ..................   Passed    0.00 sec
+      Start  5: workspace-projection-cache
+ 5/18 Test  #5: workspace-projection-cache ..............   Passed    0.08 sec
+      Start  6: workspace-motion-rust-contract
+ 6/18 Test  #6: workspace-motion-rust-contract ..........   Passed    0.01 sec
+      Start  7: focus-ring-cpp-rust-differential
+ 7/18 Test  #7: focus-ring-cpp-rust-differential ........   Passed    0.03 sec
+      Start  8: spring-cpp-rust-differential
+ 8/18 Test  #8: spring-cpp-rust-differential ............   Passed    0.03 sec
+      Start  9: viewport-motion-cpp-rust-differential
+ 9/18 Test  #9: viewport-motion-cpp-rust-differential ...   Passed    0.35 sec
+      Start 10: native-protocol-cpp-rust-differential
+10/18 Test #10: native-protocol-cpp-rust-differential ...   Passed    2.23 sec
+      Start 11: scroll-runtime-differential
+11/18 Test #11: scroll-runtime-differential .............   Passed    5.17 sec
+      Start 12: scroll-animation-frame-context
+12/18 Test #12: scroll-animation-frame-context ..........   Passed    0.02 sec
+      Start 13: focus-fade-shared-frame-contract
+13/18 Test #13: focus-fade-shared-frame-contract ........   Passed    0.01 sec
+      Start 14: viewport-motion-rust-contract
+14/18 Test #14: viewport-motion-rust-contract ...........   Passed    0.01 sec
+      Start 15: scroll-runtime-contract
+15/18 Test #15: scroll-runtime-contract .................   Passed    0.01 sec
+      Start 16: focus-ring-rust-context-contract
+16/18 Test #16: focus-ring-rust-context-contract ........   Passed    0.01 sec
+      Start 17: rust-core-ffi-smoke
+17/18 Test #17: rust-core-ffi-smoke .....................   Passed    0.01 sec
+      Start 18: native-cxx-toolchain-policy
+18/18 Test #18: native-cxx-toolchain-policy .............   Passed    0.05 sec
+
+100% tests passed, 0 tests failed out of 18
+
+Total Test time (real) =   8.02 sec
+
+== Focus ring native build ==
+[  1%] Building Rust Native Core (release)
+[  6%] Built target cc-niri-golden-reference
+    Finished `release` profile [optimized] target(s) in 0.00s
+[  6%] Built target cc-niri-rust-build
+[ 11%] Built target cc-niri-native-adapters
+[ 11%] Built target cc-niri-focus-ring-corner-style-tests_autogen_timestamp_deps
+[ 11%] Built target cc-niri-focus-ring_autogen_timestamp_deps
+[ 11%] Built target cc-niri-focus-ring-controller-tests_autogen_timestamp_deps
+[ 13%] Built target cc-niri-focus-ring-context-tests
+[ 13%] Built target cc-niri-focus-ring-item-tests_autogen_timestamp_deps
+[ 13%] Built target cc-niri-focus-ring-paint-tests_autogen_timestamp_deps
+[ 13%] Built target cc-niri-focus-ring-viewport-clip-tests_autogen_timestamp_deps
+[ 13%] Built target cc-niri-focus-ring-visual-transform-tests_autogen_timestamp_deps
+[ 13%] Built target cc-niri-focus-ring-fade-tests_autogen_timestamp_deps
+[ 13%] Built target cc-niri-focus-ring-retarget-tests_autogen_timestamp_deps
+[ 13%] Built target cc-niri-focus-ring-presentation-tests_autogen_timestamp_deps
+[ 13%] Built target cc-niri-focus-ring-hidpi-tests_autogen_timestamp_deps
+[ 15%] Built target cc-niri-ring-differential
+[ 16%] Built target cc-niri-workspace-motion-differential
+[ 20%] Built target cc-niri-spring-differential
+[ 20%] Built target cc-niri-motion-differential
+[ 23%] Built target cc-niri-scroll-differential
+[ 23%] Built target cc-niri-protocol-differential
+[ 26%] Built target cc-niri-rust-focus-fade-tests
+[ 26%] Built target cc-niri-rust-animation-frame-tests
+[ 28%] Built target cc-niri-rust-motion-tests
+[ 30%] Built target cc-niri-rust-scroll-tests
+[ 32%] Built target cc-niri-rust-core-smoke-tests
+[ 34%] Built target cc-niri-rust-ring-context-tests
+[ 36%] Built target cc-niri-focus-ring_autogen
+[ 36%] Built target cc-niri-focus-ring-corner-style-tests_autogen
+[ 38%] Built target cc-niri-focus-ring-controller-tests_autogen
+[ 38%] Built target cc-niri-focus-ring-item-tests_autogen
+[ 39%] Built target cc-niri-focus-ring-paint-tests_autogen
+[ 39%] Built target cc-niri-focus-ring-viewport-clip-tests_autogen
+[ 41%] Built target cc-niri-focus-ring-visual-transform-tests_autogen
+[ 41%] Built target cc-niri-focus-ring-retarget-tests_autogen
+[ 41%] Built target cc-niri-focus-ring-presentation-tests_autogen
+[ 42%] Built target cc-niri-focus-ring-fade-tests_autogen
+[ 48%] Built target cc-niri-focus-ring
+[ 50%] Built target cc-niri-focus-ring-hidpi-tests_autogen
+[ 56%] Built target cc-niri-focus-ring-controller-tests
+[ 56%] Built target cc-niri-focus-ring-corner-style-tests
+[ 66%] Built target cc-niri-focus-ring-item-tests
+[ 67%] Built target cc-niri-focus-ring-paint-tests
+[ 77%] Built target cc-niri-focus-ring-viewport-clip-tests
+[ 77%] Built target cc-niri-focus-ring-visual-transform-tests
+[ 87%] Built target cc-niri-focus-ring-fade-tests
+[ 88%] Built target cc-niri-focus-ring-retarget-tests
+[ 98%] Built target cc-niri-focus-ring-hidpi-tests
+[100%] Built target cc-niri-focus-ring-presentation-tests
+
+== Focus ring ownership and scene tests ==
+Test project /home/cc/cc_niri/build/native-focus-ring
+      Start  1: appstreamtest
+ 1/25 Test  #1: appstreamtest ...........................   Passed    0.01 sec
+      Start  2: focus-ring-corner-style-lifecycle
+ 2/25 Test  #2: focus-ring-corner-style-lifecycle .......   Passed    0.06 sec
+      Start  3: focus-ring-controller-qobject
+ 3/25 Test  #3: focus-ring-controller-qobject ...........   Passed    0.40 sec
+      Start  4: focus-ring-context
+ 4/25 Test  #4: focus-ring-context ......................   Passed    0.02 sec
+      Start  5: focus-ring-scene-item
+ 5/25 Test  #5: focus-ring-scene-item ...................   Passed    0.06 sec
+      Start  6: focus-ring-isolated-paint
+ 6/25 Test  #6: focus-ring-isolated-paint ...............   Passed    0.10 sec
+      Start  7: focus-ring-viewport-decoration-clip
+ 7/25 Test  #7: focus-ring-viewport-decoration-clip .....   Passed    0.09 sec
+      Start  8: focus-ring-visual-transform
+ 8/25 Test  #8: focus-ring-visual-transform .............   Passed    1.05 sec
+      Start  9: focus-ring-retarget
+ 9/25 Test  #9: focus-ring-retarget .....................   Passed    5.82 sec
+      Start 10: focus-ring-fade-paint
+10/25 Test #10: focus-ring-fade-paint ...................   Passed    0.16 sec
+      Start 11: focus-ring-presentation
+11/25 Test #11: focus-ring-presentation .................   Passed    1.50 sec
+      Start 12: focus-ring-hidpi
+12/25 Test #12: focus-ring-hidpi ........................   Passed    3.96 sec
+      Start 13: workspace-motion-rust-contract
+13/25 Test #13: workspace-motion-rust-contract ..........   Passed    0.03 sec
+      Start 14: focus-ring-cpp-rust-differential
+14/25 Test #14: focus-ring-cpp-rust-differential ........   Passed    0.03 sec
+      Start 15: spring-cpp-rust-differential
+15/25 Test #15: spring-cpp-rust-differential ............   Passed    0.03 sec
+      Start 16: viewport-motion-cpp-rust-differential
+16/25 Test #16: viewport-motion-cpp-rust-differential ...   Passed    0.35 sec
+      Start 17: native-protocol-cpp-rust-differential
+17/25 Test #17: native-protocol-cpp-rust-differential ...   Passed    2.13 sec
+      Start 18: scroll-runtime-differential
+18/25 Test #18: scroll-runtime-differential .............   Passed    5.30 sec
+      Start 19: scroll-animation-frame-context
+19/25 Test #19: scroll-animation-frame-context ..........   Passed    0.02 sec
+      Start 20: focus-fade-shared-frame-contract
+20/25 Test #20: focus-fade-shared-frame-contract ........   Passed    0.01 sec
+      Start 21: viewport-motion-rust-contract
+21/25 Test #21: viewport-motion-rust-contract ...........   Passed    0.01 sec
+      Start 22: scroll-runtime-contract
+22/25 Test #22: scroll-runtime-contract .................   Passed    0.01 sec
+      Start 23: focus-ring-rust-context-contract
+23/25 Test #23: focus-ring-rust-context-contract ........   Passed    0.01 sec
+      Start 24: rust-core-ffi-smoke
+24/25 Test #24: rust-core-ffi-smoke .....................   Passed    0.01 sec
+      Start 25: native-cxx-toolchain-policy
+25/25 Test #25: native-cxx-toolchain-policy .............   Passed    0.05 sec
+
+100% tests passed, 0 tests failed out of 25
+
+Total Test time (real) =  21.20 sec
+
+== Rust production architecture boundary ==
+PASS Rust production / no Legacy C++ policy: build/bridge/cc-niri-bridge
+PASS Rust production / no Legacy C++ policy: build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so
+PASS Rust production / no Legacy C++ policy: build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so
+
+== Plasmoid native build ==
+[  2%] Built target com.cc.scrolltasks_copy_qml
+[  2%] Built target generate_qmlls_build_ini_file
+[  3%] Built target com.cc.scrolltasks_copy_res
+[  3%] Built target com.cc.scrolltasks_autogen_timestamp_deps
+[  4%] Built target com.cc.scrolltasks_autogen
+[  6%] Generating meta_types/qt6com.cc.scrolltasks_metatypes.json
+[  6%] Generating meta_types/qt6com.cc.scrolltasks_metatypes.json
+[100%] Built target com.cc.scrolltasks
+
+PASS CC Niri regression gate (111 tests) with native builds

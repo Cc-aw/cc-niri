@@ -2,11 +2,421 @@
 use super::protocol_views::{slice, text, ByteView, FfiIdResult, FfiRect, FfiTextResult, U16View};
 use super::{FfiSpringBoolResult, INVALID_HANDLE, OK};
 use crate::native_protocol::{
-    Placement, Rect, RuntimeContext, ScrollEntry, ScrollPlan, WindowId, WindowRole,
+    PartialScrollConfig, Placement, Rect, RuntimeContext, ScrollEntry, ScrollPlan, WindowId,
+    WindowRole,
 };
 use crate::scroll_runtime::ScrollViewportRuntime;
 use std::collections::HashMap;
 const INVALID_DTO: u32 = 2;
+#[repr(C)]
+pub struct FfiGeometryEntry {
+    window_id: u64,
+    column_id: f64,
+    old_logical_x: f64,
+    new_logical_x: f64,
+    old_width: f64,
+    new_width: f64,
+    old_frame: FfiRect,
+    old_visual: FfiRect,
+    target_frame: FfiRect,
+    source_kind: u32,
+    old_placement: u32,
+    new_placement: u32,
+    reserved: u32,
+}
+#[repr(C)]
+pub struct FfiGeometryPlan {
+    plan: FfiPlan,
+    old_layout: FfiRect,
+    layout: FfiRect,
+    old_max_camera: f64,
+    max_camera: f64,
+    scope_revision: f64,
+    source_epoch: f64,
+    source_serial: f64,
+    entries: *const FfiGeometryEntry,
+    entries_len: u64,
+}
+pub(super) unsafe fn decode_geometry(
+    p: &FfiGeometryPlan,
+) -> Result<crate::column_geometry::ColumnGeometryPlan, u32> {
+    use crate::column_geometry::{ColumnGeometryEntry, ColumnGeometryPlan};
+    if p.entries_len > 256
+        || p.plan.entries_len != 0
+        || p.plan.fingerprint.len > 256 * 1024
+        || p.plan.shape_valid > 1
+    {
+        return Err(INVALID_DTO);
+    }
+    let mut entries = Vec::with_capacity(p.entries_len as usize);
+    for e in unsafe { slice(p.entries, p.entries_len)? } {
+        if e.reserved != 0 || !(1..=3).contains(&e.source_kind) {
+            return Err(INVALID_DTO);
+        }
+        let painted = e.source_kind != 2;
+        if !painted && (e.old_logical_x != 0.0 || Rect::from(e.old_visual) != Rect::default()) {
+            return Err(INVALID_DTO);
+        }
+        entries.push(ColumnGeometryEntry {
+            window_id: WindowId(e.window_id),
+            column_id: e.column_id,
+            old_logical_x: painted.then_some(e.old_logical_x),
+            source_culled: e.source_kind == 3,
+            new_logical_x: e.new_logical_x,
+            old_width: e.old_width,
+            new_width: e.new_width,
+            old_frame: e.old_frame.into(),
+            old_visual: painted.then_some(e.old_visual.into()),
+            target_frame: e.target_frame.into(),
+            old_placement: placement(e.old_placement),
+            new_placement: placement(e.new_placement),
+        });
+    }
+    Ok(ColumnGeometryPlan {
+        header: unsafe { decode_plan(&p.plan)? },
+        old_layout: p.old_layout.into(),
+        layout: p.layout.into(),
+        old_max_camera: p.old_max_camera,
+        max_camera: p.max_camera,
+        scope_revision: p.scope_revision,
+        source_epoch: p.source_epoch,
+        source_serial: p.source_serial,
+        entries,
+    })
+}
+// Source rows contain actual KWin observations, not echoed wire geometry.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct FfiGeometrySourceRow {
+    window_id: u64,
+    column_id: f64,
+    frame: FfiRect,
+    opacity: f64,
+    flags: u32,
+    reserved: u32,
+}
+unsafe fn geometry_requests(
+    rows: *const FfiGeometrySourceRow,
+    len: u64,
+) -> Result<Vec<crate::scroll_runtime::GeometrySourceRequest>, u32> {
+    if len > 512 {
+        return Err(INVALID_DTO);
+    }
+    let mut seen = std::collections::HashSet::new();
+    unsafe { slice(rows, len)? }
+        .iter()
+        .map(|r| {
+            if r.reserved != 0 || r.flags & !127 != 0 || !seen.insert(r.window_id) {
+                return Err(INVALID_DTO);
+            }
+            Ok(crate::scroll_runtime::GeometrySourceRequest {
+                id: WindowId(r.window_id),
+                column_id: r.column_id,
+                fact: crate::scroll_runtime::GeometryClientFact {
+                    frame: r.frame.into(),
+                    opacity: r.opacity,
+                    flags: r.flags,
+                },
+            })
+        })
+        .collect()
+}
+/// # Safety
+/// Live exclusive handle; all borrowed plan/observation buffers remain live for
+/// this synchronous call. Fresh platform observations must not be wire echoes.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_arm_geometry(
+    handle: *mut ScrollHandle,
+    plan: *const FfiGeometryPlan,
+    now: i64,
+    rows: *const FfiGeometrySourceRow,
+    len: u64,
+    smooth: u32,
+    actual_output: FfiRect,
+) -> FfiSpringBoolResult {
+    bool_result((|| {
+        let h = unsafe { handle.as_mut() }.ok_or(INVALID_HANDLE)?;
+        let p = unsafe { plan.as_ref() }.ok_or(INVALID_DTO)?;
+        if smooth > 1 {
+            return Err(INVALID_DTO);
+        }
+        Ok(h.0.arm_geometry(
+            unsafe { decode_geometry(p)? },
+            now,
+            &unsafe { geometry_requests(rows, len)? },
+            smooth != 0,
+            actual_output.into(),
+        ))
+    })())
+}
+#[repr(C)]
+pub struct FfiGeometrySourceStatus {
+    viewport: FfiRect,
+    layout: FfiRect,
+    max_camera: f64,
+    scope_revision: f64,
+    camera_x: f64,
+    epoch: i64,
+    time_ns: i64,
+    serial: u64,
+    count: u32,
+    valid: u32,
+    status: u32,
+    reserved: u32,
+}
+/// # Safety
+/// Exclusively borrowed live handle, initialized input rows and exclusive writable
+/// output for capacity elements. Inputs/outputs do not overlap. No pointers retained;
+/// a single owned observation is retained until replacement or clear.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_geometry_source(
+    handle: *mut ScrollHandle,
+    rows: *const FfiGeometrySourceRow,
+    len: u64,
+    actual_output: FfiRect,
+    actual_workspace: U16View,
+    actual_name: U16View,
+    out: *mut FfiClientPaint,
+    capacity: u64,
+) -> FfiGeometrySourceStatus {
+    let mut result = FfiGeometrySourceStatus {
+        viewport: Rect::default().into(),
+        layout: Rect::default().into(),
+        max_camera: 0.0,
+        scope_revision: 0.0,
+        camera_x: 0.0,
+        epoch: -1,
+        time_ns: -1,
+        serial: 0,
+        count: 0,
+        valid: 0,
+        status: INVALID_HANDLE,
+        reserved: 0,
+    };
+    let Some(h) = (unsafe { handle.as_mut() }) else {
+        return result;
+    };
+    result.status = INVALID_DTO;
+    if capacity < len || capacity > 256 || out.is_null() || len > 256 {
+        return result;
+    }
+    let requests = match unsafe { geometry_requests(rows, len) } {
+        Ok(r) => r,
+        Err(_) => return result,
+    };
+    result.status = OK;
+    if actual_workspace.len > 256 || actual_name.len > 256 {
+        result.status = INVALID_DTO;
+        return result;
+    }
+    let (Ok(workspace), Ok(name)) = (
+        unsafe { slice(actual_workspace.data, actual_workspace.len) },
+        unsafe { slice(actual_name.data, actual_name.len) },
+    ) else {
+        result.status = INVALID_DTO;
+        return result;
+    };
+    if h.0
+        .context()
+        .is_none_or(|c| c.workspace.0 .0 != workspace || c.output.0 .0 != name)
+    {
+        return result;
+    }
+    let Some(source) = h.0.query_geometry_source(&requests, actual_output.into()) else {
+        return result;
+    };
+    result.viewport = source.viewport.into();
+    result.layout = source.layout.into();
+    result.max_camera = source.max_camera;
+    result.scope_revision = source.scope_revision;
+    result.camera_x = source.camera_x;
+    result.epoch = source.epoch;
+    result.time_ns = source.time_ns;
+    result.serial = source.serial;
+    for (index, r) in requests.iter().enumerate() {
+        let f = source.rows[&r.id];
+        let value = FfiClientPaint {
+            frame: f.frame.into(),
+            visual: f.visual.unwrap_or_default().into(),
+            viewport: result.viewport,
+            layout: result.layout,
+            max_camera: source.max_camera,
+            scope_revision: source.scope_revision,
+            column_id: f.column_id,
+            logical_x: f
+                .visual
+                .map_or(0.0, |v| v.x + source.camera_x - source.layout.x),
+            velocity_x: f.velocity_x,
+            velocity_y: f.velocity_y,
+            epoch: source.epoch,
+            time_ns: source.time_ns,
+            serial: source.serial,
+            active: if f.hidden {
+                2
+            } else if f.culled {
+                3
+            } else {
+                1
+            },
+            status: OK,
+        };
+        unsafe {
+            out.add(index).write(value);
+        }
+    }
+    result.count = len as u32;
+    result.valid = 1;
+    result
+}
+#[repr(C)]
+pub struct FfiGeometryProjection {
+    viewport: FfiRect,
+    translation_x: f64,
+    translation_y: f64,
+    active: u32,
+    status: u32,
+}
+/// # Safety
+/// Live shared handle, scalar observed geometry. Read-only allocation-free query.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_geometry_projection(
+    handle: *const ScrollHandle,
+    id: u64,
+    frame: FfiRect,
+) -> FfiGeometryProjection {
+    let mut r = FfiGeometryProjection {
+        viewport: Rect::default().into(),
+        translation_x: 0.0,
+        translation_y: 0.0,
+        active: 0,
+        status: INVALID_HANDLE,
+    };
+    let Some(h) = (unsafe { handle.as_ref() }) else {
+        return r;
+    };
+    r.status = OK;
+    if let Some(p) = h.0.geometry_projection(WindowId(id), frame.into()) {
+        r.viewport = p.viewport.into();
+        r.translation_x = p.translation_x;
+        r.translation_y = p.translation_y;
+        r.active = 1;
+    }
+    r
+}
+/// # Safety
+/// Live exclusive handle; called from actual configure geometry observations.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_observe_client_frame(
+    handle: *mut ScrollHandle,
+    id: u64,
+    frame: FfiRect,
+) -> FfiSpringBoolResult {
+    bool_result(
+        unsafe { handle.as_mut() }
+            .ok_or(INVALID_HANDLE)
+            .map(|h| h.0.observe_client_frame(WindowId(id), frame.into())),
+    )
+}
+/// # Safety
+/// Live exclusive handle; rows are valid initialized platform observations of
+/// this bound real output pass, borrowed for this call only.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_finish_geometry_frame(
+    handle: *mut ScrollHandle,
+    epoch: i64,
+    time: i64,
+    serial: u64,
+    rows: *const FfiGeometrySourceRow,
+    len: u64,
+) -> FfiSpringBoolResult {
+    bool_result((|| {
+        let h = unsafe { handle.as_mut() }.ok_or(INVALID_HANDLE)?;
+        if len > 256 {
+            return Err(INVALID_DTO);
+        }
+        for r in unsafe { slice(rows, len)? } {
+            if r.reserved != 0 || r.flags & !127 != 0 {
+                return Err(INVALID_DTO);
+            }
+            let request = crate::scroll_runtime::GeometrySourceRequest {
+                id: WindowId(r.window_id),
+                column_id: r.column_id,
+                fact: crate::scroll_runtime::GeometryClientFact {
+                    frame: r.frame.into(),
+                    opacity: r.opacity,
+                    flags: r.flags,
+                },
+            };
+            h.0.observe_geometry_cull(epoch, time, serial, request);
+        }
+        Ok(h.0.finish_geometry_frame(epoch, time, serial, &[]))
+    })())
+}
+#[repr(C)]
+pub struct FfiGeometryCompletion {
+    epoch: i64,
+    time_ns: i64,
+    serial: u64,
+    scope_revision: f64,
+    active: u32,
+    completed: u32,
+    status: u32,
+    reserved: u32,
+}
+/// # Safety
+/// Live shared handle; read-only allocation-free typed completion proof.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_geometry_completion(
+    handle: *const ScrollHandle,
+) -> FfiGeometryCompletion {
+    let mut r = FfiGeometryCompletion {
+        epoch: -1,
+        time_ns: -1,
+        serial: 0,
+        scope_revision: 0.0,
+        active: 0,
+        completed: 0,
+        status: INVALID_HANDLE,
+        reserved: 0,
+    };
+    let Some(h) = (unsafe { handle.as_ref() }) else {
+        return r;
+    };
+    r.status = OK;
+    if h.0.column_geometry_active() {
+        r.active = 1;
+        r.epoch = h.0.epoch();
+        r.time_ns = h.0.frame_sample(true).map_or(-1, |s| s.time_ns);
+        r.scope_revision = h.0.partial_config().map_or(0.0, |p| p.scope_revision);
+        r.serial = h.0.geometry_completion_serial();
+        r.completed = u32::from(h.0.completed() && r.serial > 0);
+    }
+    r
+}
+/// # Safety
+/// Live shared handle; allocation-free last-pass proof, no platform objects.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_frame_ready(
+    handle: *const ScrollHandle,
+) -> FfiSpringBoolResult {
+    bool_result(
+        unsafe { handle.as_ref() }
+            .ok_or(INVALID_HANDLE)
+            .map(|h| h.0.client_source_complete()),
+    )
+}
+/// # Safety
+/// Live shared runtime; numerical continuation demand, no independent clock.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_needs_repaint(
+    handle: *const ScrollHandle,
+) -> FfiSpringBoolResult {
+    bool_result(
+        unsafe { handle.as_ref() }
+            .ok_or(INVALID_HANDLE)
+            .map(|h| h.0.needs_repaint()),
+    )
+}
 #[repr(C)]
 pub struct FfiContext {
     pub(super) protocol: f64,
@@ -57,6 +467,182 @@ pub struct FfiReindexPlan {
     pub(super) source_logical_x: f64,
 }
 #[repr(C)]
+pub struct FfiPartialPlan {
+    pub(super) plan: FfiPlan,
+    layout: FfiRect,
+    max_offset: f64,
+    scope_revision: f64,
+}
+pub(super) unsafe fn decode_partial(p: &FfiPartialPlan) -> Result<ScrollPlan, u32> {
+    let mut plan = unsafe { decode_plan(&p.plan)? };
+    plan.partial = Some(PartialScrollConfig {
+        layout: p.layout.into(),
+        max_offset: p.max_offset,
+        scope_revision: p.scope_revision,
+    });
+    Ok(plan)
+}
+/// # Safety
+/// Live exclusive runtime, typed plan and all borrowed nested buffers.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_arm_partial(
+    handle: *mut ScrollHandle,
+    plan: *const FfiPartialPlan,
+    now: i64,
+    frames: *const FfiWindowFrame,
+    frames_len: u64,
+    smooth: u32,
+    actual_output: FfiRect,
+) -> FfiSpringBoolResult {
+    bool_result((|| {
+        let h = unsafe { handle.as_mut() }.ok_or(INVALID_HANDLE)?;
+        let p = unsafe { plan.as_ref() }.ok_or(INVALID_DTO)?;
+        if smooth > 1 {
+            return Err(INVALID_DTO);
+        }
+        let physical: HashMap<_, _> = unsafe { slice(frames, frames_len)? }
+            .iter()
+            .map(|f| (WindowId(f.window_id), f.rect.into()))
+            .collect();
+        if physical.len() as u64 != frames_len {
+            return Err(INVALID_DTO);
+        }
+        Ok(h.0.arm_partial(
+            unsafe { decode_partial(p)? },
+            now,
+            &physical,
+            smooth != 0,
+            actual_output.into(),
+        ))
+    })())
+}
+/// # Safety
+/// Live shared runtime; platform frame and pointer coordinates are copied values.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_partial_blocked(
+    handle: *const ScrollHandle,
+    id: u64,
+    frame: FfiRect,
+    x: f64,
+    y: f64,
+) -> FfiSpringBoolResult {
+    bool_result(
+        unsafe { handle.as_ref() }
+            .ok_or(INVALID_HANDLE)
+            .map(|h| h.0.partial_input_blocked(WindowId(id), frame.into(), x, y)),
+    )
+}
+/// # Safety
+/// Shared live handle, synchronous allocation-free input query.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_partial_ambiguous(
+    handle: *const ScrollHandle,
+    x: f64,
+    y: f64,
+) -> FfiSpringBoolResult {
+    bool_result((|| {
+        let h = unsafe { handle.as_ref() }.ok_or(INVALID_HANDLE)?;
+        if !x.is_finite() || !y.is_finite() {
+            return Err(INVALID_DTO);
+        }
+        Ok(h.0.partial_point_ambiguous(x, y))
+    })())
+}
+/// # Safety
+/// Live shared runtime. Returns a stable window token, never a platform pointer.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_partial_hit(
+    handle: *const ScrollHandle,
+    x: f64,
+    y: f64,
+) -> FfiIdResult {
+    super::protocol_views::id_result(
+        unsafe { handle.as_ref() }
+            .ok_or(INVALID_HANDLE)
+            .map(|h| h.0.partial_hit(x, y).map_or(0, |id| id.0)),
+    )
+}
+#[repr(C)]
+pub struct FfiPartialInputResult {
+    consume: u32,
+    focus: u32,
+    status: u32,
+    reserved: u32,
+}
+/// # Safety
+/// Live exclusive runtime. kind/id/flags are platform facts, not injected events.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_partial_input(
+    handle: *mut ScrollHandle,
+    kind: u32,
+    id: u64,
+    blocked: u32,
+    flags: u32,
+) -> FfiPartialInputResult {
+    let Some(h) = (unsafe { handle.as_mut() }) else {
+        return FfiPartialInputResult {
+            consume: 0,
+            focus: 0,
+            status: INVALID_HANDLE,
+            reserved: 0,
+        };
+    };
+    if kind > 12 || blocked > 1 || flags > 7 {
+        return FfiPartialInputResult {
+            consume: 0,
+            focus: 0,
+            status: INVALID_DTO,
+            reserved: 0,
+        };
+    }
+    let (consume, focus) = h.0.partial_input.event(kind, id, blocked != 0, flags);
+    FfiPartialInputResult {
+        consume: u32::from(consume),
+        focus: u32::from(focus),
+        status: OK,
+        reserved: 0,
+    }
+}
+#[repr(C)]
+pub struct FfiPartialStatus {
+    scope_revision: f64,
+    buttons: u32,
+    touches: u32,
+    enabled: u32,
+    status: u32,
+    native_grab: u32,
+    reserved: u32,
+}
+/// # Safety
+/// Live shared runtime. Pair ownership survives clear, cancel, retarget and remove.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_partial_status(
+    handle: *const ScrollHandle,
+) -> FfiPartialStatus {
+    let Some(h) = (unsafe { handle.as_ref() }) else {
+        return FfiPartialStatus {
+            scope_revision: 0.0,
+            buttons: 0,
+            touches: 0,
+            enabled: 0,
+            status: INVALID_HANDLE,
+            native_grab: 0,
+            reserved: 0,
+        };
+    };
+    let (buttons, touches) = h.0.partial_input.pending();
+    let partial = h.0.partial_config();
+    FfiPartialStatus {
+        scope_revision: partial.map_or(0.0, |p| p.scope_revision),
+        buttons,
+        touches,
+        enabled: u32::from(partial.is_some()),
+        status: OK,
+        native_grab: u32::from(h.0.partial_input.preserves_native_grab()),
+        reserved: 0,
+    }
+}
+#[repr(C)]
 pub struct FfiScrollStatus {
     epoch: i64,
     active: u32,
@@ -84,6 +670,112 @@ pub struct FfiScrollSample {
     completed: u32,
     status: u32,
     reserved: u32,
+}
+
+#[repr(C)]
+pub struct FfiClientPaint {
+    frame: FfiRect,
+    visual: FfiRect,
+    viewport: FfiRect,
+    layout: FfiRect,
+    max_camera: f64,
+    scope_revision: f64,
+    column_id: f64,
+    logical_x: f64,
+    velocity_x: f64,
+    velocity_y: f64,
+    epoch: i64,
+    time_ns: i64,
+    serial: u64,
+    active: u32,
+    status: u32,
+}
+/// # Safety
+/// Live exclusive runtime; facts are from a real client paint on the bound
+/// output/pass. No borrowed buffers survive this synchronous call.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_record_client_painted(
+    handle: *mut ScrollHandle,
+    id: u64,
+    epoch: i64,
+    time_ns: i64,
+    serial: u64,
+    frame: FfiRect,
+) -> FfiSpringBoolResult {
+    bool_result(unsafe { handle.as_mut() }.ok_or(INVALID_HANDLE).map(|h| {
+        h.0.record_client_painted(WindowId(id), epoch, time_ns, serial, frame.into())
+    }))
+}
+/// # Safety
+/// Live shared runtime. Read-only, allocation-free actual per-client fact query.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_client_paint(
+    handle: *const ScrollHandle,
+    id: u64,
+) -> FfiClientPaint {
+    let mut result = FfiClientPaint {
+        frame: Rect::default().into(),
+        visual: Rect::default().into(),
+        viewport: Rect::default().into(),
+        layout: Rect::default().into(),
+        max_camera: 0.0,
+        scope_revision: 0.0,
+        column_id: 0.0,
+        logical_x: 0.0,
+        velocity_x: 0.0,
+        velocity_y: 0.0,
+        epoch: -1,
+        time_ns: -1,
+        serial: 0,
+        active: 0,
+        status: INVALID_HANDLE,
+    };
+    let Some(h) = (unsafe { handle.as_ref() }) else {
+        return result;
+    };
+    result.status = OK;
+    if let Some(p) = h.0.client_paint(WindowId(id)) {
+        let (Some(config), Some(projection)) =
+            (h.0.partial_config(), h.0.projection(WindowId(id), p.frame))
+        else {
+            return result;
+        };
+        result.viewport = projection.viewport.into();
+        result.layout = config.layout.into();
+        result.max_camera = config.max_offset;
+        result.scope_revision = config.scope_revision;
+        result.frame = p.frame.into();
+        result.visual = p.visual.into();
+        result.column_id = p.column_id;
+        result.logical_x = p.logical_x;
+        result.velocity_x = p.velocity_x;
+        result.velocity_y = p.velocity_y;
+        result.epoch = p.epoch;
+        result.time_ns = p.time_ns;
+        result.serial = p.serial;
+        result.active = 1;
+    }
+    result
+}
+/// # Safety
+/// Live shared runtime and initialized borrowed UTF-16 buffers for this call.
+/// Does not imply COLUMN_GEOMETRY arm support; no borrowed data is retained.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_client_source_complete(
+    handle: *const ScrollHandle,
+    actual_output: FfiRect,
+    actual_workspace: U16View,
+    actual_output_name: U16View,
+) -> FfiSpringBoolResult {
+    bool_result((|| {
+        let h = unsafe { handle.as_ref() }.ok_or(INVALID_HANDLE)?;
+        if actual_workspace.len > 256 || actual_output_name.len > 256 {
+            return Err(INVALID_DTO);
+        }
+        let workspace = unsafe { slice(actual_workspace.data, actual_workspace.len)? };
+        let output_name = unsafe { slice(actual_output_name.data, actual_output_name.len)? };
+        Ok(h.0.client_source_matches(actual_output.into(), workspace, output_name))
+    })())
 }
 
 /// Unique owned state; no concurrent mutation or aliasing with borrowed output.
@@ -219,6 +911,7 @@ pub(super) unsafe fn decode_plan(p: &FfiPlan) -> Result<ScrollPlan, u32> {
         retarget_only: p.retarget_only,
         clip_partial: p.clip_partial,
         viewport: p.viewport.into(),
+        partial: None,
         entries,
         fingerprint: unsafe { slice(p.fingerprint.data, p.fingerprint.len)? }.to_vec(),
     };
@@ -600,7 +1293,8 @@ pub unsafe extern "C" fn cc_niri_scroll_status(handle: *const ScrollHandle) -> F
             active: u32::from(h.0.active()),
             completed: u32::from(h.0.completed()),
             status: OK,
-            reserved: u32::from(h.0.clips_partial()),
+            reserved: u32::from(h.0.clips_partial())
+                | (u32::from(h.0.column_geometry_active()) << 1),
         },
         None => FfiScrollStatus {
             epoch: -1,
@@ -668,7 +1362,7 @@ pub unsafe extern "C" fn cc_niri_scroll_projection(
         Some(p) => FfiProjection {
             viewport: p.viewport.into(),
             translation_x: p.translation_x,
-            active: 1,
+            active: 1 | if h.0.partial_config().is_some() { 2 } else { 0 },
             status: OK,
         },
         None => FfiProjection {
@@ -722,6 +1416,7 @@ pub unsafe extern "C" fn cc_niri_scroll_frames(
     let map = match kind {
         0 => h.0.targets(),
         1 => h.0.source_frames(),
+        2 => h.0.visual_targets(),
         _ => {
             return FfiIdResult {
                 value: 0,
@@ -730,7 +1425,13 @@ pub unsafe extern "C" fn cc_niri_scroll_frames(
             }
         }
     };
-    let count = map.len() as u64;
+    let count = if kind == 2 {
+        map.keys()
+            .filter(|id| h.0.painted_target(**id).is_some())
+            .count() as u64
+    } else {
+        map.len() as u64
+    };
     if capacity == 0 {
         return FfiIdResult {
             value: count,
@@ -745,13 +1446,23 @@ pub unsafe extern "C" fn cc_niri_scroll_frames(
             reserved: 0,
         };
     }
-    for (index, (id, rect)) in map.iter().enumerate() {
+    let mut index = 0;
+    for (id, rect) in map {
+        let rect = if kind == 2 {
+            let Some(r) = h.0.painted_target(*id) else {
+                continue;
+            };
+            r
+        } else {
+            *rect
+        };
         unsafe {
             out.add(index).write(FfiWindowFrame {
                 window_id: id.0,
-                rect: (*rect).into(),
+                rect: rect.into(),
             });
         }
+        index += 1;
     }
     FfiIdResult {
         value: count,
@@ -764,6 +1475,76 @@ pub unsafe extern "C" fn cc_niri_scroll_frames(
 mod tests {
     use super::*;
     use crate::native_protocol::Text;
+    #[test]
+    fn partial_ffi_status_errors_and_pair_lifetime() {
+        // SAFETY: Owned handles, explicit supported nulls and copied numeric DTOs.
+        unsafe {
+            let null = std::ptr::null_mut();
+            assert_eq!(cc_niri_scroll_partial_status(null).status, INVALID_HANDLE);
+            assert_eq!(
+                cc_niri_scroll_partial_hit(null, 0.0, 0.0).status,
+                INVALID_HANDLE
+            );
+            assert_eq!(
+                cc_niri_scroll_partial_blocked(null, 0, Rect::default().into(), 0.0, 0.0).status,
+                INVALID_HANDLE
+            );
+            assert_eq!(
+                cc_niri_scroll_partial_input(null, 1, 272, 1, 0).status,
+                INVALID_HANDLE
+            );
+            assert_eq!(
+                cc_niri_scroll_arm_partial(
+                    null,
+                    std::ptr::null(),
+                    0,
+                    std::ptr::null(),
+                    0,
+                    1,
+                    Rect::default().into()
+                )
+                .status,
+                INVALID_HANDLE
+            );
+            assert_eq!(std::mem::size_of::<FfiPartialPlan>(), 232);
+            assert_eq!(std::mem::size_of::<FfiPartialInputResult>(), 16);
+            assert_eq!(std::mem::size_of::<FfiPartialStatus>(), 32);
+            let h = cc_niri_scroll_create(1);
+            assert_eq!(
+                cc_niri_scroll_arm_partial(
+                    h,
+                    std::ptr::null(),
+                    0,
+                    std::ptr::null(),
+                    0,
+                    1,
+                    Rect::default().into()
+                )
+                .status,
+                INVALID_DTO
+            );
+            for (kind, blocked, flags) in [(13, 1, 0), (1, 2, 0), (1, 1, 8)] {
+                assert_eq!(
+                    cc_niri_scroll_partial_input(h, kind, 272, blocked, flags).status,
+                    INVALID_DTO
+                );
+            }
+            assert_eq!(cc_niri_scroll_partial_status(h).buttons, 0);
+            let first = cc_niri_scroll_partial_input(h, 1, 272, 1, 0);
+            assert_eq!((first.consume, first.focus, first.status), (1, 1, OK));
+            cc_niri_scroll_clear(h);
+            assert_eq!(cc_niri_scroll_partial_status(h).enabled, 0);
+            assert_eq!(cc_niri_scroll_partial_status(h).buttons, 1);
+            assert_eq!(cc_niri_scroll_partial_input(h, 2, 272, 0, 1).consume, 1);
+            assert_eq!(cc_niri_scroll_partial_status(h).buttons, 0);
+            assert_eq!(
+                cc_niri_scroll_frames(h, 2, std::ptr::null_mut(), 0).value,
+                0
+            );
+            cc_niri_scroll_destroy(h);
+        }
+    }
+
     #[test]
     fn ffi_null_buffers_ownership_and_counts() {
         // SAFETY: Explicitly supported nulls and owned handles; valid DTO buffers.
@@ -867,7 +1648,7 @@ mod tests {
             );
             assert_eq!(cc_niri_scroll_context_text(h, 3).status, INVALID_DTO);
             assert_eq!(
-                cc_niri_scroll_frames(h, 2, std::ptr::null_mut(), 0).status,
+                cc_niri_scroll_frames(h, 3, std::ptr::null_mut(), 0).status,
                 INVALID_DTO
             );
             let label = Text::from_utf8("window");
@@ -898,6 +1679,7 @@ mod tests {
                     new_offset: 100.0,
                     retarget_only: 0,
                     clip_partial: 0,
+                    partial: None,
                     viewport: Rect {
                         x: 0.0,
                         y: 0.0,

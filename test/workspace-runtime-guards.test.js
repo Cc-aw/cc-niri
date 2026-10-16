@@ -48,7 +48,7 @@ const layoutEligibility = new LayoutEligibility({
     getPrimaryOutput: () => appState.targetOutput,
     isPrimaryReady: () => workspaceMountController.canUseActiveWorkspace(),
 });
-const context = vm.createContext({
+const context = vm.createContext({ continuousLayout: null,
     windowPolicy: policy, workspaceMembership: membership, mainScreenState: appState,
     workspaceMountController, layoutEligibility,
     workspaceTransferController: { onWindowAdded: () => {} },

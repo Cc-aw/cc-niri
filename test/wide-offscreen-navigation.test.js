@@ -40,7 +40,7 @@ function setup(wideIndex, offset, focusedIndex) {
         state.safeRect.width, state.innerGap).forEach((item, index) =>
         Object.assign(state.columns[index], item));
     recompute();
-    const context = vm.createContext({
+    const context = vm.createContext({ continuousLayout: null,
         mainScreenState: state, contextualViewport: viewport, columnStore: store,
         contextualWideCoordinator: { isActivationDeferred: () => false },
         scrollPlanCommitGate: { pending: null },

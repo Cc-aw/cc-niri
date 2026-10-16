@@ -1,0 +1,31 @@
+[1/29] Building Rust Native Core (dev)
+   Compiling cc-niri-native-core v0.1.0 (/home/cc/cc_niri/native/rust/cc-niri-native-core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.27s
+[2/29] Linking CXX executable rust/cc-niri-ring-differential
+[3/29] Linking CXX executable rust/cc-niri-workspace-motion-differential
+[4/29] Linking CXX executable rust/cc-niri-spring-differential
+[5/29] Linking CXX executable rust/cc-niri-motion-differential
+[6/29] Linking CXX executable rust/cc-niri-protocol-differential
+[7/29] Linking CXX executable rust/cc-niri-scroll-differential
+[8/29] Linking CXX executable rust/cc-niri-rust-animation-frame-tests
+[9/29] Linking CXX executable rust/cc-niri-rust-focus-fade-tests
+[10/29] Linking CXX executable rust/cc-niri-rust-motion-tests
+[11/29] Linking CXX executable rust/cc-niri-rust-scroll-tests
+[12/29] Linking CXX executable rust/cc-niri-rust-ring-context-tests
+[13/29] Linking CXX executable rust/cc-niri-rust-core-smoke-tests
+[14/29] Linking CXX executable bin/cc-niri-scroll-viewport-tests
+[15/29] Linking CXX shared module bin/kwin/effects/plugins/cc-niri-viewport-clip.so
+[16/29] Linking CXX executable bin/cc-niri-viewport-motion-tests
+[17/29] Linking CXX shared module bin/kwin/effects/plugins/cc-niri-focus-ring.so
+[18/29] Linking CXX executable bin/cc-niri-workspace-projection-tests
+[19/29] Linking CXX executable bin/cc-niri-focus-ring-controller-tests
+[20/29] Linking CXX executable bin/cc-niri-focus-ring-corner-style-tests
+[21/29] Linking CXX executable bin/cc-niri-focus-ring-context-tests
+[22/29] Linking CXX executable bin/cc-niri-focus-ring-item-tests
+[23/29] Linking CXX executable bin/cc-niri-focus-ring-paint-tests
+[24/29] Linking CXX executable bin/cc-niri-focus-ring-viewport-clip-tests
+[25/29] Linking CXX executable bin/cc-niri-focus-ring-visual-transform-tests
+[26/29] Linking CXX executable bin/cc-niri-focus-ring-fade-tests
+[27/29] Linking CXX executable bin/cc-niri-focus-ring-retarget-tests
+[28/29] Linking CXX executable bin/cc-niri-focus-ring-presentation-tests
+[29/29] Linking CXX executable bin/cc-niri-focus-ring-hidpi-tests

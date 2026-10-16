@@ -1,0 +1,16 @@
+{
+  "command": [
+    "dbus-run-session",
+    "--",
+    "/usr/bin/python3",
+    "/home/cc/cc_niri/tools/scroll-layout-v2-p0-input-probe.py",
+    "--inside",
+    "--output",
+    "/home/cc/cc_niri/test/scroll-layout-v2-p0-evidence/20261014/native-input-150",
+    "--scale",
+    "1.5"
+  ],
+  "exit_code": 0,
+  "stdout": "{\"status\": \"PASS_BASIC_TWO_CLICK_FIXTURE_ONLY\", \"passed\": 49, \"total\": 49, \"evidence\": \"/home/cc/cc_niri/test/scroll-layout-v2-p0-evidence/20261014/native-input-150/input-results.json\"}\n",
+  "stderr": ""
+}

@@ -117,6 +117,12 @@ pub struct ScrollEntry {
     pub new_placement: Placement,
 }
 #[derive(Clone, Debug)]
+pub struct PartialScrollConfig {
+    pub layout: Rect,
+    pub max_offset: f64,
+    pub scope_revision: f64,
+}
+#[derive(Clone, Debug)]
 pub struct ScrollPlan {
     pub shape_valid: bool,
     pub protocol: f64,
@@ -132,6 +138,7 @@ pub struct ScrollPlan {
     pub retarget_only: u32,
     pub clip_partial: u32,
     pub viewport: Rect,
+    pub partial: Option<PartialScrollConfig>,
     pub entries: Vec<ScrollEntry>,
     // Opaque canonical envelope bytes, including extra fields; never parsed on a frame.
     pub fingerprint: Vec<u8>,
@@ -312,6 +319,19 @@ pub struct ValidatedScrollPlan {
     issued_at: i64,
 }
 impl ValidatedScrollPlan {
+    pub(crate) fn new_column_geometry(
+        wire: &crate::column_geometry::ColumnGeometryPlan,
+        windows: &WindowRegistry,
+    ) -> Result<Self, NativeError> {
+        if !wire.valid(windows) {
+            return Err(NativeError::InvalidProtocol);
+        }
+        Ok(Self {
+            epoch: Epoch::from_json(wire.header.epoch)?,
+            issued_at: integer(wire.header.issued_at).ok_or(NativeError::InvalidEpoch)?,
+            wire: wire.header.clone(),
+        })
+    }
     /// Explicit coordinate-basis change. Ordinary SCROLL validation is untouched.
     /// Only one surviving, already visible, same-width window supplies the old basis.
     pub fn new_reindex(
@@ -324,6 +344,7 @@ impl ValidatedScrollPlan {
         let issued_at = integer(wire.issued_at).ok_or(NativeError::InvalidEpoch)?;
         let invalid = || NativeError::InvalidProtocol;
         if !wire.shape_valid
+            || wire.partial.is_some()
             || wire.protocol != 2.0
             || wire.kind != Text::from_utf8("COLUMN_REINDEX")
             || !wire.session.valid()
@@ -418,6 +439,9 @@ impl ValidatedScrollPlan {
     pub fn epoch(&self) -> Epoch {
         self.epoch
     }
+    pub fn is_partial(&self) -> bool {
+        self.wire.partial.is_some()
+    }
     pub fn issued_at(&self) -> i64 {
         self.issued_at
     }
@@ -427,9 +451,39 @@ impl ValidatedScrollPlan {
 }
 
 pub fn valid_scroll_plan(plan: &ScrollPlan, windows_registry: &WindowRegistry) -> bool {
+    let partial = plan.partial.as_ref();
+    let schema = if let Some(p) = partial {
+        plan.protocol == 3.0
+            && plan.kind == Text::from_utf8("PARTIAL_SCROLL")
+            && plan.clip_partial == 2
+            && p.layout.valid_viewport()
+            && p.layout.x >= plan.viewport.x
+            && p.layout.y >= plan.viewport.y
+            && p.layout.x + p.layout.width <= plan.viewport.x + plan.viewport.width
+            && p.layout.y + p.layout.height <= plan.viewport.y + plan.viewport.height
+            && p.max_offset.is_finite()
+            && p.max_offset >= 0.0
+            && p.max_offset <= MAX_SAFE_INTEGER
+            && [
+                p.layout.x,
+                p.layout.y,
+                p.layout.width,
+                p.layout.height,
+                plan.viewport.x,
+                plan.viewport.y,
+                plan.viewport.width,
+                plan.viewport.height,
+            ]
+            .into_iter()
+            .all(|v| v.abs() <= MAX_SAFE_INTEGER)
+            && plan.old_offset <= p.max_offset
+            && plan.new_offset <= p.max_offset
+            && integer(p.scope_revision).is_some_and(|v| v > 0)
+    } else {
+        plan.protocol == 2.0 && plan.kind == Text::from_utf8("SCROLL")
+    };
     if !plan.shape_valid
-        || plan.protocol != 2.0
-        || plan.kind != Text::from_utf8("SCROLL")
+        || !schema
         || !plan.session.valid()
         || !plan.workspace.valid()
         || !plan.output.valid()
@@ -450,7 +504,8 @@ pub fn valid_scroll_plan(plan: &ScrollPlan, windows_registry: &WindowRegistry) -
     }
     let mut windows = HashSet::new();
     let mut columns = HashSet::new();
-    for entry in &plan.entries {
+    let layout = partial.map_or(plan.viewport, |p| p.layout);
+    for (index, entry) in plan.entries.iter().enumerate() {
         let Some(column) = integer(entry.column_id) else {
             return false;
         };
@@ -464,6 +519,13 @@ pub fn valid_scroll_plan(plan: &ScrollPlan, windows_registry: &WindowRegistry) -
             || !entry.pixel_width.is_finite()
             || entry.pixel_width <= 0.0
             || !(entry.logical_x + entry.pixel_width).is_finite()
+            || (partial.is_some()
+                && (entry.pixel_width > layout.width
+                    || entry.logical_x + entry.pixel_width > MAX_SAFE_INTEGER
+                    || plan.entries[..index].iter().any(|old| {
+                        entry.logical_x < old.logical_x + old.pixel_width
+                            && entry.logical_x + entry.pixel_width > old.logical_x
+                    })))
         {
             return false;
         }
@@ -471,7 +533,7 @@ pub fn valid_scroll_plan(plan: &ScrollPlan, windows_registry: &WindowRegistry) -
             (plan.old_offset, entry.old_placement),
             (plan.new_offset, entry.new_placement),
         ] {
-            let left = plan.viewport.x + entry.logical_x - offset;
+            let left = layout.x + entry.logical_x - offset;
             let right = left + entry.pixel_width;
             if !left.is_finite() || !right.is_finite() {
                 return false;

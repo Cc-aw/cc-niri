@@ -1,0 +1,12 @@
+-- The CXX compiler identification is GNU 16.2.1
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+CMake Error at rust/CMakeLists.txt:44 (message):
+  CC-Niri requires Cargo 1.99.0 exactly; found cargo 1.98.0 (negative
+  configure fixture).  Check PATH and the cached CC_NIRI_CARGO_EXECUTABLE.
+
+
+-- Configuring incomplete, errors occurred!

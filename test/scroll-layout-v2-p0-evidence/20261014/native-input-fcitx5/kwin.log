@@ -1,0 +1,94 @@
+kwin_scene_opengl: eglInitialize failed
+kwin_scene_opengl: Error during eglInitialize  "EGL_NOT_INITIALIZED"
+kwin_scene_opengl: eglInitialize failed
+kwin_scene_opengl: Error during eglInitialize  "EGL_NOT_INITIALIZED"
+Accepting client connections on sockets: QList("cc-niri-p0")
+kwin_screencast: Failed to connect PipeWire context
+ShapeCorners: loading shaders...
+ShapeCorners: shaders loaded.
+ShapeCorners: Writing Breeze config
+I2026-10-14 21:25:26.762904 instance.cpp:669] Starting fcitx5 5.1.23
+I2026-10-14 21:25:26.768965 instance.cpp:1448] Override Enabled Addons: {classic}
+I2026-10-14 21:25:26.768979 instance.cpp:1449] Override Disabled Addons: {notifications, clipboard, cloudpinyin}
+I2026-10-14 21:25:26.770981 addonmanager.cpp:208] Loaded addon imselector
+I2026-10-14 21:25:26.771857 addonmanager.cpp:208] Loaded addon unicode
+I2026-10-14 21:25:26.772726 addonmanager.cpp:208] Loaded addon quickphrase
+I2026-10-14 21:25:26.775395 addonmanager.cpp:208] Loaded addon xcb
+I2026-10-14 21:25:26.776973 addonmanager.cpp:208] Loaded addon wayland
+I2026-10-14 21:25:26.777612 addonmanager.cpp:208] Loaded addon waylandim
+I2026-10-14 21:25:26.778153 keyboard.cpp:229] Attempting to load keyboard from: ["/usr/share/xkeyboard-config-2"] Rule: evdev
+I2026-10-14 21:25:26.781512 addonmanager.cpp:208] Loaded addon keyboard
+I2026-10-14 21:25:26.782698 addonmanager.cpp:208] Loaded addon pinyinhelper
+I2026-10-14 21:25:26.783601 addonmanager.cpp:208] Loaded addon luaaddonloader
+I2026-10-14 21:25:26.784679 addonmanager.cpp:208] Loaded addon dbus
+I2026-10-14 21:25:26.785879 addonmanager.cpp:208] Loaded addon ibusfrontend
+I2026-10-14 21:25:26.786497 addonmanager.cpp:208] Loaded addon imeapi
+I2026-10-14 21:25:26.787001 addonmanager.cpp:208] Loaded addon dbusfrontend
+I2026-10-14 21:25:26.787453 addonmanager.cpp:208] Loaded addon fcitx4frontend
+I2026-10-14 21:25:26.788261 addonmanager.cpp:208] Loaded addon xim
+I2026-10-14 21:25:26.810766 inputmethodmanager.cpp:213] Found 749 input method(s) in addon keyboard
+I2026-10-14 21:25:26.811196 addonmanager.cpp:208] Loaded addon kimpanel
+I2026-10-14 21:25:26.811412 addonmanager.cpp:208] Loaded addon virtualkeyboard
+I2026-10-14 21:25:26.835865 classicui.cpp:110] Created classicui for wayland display:
+I2026-10-14 21:25:26.835897 addonmanager.cpp:208] Loaded addon classicui
+I2026-10-14 21:25:26.836498 addonmanager.cpp:208] Loaded addon notificationitem
+I2026-10-14 21:25:26.838619 dbusmodule.cpp:844] Service name change: org.fcitx.Fcitx5  :1.4
+I2026-10-14 21:25:26.838662 kimpanel.cpp:138] Kimpanel new owner: 
+I2026-10-14 21:25:26.838678 virtualkeyboard.cpp:230] VirtualKeyboard new owner: 
+I2026-10-14 21:25:26.981805 portalsettingmonitor.cpp:97] A new portal show up, start a new query.
+I2026-10-14 21:25:26.981899 portalsettingmonitor.cpp:97] A new portal show up, start a new query.
+I2026-10-14 21:25:28.015544 addonmanager.cpp:208] Loaded addon punctuation
+E2026-10-14 21:25:28.035960 pinyin.cpp:937] Failed to load pinyin history: io fail: iostream error
+I2026-10-14 21:25:28.039571 addonmanager.cpp:208] Loaded addon pinyin
+I2026-10-14 21:25:35.467186 addonmanager.cpp:208] Loaded addon fullwidth
+I2026-10-14 21:25:35.467619 addonmanager.cpp:208] Loaded addon chttrans
+I2026-10-14 21:25:35.470239 addonmanager.cpp:208] Loaded addon spell
+cc.niri.focus.ring: [FOCUS_RING] READY isolated post-window border coreBackend= Rust
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "1ca53598-0011-4560-b76d-418c97d039c3"
+ShapeCorners: Writing Breeze config
+=========================
+Fcitx 5.1.23 -- Get Signal No.: 15
+Date: try "date -d @1791984340" if you are using GNU date ***
+ProcessID: 821228
+/usr/bin/fcitx5(+0xd8c7) [0x55a53d7bf8c7]
+/lib64/libc.so.6(+0x19fb0) [0x7fe746a20fb0]
+/lib64/libc.so.6(+0x7b352) [0x7fe746a82352]
+/lib64/libc.so.6(+0x6f54c) [0x7fe746a7654c]
+/lib64/libc.so.6(+0x6f594) [0x7fe746a76594]
+/lib64/libc.so.6(epoll_wait+0x25) [0x7fe746afd895]
+/lib64/libsystemd.so.0(sd_event_wait+0x1d4) [0x7fe7469026a4]
+/lib64/libsystemd.so.0(sd_event_run+0x20b) [0x7fe746903adb]
+/lib64/libsystemd.so.0(sd_event_loop+0x8f) [0x7fe746903c6f]
+/lib64/libFcitx5Utils.so.2(_ZN5fcitx9EventLoop4execEv+0x2b) [0x7fe746ffbf5b]
+/lib64/libFcitx5Core.so.7(_ZN5fcitx8Instance4execEv+0x5b) [0x7fe7470c4e9b]
+/usr/bin/fcitx5(+0xb854) [0x55a53d7bd854]
+/lib64/libc.so.6(+0x3681) [0x7fe746a0a681]
+/lib64/libc.so.6(__libc_start_main+0x88) [0x7fe746a0a798]
+/usr/bin/fcitx5(+0xcc15) [0x55a53d7bec15]
+I2026-10-14 21:25:40.311354 waylandmodule.cpp:405] Connection removed 
+I2026-10-14 21:25:40.311646 instance.cpp:1498] Save before exiting...
+I2026-10-14 21:25:40.312563 addonmanager.cpp:312] Unloading addon spell
+I2026-10-14 21:25:40.312651 addonmanager.cpp:312] Unloading addon chttrans
+I2026-10-14 21:25:40.312673 addonmanager.cpp:312] Unloading addon fullwidth
+I2026-10-14 21:25:40.312687 addonmanager.cpp:312] Unloading addon pinyin
+I2026-10-14 21:25:40.313930 addonmanager.cpp:312] Unloading addon punctuation
+I2026-10-14 21:25:40.314001 addonmanager.cpp:312] Unloading addon notificationitem
+I2026-10-14 21:25:40.314031 addonmanager.cpp:312] Unloading addon classicui
+I2026-10-14 21:25:40.314451 addonmanager.cpp:312] Unloading addon virtualkeyboard
+I2026-10-14 21:25:40.314472 addonmanager.cpp:312] Unloading addon kimpanel
+I2026-10-14 21:25:40.314485 addonmanager.cpp:312] Unloading addon xim
+I2026-10-14 21:25:40.314497 addonmanager.cpp:312] Unloading addon fcitx4frontend
+I2026-10-14 21:25:40.314534 addonmanager.cpp:312] Unloading addon dbusfrontend
+I2026-10-14 21:25:40.314561 addonmanager.cpp:312] Unloading addon imeapi
+I2026-10-14 21:25:40.314627 addonmanager.cpp:312] Unloading addon ibusfrontend
+I2026-10-14 21:25:40.314736 addonmanager.cpp:312] Unloading addon dbus
+I2026-10-14 21:25:40.314779 addonmanager.cpp:312] Unloading addon luaaddonloader
+I2026-10-14 21:25:40.314793 addonmanager.cpp:312] Unloading addon pinyinhelper
+I2026-10-14 21:25:40.317450 addonmanager.cpp:312] Unloading addon keyboard
+I2026-10-14 21:25:40.317568 addonmanager.cpp:312] Unloading addon waylandim
+I2026-10-14 21:25:40.317582 addonmanager.cpp:312] Unloading addon wayland
+I2026-10-14 21:25:40.317595 addonmanager.cpp:312] Unloading addon xcb
+I2026-10-14 21:25:40.317608 addonmanager.cpp:312] Unloading addon quickphrase
+I2026-10-14 21:25:40.317751 addonmanager.cpp:312] Unloading addon unicode
+I2026-10-14 21:25:40.317763 addonmanager.cpp:312] Unloading addon imselector
+kwin_scene_opengl: Could not delete render time query because no context is current

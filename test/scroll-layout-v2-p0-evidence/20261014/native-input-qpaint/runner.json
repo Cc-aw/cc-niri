@@ -1,0 +1,14 @@
+{
+  "command": [
+    "dbus-run-session",
+    "--",
+    "/usr/bin/python3",
+    "/home/cc/cc_niri/tools/scroll-layout-v2-p0-input-probe.py",
+    "--inside",
+    "--output",
+    "/home/cc/cc_niri/test/scroll-layout-v2-p0-evidence/20261014/native-input"
+  ],
+  "exit_code": 1,
+  "stdout": "{\"status\": \"INCONCLUSIVE\", \"passed\": 26, \"total\": 26, \"evidence\": \"/home/cc/cc_niri/test/scroll-layout-v2-p0-evidence/20261014/native-input/input-results.json\"}\n",
+  "stderr": ""
+}

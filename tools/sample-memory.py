@@ -77,6 +77,7 @@ def main():
     parser.add_argument("--interval", type=float, default=10, help="seconds, minimum 10")
     parser.add_argument("--scenario", default="uncontrolled-live-observation")
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--context", type=Path, help="optional P6 same-load/environment JSON sidecar")
     args = parser.parse_args()
     if not math.isfinite(args.duration) or not math.isfinite(args.interval) or args.duration < 0 or args.interval < 10:
         parser.error("duration must be nonnegative and interval at least 10 seconds")
@@ -86,6 +87,10 @@ def main():
               "attribution": "Whole-process data; B0/B1 differences not calculated.",
               "requested_duration_s": args.duration, "interval_s": args.interval,
               "completed": False, "samples": []}
+    if args.context:
+        context = json.loads(args.context.read_text())
+        if not isinstance(context, dict): parser.error("context must be a JSON object")
+        report["p6_context"] = context
     previous = {}
     start = time.monotonic()
 

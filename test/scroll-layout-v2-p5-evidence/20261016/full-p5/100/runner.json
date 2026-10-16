@@ -1,0 +1,18 @@
+{
+  "command": [
+    "dbus-run-session",
+    "--",
+    "/usr/bin/python3",
+    "/home/cc/cc_niri/tools/scroll-layout-v2-p3-probe.py",
+    "--inside",
+    "--output",
+    "/home/cc/cc_niri/test/scroll-layout-v2-p5-evidence/20261016/full-p5/100",
+    "--scale",
+    "1.0",
+    "--scenario",
+    "p5"
+  ],
+  "exit_code": 0,
+  "stdout": "{\"status\": \"PASS\", \"passed\": 30, \"total\": 30, \"evidence\": \"/home/cc/cc_niri/test/scroll-layout-v2-p5-evidence/20261016/full-p5/100\"}\n",
+  "stderr": ""
+}

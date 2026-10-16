@@ -2,7 +2,10 @@
 use super::protocol_views::{
     id_result, slice, text, text_result, FfiIdResult, FfiTextResult, U16View,
 };
-use super::scroll::{decode_plan, FfiContext, FfiPlan, FfiReindexPlan};
+use super::scroll::{
+    decode_geometry, decode_partial, decode_plan, FfiContext, FfiGeometryPlan, FfiPartialPlan,
+    FfiPlan, FfiReindexPlan,
+};
 use super::{FfiSpringBoolResult, INVALID_HANDLE, OK};
 use crate::focus_ring_context::{Candidate, EligibilitySnapshot, FocusRingContext};
 use crate::native_protocol::{
@@ -10,6 +13,64 @@ use crate::native_protocol::{
     WindowRegistry,
 };
 const INVALID_DTO: u32 = 2;
+/// # Safety
+/// Live exclusive sequence and bounded typed borrowed buffers. Tokens are
+/// message-local even when representation decoding fails.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_sequence_geometry(
+    handle: *mut SequenceHandle,
+    plan: *const FfiGeometryPlan,
+    observe: u32,
+) -> ProtocolResult {
+    result((|| {
+        let h = unsafe { handle.as_mut() }.ok_or(INVALID_HANDLE)?;
+        let outcome = (|| {
+            let p = unsafe { plan.as_ref() }.ok_or(INVALID_DTO)?;
+            if observe > 1 {
+                return Err(INVALID_DTO);
+            }
+            let wire = unsafe { decode_geometry(p)? };
+            let validation =
+                crate::column_geometry::ValidatedColumnGeometryPlan::new(wire, &h.windows);
+            Ok(validation.and_then(|mut validated| {
+                if observe == 1 {
+                    h.sequence
+                        .observe_validated(validated.sequence())
+                        .map(|d| d as u32)
+                } else {
+                    Ok(PlanDisposition::Accepted as u32)
+                }
+            }))
+        })();
+        h.windows = WindowRegistry::default();
+        outcome
+    })())
+}
+/// # Safety
+/// Live exclusive sequence and typed borrowed buffers. Tokens are message-local.
+#[no_mangle]
+pub unsafe extern "C" fn cc_niri_scroll_sequence_partial(
+    handle: *mut SequenceHandle,
+    plan: *const FfiPartialPlan,
+    observe: u32,
+) -> ProtocolResult {
+    result((|| {
+        let h = unsafe { handle.as_mut() }.ok_or(INVALID_HANDLE)?;
+        let p = unsafe { plan.as_ref() }.ok_or(INVALID_DTO)?;
+        let validation = ValidatedScrollPlan::new(unsafe { decode_partial(p)? }, &h.windows);
+        let value = validation.and_then(|mut validated| {
+            if observe != 0 {
+                h.sequence
+                    .observe_validated(&mut validated)
+                    .map(|d| d as u32)
+            } else {
+                Ok(PlanDisposition::Accepted as u32)
+            }
+        });
+        h.windows = WindowRegistry::default();
+        Ok(value)
+    })())
+}
 
 /// Validate an untrusted JSON numeric epoch before the Qt adapter converts it.
 #[no_mangle]
@@ -381,6 +442,38 @@ pub unsafe extern "C" fn cc_niri_eligibility_text(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn geometry_dto_errors_reset_message_tokens_and_keep_existing_sequence() {
+        assert_eq!(std::mem::size_of::<FfiGeometryPlan>(), 304);
+        // SAFETY: The DTO contains only scalar values and borrowed pointer/len
+        // pairs. All-zero pairs are empty buffers, not fabricated references.
+        let plan: FfiGeometryPlan = unsafe { std::mem::zeroed() };
+        let mut handle = SequenceHandle::default();
+        for invalid in 0..3 {
+            let token = handle
+                .windows
+                .intern(crate::native_protocol::Text::from_utf8("temporary"));
+            let result = unsafe {
+                cc_niri_scroll_sequence_geometry(
+                    &mut handle,
+                    if invalid == 0 {
+                        std::ptr::null()
+                    } else {
+                        &plan
+                    },
+                    if invalid == 2 { 2 } else { 0 },
+                )
+            };
+            assert_eq!(result.value, 0);
+            assert_eq!(result.status, if invalid == 1 { OK } else { INVALID_DTO });
+            assert!(handle.windows.label(token).is_none());
+            assert!(handle.sequence.context.is_none());
+        }
+        assert_eq!(
+            unsafe { cc_niri_scroll_sequence_geometry(std::ptr::null_mut(), &plan, 0) }.status,
+            INVALID_HANDLE
+        );
+    }
     fn view(value: &[u16]) -> U16View {
         U16View {
             data: value.as_ptr(),

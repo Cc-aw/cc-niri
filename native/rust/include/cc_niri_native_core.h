@@ -138,9 +138,33 @@ typedef struct {
     CcNiriScrollPlan plan;
     uint64_t source_id; double source_logical_x;
 } CcNiriReindexPlan;
+typedef struct { CcNiriScrollPlan plan; CcNiriRect layout; double max_offset,scope_revision; } CcNiriPartialScrollPlan;
+/* Additive protocol4 validation DTO. All buffers borrowed for one call.
+ * plan.entries_len must be zero; source_kind=1 painted, 2 hidden/unowned.
+ * Hidden sources use old_logical_x=0 and an all-zero old_visual. */
+typedef struct {
+    uint64_t window_id;
+    double column_id,old_logical_x,new_logical_x,old_width,new_width;
+    CcNiriRect old_frame,old_visual,target_frame;
+    uint32_t source_kind,old_placement,new_placement,reserved;
+} CcNiriColumnGeometryEntry;
+typedef struct {
+    CcNiriScrollPlan plan;
+    CcNiriRect old_layout,layout;
+    double old_max_camera,max_camera,scope_revision,source_epoch,source_serial;
+    const CcNiriColumnGeometryEntry *entries; uint64_t entries_len;
+} CcNiriColumnGeometryPlan;
+typedef struct { uint32_t consume,focus,status,reserved; } CcNiriPartialInputResult;
+typedef struct { double scope_revision; uint32_t buttons,touches,enabled,status,native_grab,reserved; } CcNiriPartialStatus;
+CcNiriSpringBoolResult cc_niri_scroll_arm_partial(CcNiriScroll *handle,const CcNiriPartialScrollPlan *plan,int64_t now_ns,const CcNiriWindowFrame *frames,uint64_t frames_len,uint32_t smooth,CcNiriRect actual_output);
+CcNiriSpringBoolResult cc_niri_scroll_partial_blocked(const CcNiriScroll *handle,uint64_t id,CcNiriRect frame,double x,double y);
+CcNiriPartialInputResult cc_niri_scroll_partial_input(CcNiriScroll *handle,uint32_t kind,uint64_t id,uint32_t blocked,uint32_t flags);
+CcNiriPartialStatus cc_niri_scroll_partial_status(const CcNiriScroll *handle);
 /* reserved bit 0: active partial paint/input clipping, also after settlement. */
 typedef struct { int64_t epoch; uint32_t active,completed,status,reserved; } CcNiriScrollStatus;
 typedef struct { uint64_t value; uint32_t status,reserved; } CcNiriIdResult;
+CcNiriSpringBoolResult cc_niri_scroll_partial_ambiguous(const CcNiriScroll *handle,double x,double y);
+CcNiriIdResult cc_niri_scroll_partial_hit(const CcNiriScroll *handle,double x,double y);
 typedef struct { CcNiriRect viewport; double translation_x; uint32_t active,status; } CcNiriProjectionResult;
 typedef struct { CcNiriU16View value; uint32_t status,reserved; } CcNiriTextResult;
 CcNiriScroll *cc_niri_scroll_create(uint32_t fuzzy_zero);
@@ -192,12 +216,44 @@ typedef struct {
  * idle reports that profile's Core parameters. threshold_px=0 disables visuals. */
 CcNiriScrollTuningStatus cc_niri_scroll_tuning_status(const CcNiriScroll *handle,uint32_t configured_smooth);
 CcNiriSpringBoolResult cc_niri_scroll_mark_painted(CcNiriScroll *handle,int64_t epoch,int64_t time_ns);
+/* Real per-client paint facts. Updated only after a nonempty target-output
+ * draw, with exact source/target frame checks; shared camera paint is separate.
+ * Read/write operations allocate nothing. No platform references are retained.
+ * complete=false includes occluded/unpainted clients; it is never an Arm ACK. */
+typedef struct {
+    CcNiriRect frame,visual,viewport,layout;
+    double max_camera,scope_revision;
+    double column_id,logical_x,velocity_x,velocity_y;
+    int64_t epoch,time_ns;
+    uint64_t serial;
+    uint32_t active,status;
+} CcNiriClientPaint;
+CcNiriSpringBoolResult cc_niri_scroll_record_client_painted(CcNiriScroll *handle,uint64_t id,int64_t epoch,int64_t time_ns,uint64_t serial,CcNiriRect frame);
+CcNiriClientPaint cc_niri_scroll_client_paint(const CcNiriScroll *handle,uint64_t id);
+/* Fresh platform facts must match the painted scope; borrowed text length <=256.
+ * A resolution/workspace/output change invalidates the source immediately. */
+CcNiriSpringBoolResult cc_niri_scroll_client_source_complete(const CcNiriScroll *handle,CcNiriRect actual_output,CcNiriU16View actual_workspace,CcNiriU16View actual_output_name);
+
+/* Geometry observations: flags desktop/output/minimized/deleted/fullscreen/
+ * normal/managed=bits0..6. Borrowed only for the synchronous call. */
+typedef struct { uint64_t window_id; double column_id; CcNiriRect frame; double opacity; uint32_t flags,reserved; } CcNiriGeometrySourceRow;
+typedef struct { CcNiriRect viewport,layout; double max_camera,scope_revision,camera_x; int64_t epoch,time_ns; uint64_t serial; uint32_t count,valid,status,reserved; } CcNiriGeometrySourceStatus;
+typedef struct { CcNiriRect viewport; double translation_x,translation_y; uint32_t active,status; } CcNiriGeometryProjection;
+CcNiriSpringBoolResult cc_niri_scroll_arm_geometry(CcNiriScroll *handle,const CcNiriColumnGeometryPlan *plan,int64_t now_ns,const CcNiriGeometrySourceRow *rows,uint64_t len,uint32_t smooth,CcNiriRect actual_output);
+CcNiriGeometrySourceStatus cc_niri_scroll_geometry_source(CcNiriScroll *handle,const CcNiriGeometrySourceRow *rows,uint64_t len,CcNiriRect actual_output,CcNiriU16View actual_workspace,CcNiriU16View actual_name,CcNiriClientPaint *out,uint64_t capacity);
+typedef struct { int64_t epoch,time_ns; uint64_t serial; double scope_revision; uint32_t active,completed,status,reserved; } CcNiriGeometryCompletion;
+CcNiriSpringBoolResult cc_niri_scroll_needs_repaint(const CcNiriScroll *handle);
+CcNiriSpringBoolResult cc_niri_scroll_frame_ready(const CcNiriScroll *handle);
+CcNiriGeometryCompletion cc_niri_scroll_geometry_completion(const CcNiriScroll *handle);
+CcNiriGeometryProjection cc_niri_scroll_geometry_projection(const CcNiriScroll *handle,uint64_t id,CcNiriRect actual_frame);
+CcNiriSpringBoolResult cc_niri_scroll_observe_client_frame(CcNiriScroll *handle,uint64_t id,CcNiriRect actual_frame);
+CcNiriSpringBoolResult cc_niri_scroll_finish_geometry_frame(CcNiriScroll *handle,int64_t epoch,int64_t time_ns,uint64_t serial,const CcNiriGeometrySourceRow *rows,uint64_t len);
 CcNiriScrollSample cc_niri_scroll_frame_sample(const CcNiriScroll *handle,uint32_t painted); /* pending/painted/arm origin=0/1/2 */
 CcNiriScrollStatus cc_niri_scroll_status(const CcNiriScroll *handle);
 CcNiriTextResult cc_niri_scroll_context_text(const CcNiriScroll *handle,uint32_t field); /* session/workspace/output=0/1/2 */
 CcNiriProjectionResult cc_niri_scroll_projection(const CcNiriScroll *handle,uint64_t id,CcNiriRect geometry);
 CcNiriSpringBoolResult cc_niri_scroll_role(const CcNiriScroll *handle,uint64_t id); /* absent/continuing/incoming/outgoing=0/1/2/3 */
-CcNiriIdResult cc_niri_scroll_frames(const CcNiriScroll *handle,uint32_t kind,CcNiriWindowFrame *out,uint64_t capacity); /* targets/source=0/1; zero capacity queries count */
+CcNiriIdResult cc_niri_scroll_frames(const CcNiriScroll *handle,uint32_t kind,CcNiriWindowFrame *out,uint64_t capacity); /* targets/source/partial-last-painted=0/1/2; zero capacity queries count */
 
 /* Ring geometry uses fixed-size borrowed DTOs, no handles, allocation or
  * platform pointers. Frame values are frozen for one paint call; the adapter
@@ -228,6 +284,8 @@ CcNiriProtocolResult cc_niri_scroll_sequence_update(CcNiriScrollSequence *handle
 /* observe=0 validates without consuming an epoch; observe=1 returns disposition
  * rejected/duplicate/accepted = 0/1/2 and consumes an accepted epoch. */
 CcNiriProtocolResult cc_niri_scroll_sequence_plan(CcNiriScrollSequence *handle,const CcNiriScrollPlan *plan,uint32_t observe);
+CcNiriProtocolResult cc_niri_scroll_sequence_partial(CcNiriScrollSequence *handle,const CcNiriPartialScrollPlan *plan,uint32_t observe);
+CcNiriProtocolResult cc_niri_scroll_sequence_geometry(CcNiriScrollSequence *handle,const CcNiriColumnGeometryPlan *plan,uint32_t observe);
 CcNiriProtocolResult cc_niri_scroll_sequence_reindex(CcNiriScrollSequence *handle,const CcNiriReindexPlan *plan,uint32_t observe);
 CcNiriSpringBoolResult cc_niri_scroll_sequence_authority(const CcNiriScrollSequence *handle);
 typedef struct CcNiriEligibility CcNiriEligibility;

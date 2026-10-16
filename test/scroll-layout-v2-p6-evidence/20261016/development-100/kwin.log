@@ -1,0 +1,16 @@
+kwin_scene_opengl: eglInitialize failed
+kwin_scene_opengl: Error during eglInitialize  "EGL_NOT_INITIALIZED"
+kwin_scene_opengl: eglInitialize failed
+kwin_scene_opengl: Error during eglInitialize  "EGL_NOT_INITIALIZED"
+Accepting client connections on sockets: QList("cc-niri-p0")
+kwin_screencast: Failed to connect PipeWire context
+ShapeCorners: loading shaders...
+ShapeCorners: shaders loaded.
+ShapeCorners: Writing Breeze config
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] READY scrollRuntimeBackend= "Rust"
+cc.niri.focus.ring: [FOCUS_RING] READY isolated post-window border coreBackend= Rust
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"37778b64-60e9-4c35-9936-771682a492c1\"},{\"columnId\":2,\"logicalX\":2348,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"bd78a27f-6c93-4ba1-ba31-1ea42e1f1b1b\"}],\"epoch\":1,\"issuedAt\":1792118478256,\"layoutRect\":{\"height\":1358,\"width\":2560,\"x\":0,\"y\":66},\"maxCamera\":1696,\"newScrollOffsetX\":212,\"oldScrollOffsetX\":212,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":1,\"sessionId\":\"p3-private\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"b1470bd7-3860-46d6-a291-65e0875b0928\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+ShapeCorners: Skipped writing Breeze config because the last change was 0 seconds ago.
+kwin_scene_opengl: Could not delete render time query because no context is current
+kwin_scene_opengl: Could not delete render time query because no context is current

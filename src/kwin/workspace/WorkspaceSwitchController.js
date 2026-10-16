@@ -113,7 +113,7 @@ class WorkspaceSwitchController {
                 if (!this.mount.mountPrepared(desktop, reason, focusedUuid)) return false;
                 if (!this.valid(epoch)) return false;
                 if (this.appState.activeWorkspaceId === this.topology.id(this.topology.current(this.appState.targetOutput))) {
-                    this.mount.commitState(reason);
+                    if (!this.mount.scrollLayoutV2Enabled) this.mount.commitState(reason);
                     committed = true;
                     return true;
                 }
@@ -127,6 +127,7 @@ class WorkspaceSwitchController {
                 this.phase = "IDLE";
                 this.appState.workspaceSwitching = false;
                 this.pendingRequest = null;
+                if (committed && this.mount.onMounted) this.mount.onMounted(reason);
                 if (request) request.onFinished(committed ? this.appState.activeWorkspaceId : null);
             }
         }

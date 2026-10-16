@@ -1,0 +1,13 @@
+Test project /home/cc/cc_niri/build/native-viewport-clip
+    Start  2: scroll-viewport-runtime
+1/4 Test  #2: scroll-viewport-runtime ..........   Passed    0.01 sec
+    Start 11: scroll-runtime-differential
+2/4 Test #11: scroll-runtime-differential ......   Passed    5.28 sec
+    Start 12: scroll-animation-frame-context
+3/4 Test #12: scroll-animation-frame-context ...   Passed    0.02 sec
+    Start 15: scroll-runtime-contract
+4/4 Test #15: scroll-runtime-contract ..........   Passed    0.01 sec
+
+100% tests passed, 0 tests failed out of 4
+
+Total Test time (real) =   5.32 sec

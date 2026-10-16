@@ -13,6 +13,7 @@ const mock = `#!${process.execPath}
 const fs=require('node:fs'),path=require('node:path');
 const command=path.basename(process.argv[1]),args=process.argv.slice(2);
 fs.appendFileSync(process.env.INSTALL_LOG,JSON.stringify([command,...args])+'\\n');
+if(command==='python3' && args.includes('verify') && process.env.INSTALL_REJECT_PREPARED==='1')process.exit(1);
 const value=flag=>args[args.indexOf(flag)+1];
 const settings=JSON.parse(fs.readFileSync(process.env.INSTALL_CONFIG));
 const key=value('--group')+'/'+value('--key');
@@ -28,7 +29,7 @@ for (const name of ["gdbus", "cargo", "rustc", "node", "kpackagetool6", "kwritec
 fs.mkdirSync(path.join(temp, "build/bridge"), { recursive: true });
 fs.writeFileSync(path.join(temp, "build/bridge/cc-niri-bridge"), mock, { mode: 0o755 });
 fs.writeFileSync(path.join(temp, "cc-niri"), mock, { mode: 0o755 });
-function run(args, dockSetting) {
+function run(args, dockSetting, rejectPrepared = false) {
     const legacyUnit = path.join(home, ".config/systemd/user/cc-scroll-dock-bridge.service");
     fs.mkdirSync(path.dirname(legacyUnit), { recursive: true });
     fs.writeFileSync(legacyUnit, "old independent Bridge unit");
@@ -37,7 +38,7 @@ function run(args, dockSetting) {
         ...(dockSetting === undefined ? {} : { "Script-cc-niri-maximize/EnableDockIntegration": dockSetting }) }));
     const result = spawnSync("bash", [path.join(temp, "install.sh"), ...args], {
         encoding: "utf8", env: { ...process.env, HOME: home, PATH: `${bin}:${process.env.PATH}`,
-            INSTALL_LOG: log, INSTALL_CONFIG: config },
+            INSTALL_LOG: log, INSTALL_CONFIG: config, INSTALL_REJECT_PREPARED: rejectPrepared ? "1" : "0" },
     });
     return { ...result, calls: fs.readFileSync(log, "utf8").trim().split("\n").filter(Boolean).map(line => JSON.parse(line)),
         legacyUnitExists: fs.existsSync(legacyUnit),
@@ -81,6 +82,20 @@ try {
     assert.ok(result.calls.some(call => call[0] === "cmake" && call.includes("--install") && call.includes(path.join(temp, "build/plasmoid"))));
     assert.equal(result.settings["Script-cc-niri-maximize/EnableDockIntegration"], "true");
     assert.ok(result.calls.some(call => call[0] === "systemctl" && call.includes("restart") && call.includes("plasma-plasmashell.service")));
+    const prepared = run(["--prepared-manifest", "/mock/manifest.json"]);
+    assert.equal(prepared.status, 0, prepared.stderr);
+    assert.deepEqual(prepared.calls[0], ["python3", path.join(temp, "tools/scroll-layout-v2-p6.py"), "verify", "/mock/manifest.json", "--current", "--require-validated"]);
+    assert.ok(prepared.calls.some(call => call[0] === "node" && call.includes("--check")));
+    assert.equal(prepared.calls.some(call => call[0] === "cmake" && (call.includes("-S") || call.includes("--build"))), false);
+    const stop = prepared.calls.findIndex(call => call[0] === "cc-niri" && call.includes("stop"));
+    const install = prepared.calls.findIndex(call => call[0] === "python3" && call.some(arg => arg.endsWith("install-native-clip.py")));
+    assert.ok(stop > 0 && install > stop);
+    const rejected = run(["--prepared-manifest", "/mock/manifest.json"], undefined, true);
+    assert.equal(rejected.status, 1);
+    assert.equal(rejected.calls.length, 1, "unvalidated prepared candidate must fail before desktop actions");
+    for (const args of [["--prepared-manifest"], ["--prepared-manifest", "/mock/m.json", "--with-dock"]]) {
+        const rejected = run(args); assert.equal(rejected.status, 2); assert.deepEqual(rejected.calls, []);
+    }
     for (const args of [["--help"], ["--bad-option"]]) {
         const result = run(args); assert.equal(result.status, args[0] === "--help" ? 0 : 2);
         assert.deepEqual(result.calls, [], "help / rejected options cannot mutate the desktop");

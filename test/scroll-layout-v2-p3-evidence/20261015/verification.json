@@ -1,0 +1,124 @@
+{
+  "captured_utc": "2026-10-15T03:06:55.218472+00:00",
+  "client_report_date": "2026-10-15",
+  "head": "8056cfe6b4a023ac8dcbfb01e4495a5acf4c2c4e",
+  "branch": "scroll-layout-v2-p0",
+  "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+  "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+  "compiler": "g++ (GCC) 16.2.1 20260819 (Red Hat 16.2.1-2)",
+  "source_sha256": {
+    "bridge/src/CCNiriBridge.cpp": "3791d80bf52a478f4fc8aa72f0870bec08b54f7818e803c75a5906a7e9de49b9",
+    "bridge/src/CCNiriBridge.h": "bd7647568bbc0efc07e4e7afd077286b706cb4f9e794aa1b96c1db3b833c2fe0",
+    "native/common/NativeProtocolDto.h": "99fb0764199b1fd4b6fc48282bb72cf6364bfc0bbc7ffdfe9e6b8a1e6dd0d623",
+    "native/common/LoadedComponentPath.h": "556c4ab220dc727cce01395d212693cfe1519beb36cc753bb9312e4ac72eea16",
+    "native/rust/cc-niri-native-core/src/native_protocol.rs": "7686c1f007d1d0f926e94938e2de6730fc9ce28984cbe936906c528e22330932",
+    "native/rust/cc-niri-native-core/src/scroll_runtime.rs": "8957ef74a593d123f772959974d00179e85ee5cdc0e0e398689573fa52060e70",
+    "native/rust/cc-niri-native-core/src/partial_input.rs": "ee876fc6875d66aabb95a277f17f84426b5653d119c2008c0002fc1e19a5cde5",
+    "native/rust/cc-niri-native-core/src/ffi_scroll.rs": "f26b118e5fff297b0efa63a782ea1e808275991728552e43f1dd0c15a1d33b39",
+    "native/rust/cc-niri-native-core/src/ffi_protocol.rs": "9876b4733c42060eabdf6b7aed178c3bef1c62a9cb67c04021a1c1d08ff0b15c",
+    "native/rust/include/cc_niri_native_core.h": "2cb9f7ba121494440460c1762e9b90650b376c8f914f8550766ee8225a221562",
+    "native/viewport-clip/ViewportClipEffect.cpp": "e521183794eaa64e6c0ec197177073f1fde251329c27d57d18dba62bfc907802",
+    "native/viewport-clip/ViewportClipEffect.h": "b5c5af5b077ea1d26c8277724a320db618b18f92ebf9315aa0c836be9885cf35",
+    "native/focus-ring/FocusRingEffect.cpp": "9015df2ae080bddc090c48b9d472fff14d6376c3328fe849cefe67065802881a",
+    "src/kwin/layout/PartialScrollPlan.js": "8a76edd8bc0c11da838eaaae52afb4641f3697826378a8fae3f25e017435f2db",
+    "src/kwin/layout/ScrollPlanCommitGate.js": "1d4ad6e9b2e0bc2ad03e01c85564bf384c145877046a224d62d3a5cb5f2b02c5",
+    "src/kwin/layout/ContinuousViewportController.js": "4a789bc375acd484078422169c00119b18276ddb4e1e264cfe8aaa79de6efb49",
+    "src/kwin/integration/RuntimeBridge.js": "61236409b36a92f9d27d84122543abb6a1b90f774796fec7b8fd9e75eeddb50a",
+    "src/effect/NativeScrollOwnership.js": "781e00dea6c9317b45aae36e93544c2e1cb2265a7c0a01d1802ec130e4133fa7",
+    "tools/scroll-layout-v2-p3-probe.py": "311e11610e1ad2d5f93863a4e003911fbd5411aa1d5b3938a18fdfdf45135fa2",
+    "test/fixtures/native-p0/P0InputEffect.cpp": "b9312656bed520873c8498ec0738c1618d015a5301ab5f97616b3ef1f625c9f1",
+    "test/scroll-layout-v2-partial-contract.test.js": "dd2e9cb5ac9000775c51a387549766cc3594d82323c2ae6f8b05011f1d459e99",
+    "test/bridge-scroll-plan-integration.py": "86a9737301bfdba0dc824f64ea517264970114274a823a2072129fe5eafc7e17",
+    "native/viewport-clip/tests/ScrollViewportRuntimeTest.cpp": "7556cefc08bf47741e5daf5450e0be589e939f22afdce4f6144781bcf11fd783",
+    "native/rust/tests/RustCoreSmokeTest.cpp": "c6e1bf736b54168adf92cccb2d60bbb9e5f8b3dd2dddc78b0908999e8340abc7",
+    "package/contents/code/main.js": "09b8a2bdb0aa97dc4aecc5249f0726b175dd9a5308f08ba393e5d20fd71e8afe",
+    "effect/contents/code/main.js": "a75a2bfbbb8fc1ad74c96cb9f10f769758016891ad3e1fba3950818cc98ad52b",
+    "test/SCROLL_LAYOUT_V2_P3_RESULTS.md": "ddfb947e33d9c8569b062b341056020d3f427a7e1fe55e61ba0c4f235884733e"
+  },
+  "installed_artifacts_unchanged": [
+    {
+      "path": "/home/cc/.local/share/kwin/scripts/cc-niri-maximize/contents/code/main.js",
+      "before_sha256": "2154436e0c97251eecadadd13bb533dfedfd2146cb0dd1fff34693ad6c9814f2",
+      "after_sha256": "2154436e0c97251eecadadd13bb533dfedfd2146cb0dd1fff34693ad6c9814f2"
+    },
+    {
+      "path": "/home/cc/.local/libexec/cc-niri-bridge",
+      "before_sha256": "2f923a1a158fafb3bf61bf7234aa13562702d164ba97e904b116e3823d76b3f6",
+      "after_sha256": "2f923a1a158fafb3bf61bf7234aa13562702d164ba97e904b116e3823d76b3f6"
+    },
+    {
+      "path": "/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-viewport-clip.so",
+      "before_sha256": "1c8c3d0174c572e3412d4e1c968bb3811e23e718f9aff7b0be2bc541b6372726",
+      "after_sha256": "1c8c3d0174c572e3412d4e1c968bb3811e23e718f9aff7b0be2bc541b6372726"
+    },
+    {
+      "path": "/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-focus-ring.so",
+      "before_sha256": "994e939d1c9e314d150728b13dbc250adc462f5deef652bb857f2d76716defa4",
+      "after_sha256": "994e939d1c9e314d150728b13dbc250adc462f5deef652bb857f2d76716defa4"
+    }
+  ],
+  "probes": {
+    "native-100": {
+      "status": "PASS",
+      "passed": 31,
+      "total": 31,
+      "scale": 1.0,
+      "ime": null,
+      "loaded_binary_paths": {
+        "clip": "/home/cc/cc_niri/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+        "ring": "/home/cc/cc_niri/build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so"
+      },
+      "log": "native-100/report.json"
+    },
+    "native-150": {
+      "status": "PASS",
+      "passed": 31,
+      "total": 31,
+      "scale": 1.5,
+      "ime": null,
+      "loaded_binary_paths": {
+        "clip": "/home/cc/cc_niri/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+        "ring": "/home/cc/cc_niri/build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so"
+      },
+      "log": "native-150/report.json"
+    },
+    "native-150-fcitx5": {
+      "status": "PASS",
+      "passed": 34,
+      "total": 34,
+      "scale": 1.5,
+      "ime": "fcitx5",
+      "loaded_binary_paths": {
+        "clip": "/home/cc/cc_niri/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+        "ring": "/home/cc/cc_niri/build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so"
+      },
+      "log": "native-150-fcitx5/report.json"
+    }
+  },
+  "native_gate": {
+    "command": "CMAKE_BUILD_PARALLEL_LEVEL=2 node tools/check.js --native",
+    "exit_code": 0,
+    "js_test_files": 112,
+    "node_tests": 171,
+    "rust_tests": 82,
+    "ctest_counts": {
+      "bridge": 18,
+      "clip": 18,
+      "ring": 25
+    },
+    "log": "native-gate.log"
+  },
+  "build_matrix": {
+    "status": "PASS",
+    "steps": 18,
+    "core_debug_ctest": 13,
+    "core_release_ctest": 13,
+    "umbrella_debug_ctest": 30,
+    "production_boundary": "PASS",
+    "log": "build-matrix.json"
+  },
+  "cargo_lock_changed": false,
+  "memory_performance_status": "NOT MEASURED",
+  "production_v2_status": "NOT READY: P4/P5/P6 pending, V1 composition retained",
+  "deployment_status": "NOT RUN"
+}

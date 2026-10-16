@@ -15,6 +15,22 @@
       <label>Center the only half-width column on the primary workspace</label>
       <default>false</default>
     </entry>
+    <entry name="ScrollLayoutV2Enabled" type="Bool">
+      <label>Enable Scroll Layout V2</label>
+      <default>false</default>
+    </entry>
+    <entry name="ScrollLayoutGap" type="Int">
+      <label>Scroll Layout V2 uniform gap in logical pixels</label>
+      <default>16</default>
+      <min>0</min>
+      <max>1000</max>
+    </entry>
+    <entry name="ScrollLayoutTopGap" type="Int">
+      <label>Scroll Layout V2 top gap (-1 inherits uniform gap)</label>
+      <default>-1</default>
+      <min>-1</min>
+      <max>1000</max>
+    </entry>
     <entry name="DynamicTrailingWorkspace" type="Bool">
       <label>Keep an empty workspace at the end</label>
       <default>false</default>

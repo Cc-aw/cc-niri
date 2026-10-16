@@ -1,0 +1,2997 @@
+{
+  "started_utc": "2026-10-14T13:24:26.044547+00:00",
+  "status": "PASS_BASIC_TWO_CLICK_FIXTURE_ONLY",
+  "scope": "test-only Native effect + build-tree Ring; Virtual/offscreen Mesa OpenGL; normal KWin filters -> Wayland clients",
+  "scale": 1.5,
+  "ime": null,
+  "plugin_sha256": "9f19366b0d4316a9aac9718765da26626e8b3e54342840632ec8f4e3911fa4c3",
+  "ring_build_sha256": "cd85f8b16663871177d78ad0928a75fc168708b5924a9286093b80bfddfe942a",
+  "steps": [
+    {
+      "phase": "raw-right",
+      "configuration": {
+        "epoch": 1,
+        "mode": "raw",
+        "entries": [
+          {
+            "title": "CC_NIRI_P0_A",
+            "visualX": 440
+          },
+          {
+            "title": "CC_NIRI_P0_B",
+            "visualX": 2136
+          }
+        ]
+      },
+      "binding": {
+        "phase": "raw-right",
+        "kind": "prepared",
+        "ready": true,
+        "epoch": 1,
+        "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+        "uuids": [
+          "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+          "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+        ]
+      },
+      "status": {
+        "activeModal": false,
+        "auxiliary": [],
+        "consumed": 0,
+        "entries": [
+          {
+            "delta": 0,
+            "emptyOutputPasses": 1,
+            "hidden": false,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 5,
+            "realX": 440,
+            "title": "CC_NIRI_P0_A",
+            "width": 1680
+          },
+          {
+            "delta": 832,
+            "emptyOutputPasses": 1,
+            "hidden": false,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 5,
+            "realX": 1304,
+            "title": "CC_NIRI_P0_B",
+            "width": 1256
+          }
+        ],
+        "epoch": 1,
+        "masked": 0,
+        "mode": "raw",
+        "nativeButtons": 0,
+        "nativeDrag": false,
+        "nativeHitClass": "python3",
+        "pendingButtons": 0,
+        "pendingTouches": 0,
+        "pointerFocusClass": "python3",
+        "seatSerial": 32
+      }
+    },
+    {
+      "phase": "raw-overlap",
+      "configuration": {
+        "epoch": 2,
+        "mode": "raw",
+        "entries": [
+          {
+            "title": "CC_NIRI_P0_A",
+            "visualX": 440
+          },
+          {
+            "title": "CC_NIRI_P0_B",
+            "visualX": 2136
+          }
+        ]
+      },
+      "binding": {
+        "phase": "raw-overlap",
+        "kind": "prepared",
+        "ready": true,
+        "epoch": 2,
+        "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+        "uuids": [
+          "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+          "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+        ]
+      },
+      "status": {
+        "activeModal": false,
+        "auxiliary": [],
+        "consumed": 0,
+        "entries": [
+          {
+            "delta": 0,
+            "emptyOutputPasses": 1,
+            "hidden": false,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 1,
+            "realX": 440,
+            "title": "CC_NIRI_P0_A",
+            "width": 1680
+          },
+          {
+            "delta": 832,
+            "emptyOutputPasses": 1,
+            "hidden": false,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 1,
+            "realX": 1304,
+            "title": "CC_NIRI_P0_B",
+            "width": 1256
+          }
+        ],
+        "epoch": 2,
+        "masked": 0,
+        "mode": "raw",
+        "nativeButtons": 0,
+        "nativeDrag": false,
+        "nativeHitClass": "python3",
+        "pendingButtons": 0,
+        "pendingTouches": 0,
+        "pointerFocusClass": "python3",
+        "seatSerial": 36
+      }
+    },
+    {
+      "phase": "seat-map",
+      "configuration": {
+        "epoch": 3,
+        "mode": "seat-map",
+        "entries": [
+          {
+            "title": "CC_NIRI_P0_A",
+            "visualX": 440
+          },
+          {
+            "title": "CC_NIRI_P0_B",
+            "visualX": 2136
+          }
+        ]
+      },
+      "binding": {
+        "phase": "seat-map",
+        "kind": "prepared",
+        "ready": true,
+        "epoch": 3,
+        "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+        "uuids": [
+          "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+          "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+        ]
+      },
+      "status": {
+        "activeModal": false,
+        "auxiliary": [],
+        "consumed": 0,
+        "entries": [
+          {
+            "delta": 0,
+            "emptyOutputPasses": 1,
+            "hidden": false,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 1,
+            "realX": 440,
+            "title": "CC_NIRI_P0_A",
+            "width": 1680
+          },
+          {
+            "delta": 832,
+            "emptyOutputPasses": 1,
+            "hidden": true,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 1,
+            "realX": 1304,
+            "title": "CC_NIRI_P0_B",
+            "width": 1256
+          }
+        ],
+        "epoch": 3,
+        "masked": 1,
+        "mode": "seat-map",
+        "nativeButtons": 0,
+        "nativeDrag": false,
+        "nativeHitClass": "python3",
+        "pendingButtons": 0,
+        "pendingTouches": 0,
+        "pointerFocusClass": "python3",
+        "seatSerial": 39
+      }
+    },
+    {
+      "phase": "fallback-right",
+      "configuration": {
+        "epoch": 4,
+        "mode": "two-click",
+        "entries": [
+          {
+            "title": "CC_NIRI_P0_A",
+            "visualX": 440
+          },
+          {
+            "title": "CC_NIRI_P0_B",
+            "visualX": 2136
+          }
+        ]
+      },
+      "binding": {
+        "phase": "fallback-right",
+        "kind": "prepared",
+        "ready": true,
+        "epoch": 4,
+        "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+        "uuids": [
+          "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+          "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+        ]
+      },
+      "status": {
+        "activeModal": false,
+        "auxiliary": [],
+        "consumed": 0,
+        "entries": [
+          {
+            "delta": 0,
+            "emptyOutputPasses": 1,
+            "hidden": false,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 5,
+            "realX": 440,
+            "title": "CC_NIRI_P0_A",
+            "width": 1680
+          },
+          {
+            "delta": 832,
+            "emptyOutputPasses": 1,
+            "hidden": true,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 5,
+            "realX": 1304,
+            "title": "CC_NIRI_P0_B",
+            "width": 1256
+          }
+        ],
+        "epoch": 4,
+        "masked": 1,
+        "mode": "two-click",
+        "nativeButtons": 0,
+        "nativeDrag": false,
+        "nativeHitClass": "",
+        "pendingButtons": 0,
+        "pendingTouches": 0,
+        "pointerFocusClass": "python3",
+        "seatSerial": 48
+      }
+    },
+    {
+      "phase": "fallback-left",
+      "configuration": {
+        "epoch": 5,
+        "mode": "two-click",
+        "entries": [
+          {
+            "title": "CC_NIRI_P0_A",
+            "visualX": 440
+          },
+          {
+            "title": "CC_NIRI_P0_B",
+            "visualX": -832
+          }
+        ]
+      },
+      "binding": {
+        "phase": "fallback-left",
+        "kind": "prepared",
+        "ready": true,
+        "epoch": 5,
+        "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+        "uuids": [
+          "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+          "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+        ]
+      },
+      "status": {
+        "activeModal": false,
+        "auxiliary": [],
+        "consumed": 3,
+        "entries": [
+          {
+            "delta": 0,
+            "emptyOutputPasses": 1,
+            "hidden": false,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 5,
+            "realX": 440,
+            "title": "CC_NIRI_P0_A",
+            "width": 1680
+          },
+          {
+            "delta": -832,
+            "emptyOutputPasses": 1,
+            "hidden": true,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 5,
+            "realX": 0,
+            "title": "CC_NIRI_P0_B",
+            "width": 1256
+          }
+        ],
+        "epoch": 5,
+        "masked": 1,
+        "mode": "two-click",
+        "nativeButtons": 0,
+        "nativeDrag": false,
+        "nativeHitClass": "",
+        "pendingButtons": 0,
+        "pendingTouches": 0,
+        "pointerFocusClass": "",
+        "seatSerial": 81
+      }
+    },
+    {
+      "phase": "fallback-both",
+      "configuration": {
+        "epoch": 6,
+        "mode": "two-click",
+        "entries": [
+          {
+            "title": "CC_NIRI_P0_A",
+            "visualX": 440
+          },
+          {
+            "title": "CC_NIRI_P0_B",
+            "visualX": -832
+          },
+          {
+            "title": "CC_NIRI_P0_C",
+            "visualX": 2136
+          }
+        ]
+      },
+      "binding": {
+        "phase": "fallback-both",
+        "kind": "prepared",
+        "ready": true,
+        "epoch": 6,
+        "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+        "uuids": [
+          "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+          "4e9caa2c-3035-4032-9a9e-3c6607b47e48",
+          "256b667a-b522-4cf1-b164-c95d5e6e47d4"
+        ]
+      },
+      "status": {
+        "activeModal": false,
+        "auxiliary": [],
+        "consumed": 5,
+        "entries": [
+          {
+            "delta": 0,
+            "emptyOutputPasses": 1,
+            "hidden": false,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 1,
+            "realX": 440,
+            "title": "CC_NIRI_P0_A",
+            "width": 1680
+          },
+          {
+            "delta": -832,
+            "emptyOutputPasses": 1,
+            "hidden": true,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 1,
+            "realX": 0,
+            "title": "CC_NIRI_P0_B",
+            "width": 1256
+          },
+          {
+            "delta": 832,
+            "emptyOutputPasses": 1,
+            "hidden": true,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 1,
+            "realX": 1304,
+            "title": "CC_NIRI_P0_C",
+            "width": 1256
+          }
+        ],
+        "epoch": 6,
+        "masked": 2,
+        "mode": "two-click",
+        "nativeButtons": 0,
+        "nativeDrag": false,
+        "nativeHitClass": "",
+        "pendingButtons": 0,
+        "pendingTouches": 0,
+        "pointerFocusClass": "python3",
+        "seatSerial": 85
+      }
+    },
+    {
+      "phase": "touch-partial",
+      "configuration": {
+        "epoch": 7,
+        "mode": "two-click",
+        "entries": [
+          {
+            "title": "CC_NIRI_P0_A",
+            "visualX": 440
+          },
+          {
+            "title": "CC_NIRI_P0_B",
+            "visualX": 2136
+          }
+        ]
+      },
+      "binding": {
+        "phase": "touch-partial",
+        "kind": "prepared",
+        "ready": true,
+        "epoch": 7,
+        "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+        "uuids": [
+          "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+          "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+        ]
+      },
+      "status": {
+        "activeModal": false,
+        "auxiliary": [],
+        "consumed": 13,
+        "entries": [
+          {
+            "delta": 0,
+            "emptyOutputPasses": 1,
+            "hidden": false,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 1,
+            "realX": 440,
+            "title": "CC_NIRI_P0_A",
+            "width": 1680
+          },
+          {
+            "delta": 832,
+            "emptyOutputPasses": 1,
+            "hidden": true,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 1,
+            "realX": 1304,
+            "title": "CC_NIRI_P0_B",
+            "width": 1256
+          }
+        ],
+        "epoch": 7,
+        "masked": 1,
+        "mode": "two-click",
+        "nativeButtons": 0,
+        "nativeDrag": false,
+        "nativeHitClass": "",
+        "pendingButtons": 0,
+        "pendingTouches": 0,
+        "pointerFocusClass": "",
+        "seatSerial": 96
+      }
+    },
+    {
+      "phase": "press-before-focus",
+      "configuration": {
+        "epoch": 8,
+        "mode": "two-click",
+        "entries": [
+          {
+            "title": "CC_NIRI_P0_A",
+            "visualX": 440
+          },
+          {
+            "title": "CC_NIRI_P0_B",
+            "visualX": 2136
+          }
+        ]
+      },
+      "binding": {
+        "phase": "press-before-focus",
+        "kind": "prepared",
+        "ready": true,
+        "epoch": 8,
+        "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+        "uuids": [
+          "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+          "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+        ]
+      },
+      "status": {
+        "activeModal": false,
+        "auxiliary": [],
+        "consumed": 15,
+        "entries": [
+          {
+            "delta": 0,
+            "emptyOutputPasses": 1,
+            "hidden": false,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 1,
+            "realX": 440,
+            "title": "CC_NIRI_P0_A",
+            "width": 1680
+          },
+          {
+            "delta": 832,
+            "emptyOutputPasses": 1,
+            "hidden": true,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 1,
+            "realX": 1304,
+            "title": "CC_NIRI_P0_B",
+            "width": 1256
+          }
+        ],
+        "epoch": 8,
+        "masked": 1,
+        "mode": "two-click",
+        "nativeButtons": 0,
+        "nativeDrag": false,
+        "nativeHitClass": "",
+        "pendingButtons": 0,
+        "pendingTouches": 0,
+        "pointerFocusClass": "",
+        "seatSerial": 97
+      }
+    },
+    {
+      "phase": "release-after-focus",
+      "configuration": {
+        "epoch": 9,
+        "mode": "two-click",
+        "entries": [
+          {
+            "title": "CC_NIRI_P0_B",
+            "visualX": 652
+          }
+        ]
+      },
+      "binding": {
+        "phase": "release-after-focus",
+        "kind": "prepared",
+        "ready": true,
+        "epoch": 9,
+        "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+        "uuids": [
+          "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+        ]
+      },
+      "status": {
+        "activeModal": false,
+        "auxiliary": [],
+        "consumed": 16,
+        "entries": [
+          {
+            "delta": 0,
+            "emptyOutputPasses": 1,
+            "hidden": false,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 6,
+            "realX": 652,
+            "title": "CC_NIRI_P0_B",
+            "width": 1256
+          }
+        ],
+        "epoch": 9,
+        "masked": 0,
+        "mode": "two-click",
+        "nativeButtons": 1,
+        "nativeDrag": false,
+        "nativeHitClass": "",
+        "pendingButtons": 1,
+        "pendingTouches": 0,
+        "pointerFocusClass": "",
+        "seatSerial": 104
+      }
+    },
+    {
+      "phase": "before-maximize",
+      "configuration": {
+        "epoch": 10,
+        "mode": "two-click",
+        "entries": [
+          {
+            "title": "CC_NIRI_P0_A",
+            "visualX": 440
+          },
+          {
+            "title": "CC_NIRI_P0_B",
+            "visualX": 2136
+          }
+        ]
+      },
+      "binding": {
+        "phase": "before-maximize",
+        "kind": "prepared",
+        "ready": true,
+        "epoch": 10,
+        "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+        "uuids": [
+          "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+          "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+        ]
+      },
+      "status": {
+        "activeModal": false,
+        "auxiliary": [],
+        "consumed": 17,
+        "entries": [
+          {
+            "delta": 0,
+            "emptyOutputPasses": 1,
+            "hidden": false,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 6,
+            "realX": 440,
+            "title": "CC_NIRI_P0_A",
+            "width": 1680
+          },
+          {
+            "delta": 832,
+            "emptyOutputPasses": 1,
+            "hidden": true,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 6,
+            "realX": 1304,
+            "title": "CC_NIRI_P0_B",
+            "width": 1256
+          }
+        ],
+        "epoch": 10,
+        "masked": 1,
+        "mode": "two-click",
+        "nativeButtons": 0,
+        "nativeDrag": false,
+        "nativeHitClass": "python3",
+        "pendingButtons": 0,
+        "pendingTouches": 0,
+        "pointerFocusClass": "python3",
+        "seatSerial": 114
+      }
+    },
+    {
+      "phase": "after-maximize-partial",
+      "configuration": {
+        "epoch": 11,
+        "mode": "two-click",
+        "entries": [
+          {
+            "title": "CC_NIRI_P0_A",
+            "visualX": 440
+          },
+          {
+            "title": "CC_NIRI_P0_B",
+            "visualX": 2136
+          }
+        ]
+      },
+      "binding": {
+        "phase": "after-maximize-partial",
+        "kind": "prepared",
+        "ready": true,
+        "epoch": 11,
+        "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+        "uuids": [
+          "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+          "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+        ]
+      },
+      "status": {
+        "activeModal": false,
+        "auxiliary": [],
+        "consumed": 17,
+        "entries": [
+          {
+            "delta": 0,
+            "emptyOutputPasses": 6,
+            "hidden": false,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 6,
+            "realX": 440,
+            "title": "CC_NIRI_P0_A",
+            "width": 1680
+          },
+          {
+            "delta": 832,
+            "emptyOutputPasses": 6,
+            "hidden": true,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 6,
+            "realX": 1304,
+            "title": "CC_NIRI_P0_B",
+            "width": 1256
+          }
+        ],
+        "epoch": 11,
+        "masked": 1,
+        "mode": "two-click",
+        "nativeButtons": 0,
+        "nativeDrag": false,
+        "nativeHitClass": "python3",
+        "pendingButtons": 0,
+        "pendingTouches": 0,
+        "pointerFocusClass": "python3",
+        "seatSerial": 117
+      }
+    },
+    {
+      "phase": "titlebar-partial",
+      "configuration": {
+        "epoch": 12,
+        "mode": "two-click",
+        "entries": [
+          {
+            "title": "CC_NIRI_P0_D",
+            "visualX": 2136
+          }
+        ]
+      },
+      "binding": {
+        "phase": "titlebar-partial",
+        "kind": "prepared",
+        "ready": true,
+        "epoch": 12,
+        "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+        "uuids": [
+          "37eba1ec-697e-42c0-a8c8-8445178402ce"
+        ]
+      },
+      "status": {
+        "activeModal": false,
+        "auxiliary": [],
+        "consumed": 19,
+        "entries": [
+          {
+            "delta": 832,
+            "emptyOutputPasses": 5,
+            "hidden": true,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 5,
+            "realX": 1304,
+            "title": "CC_NIRI_P0_D",
+            "width": 1256
+          }
+        ],
+        "epoch": 12,
+        "masked": 1,
+        "mode": "two-click",
+        "nativeButtons": 0,
+        "nativeDrag": false,
+        "nativeHitClass": "",
+        "pendingButtons": 0,
+        "pendingTouches": 0,
+        "pointerFocusClass": "",
+        "seatSerial": 131
+      }
+    },
+    {
+      "phase": "titlebar-visible",
+      "configuration": {
+        "epoch": 13,
+        "mode": "two-click",
+        "entries": [
+          {
+            "title": "CC_NIRI_P0_D",
+            "visualX": 652
+          }
+        ]
+      },
+      "binding": {
+        "phase": "titlebar-visible",
+        "kind": "prepared",
+        "ready": true,
+        "epoch": 13,
+        "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+        "uuids": [
+          "37eba1ec-697e-42c0-a8c8-8445178402ce"
+        ]
+      },
+      "status": {
+        "activeModal": false,
+        "auxiliary": [],
+        "consumed": 21,
+        "entries": [
+          {
+            "delta": 0,
+            "emptyOutputPasses": 1,
+            "hidden": false,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 1,
+            "realX": 652,
+            "title": "CC_NIRI_P0_D",
+            "width": 1256
+          }
+        ],
+        "epoch": 13,
+        "masked": 0,
+        "mode": "two-click",
+        "nativeButtons": 0,
+        "nativeDrag": false,
+        "nativeHitClass": "",
+        "pendingButtons": 0,
+        "pendingTouches": 0,
+        "pointerFocusClass": "",
+        "seatSerial": 132
+      }
+    },
+    {
+      "phase": "close-during-press",
+      "configuration": {
+        "epoch": 14,
+        "mode": "two-click",
+        "entries": [
+          {
+            "title": "CC_NIRI_P0_A",
+            "visualX": 440
+          },
+          {
+            "title": "CC_NIRI_P0_C",
+            "visualX": 2136
+          }
+        ]
+      },
+      "binding": {
+        "phase": "close-during-press",
+        "kind": "prepared",
+        "ready": true,
+        "epoch": 14,
+        "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+        "uuids": [
+          "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+          "256b667a-b522-4cf1-b164-c95d5e6e47d4"
+        ]
+      },
+      "status": {
+        "activeModal": false,
+        "auxiliary": [],
+        "consumed": 21,
+        "entries": [
+          {
+            "delta": 0,
+            "emptyOutputPasses": 1,
+            "hidden": false,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 1,
+            "realX": 440,
+            "title": "CC_NIRI_P0_A",
+            "width": 1680
+          },
+          {
+            "delta": 832,
+            "emptyOutputPasses": 1,
+            "hidden": true,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 1,
+            "realX": 1304,
+            "title": "CC_NIRI_P0_C",
+            "width": 1256
+          }
+        ],
+        "epoch": 14,
+        "masked": 1,
+        "mode": "two-click",
+        "nativeButtons": 0,
+        "nativeDrag": false,
+        "nativeHitClass": "python3",
+        "pendingButtons": 0,
+        "pendingTouches": 0,
+        "pointerFocusClass": "python3",
+        "seatSerial": 147
+      }
+    },
+    {
+      "phase": "ring-projection",
+      "configuration": {
+        "epoch": 15,
+        "mode": "raw",
+        "entries": [
+          {
+            "title": "CC_NIRI_P0_A",
+            "visualX": 2136
+          }
+        ]
+      },
+      "binding": {
+        "phase": "ring-projection",
+        "kind": "prepared",
+        "ready": true,
+        "epoch": 15,
+        "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+        "uuids": [
+          "160f3b45-4148-4682-bf1a-288fe00ae5d9"
+        ]
+      },
+      "status": {
+        "activeModal": false,
+        "auxiliary": [],
+        "consumed": 23,
+        "entries": [
+          {
+            "delta": 1696,
+            "emptyOutputPasses": 1,
+            "hidden": false,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 1,
+            "realX": 440,
+            "title": "CC_NIRI_P0_A",
+            "width": 1680
+          }
+        ],
+        "epoch": 15,
+        "masked": 0,
+        "mode": "raw",
+        "nativeButtons": 0,
+        "nativeDrag": false,
+        "nativeHitClass": "",
+        "pendingButtons": 0,
+        "pendingTouches": 0,
+        "pointerFocusClass": "",
+        "seatSerial": 149
+      }
+    },
+    {
+      "phase": "ring-masked",
+      "configuration": {
+        "epoch": 16,
+        "mode": "two-click",
+        "entries": [
+          {
+            "title": "CC_NIRI_P0_A",
+            "visualX": 2136
+          }
+        ]
+      },
+      "binding": {
+        "phase": "ring-masked",
+        "kind": "prepared",
+        "ready": true,
+        "epoch": 16,
+        "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+        "uuids": [
+          "160f3b45-4148-4682-bf1a-288fe00ae5d9"
+        ]
+      },
+      "status": {
+        "activeModal": false,
+        "auxiliary": [],
+        "consumed": 23,
+        "entries": [
+          {
+            "delta": 1696,
+            "emptyOutputPasses": 1,
+            "hidden": true,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 1,
+            "realX": 440,
+            "title": "CC_NIRI_P0_A",
+            "width": 1680
+          }
+        ],
+        "epoch": 16,
+        "masked": 1,
+        "mode": "two-click",
+        "nativeButtons": 0,
+        "nativeDrag": false,
+        "nativeHitClass": "",
+        "pendingButtons": 0,
+        "pendingTouches": 0,
+        "pointerFocusClass": "",
+        "seatSerial": 150
+      }
+    },
+    {
+      "phase": "unload-masked",
+      "configuration": {
+        "epoch": 17,
+        "mode": "two-click",
+        "entries": [
+          {
+            "title": "CC_NIRI_P0_A",
+            "visualX": 440
+          },
+          {
+            "title": "CC_NIRI_P0_B",
+            "visualX": 2136
+          }
+        ]
+      },
+      "binding": {
+        "phase": "unload-masked",
+        "kind": "prepared",
+        "ready": true,
+        "epoch": 17,
+        "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+        "uuids": [
+          "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+          "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+        ]
+      },
+      "status": {
+        "activeModal": false,
+        "auxiliary": [],
+        "consumed": 23,
+        "entries": [
+          {
+            "delta": 0,
+            "emptyOutputPasses": 1,
+            "hidden": false,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 1,
+            "realX": 440,
+            "title": "CC_NIRI_P0_A",
+            "width": 1680
+          },
+          {
+            "delta": 832,
+            "emptyOutputPasses": 1,
+            "hidden": true,
+            "interactiveMove": false,
+            "interactiveResize": false,
+            "output": "Virtual-0",
+            "painted": 1,
+            "realX": 1304,
+            "title": "CC_NIRI_P0_B",
+            "width": 1256
+          }
+        ],
+        "epoch": 17,
+        "masked": 1,
+        "mode": "two-click",
+        "nativeButtons": 0,
+        "nativeDrag": false,
+        "nativeHitClass": "",
+        "pendingButtons": 0,
+        "pendingTouches": 0,
+        "pointerFocusClass": "python3",
+        "seatSerial": 154
+      }
+    }
+  ],
+  "checks": {
+    "panel_exclusive_zone_respected": true,
+    "panel_does_not_change_secondary_workarea": true,
+    "zero_exclusive_zone_restores_workarea": true,
+    "raw_native_projection_and_output_clip_pixels": true,
+    "raw_local_coordinate_error_reproduced": true,
+    "raw_wrong_background_hit_reproduced": true,
+    "masked_partial_still_paints_without_secondary_leak": true,
+    "right_partial_no_client_button_or_wheel": true,
+    "right_partial_focus_intent": true,
+    "covered_foreground_receives_correct_native_coordinates": true,
+    "native_popup_created_with_real_button_serial": true,
+    "popup_grab_outside_click_not_converted_to_column_focus": true,
+    "native_popup_dismissed_by_native_chain": true,
+    "real_wayland_drag_grab_started": true,
+    "native_drag_not_converted_to_partial_focus": true,
+    "native_drag_grab_released": true,
+    "native_modal_active": true,
+    "modal_outside_click_preserves_native_focus_authority": true,
+    "left_partial_consumed": true,
+    "left_partial_focus_intent": true,
+    "both_partial_native_clip_pixels": true,
+    "both_partial_consumed": true,
+    "both_partial_correct_intents": true,
+    "cross_column_hover_never_enters_masked_neighbor": true,
+    "output_edge_clicks_consume_only_primary_partials": true,
+    "secondary_no_primary_client_buttons": true,
+    "partial_touch_sequence_consumed": true,
+    "partial_touch_focus_intent": true,
+    "release_consumed_across_epoch_and_geometry_change": true,
+    "second_click_correct_native_pair": true,
+    "stale_epoch_rejected": true,
+    "input_sequences_drained": true,
+    "reset_releases_masks_and_entries": true,
+    "native_maximize_remains_on_primary": true,
+    "native_unmaximize_remains_on_primary": true,
+    "return_from_maximize_restores_safe_partial_input": true,
+    "partial_titlebar_only_requests_focus": true,
+    "visible_titlebar_uses_native_interactive_move": true,
+    "native_titlebar_move_releases_grab": true,
+    "native_interactive_resize_started": true,
+    "native_interactive_resize_releases_grab": true,
+    "window_close_consumes_outstanding_release": true,
+    "real_ring_eligibility_accepted": true,
+    "real_ring_draws_using_shared_paint_frames": true,
+    "real_ring_follows_projection_and_stays_on_primary": true,
+    "input_mask_and_real_ring_can_coexist": true,
+    "private_ring_unloaded": true,
+    "unload_exercises_live_input_mask": true,
+    "effect_unload_releases_input_masks_and_entries": true
+  },
+  "support": "KWin \u6280\u672f\u652f\u6301\u4fe1\u606f\uff1a\n\u8bf7\u5728\u5bfb\u6c42\u6280\u672f\u652f\u6301\u65f6 (\u4f8b\u5982 https://discuss.kde.org \u7f51\u7ad9) \u63d0\u4f9b\u4ee5\u4e0b\u4fe1\u606f\u3002\n\u8fd9\u4e9b\u4fe1\u606f\u5305\u62ec\u5173\u4e8e\u5f53\u524d\u6b63\u5728\u8fd0\u884c\u7684 Kwin \u5b9e\u4f8b\u7684\u76f8\u5173\u4fe1\u606f\u3001\n\u4f7f\u7528\u7684\u9009\u9879\u3001OpenGL \u9a71\u52a8\u7a0b\u5e8f\u3001\u6b63\u5728\u8fd0\u884c\u7684\u7279\u6548\u7b49\u3002\n\u8bf7\u4e0d\u8981\u5c06\u672c\u6bb5\u6587\u5b57\u4e0b\u65b9\u7684\u4fe1\u606f\u76f4\u63a5\u7c98\u8d34\u5230\u6280\u672f\u652f\u6301\u8ba8\u8bba\u4e32\uff0c\n\u800c\u5e94\u5c06\u5b83\u4eec\u7c98\u8d34\u5230\u5728\u7ebf\u526a\u8d34\u677f\u7f51\u7ad9 (\u4f8b\u5982 https://paste.kde.org)\u3002\n\n==========================\n\nVersion\n=======\nKWin version: 6.7.5\nQt Version: 6.11.2\nQt compile version: 6.11.2\nXCB compile version: 1.17.0\n\nOperation Mode: Wayland\n\nBuild Options\n=============\nKWIN_BUILD_DECORATIONS: yes\nKWIN_BUILD_TABBOX: yes\nKWIN_BUILD_ACTIVITIES: yes\nHAVE_X11_XCB: yes\n\nDecoration\n==========\nPlugin: org.kde.breeze\nTheme: \nPlugin recommends border size: None\nonAllDesktopsAvailable: false\nalphaChannelSupported: true\ncloseOnDoubleClickOnMenu: false\nalwaysShowExcludeFromCapture: false\ndecorationButtonsLeft: 0, 2, 12\ndecorationButtonsRight: 6, 3, 4, 5\nborderSize: 0\ngridUnit: 12\nfont: Noto Sans Arabic,12,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0\nsmallSpacing: 3\nlargeSpacing: 12\n\nLogicalOutput backend\n==============\nName: KWin::VirtualBackend\n\nCursor\n======\nthemeName: default\nthemeSize: 24\n\nOptions\n=======\nfocusPolicy: ClickToFocus\nxwaylandCrashPolicy: 1\nxwaylandMaxCrashCount: 3\nnextFocusPrefersMouse: false\nclickRaise: true\nautoRaise: false\nautoRaiseInterval: 0\ndelayFocusInterval: 0\nseparateScreenFocus: true\nplacement: 5\nactivationDesktopPolicy: SwitchToOtherDesktop\nfocusPolicyIsReasonable: true\nborderSnapZone: 10\nwindowSnapZone: 10\ncenterSnapZone: 0\nsnapOnlyWhenOverlapping: false\nedgeBarrier: 100\ncornerBarrier: 1\nrollOverDesktops: false\nperOutputVirtualDesktops: false\nfocusStealingPreventionLevel: 1\noperationTitlebarDblClick: 5000\noperationMaxButtonLeftClick: 5000\noperationMaxButtonMiddleClick: 5013\noperationMaxButtonRightClick: 5012\ncommandActiveTitlebar1: MouseRaise\ncommandActiveTitlebar2: MouseNothing\ncommandActiveTitlebar3: MouseOperationsMenu\ncommandInactiveTitlebar1: MouseActivateAndRaise\ncommandInactiveTitlebar2: MouseNothing\ncommandInactiveTitlebar3: MouseOperationsMenu\ncommandWindow1: MouseActivateRaiseOnReleaseAndPassClick\ncommandWindow2: MouseActivateAndPassClick\ncommandWindow3: MouseActivateAndPassClick\ncommandWindowWheel: MouseNothing\ncommandAll1: MouseUnrestrictedMove\ncommandAll2: MouseToggleRaiseAndLower\ncommandAll3: MouseUnrestrictedResize\nkeyCmdAllModKey: 16777250\ndoubleClickBorderToMaximize: true\ncondensedTitle: false\nelectricBorderMaximize: true\nelectricBorderTiling: true\nelectricBorderAllScreenCorner: true\nelectricBorderCornerRatio: 0.25\nborderlessMaximizedWindows: false\nkillPingTimeout: 5000\ncompositingMode: 1\nallowTearing: true\ninteractiveWindowMoveEnabled: true\npictureInPictureHomeCorner: BottomRightCorner\npictureInPictureMargin: 20\noverlayVirtualKeyboardOnWindows: false\n\nScreen Edges\n============\ndesktopSwitching: false\ndesktopSwitchingMovingClients: false\ncursorPushBackDistance: 1x1\nactionTopLeft: 0\nactionTop: 0\nactionTopRight: 0\nactionRight: 0\nactionBottomRight: 0\nactionBottom: 0\nactionBottomLeft: 0\nactionLeft: 0\n\nScreens\n=======\nNumber of Screens: 2\n\nScreen 0:\n---------\nName: Virtual-0\nEnabled: 1\nGeometry: 0,0,3840x2160\nPhysical size: -1x-1mm\nScale: 1\nRefresh Rate: 60000\nAdaptive Sync: incapable\nScreen 1:\n---------\nName: Virtual-1\nEnabled: 1\nGeometry: 3840,0,3840x2160\nPhysical size: -1x-1mm\nScale: 1\nRefresh Rate: 60000\nAdaptive Sync: incapable\n\nCompositing\n===========\nCompositing is active\nCompositing Type: OpenGL\nOpenGL vendor string: Intel\nOpenGL renderer string: Mesa Intel(R) UHD Graphics (CML GT2)\nOpenGL version string: 4.6 (Core Profile) Mesa 26.2.3\nOpenGL platform interface: EGL\nOpenGL shading language version string: 4.60\nDriver: Intel\nGPU class: Comet Lake\nOpenGL version: 4.6\nGLSL version: 4.60\nMesa version: 26.2.3\nLinux kernel version: 7.2.8\nDirect rendering: Requires strict binding: no\nVirtual Machine:  no\nOpenGL 2 Shaders are used\n\nLoaded Effects:\n---------------\nshakecursor\noutputlocator\ncolorpicker\nzoom\nscreenedge\nblur\nslidingpopups\nslidingnotifications\nslide\ndialogparent\nwindowview\ntileseditor\noverview\nhighlightwindow\nblendchanges\nstartupfeedback\nkwin4_effect_shapecorners\nsystembell\nscreentransform\nkscreen\n\nCurrently Active Effects:\n-------------------------\nblur\nkwin4_effect_shapecorners\n\nEffect Settings:\n----------------\nshakecursor:\n\noutputlocator:\n\ncolorpicker:\n\nzoom:\nzoomFactor: 1.2\nmouseTracking: 0\nfocusDelay: 350\nmoveFactor: 20\ntargetZoom: 1\n\nscreenedge:\n\nblur:\n\nslidingpopups:\nslideInDuration: 200\nslideOutDuration: 200\n\nslidingnotifications:\n\nslide:\nhorizontalGap: 45\nverticalGap: 20\nslideBackground: true\n\ndialogparent:\npluginId: dialogparent\nisActiveFullScreenEffect: false\n\nwindowview:\nactiveView: \ndelegate: \nanimationDuration: 300\nignoreMinimized: false\nmode: ModeCurrentDesktop\npartialActivationFactor: 0\ngestureInProgress: false\nsearchText: \nselectedIds: \n\ntileseditor:\nactiveView: \ndelegate: \nanimationDuration: 200\n\noverview:\nactiveView: \ndelegate: \nanimationDuration: 300\nignoreMinimized: false\nfilterWindows: true\norganizedGrid: true\noverviewPartialActivationFactor: 0\noverviewGestureInProgress: false\ntransitionPartialActivationFactor: 0\ntransitionGestureInProgress: false\ngridPartialActivationFactor: 0\ngridGestureInProgress: false\nsearchText: \n\nhighlightwindow:\n\nblendchanges:\n\nstartupfeedback:\ntype: 1\n\nkwin4_effect_shapecorners:\n\nsystembell:\n\nscreentransform:\n\nkscreen:\n\n\nLoaded Plugins:\n---------------\nBounceKeysPlugin\nKeyNotificationPlugin\nMouseKeysPlugin\nSlowKeysPlugin\nStickyKeysPlugin\nTouchpadShortcutsPlugin\nbuttonsrebind\neis\nkrunnerintegration\nnightlight\nscreencast\nscreenshot\n\nAvailable Plugins:\n------------------\nBounceKeysPlugin\nKeyNotificationPlugin\nMouseKeysPlugin\nSlowKeysPlugin\nStickyKeysPlugin\nTouchpadShortcutsPlugin\nbuttonsrebind\neis\ngamecontroller\nkrunnerintegration\nnightlight\nscreencast\nscreenshot\n",
+  "effect_supported": true,
+  "support_after_scale": "KWin \u6280\u672f\u652f\u6301\u4fe1\u606f\uff1a\n\u8bf7\u5728\u5bfb\u6c42\u6280\u672f\u652f\u6301\u65f6 (\u4f8b\u5982 https://discuss.kde.org \u7f51\u7ad9) \u63d0\u4f9b\u4ee5\u4e0b\u4fe1\u606f\u3002\n\u8fd9\u4e9b\u4fe1\u606f\u5305\u62ec\u5173\u4e8e\u5f53\u524d\u6b63\u5728\u8fd0\u884c\u7684 Kwin \u5b9e\u4f8b\u7684\u76f8\u5173\u4fe1\u606f\u3001\n\u4f7f\u7528\u7684\u9009\u9879\u3001OpenGL \u9a71\u52a8\u7a0b\u5e8f\u3001\u6b63\u5728\u8fd0\u884c\u7684\u7279\u6548\u7b49\u3002\n\u8bf7\u4e0d\u8981\u5c06\u672c\u6bb5\u6587\u5b57\u4e0b\u65b9\u7684\u4fe1\u606f\u76f4\u63a5\u7c98\u8d34\u5230\u6280\u672f\u652f\u6301\u8ba8\u8bba\u4e32\uff0c\n\u800c\u5e94\u5c06\u5b83\u4eec\u7c98\u8d34\u5230\u5728\u7ebf\u526a\u8d34\u677f\u7f51\u7ad9 (\u4f8b\u5982 https://paste.kde.org)\u3002\n\n==========================\n\nVersion\n=======\nKWin version: 6.7.5\nQt Version: 6.11.2\nQt compile version: 6.11.2\nXCB compile version: 1.17.0\n\nOperation Mode: Wayland\n\nBuild Options\n=============\nKWIN_BUILD_DECORATIONS: yes\nKWIN_BUILD_TABBOX: yes\nKWIN_BUILD_ACTIVITIES: yes\nHAVE_X11_XCB: yes\n\nDecoration\n==========\nPlugin: org.kde.breeze\nTheme: \nPlugin recommends border size: None\nonAllDesktopsAvailable: false\nalphaChannelSupported: true\ncloseOnDoubleClickOnMenu: false\nalwaysShowExcludeFromCapture: false\ndecorationButtonsLeft: 0, 2, 12\ndecorationButtonsRight: 6, 3, 4, 5\nborderSize: 0\ngridUnit: 12\nfont: Noto Sans Arabic,12,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0\nsmallSpacing: 3\nlargeSpacing: 12\n\nLogicalOutput backend\n==============\nName: KWin::VirtualBackend\n\nCursor\n======\nthemeName: default\nthemeSize: 24\n\nOptions\n=======\nfocusPolicy: ClickToFocus\nxwaylandCrashPolicy: 1\nxwaylandMaxCrashCount: 3\nnextFocusPrefersMouse: false\nclickRaise: true\nautoRaise: false\nautoRaiseInterval: 0\ndelayFocusInterval: 0\nseparateScreenFocus: true\nplacement: 5\nactivationDesktopPolicy: SwitchToOtherDesktop\nfocusPolicyIsReasonable: true\nborderSnapZone: 10\nwindowSnapZone: 10\ncenterSnapZone: 0\nsnapOnlyWhenOverlapping: false\nedgeBarrier: 100\ncornerBarrier: 1\nrollOverDesktops: false\nperOutputVirtualDesktops: false\nfocusStealingPreventionLevel: 1\noperationTitlebarDblClick: 5000\noperationMaxButtonLeftClick: 5000\noperationMaxButtonMiddleClick: 5013\noperationMaxButtonRightClick: 5012\ncommandActiveTitlebar1: MouseRaise\ncommandActiveTitlebar2: MouseNothing\ncommandActiveTitlebar3: MouseOperationsMenu\ncommandInactiveTitlebar1: MouseActivateAndRaise\ncommandInactiveTitlebar2: MouseNothing\ncommandInactiveTitlebar3: MouseOperationsMenu\ncommandWindow1: MouseActivateRaiseOnReleaseAndPassClick\ncommandWindow2: MouseActivateAndPassClick\ncommandWindow3: MouseActivateAndPassClick\ncommandWindowWheel: MouseNothing\ncommandAll1: MouseUnrestrictedMove\ncommandAll2: MouseToggleRaiseAndLower\ncommandAll3: MouseUnrestrictedResize\nkeyCmdAllModKey: 16777250\ndoubleClickBorderToMaximize: true\ncondensedTitle: false\nelectricBorderMaximize: true\nelectricBorderTiling: true\nelectricBorderAllScreenCorner: true\nelectricBorderCornerRatio: 0.25\nborderlessMaximizedWindows: false\nkillPingTimeout: 5000\ncompositingMode: 1\nallowTearing: true\ninteractiveWindowMoveEnabled: true\npictureInPictureHomeCorner: BottomRightCorner\npictureInPictureMargin: 20\noverlayVirtualKeyboardOnWindows: false\n\nScreen Edges\n============\ndesktopSwitching: false\ndesktopSwitchingMovingClients: false\ncursorPushBackDistance: 1x1\nactionTopLeft: 0\nactionTop: 0\nactionTopRight: 0\nactionRight: 0\nactionBottomRight: 0\nactionBottom: 0\nactionBottomLeft: 0\nactionLeft: 0\n\nScreens\n=======\nNumber of Screens: 2\n\nScreen 0:\n---------\nName: Virtual-0\nEnabled: 1\nGeometry: 0,0,2560x1440\nPhysical size: -1x-1mm\nScale: 1.5\nRefresh Rate: 60000\nAdaptive Sync: incapable\nScreen 1:\n---------\nName: Virtual-1\nEnabled: 1\nGeometry: 2560,0,2560x1440\nPhysical size: -1x-1mm\nScale: 1.5\nRefresh Rate: 60000\nAdaptive Sync: incapable\n\nCompositing\n===========\nCompositing is active\nCompositing Type: OpenGL\nOpenGL vendor string: Intel\nOpenGL renderer string: Mesa Intel(R) UHD Graphics (CML GT2)\nOpenGL version string: 4.6 (Core Profile) Mesa 26.2.3\nOpenGL platform interface: EGL\nOpenGL shading language version string: 4.60\nDriver: Intel\nGPU class: Comet Lake\nOpenGL version: 4.6\nGLSL version: 4.60\nMesa version: 26.2.3\nLinux kernel version: 7.2.8\nDirect rendering: Requires strict binding: no\nVirtual Machine:  no\nOpenGL 2 Shaders are used\n\nLoaded Effects:\n---------------\nshakecursor\noutputlocator\ncolorpicker\nzoom\nscreenedge\ncc-niri-p0-input-fixture\nblur\nsessionquit\nlogout\nlogin\nslidingpopups\nslidingnotifications\nwindowaperture\nslide\nsquash\nscale\nmaximize\nfullscreen\nfrozenapp\nfadingpopups\ndimscreen\ndialogparent\nwindowview\ntileseditor\noverview\nhighlightwindow\nblendchanges\nstartupfeedback\nkwin4_effect_shapecorners\nsystembell\nscreentransform\nkscreen\n\nCurrently Active Effects:\n-------------------------\nblur\nkwin4_effect_shapecorners\n\nEffect Settings:\n----------------\nshakecursor:\n\noutputlocator:\n\ncolorpicker:\n\nzoom:\nzoomFactor: 1.2\nmouseTracking: 0\nfocusDelay: 350\nmoveFactor: 20\ntargetZoom: 1\n\nscreenedge:\n\ncc-niri-p0-input-fixture:\n\nblur:\n\nsessionquit:\npluginId: sessionquit\nisActiveFullScreenEffect: false\n\nlogout:\npluginId: logout\nisActiveFullScreenEffect: false\n\nlogin:\npluginId: login\nisActiveFullScreenEffect: false\n\nslidingpopups:\nslideInDuration: 200\nslideOutDuration: 200\n\nslidingnotifications:\n\nwindowaperture:\npluginId: windowaperture\nisActiveFullScreenEffect: false\n\nslide:\nhorizontalGap: 45\nverticalGap: 20\nslideBackground: true\n\nsquash:\npluginId: squash\nisActiveFullScreenEffect: false\n\nscale:\npluginId: scale\nisActiveFullScreenEffect: false\n\nmaximize:\npluginId: maximize\nisActiveFullScreenEffect: false\n\nfullscreen:\npluginId: fullscreen\nisActiveFullScreenEffect: false\n\nfrozenapp:\npluginId: frozenapp\nisActiveFullScreenEffect: false\n\nfadingpopups:\npluginId: fadingpopups\nisActiveFullScreenEffect: false\n\ndimscreen:\npluginId: dimscreen\nisActiveFullScreenEffect: false\n\ndialogparent:\npluginId: dialogparent\nisActiveFullScreenEffect: false\n\nwindowview:\nactiveView: \ndelegate: \nanimationDuration: 300\nignoreMinimized: false\nmode: ModeCurrentDesktop\npartialActivationFactor: 0\ngestureInProgress: false\nsearchText: \nselectedIds: \n\ntileseditor:\nactiveView: \ndelegate: \nanimationDuration: 200\n\noverview:\nactiveView: \ndelegate: \nanimationDuration: 300\nignoreMinimized: false\nfilterWindows: true\norganizedGrid: true\noverviewPartialActivationFactor: 0\noverviewGestureInProgress: false\ntransitionPartialActivationFactor: 0\ntransitionGestureInProgress: false\ngridPartialActivationFactor: 0\ngridGestureInProgress: false\nsearchText: \n\nhighlightwindow:\n\nblendchanges:\n\nstartupfeedback:\ntype: 1\n\nkwin4_effect_shapecorners:\n\nsystembell:\n\nscreentransform:\n\nkscreen:\n\n\nLoaded Plugins:\n---------------\nBounceKeysPlugin\nKeyNotificationPlugin\nMouseKeysPlugin\nSlowKeysPlugin\nStickyKeysPlugin\nTouchpadShortcutsPlugin\nbuttonsrebind\neis\nkrunnerintegration\nnightlight\nscreencast\nscreenshot\n\nAvailable Plugins:\n------------------\nBounceKeysPlugin\nKeyNotificationPlugin\nMouseKeysPlugin\nSlowKeysPlugin\nStickyKeysPlugin\nTouchpadShortcutsPlugin\nbuttonsrebind\neis\ngamecontroller\nkrunnerintegration\nnightlight\nscreencast\nscreenshot\n",
+  "panel_reserved_workareas": [
+    {
+      "output": "Virtual-0",
+      "x": 0,
+      "y": 50,
+      "width": 2560,
+      "height": 1390
+    },
+    {
+      "output": "Virtual-1",
+      "x": 2560,
+      "y": 0,
+      "width": 2560,
+      "height": 1440
+    }
+  ],
+  "panel_unreserved_workareas": [
+    {
+      "output": "Virtual-0",
+      "x": 0,
+      "y": 0,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "output": "Virtual-1",
+      "x": 2560,
+      "y": 0,
+      "width": 2560,
+      "height": 1440
+    }
+  ],
+  "captures": [
+    {
+      "name": "raw-right",
+      "samples": [
+        {
+          "output": 0,
+          "x": 1000,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 2200,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 0,
+          "x": 2559,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 1,
+          "x": 0,
+          "y": 300,
+          "expected": "#000000",
+          "actual": "#000000"
+        },
+        {
+          "output": 1,
+          "x": 100,
+          "y": 300,
+          "expected": "#000000",
+          "actual": "#000000"
+        },
+        {
+          "output": 1,
+          "scope": "entire-secondary-framebuffer",
+          "expected": "#000000",
+          "actual": "#000000"
+        }
+      ]
+    },
+    {
+      "name": "fallback-right",
+      "samples": [
+        {
+          "output": 0,
+          "x": 1000,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 2200,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 0,
+          "x": 2559,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 1,
+          "x": 0,
+          "y": 300,
+          "expected": "#000000",
+          "actual": "#000000"
+        },
+        {
+          "output": 1,
+          "x": 100,
+          "y": 300,
+          "expected": "#000000",
+          "actual": "#000000"
+        },
+        {
+          "output": 1,
+          "scope": "entire-secondary-framebuffer",
+          "expected": "#000000",
+          "actual": "#000000"
+        }
+      ]
+    },
+    {
+      "name": "fallback-both",
+      "samples": [
+        {
+          "output": 0,
+          "x": 0,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 0,
+          "x": 420,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 0,
+          "x": 444,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 2200,
+          "y": 300,
+          "expected": "#bd4938",
+          "actual": "#bd4938"
+        },
+        {
+          "output": 1,
+          "x": 0,
+          "y": 300,
+          "expected": "#000000",
+          "actual": "#000000"
+        },
+        {
+          "output": 1,
+          "x": 100,
+          "y": 300,
+          "expected": "#000000",
+          "actual": "#000000"
+        },
+        {
+          "output": 1,
+          "scope": "entire-secondary-framebuffer",
+          "expected": "#000000",
+          "actual": "#000000"
+        }
+      ]
+    },
+    {
+      "name": "ring-projection",
+      "samples": [
+        {
+          "output": 0,
+          "x": 438,
+          "y": 300,
+          "expected": "#000000",
+          "actual": "#000000"
+        },
+        {
+          "output": 0,
+          "x": 2135,
+          "y": 300,
+          "expected": "nonblack",
+          "actual": "#84d0ff"
+        },
+        {
+          "output": 1,
+          "x": 0,
+          "y": 300,
+          "expected": "#000000",
+          "actual": "#000000"
+        },
+        {
+          "output": 1,
+          "x": 100,
+          "y": 300,
+          "expected": "#000000",
+          "actual": "#000000"
+        },
+        {
+          "output": 1,
+          "scope": "entire-secondary-framebuffer",
+          "expected": "#000000",
+          "actual": "#000000"
+        }
+      ]
+    },
+    {
+      "name": "ring-masked",
+      "samples": [
+        {
+          "output": 0,
+          "x": 2135,
+          "y": 300,
+          "expected": "nonblack",
+          "actual": "#84d0ff"
+        },
+        {
+          "output": 1,
+          "x": 0,
+          "y": 300,
+          "expected": "#000000",
+          "actual": "#000000"
+        },
+        {
+          "output": 1,
+          "scope": "entire-secondary-framebuffer",
+          "expected": "#000000",
+          "actual": "#000000"
+        }
+      ]
+    }
+  ],
+  "seat_map_button_coordinates_correct_after_extra_motion": true,
+  "seat_map_enter_events": [
+    {
+      "phase": "seat-map",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 896.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 896.0,
+          "y": 234.0
+        }
+      ]
+    }
+  ],
+  "final_status_before_reset": {
+    "activeModal": false,
+    "auxiliary": [],
+    "consumed": 17,
+    "entries": [
+      {
+        "delta": 0,
+        "emptyOutputPasses": 1,
+        "hidden": false,
+        "interactiveMove": false,
+        "interactiveResize": false,
+        "output": "Virtual-0",
+        "painted": 16,
+        "realX": 652,
+        "title": "CC_NIRI_P0_B",
+        "width": 1256
+      }
+    ],
+    "epoch": 9,
+    "masked": 0,
+    "mode": "two-click",
+    "nativeButtons": 0,
+    "nativeDrag": false,
+    "nativeHitClass": "python3",
+    "pendingButtons": 0,
+    "pendingTouches": 0,
+    "pointerFocusClass": "python3",
+    "seatSerial": 107
+  },
+  "maximize_results": [
+    {
+      "phase": "maximized",
+      "kind": "maximize-result",
+      "label": "maximized",
+      "ready": true,
+      "mode": 3,
+      "output": "Virtual-0",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      }
+    },
+    {
+      "phase": "unmaximized",
+      "kind": "maximize-result",
+      "label": "unmaximized",
+      "ready": true,
+      "mode": 0,
+      "output": "Virtual-0",
+      "rect": {
+        "x": 440,
+        "y": 66,
+        "width": 1680,
+        "height": 1358
+      }
+    }
+  ],
+  "ring_status": {
+    "active": true,
+    "activeTransitionCount": 0,
+    "borderAlpha": 0.85,
+    "color": "#7FC8FF",
+    "coreBackend": "Rust",
+    "cornerRadius": 12,
+    "cornerSource": "round-corners",
+    "drawCount": 11,
+    "eligibilityEnabled": true,
+    "eligibilitySource": "layout-script",
+    "eligibleCount": 1,
+    "fadeRepaintRequests": 10,
+    "focusAnimation": true,
+    "focusClock": "clip-shared-presentation",
+    "focusDurationMs": 140,
+    "frameLifetime": "scene-attachment",
+    "generation": 1,
+    "glowAlpha": 0.28,
+    "glowClip": "separate-viewport-native-occlusion",
+    "glowExtent": 7.1,
+    "glowFalloff": "gaussian-three-sigma",
+    "glowGain": true,
+    "glowGainEndExtent": 7.1,
+    "glowGainRenderer": "cached-profile-blend",
+    "glowGainStartExtent": 7.4,
+    "glowOnlyDiagnostic": false,
+    "glowRadius": 1.7,
+    "glowRasterizations": 16,
+    "nativeProtocolBackend": "Rust",
+    "otherOutputPaintSkips": 0,
+    "outgoingDecorationCount": 0,
+    "paintOutputScope": "owner-output-region",
+    "paintOutset": 8,
+    "paintSource": "window-paint-pass",
+    "phase": "focus-gain-f3",
+    "pixelAlignment": "native-child-rounding-compensated",
+    "renderer": "post-window-native-item",
+    "separateGlowClipDrawCount": 11,
+    "sessionId": "p0-isolated-ring",
+    "sharedFrameSamples": 12,
+    "strokeGeometry": "paint-frame-fixed-width",
+    "targetOutput": "Virtual-0",
+    "viewportOutset": 5,
+    "visuals": [
+      {
+        "focused": true,
+        "glowGainMix": 0,
+        "opacity": 1,
+        "transitionActive": false,
+        "windowUuid": "160f3b45-4148-4682-bf1a-288fe00ae5d9"
+      }
+    ],
+    "width": 2,
+    "windowOpacity": 1,
+    "windowUuid": "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+    "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5"
+  },
+  "masked_ring_status": {
+    "active": true,
+    "activeTransitionCount": 0,
+    "borderAlpha": 0.85,
+    "color": "#7FC8FF",
+    "coreBackend": "Rust",
+    "cornerRadius": 12,
+    "cornerSource": "round-corners",
+    "drawCount": 14,
+    "eligibilityEnabled": true,
+    "eligibilitySource": "layout-script",
+    "eligibleCount": 1,
+    "fadeRepaintRequests": 10,
+    "focusAnimation": true,
+    "focusClock": "clip-shared-presentation",
+    "focusDurationMs": 140,
+    "frameLifetime": "scene-attachment",
+    "generation": 1,
+    "glowAlpha": 0.28,
+    "glowClip": "separate-viewport-native-occlusion",
+    "glowExtent": 7.1,
+    "glowFalloff": "gaussian-three-sigma",
+    "glowGain": true,
+    "glowGainEndExtent": 7.1,
+    "glowGainRenderer": "cached-profile-blend",
+    "glowGainStartExtent": 7.4,
+    "glowOnlyDiagnostic": false,
+    "glowRadius": 1.7,
+    "glowRasterizations": 16,
+    "nativeProtocolBackend": "Rust",
+    "otherOutputPaintSkips": 0,
+    "outgoingDecorationCount": 0,
+    "paintOutputScope": "owner-output-region",
+    "paintOutset": 8,
+    "paintSource": "window-paint-pass",
+    "phase": "focus-gain-f3",
+    "pixelAlignment": "native-child-rounding-compensated",
+    "renderer": "post-window-native-item",
+    "separateGlowClipDrawCount": 13,
+    "sessionId": "p0-isolated-ring",
+    "sharedFrameSamples": 16,
+    "strokeGeometry": "paint-frame-fixed-width",
+    "targetOutput": "Virtual-0",
+    "viewportOutset": 5,
+    "visuals": [
+      {
+        "focused": true,
+        "glowGainMix": 0,
+        "opacity": 1,
+        "transitionActive": false,
+        "windowUuid": "160f3b45-4148-4682-bf1a-288fe00ae5d9"
+      }
+    ],
+    "width": 2,
+    "windowOpacity": 1,
+    "windowUuid": "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+    "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5"
+  },
+  "owned_processes_reaped": true,
+  "records": [
+    {
+      "phase": "bootstrap",
+      "kind": "private-shortcut-service",
+      "stub": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_D",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 840.0,
+      "y": 679.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 840.0,
+          "y": 679.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 628.0,
+      "y": 679.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 628.0,
+          "y": 679.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 574.66796875,
+      "y": 649.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 574.66796875,
+          "y": 649.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "workareas",
+      "label": "panel-reserved",
+      "areas": [
+        {
+          "output": "Virtual-0",
+          "x": 0,
+          "y": 50,
+          "width": 2560,
+          "height": 1390
+        },
+        {
+          "output": "Virtual-1",
+          "x": 2560,
+          "y": 0,
+          "width": 2560,
+          "height": 1440
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "workareas",
+      "label": "panel-unreserved-0",
+      "areas": [
+        {
+          "output": "Virtual-0",
+          "x": 0,
+          "y": 0,
+          "width": 2560,
+          "height": 1440
+        },
+        {
+          "output": "Virtual-1",
+          "x": 2560,
+          "y": 0,
+          "width": 2560,
+          "height": 1440
+        }
+      ]
+    },
+    {
+      "phase": "raw-right",
+      "kind": "mark"
+    },
+    {
+      "phase": "raw-right",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "raw-right",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 840.0,
+      "y": 654.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 840.0,
+          "y": 654.0
+        }
+      ]
+    },
+    {
+      "phase": "raw-right",
+      "kind": "prepared",
+      "ready": true,
+      "epoch": 1,
+      "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+      "uuids": [
+        "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+        "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+      ]
+    },
+    {
+      "phase": "raw-right",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "raw-right",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 896.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 896.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "raw-right",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 896.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 896.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "raw-right",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 896.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 896.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "raw-right",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": 896.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 896.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "raw-overlap",
+      "kind": "mark"
+    },
+    {
+      "phase": "raw-overlap",
+      "kind": "prepared",
+      "ready": true,
+      "epoch": 2,
+      "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+      "uuids": [
+        "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+        "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+      ]
+    },
+    {
+      "phase": "raw-overlap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 196.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 196.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "raw-overlap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 196.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 196.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "raw-overlap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": 196.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 196.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "seat-map",
+      "kind": "mark"
+    },
+    {
+      "phase": "seat-map",
+      "kind": "prepared",
+      "ready": true,
+      "epoch": 3,
+      "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+      "uuids": [
+        "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+        "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+      ]
+    },
+    {
+      "phase": "seat-map",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "seat-map",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 896.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 896.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "seat-map",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 65.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 65.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "seat-map",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 65.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 65.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "seat-map",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": 65.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 65.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "fallback-right",
+      "kind": "mark"
+    },
+    {
+      "phase": "fallback-right",
+      "kind": "prepared",
+      "ready": true,
+      "epoch": 4,
+      "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+      "uuids": [
+        "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+        "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+      ]
+    },
+    {
+      "phase": "fallback-right",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "fallback-right",
+      "kind": "focus-request",
+      "title": "CC_NIRI_P0_B",
+      "epoch": 4
+    },
+    {
+      "phase": "fallback-overlap",
+      "kind": "mark"
+    },
+    {
+      "phase": "fallback-overlap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1060.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1060.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "fallback-overlap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 1060.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1060.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "fallback-overlap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 1060.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 1060.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "fallback-overlap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": 1060.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 1060.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "popup-open",
+      "kind": "mark"
+    },
+    {
+      "phase": "popup-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 560.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 560.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "popup-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 560.0,
+      "y": 234.0,
+      "button": 2,
+      "points": [
+        {
+          "id": 0,
+          "x": 560.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "popup-open",
+      "kind": "popup-shown"
+    },
+    {
+      "phase": "popup-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "popup-outside",
+      "kind": "mark"
+    },
+    {
+      "phase": "popup-outside",
+      "kind": "popup-hidden"
+    },
+    {
+      "phase": "popup-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 560.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 560.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "mark"
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 560.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 560.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 560.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 560.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 600.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 600.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "drag-start"
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "mark"
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "drag-end",
+      "action": 0
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "mark"
+    },
+    {
+      "phase": "fallback-left",
+      "kind": "mark"
+    },
+    {
+      "phase": "fallback-left",
+      "kind": "prepared",
+      "ready": true,
+      "epoch": 5,
+      "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+      "uuids": [
+        "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+        "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+      ]
+    },
+    {
+      "phase": "fallback-left",
+      "kind": "focus-request",
+      "title": "CC_NIRI_P0_B",
+      "epoch": 5
+    },
+    {
+      "phase": "fallback-both",
+      "kind": "mark"
+    },
+    {
+      "phase": "fallback-both",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 100.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 100.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "fallback-both",
+      "kind": "prepared",
+      "ready": true,
+      "epoch": 6,
+      "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+      "uuids": [
+        "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+        "4e9caa2c-3035-4032-9a9e-3c6607b47e48",
+        "256b667a-b522-4cf1-b164-c95d5e6e47d4"
+      ]
+    },
+    {
+      "phase": "fallback-both",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "fallback-both",
+      "kind": "focus-request",
+      "title": "CC_NIRI_P0_B",
+      "epoch": 6
+    },
+    {
+      "phase": "fallback-both",
+      "kind": "focus-request",
+      "title": "CC_NIRI_P0_C",
+      "epoch": 6
+    },
+    {
+      "phase": "hover-cross-columns",
+      "kind": "mark"
+    },
+    {
+      "phase": "hover-cross-columns",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1060.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1060.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "hover-cross-columns",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 1061.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1061.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "hover-cross-columns",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 1060.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1060.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "hover-cross-columns",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "hover-cross-columns",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1060.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1060.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "screen-edges",
+      "kind": "mark"
+    },
+    {
+      "phase": "screen-edges",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "screen-edges",
+      "kind": "focus-request",
+      "title": "CC_NIRI_P0_B",
+      "epoch": 6
+    },
+    {
+      "phase": "screen-edges",
+      "kind": "focus-request",
+      "title": "CC_NIRI_P0_C",
+      "epoch": 6
+    },
+    {
+      "phase": "secondary",
+      "kind": "mark"
+    },
+    {
+      "phase": "touch-partial",
+      "kind": "mark"
+    },
+    {
+      "phase": "touch-partial",
+      "kind": "prepared",
+      "ready": true,
+      "epoch": 7,
+      "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+      "uuids": [
+        "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+        "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+      ]
+    },
+    {
+      "phase": "touch-partial",
+      "kind": "focus-request",
+      "title": "CC_NIRI_P0_B",
+      "epoch": 7
+    },
+    {
+      "phase": "press-before-focus",
+      "kind": "mark"
+    },
+    {
+      "phase": "press-before-focus",
+      "kind": "prepared",
+      "ready": true,
+      "epoch": 8,
+      "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+      "uuids": [
+        "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+        "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+      ]
+    },
+    {
+      "phase": "press-before-focus",
+      "kind": "focus-request",
+      "title": "CC_NIRI_P0_B",
+      "epoch": 8
+    },
+    {
+      "phase": "release-after-focus",
+      "kind": "mark"
+    },
+    {
+      "phase": "release-after-focus",
+      "kind": "prepared",
+      "ready": true,
+      "epoch": 9,
+      "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+      "uuids": [
+        "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+      ]
+    },
+    {
+      "phase": "second-click",
+      "kind": "mark"
+    },
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 48.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 48.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 48.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 48.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 48.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 48.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": 48.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 48.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "before-maximize",
+      "kind": "mark"
+    },
+    {
+      "phase": "before-maximize",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "before-maximize",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 260.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 260.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "before-maximize",
+      "kind": "prepared",
+      "ready": true,
+      "epoch": 10,
+      "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+      "uuids": [
+        "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+        "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+      ]
+    },
+    {
+      "phase": "maximized",
+      "kind": "mark"
+    },
+    {
+      "phase": "maximized",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Resize",
+      "spontaneous": true
+    },
+    {
+      "phase": "maximized",
+      "kind": "maximize-result",
+      "label": "maximized",
+      "ready": true,
+      "mode": 3,
+      "output": "Virtual-0",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      }
+    },
+    {
+      "phase": "unmaximized",
+      "kind": "mark"
+    },
+    {
+      "phase": "unmaximized",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Resize",
+      "spontaneous": true
+    },
+    {
+      "phase": "unmaximized",
+      "kind": "maximize-result",
+      "label": "unmaximized",
+      "ready": true,
+      "mode": 0,
+      "output": "Virtual-0",
+      "rect": {
+        "x": 440,
+        "y": 66,
+        "width": 1680,
+        "height": 1358
+      }
+    },
+    {
+      "phase": "after-maximize-partial",
+      "kind": "mark"
+    },
+    {
+      "phase": "after-maximize-partial",
+      "kind": "prepared",
+      "ready": true,
+      "epoch": 11,
+      "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+      "uuids": [
+        "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+        "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+      ]
+    },
+    {
+      "phase": "after-maximize-partial",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "after-maximize-partial",
+      "kind": "focus-request",
+      "title": "CC_NIRI_P0_B",
+      "epoch": 11
+    },
+    {
+      "phase": "titlebar-partial",
+      "kind": "mark"
+    },
+    {
+      "phase": "titlebar-partial",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 896.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 896.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "titlebar-partial",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_D",
+      "event": "Resize",
+      "spontaneous": true
+    },
+    {
+      "phase": "titlebar-partial",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "titlebar-partial",
+      "kind": "prepared",
+      "ready": true,
+      "epoch": 12,
+      "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+      "uuids": [
+        "37eba1ec-697e-42c0-a8c8-8445178402ce"
+      ]
+    },
+    {
+      "phase": "titlebar-partial",
+      "kind": "focus-request",
+      "title": "CC_NIRI_P0_D",
+      "epoch": 12
+    },
+    {
+      "phase": "titlebar-visible",
+      "kind": "mark"
+    },
+    {
+      "phase": "titlebar-visible",
+      "kind": "prepared",
+      "ready": true,
+      "epoch": 13,
+      "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+      "uuids": [
+        "37eba1ec-697e-42c0-a8c8-8445178402ce"
+      ]
+    },
+    {
+      "phase": "system-resize",
+      "kind": "mark"
+    },
+    {
+      "phase": "system-resize",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_D",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 308.0,
+      "y": 172.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 308.0,
+          "y": 172.0
+        }
+      ]
+    },
+    {
+      "phase": "system-resize",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_D",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 308.0,
+      "y": 172.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 308.0,
+          "y": 172.0
+        }
+      ]
+    },
+    {
+      "phase": "system-resize",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_D",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 308.0,
+      "y": 172.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 308.0,
+          "y": 172.0
+        }
+      ]
+    },
+    {
+      "phase": "system-resize",
+      "kind": "system-resize-request",
+      "accepted": true
+    },
+    {
+      "phase": "system-resize",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_D",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": 308.0,
+      "y": 172.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 308.0,
+          "y": 172.0
+        }
+      ]
+    },
+    {
+      "phase": "system-resize",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_D",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "system-resize",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_D",
+      "event": "Resize",
+      "spontaneous": true
+    },
+    {
+      "phase": "system-resize",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_D",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 328.0,
+      "y": 192.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 328.0,
+          "y": 192.0
+        }
+      ]
+    },
+    {
+      "phase": "close-during-press",
+      "kind": "mark"
+    },
+    {
+      "phase": "close-during-press",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_D",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "close-during-press",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 580.0,
+      "y": 254.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 580.0,
+          "y": 254.0
+        }
+      ]
+    },
+    {
+      "phase": "close-during-press",
+      "kind": "prepared",
+      "ready": true,
+      "epoch": 14,
+      "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+      "uuids": [
+        "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+        "256b667a-b522-4cf1-b164-c95d5e6e47d4"
+      ]
+    },
+    {
+      "phase": "close-during-press",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "close-during-press",
+      "kind": "focus-request",
+      "title": "CC_NIRI_P0_C",
+      "epoch": 14
+    },
+    {
+      "phase": "ring-projection",
+      "kind": "mark"
+    },
+    {
+      "phase": "ring-projection",
+      "kind": "prepared",
+      "ready": true,
+      "epoch": 15,
+      "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+      "uuids": [
+        "160f3b45-4148-4682-bf1a-288fe00ae5d9"
+      ]
+    },
+    {
+      "phase": "ring-masked",
+      "kind": "mark"
+    },
+    {
+      "phase": "ring-masked",
+      "kind": "prepared",
+      "ready": true,
+      "epoch": 16,
+      "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+      "uuids": [
+        "160f3b45-4148-4682-bf1a-288fe00ae5d9"
+      ]
+    },
+    {
+      "phase": "unload-masked",
+      "kind": "mark"
+    },
+    {
+      "phase": "unload-masked",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 896.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 896.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "unload-masked",
+      "kind": "prepared",
+      "ready": true,
+      "epoch": 17,
+      "workspaceId": "46418f25-4453-4418-b927-e8cfe255c6a5",
+      "uuids": [
+        "160f3b45-4148-4682-bf1a-288fe00ae5d9",
+        "4e9caa2c-3035-4032-9a9e-3c6607b47e48"
+      ]
+    },
+    {
+      "phase": "unload-masked",
+      "entries": 0,
+      "hiddenTestWindows": 0,
+      "kind": "native-fixture-unloaded",
+      "masked": 0
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+cmake_minimum_required(VERSION 3.20)
+include("${CMAKE_CURRENT_LIST_DIR}/../../../cmake/CCNiriToolchain.cmake")
+cc_niri_select_cxx_compiler()
+project(cc-niri-p0-fixture LANGUAGES CXX)
+cc_niri_check_cxx_compiler()
+include(CTest)
+if(NOT BUILD_TESTING)
+    message(FATAL_ERROR "P0 fixture is test-only; BUILD_TESTING=ON is required")
+endif()
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
+find_package(ECM 6.0 REQUIRED NO_MODULE)
+list(APPEND CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
+include(KDEInstallDirs)
+include(KDECompilerSettings NO_POLICY_SCOPE)
+find_package(Qt6 6.6 REQUIRED COMPONENTS Core DBus Gui Quick Widgets)
+find_package(KF6 6.0 REQUIRED COMPONENTS CoreAddons)
+find_package(KWin 6.7 REQUIRED COMPONENTS kwineffects)
+# No install rule, no reference/Core implementation and no production linkage.
+add_library(cc-niri-p0-input-fixture MODULE P0InputEffect.cpp)
+set_target_properties(cc-niri-p0-input-fixture PROPERTIES PREFIX ""
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/kwin/effects/plugins")
+target_link_libraries(cc-niri-p0-input-fixture PRIVATE KWin::kwin Qt6::Core Qt6::DBus KF6::CoreAddons)
+target_include_directories(cc-niri-p0-input-fixture PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../../../native/focus-ring"
+    "${CMAKE_CURRENT_LIST_DIR}/../../../native/rust/include")

@@ -1,0 +1,28 @@
+[1/22] Building Rust Native Core (release)
+   Compiling cc-niri-native-core v0.1.0 (/home/cc/cc_niri/native/rust/cc-niri-native-core)
+    Finished `release` profile [optimized] target(s) in 1.62s
+[2/22] Building CXX object viewport-clip/CMakeFiles/cc-niri-native-adapters.dir/RustSpring.cpp.o
+[3/22] Building CXX object viewport-clip/CMakeFiles/cc-niri-native-adapters.dir/RustViewportMotion.cpp.o
+[4/22] Building CXX object viewport-clip/CMakeFiles/cc-niri-native-adapters.dir/RustScrollPlanSequence.cpp.o
+[5/22] Building CXX object viewport-clip/CMakeFiles/cc-niri-native-adapters.dir/RustScrollViewportRuntime.cpp.o
+[6/22] Building CXX object viewport-clip/CMakeFiles/cc-niri-native-adapters.dir/__/focus-ring/RustFocusRingContext.cpp.o
+[7/22] Linking CXX static library lib/libcc-niri-native-adapters.a
+[8/22] Automatic MOC for target cc-niri-viewport-clip
+AutoMoc warning
+---------------
+"SRC:/viewport-clip/main.cpp"
+includes the moc file "main.moc", but does not contain a Q_OBJECT, Q_GADGET, Q_NAMESPACE, Q_NAMESPACE_EXPORT, Q_GADGET_EXPORT, Q_ENUM_NS, K_PLUGIN_FACTORY, K_PLUGIN_CLASS, K_PLUGIN_FACTORY_WITH_JSON or K_PLUGIN_CLASS_WITH_JSON macro.
+
+[9/21] Automatic MOC for target cc-niri-focus-ring
+[10/21] Building CXX object viewport-clip/CMakeFiles/cc-niri-viewport-clip.dir/main.cpp.o
+[11/21] Building CXX object viewport-clip/CMakeFiles/cc-niri-viewport-clip.dir/WorkspaceSlideAdapter.cpp.o
+[12/21] Building CXX object viewport-clip/CMakeFiles/cc-niri-viewport-clip.dir/ViewportClipEffect.cpp.o
+[13/21] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring.dir/cc-niri-focus-ring_autogen/mocs_compilation.cpp.o
+[14/21] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring.dir/main.cpp.o
+[15/21] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring.dir/FocusRingItem.cpp.o
+[16/21] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring.dir/FocusRingEffect.cpp.o
+[17/21] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring.dir/FocusRingPaintFrame.cpp.o
+[18/21] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring.dir/FocusRingStrokeItem.cpp.o
+[19/21] Linking CXX shared module bin/kwin/effects/plugins/cc-niri-viewport-clip.so
+[20/21] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring.dir/FocusRingCornerStyle.cpp.o
+[21/21] Linking CXX shared module bin/kwin/effects/plugins/cc-niri-focus-ring.so

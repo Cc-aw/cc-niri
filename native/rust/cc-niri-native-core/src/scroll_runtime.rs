@@ -7,6 +7,13 @@ use crate::spring::SpringParams;
 use crate::viewport_motion::{MotionKind, MotionSample, ViewportMotion};
 use std::collections::HashMap;
 
+#[path = "scroll_client_paint.rs"]
+mod client_paint;
+pub use client_paint::ClientPaint;
+#[path = "scroll_geometry_runtime.rs"]
+mod geometry_runtime;
+pub use geometry_runtime::{GeometryClientFact, GeometrySourceRequest};
+
 #[derive(Clone, Copy, Debug)]
 pub struct ScrollFrameSample {
     pub motion: MotionSample,
@@ -48,6 +55,13 @@ pub struct ScrollViewportRuntime {
     source_frames: HashMap<WindowId, Rect>,
     visual_targets: HashMap<WindowId, Rect>,
     roles: HashMap<WindowId, WindowRole>,
+    client_paints: HashMap<WindowId, (f64, Option<ClientPaint>)>,
+    client_serial: u64,
+    geometry: Option<crate::column_geometry::ColumnGeometryTransition>,
+    paint_basis: Option<PartialScrollConfig>,
+    geometry_observation: Option<crate::column_geometry::GeometrySource>,
+    geometry_completion_serial: u64,
+    closing: HashMap<WindowId, (Rect, Rect, Rect)>,
     viewport: Rect,
     frame_offset: f64,
     // prepare_frame projects a pending sample. Only mark_painted promotes it
@@ -59,6 +73,8 @@ pub struct ScrollViewportRuntime {
     completed: bool,
     fuzzy_zero: bool,
     clip_partial: bool,
+    partial: Option<PartialScrollConfig>,
+    pub partial_input: crate::partial_input::PartialInputState,
     windows: WindowRegistry,
     smooth_motion: bool,
     retarget: RetargetStats,
@@ -77,6 +93,13 @@ impl ScrollViewportRuntime {
             source_frames: HashMap::new(),
             visual_targets: HashMap::new(),
             roles: HashMap::new(),
+            client_paints: HashMap::new(),
+            client_serial: 0,
+            geometry: None,
+            paint_basis: None,
+            geometry_observation: None,
+            geometry_completion_serial: 0,
+            closing: HashMap::new(),
             viewport: Rect::default(),
             frame_offset: 0.0,
             anchor_offset: 0.0,
@@ -86,6 +109,8 @@ impl ScrollViewportRuntime {
             completed: false,
             fuzzy_zero,
             clip_partial: false,
+            partial: None,
+            partial_input: crate::partial_input::PartialInputState::default(),
             windows: WindowRegistry::default(),
             smooth_motion: false,
             retarget: RetargetStats::default(),
@@ -106,6 +131,7 @@ impl ScrollViewportRuntime {
     // clip handoff. An unused prePaint sample must not become that pose.
     pub fn clone_for_paint(&self) -> Self {
         let mut copy = self.clone();
+        copy.geometry = self.geometry.as_ref().map(|g| g.clone_for_paint());
         copy.frame_offset = self.anchor_offset;
         copy.frame_sample = self
             .painted_sample
@@ -157,8 +183,16 @@ impl ScrollViewportRuntime {
         self.source_frames.clear();
         self.visual_targets.clear();
         self.roles.clear();
+        self.client_paints.clear();
+        self.client_serial = 0;
+        self.geometry = None;
+        self.geometry_completion_serial = 0;
+        self.closing.clear();
+        self.paint_basis = None;
+        self.geometry_observation = None;
         self.completed = false;
         self.clip_partial = false;
+        self.partial = None;
         self.frame_sample = None;
         self.painted_sample = None;
         self.origin_sample = None;
@@ -167,10 +201,16 @@ impl ScrollViewportRuntime {
         self.motion.snap(self.motion.sample(0).target);
     }
     pub fn remove(&mut self, id: WindowId) {
+        self.geometry_observation = None;
         self.columns.remove(&id);
         self.source_frames.remove(&id);
         self.visual_targets.remove(&id);
         self.roles.remove(&id);
+        self.client_paints.remove(&id);
+        self.closing.remove(&id);
+        if let Some(g) = &mut self.geometry {
+            g.remove(id);
+        }
         self.windows.remove(id);
     }
     pub fn update_context(&mut self, raw: RuntimeContext) -> bool {
@@ -212,7 +252,23 @@ impl ScrollViewportRuntime {
         let Ok(validated) = ValidatedScrollPlan::new(plan, &self.windows) else {
             return false;
         };
-        self.arm_validated(validated, 0.0, now, frames, smooth)
+        self.arm_validated(validated, 0.0, now, frames, smooth, None)
+    }
+    pub fn arm_partial(
+        &mut self,
+        plan: ScrollPlan,
+        now: i64,
+        frames: &HashMap<WindowId, Rect>,
+        smooth: bool,
+        actual_output: Rect,
+    ) -> bool {
+        if plan.partial.is_none() {
+            return false;
+        }
+        let Ok(validated) = ValidatedScrollPlan::new(plan, &self.windows) else {
+            return false;
+        };
+        self.arm_validated(validated, 0.0, now, frames, smooth, Some(actual_output))
     }
     pub fn arm_reindex(
         &mut self,
@@ -228,7 +284,7 @@ impl ScrollViewportRuntime {
         else {
             return false;
         };
-        self.arm_validated(validated, shift, now, frames, smooth)
+        self.arm_validated(validated, shift, now, frames, smooth, None)
     }
     fn arm_validated(
         &mut self,
@@ -237,6 +293,7 @@ impl ScrollViewportRuntime {
         now: i64,
         frames: &HashMap<WindowId, Rect>,
         smooth: bool,
+        actual_output: Option<Rect>,
     ) -> bool {
         let epoch = validated.epoch().0;
         if epoch <= self.cancelled_epoch {
@@ -246,16 +303,34 @@ impl ScrollViewportRuntime {
             Ok(PlanDisposition::Accepted) => {}
             Ok(PlanDisposition::Duplicate) => {
                 return self.active()
+                    && (!validated.is_partial()
+                        || (self.partial.is_some()
+                            && self.epoch() == epoch
+                            && actual_output == Some(self.viewport)))
                     && (basis_shift == 0.0 || self.motion.sample(0).epoch == epoch)
             }
             _ => return false,
         }
+        if self.geometry.is_some() {
+            return false;
+        }
         let plan = validated.into_wire();
+        let partial = plan.partial.clone();
+        if partial.is_some() && actual_output != Some(plan.viewport) {
+            return false;
+        }
         let clip_partial = plan.clip_partial == 2;
         let rect = plan.viewport;
+        let layout = partial.as_ref().map_or(rect, |p| p.layout);
         let target = plan.new_offset;
         let old_offset = plan.old_offset + basis_shift;
-        let continuing = self.active() && self.viewport.equivalent(rect, self.fuzzy_zero);
+        let continuing = self.active()
+            && self.viewport.equivalent(rect, self.fuzzy_zero)
+            && match (&self.partial, &partial) {
+                (None, None) => true,
+                (Some(a), Some(b)) => a.scope_revision == b.scope_revision && a.layout == b.layout,
+                _ => false,
+            };
         if basis_shift != 0.0
             && continuing
             && plan
@@ -270,6 +345,7 @@ impl ScrollViewportRuntime {
         let mut visual_targets = HashMap::new();
         let mut source_frames = HashMap::new();
         let mut roles = HashMap::new();
+        let mut client_paints = HashMap::new();
         for entry in plan.entries {
             let id = entry.window_id;
             let outgoing = entry.new_placement == Placement::Parked
@@ -277,10 +353,13 @@ impl ScrollViewportRuntime {
             if !outgoing && entry.new_placement != Placement::Visible {
                 continue;
             }
+            if partial.is_some() {
+                client_paints.insert(id, (entry.column_id, None));
+            }
             if continuing {
                 if let Some(previous) = self.visual_targets.get(&id) {
                     if (previous.x + self.motion.sample(0).target + basis_shift
-                        - rect.x
+                        - layout.x
                         - entry.logical_x)
                         .abs()
                         > GEOMETRY_EPSILON
@@ -291,10 +370,10 @@ impl ScrollViewportRuntime {
                 }
             }
             let old_rect = Rect {
-                x: rect.x + entry.logical_x - old_offset,
-                y: rect.y,
+                x: layout.x + entry.logical_x - old_offset,
+                y: layout.y,
                 width: entry.pixel_width,
-                height: rect.height,
+                height: layout.height,
             };
             let source = frames
                 .get(&id)
@@ -307,6 +386,30 @@ impl ScrollViewportRuntime {
                     }
                 })
                 .unwrap_or(old_rect);
+            // P3 is a same-size camera contract. Resizes require the P4 typed
+            // geometry/configure transaction, including incoming parked clients.
+            if partial.is_some()
+                && (frames.get(&id).is_none()
+                    || !source.valid_viewport()
+                    || (source.width - entry.pixel_width).abs() > 0.000001
+                    || (source.height - layout.height).abs() > 0.000001)
+            {
+                return false;
+            }
+            let old_anchor = if partial.is_some() {
+                Self::partial_anchor(old_rect, rect)
+            } else {
+                old_rect
+            };
+            if partial.is_some()
+                && entry.old_placement == Placement::Visible
+                && !source.near(old_anchor)
+                && !(continuing
+                    && (self.columns.get(&id).is_some_and(|r| source.near(*r))
+                        || self.source_frames.get(&id).is_some_and(|r| source.near(*r))))
+            {
+                return false;
+            }
             if (entry.old_placement == Placement::Visible
                 || (continuing && self.columns.contains_key(&id)))
                 && source.intersects(rect)
@@ -324,29 +427,59 @@ impl ScrollViewportRuntime {
                 },
             );
             let visual = Rect {
-                x: rect.x + entry.logical_x - target,
-                y: rect.y,
+                x: layout.x + entry.logical_x - target,
+                y: layout.y,
                 width: entry.pixel_width,
-                height: rect.height,
+                height: layout.height,
             };
-            columns.insert(id, if outgoing { source } else { visual });
+            columns.insert(
+                id,
+                if outgoing {
+                    source
+                } else if partial.is_some() {
+                    Self::partial_anchor(visual, rect)
+                } else {
+                    visual
+                },
+            );
             visual_targets.insert(id, visual);
         }
         if continuing {
             for (id, column) in &self.columns {
-                if columns.contains_key(id) || self.roles.get(id) != Some(&WindowRole::Outgoing) {
+                if columns.contains_key(id)
+                    || (partial.is_none() && self.roles.get(id) != Some(&WindowRole::Outgoing))
+                {
                     continue;
                 }
                 columns.insert(*id, *column);
-                source_frames.insert(*id, *column);
+                source_frames.insert(
+                    *id,
+                    if partial.is_some() {
+                        self.source_frames.get(id).copied().unwrap_or(*column)
+                    } else {
+                        *column
+                    },
+                );
                 let mut visual = self.visual_targets.get(id).copied().unwrap_or_default();
                 visual.x += self.motion.sample(0).target + basis_shift - target;
                 visual_targets.insert(*id, visual);
                 roles.insert(*id, WindowRole::Outgoing);
+                if let Some((column_id, _)) = self.client_paints.get(id) {
+                    client_paints.insert(*id, (*column_id, None));
+                }
             }
         }
         if columns.is_empty() {
             self.clear();
+            return false;
+        }
+        if partial.is_some()
+            && visual_targets.iter().any(|(id, a)| {
+                visual_targets
+                    .iter()
+                    .any(|(other, b)| id != other && a.x < b.x + b.width && a.x + a.width > b.x)
+            })
+        {
             return false;
         }
         let from = if continuing {
@@ -356,15 +489,24 @@ impl ScrollViewportRuntime {
         };
         // Context switches clear samples before arm; same-frame targets keep
         // reusing the same painted sample, even when its epoch is older.
-        let carry =
-            continuing && self.smooth_motion && smooth && !self.clip_partial && !clip_partial;
+        let carry = continuing
+            && self.smooth_motion
+            && smooth
+            && (partial.is_some() || (!self.clip_partial && !clip_partial));
         let painted = self.painted_sample.filter(|_| carry);
         let start_time = if now >= 0 {
+            // A cancelled P4 arm may have started at the predicted next real
+            // presentation. Hydration cannot move the shared clock backwards.
+            let now = if partial.is_some() {
+                now.max(self.motion.started_at())
+            } else {
+                now
+            };
             painted.map_or(now, |s| now.max(s.time_ns))
         } else {
             now
         };
-        let use_smooth = smooth && !clip_partial;
+        let use_smooth = smooth && (!clip_partial || partial.is_some());
         let mut candidate_motion = self.motion.clone();
         candidate_motion.set_scroll_parameters(use_smooth);
         let mut kept = false;
@@ -379,6 +521,9 @@ impl ScrollViewportRuntime {
                 .values()
                 .map(|r| r.x - rect.x + target + r.width - rect.width)
                 .fold(f64::NEG_INFINITY, f64::max);
+            let (lower, upper) = partial
+                .as_ref()
+                .map_or((lower, upper), |p| (0.0, p.max_offset));
             let bounds = MotionBounds {
                 lower,
                 upper,
@@ -418,6 +563,10 @@ impl ScrollViewportRuntime {
         self.visual_targets = visual_targets;
         self.source_frames = source_frames;
         self.roles = roles;
+        self.client_paints = client_paints;
+        self.client_serial = 0;
+        self.paint_basis = None;
+        self.geometry_observation = None;
         self.viewport = rect;
         let origin = if kept {
             let mut origin = self.origin_sample.expect("active motion has an origin");
@@ -446,6 +595,7 @@ impl ScrollViewportRuntime {
         }
         self.completed = false;
         self.clip_partial = clip_partial;
+        self.partial = partial;
         self.smooth_motion = use_smooth;
         self.visual_fallback = if use_smooth {
             VisualFallback::AwaitingFrame
@@ -468,6 +618,9 @@ impl ScrollViewportRuntime {
     pub fn advance(&mut self, now: i64) -> bool {
         if !self.active() {
             return false;
+        }
+        if self.geometry.is_some() {
+            return self.prepare_frame(now);
         }
         if self.completed {
             return true;
@@ -541,6 +694,11 @@ impl ScrollViewportRuntime {
             },
             time_ns: now,
         };
+        if let Some(g) = &mut self.geometry {
+            if !g.prepare_frame(sample.motion, now, facts) {
+                return false;
+            }
+        }
         self.frame_offset = sample.motion.current;
         self.frame_sample = Some(sample);
         true
@@ -567,12 +725,28 @@ impl ScrollViewportRuntime {
             } else {
                 self.motion.finish(epoch, time_ns);
             }
-            self.completed = true;
+            self.completed = self.geometry.as_ref().is_none_or(|g| g.completed());
         }
         true
     }
     pub fn projection(&self, id: WindowId, geometry: Rect) -> Option<ScrollProjection> {
+        if let Some(g) = &self.geometry {
+            return g.projection(id, geometry).map(|p| ScrollProjection {
+                translation_x: p.translation_x,
+                viewport: p.viewport,
+            });
+        }
         let target = self.columns.get(&id)?;
+        if self.partial.is_some() {
+            let visual = self.visual_targets.get(&id)?;
+            if (geometry.width - visual.width).abs() > 0.000001
+                || (geometry.height - visual.height).abs() > 0.000001
+                || (geometry.y - visual.y).abs() > 0.000001
+                || !geometry.valid_viewport()
+            {
+                return None;
+            }
+        }
         if !geometry.near(*target)
             && !self
                 .source_frames
@@ -587,6 +761,104 @@ impl ScrollViewportRuntime {
                 - self.frame_offset,
             viewport: self.viewport,
         })
+    }
+    fn partial_anchor(mut visual: Rect, output: Rect) -> Rect {
+        visual.x = visual
+            .x
+            .clamp(output.x, output.x + output.width - visual.width);
+        visual
+    }
+    pub fn partial_config(&self) -> Option<&PartialScrollConfig> {
+        self.partial.as_ref().filter(|_| self.active())
+    }
+    pub fn visual_targets(&self) -> &HashMap<WindowId, Rect> {
+        &self.visual_targets
+    }
+    pub fn painted_target(&self, id: WindowId) -> Option<Rect> {
+        self.partial_config()?;
+        if self.geometry.is_some() {
+            return self.client_paint(id).map(|p| p.visual);
+        }
+        let sample = self.painted_sample?;
+        let mut rect = *self.visual_targets.get(&id)?;
+        rect.x += self.motion.sample(0).target - sample.motion.current;
+        Some(rect)
+    }
+    pub fn partial_hit(&self, x: f64, y: f64) -> Option<WindowId> {
+        self.partial_config()?;
+        if !x.is_finite()
+            || !y.is_finite()
+            || x < self.viewport.x
+            || y < self.viewport.y
+            || x >= self.viewport.x + self.viewport.width
+            || y >= self.viewport.y + self.viewport.height
+        {
+            return None;
+        }
+        if self.geometry.is_some() {
+            return self.geometry_hit(x, y).0;
+        }
+        self.visual_targets.iter().find_map(|(id, r)| {
+            let left = r.x + self.motion.sample(0).target - self.anchor_offset;
+            (x >= left && x < left + r.width && y >= r.y && y < r.y + r.height).then_some(*id)
+        })
+    }
+    fn geometry_hit(&self, x: f64, y: f64) -> (Option<WindowId>, bool) {
+        let Some(sample) = self.painted_sample else {
+            return (None, false);
+        };
+        let mut hit = None;
+        for (id, (_, pose)) in &self.client_paints {
+            if let Some(p) = pose {
+                if p.epoch == sample.motion.epoch
+                    && p.time_ns == sample.time_ns
+                    && p.serial == self.client_serial
+                    && x >= p.visual.x
+                    && x < p.visual.x + p.visual.width
+                    && y >= p.visual.y
+                    && y < p.visual.y + p.visual.height
+                {
+                    if hit.is_some() {
+                        return (None, true);
+                    }
+                    hit = Some(*id);
+                }
+            }
+        }
+        (hit, false)
+    }
+    pub fn partial_point_ambiguous(&self, x: f64, y: f64) -> bool {
+        self.partial_config().is_some()
+            && self.geometry.is_some()
+            && x.is_finite()
+            && y.is_finite()
+            && x >= self.viewport.x
+            && x < self.viewport.x + self.viewport.width
+            && y >= self.viewport.y
+            && y < self.viewport.y + self.viewport.height
+            && self.geometry_hit(x, y).1
+    }
+    pub fn partial_input_blocked(&self, id: WindowId, geometry: Rect, x: f64, y: f64) -> bool {
+        if self.partial_config().is_none() || !self.columns.contains_key(&id) {
+            return false;
+        }
+        if self.projection(id, geometry).is_none() {
+            return true;
+        }
+        if self.geometry.is_some() {
+            return self
+                .client_paint(id)
+                .is_none_or(|p| p.frame != geometry || p.visual != geometry)
+                || self.partial_hit(x, y) != Some(id);
+        }
+        let painted_x =
+            self.visual_targets[&id].x + self.motion.sample(0).target - self.anchor_offset;
+        // Input uses actual paint, not prePaint prediction.
+        (painted_x - geometry.x).abs() > 0.000001
+            || (geometry.y - self.visual_targets[&id].y).abs() > 0.000001
+            || (geometry.width - self.visual_targets[&id].width).abs() > 0.000001
+            || (geometry.height - self.visual_targets[&id].height).abs() > 0.000001
+            || self.partial_hit(x, y) != Some(id)
     }
 }
 
@@ -640,6 +912,7 @@ mod tests {
             new_offset: to,
             retarget_only: if from == to { 2 } else { 0 },
             clip_partial: 0,
+            partial: None,
             viewport: Rect {
                 x: -1920.5,
                 y: 50.25,
@@ -1388,5 +1661,389 @@ mod tests {
         assert!(!r.active());
         assert!(!r.arm_reindex(returning, a, 1890.0, 60_000_000, &HashMap::new(), false));
         assert!(r.targets().is_empty() && r.source_frames().is_empty());
+    }
+}
+
+#[cfg(test)]
+mod partial_tests {
+    use super::*;
+    use crate::native_protocol::{PartialScrollConfig, MAX_SAFE_INTEGER};
+
+    fn fixture() -> (ScrollViewportRuntime, ScrollPlan, HashMap<WindowId, Rect>) {
+        let mut r = ScrollViewportRuntime::new(true);
+        r.update_context(RuntimeContext {
+            protocol: 2.0,
+            session: Text::from_utf8("s"),
+            workspace: Text::from_utf8("a"),
+            output: Text::from_utf8("o"),
+            generation: 1.0,
+        });
+        let layout = Rect {
+            x: 0.0,
+            y: 66.0,
+            width: 2560.0,
+            height: 1358.0,
+        };
+        let a = r.intern(Text::from_utf8("a"));
+        let b = r.intern(Text::from_utf8("b"));
+        let frames = HashMap::from([
+            (
+                a,
+                Rect {
+                    x: 440.0,
+                    width: 1680.0,
+                    ..layout
+                },
+            ),
+            (
+                b,
+                Rect {
+                    x: 1304.0,
+                    width: 1256.0,
+                    ..layout
+                },
+            ),
+        ]);
+        let p = ScrollPlan {
+            shape_valid: true,
+            protocol: 3.0,
+            kind: Text::from_utf8("PARTIAL_SCROLL"),
+            session: Text::from_utf8("s"),
+            workspace: Text::from_utf8("a"),
+            output: Text::from_utf8("o"),
+            epoch: 1.0,
+            issued_at: 1.0,
+            old_offset: 212.0,
+            new_offset: 1060.0,
+            retarget_only: 0,
+            clip_partial: 2,
+            viewport: Rect {
+                x: 0.0,
+                y: 0.0,
+                width: 2560.0,
+                height: 1440.0,
+            },
+            partial: Some(PartialScrollConfig {
+                layout,
+                max_offset: 1696.0,
+                scope_revision: 1.0,
+            }),
+            entries: vec![
+                ScrollEntry {
+                    window_id: a,
+                    column_id: 1.0,
+                    logical_x: 652.0,
+                    pixel_width: 1680.0,
+                    old_placement: Placement::Visible,
+                    new_placement: Placement::Visible,
+                },
+                ScrollEntry {
+                    window_id: b,
+                    column_id: 2.0,
+                    logical_x: 2348.0,
+                    pixel_width: 1256.0,
+                    old_placement: Placement::Visible,
+                    new_placement: Placement::Visible,
+                },
+            ],
+            fingerprint: b"partial-1".to_vec(),
+        };
+        (r, p, frames)
+    }
+    fn paint(r: &mut ScrollViewportRuntime, now: i64) -> ScrollFrameSample {
+        assert!(r.prepare_frame(now));
+        assert!(r.mark_painted(r.epoch(), now));
+        r.frame_sample(true).unwrap()
+    }
+    #[test]
+    fn strict_output_safe_anchors_and_geometry_ack_input() {
+        let (mut r, p, frames) = fixture();
+        let (a, b) = (p.entries[0].window_id, p.entries[1].window_id);
+        assert!(r.arm_partial(p.clone(), 0, &frames, true, p.viewport));
+        assert_eq!(r.targets()[&a].x, 0.0);
+        assert_eq!(r.targets()[&b].x, 1288.0);
+        assert_eq!(r.targets()[&a].width, 1680.0);
+        assert!(r.painted_target(a).is_none());
+        paint(&mut r, 0);
+        assert_eq!(r.painted_target(b).unwrap().x, 2136.0);
+        assert_eq!(r.partial_hit(2500.0, 100.0), Some(b));
+        assert_eq!(r.partial_hit(2560.0, 100.0), None);
+        assert_eq!(r.partial_hit(-1.0, 100.0), None);
+        assert!(r.partial_input_blocked(b, frames[&b], 2500.0, 100.0));
+        assert!(r.partial_input_blocked(a, frames[&a], 2500.0, 100.0));
+        assert!(!r.partial_input_blocked(a, frames[&a], 500.0, 100.0));
+        // Sampling a future frame without painting it must not enable input.
+        r.prepare_frame(4_000_000_000);
+        assert_eq!(r.painted_target(b).unwrap().x, 2136.0);
+        assert!(r.partial_input_blocked(b, r.targets()[&b], 2500.0, 100.0));
+        assert!(r.mark_painted(1, 4_000_000_000));
+        assert!(r.completed() && r.active());
+        assert_eq!(r.painted_target(b).unwrap().x, 1288.0);
+        assert!(!r.partial_input_blocked(b, r.targets()[&b], 2500.0, 100.0));
+        assert!(r.partial_input_blocked(b, frames[&b], 2500.0, 100.0));
+        assert!(r.partial_input_blocked(a, r.targets()[&a], 100.0, 100.0));
+    }
+    #[test]
+    fn partial_retarget_inherits_last_painted_pose_and_velocity() {
+        let (mut r, p, frames) = fixture();
+        assert!(r.arm_partial(p.clone(), 0, &frames, true, p.viewport));
+        let last = paint(&mut r, 55_000_000);
+        assert!(last.motion.velocity > 0.0);
+        r.prepare_frame(170_000_000);
+        let mut next = p.clone();
+        next.epoch = 2.0;
+        next.old_offset = p.new_offset;
+        next.new_offset = p.old_offset;
+        next.fingerprint = b"partial-2".to_vec();
+        assert!(r.arm_partial(next.clone(), 55_000_000, &frames, true, p.viewport));
+        let origin = r.origin_sample.unwrap();
+        assert_eq!(origin.motion.current, last.motion.current);
+        // Bounded reversal brakes the existing velocity, rather than zeroing it.
+        assert!(origin.motion.velocity > 0.0);
+        assert_eq!(origin.motion.velocity, last.motion.velocity);
+        let pose = r.painted_target(p.entries[0].window_id).unwrap();
+        next.epoch = 3.0;
+        next.fingerprint = b"partial-3".to_vec();
+        assert!(r.arm_partial(next, 55_000_000, &frames, true, p.viewport));
+        assert_eq!(r.painted_target(p.entries[0].window_id), Some(pose));
+        assert_eq!(r.origin_sample.unwrap().motion.current, last.motion.current);
+        assert!(!r.mark_painted(1, 170_000_000));
+    }
+    #[test]
+    fn partial_rejects_resize_spoofing_and_consumes_validated_epochs() {
+        let (mut r, p, frames) = fixture();
+        let a = p.entries[0].window_id;
+        let mut wrong = frames.clone();
+        wrong.get_mut(&a).unwrap().width -= 1.0;
+        assert!(!r.arm_partial(p.clone(), 0, &wrong, true, p.viewport));
+        assert!(!r.arm_partial(p.clone(), 0, &frames, true, p.viewport));
+        let mut next = p.clone();
+        next.epoch = 2.0;
+        next.fingerprint = b"2".to_vec();
+        assert!(!r.arm_partial(
+            next.clone(),
+            0,
+            &frames,
+            true,
+            Rect {
+                x: 2560.0,
+                ..p.viewport
+            }
+        ));
+        assert!(!r.arm_partial(next.clone(), 0, &frames, true, p.viewport));
+        next.epoch = 3.0;
+        next.fingerprint = b"3".to_vec();
+        assert!(r.arm_partial(next, 0, &frames, true, p.viewport));
+    }
+    #[test]
+    fn partial_failed_arm_cannot_ack_a_duplicate_using_older_active_motion() {
+        let (mut r, p, frames) = fixture();
+        assert!(r.arm_partial(p.clone(), 0, &frames, true, p.viewport));
+        assert!(r.arm_partial(p.clone(), 0, &frames, true, p.viewport));
+        let mut next = p.clone();
+        next.epoch = 2.0;
+        next.fingerprint = b"bad-output".to_vec();
+        let wrong_output = Rect {
+            x: -1.0,
+            width: 2561.0,
+            ..p.viewport
+        };
+        assert!(!r.arm_partial(next.clone(), 0, &frames, true, wrong_output));
+        assert!(r.active());
+        assert_eq!(r.epoch(), 1);
+        assert!(!r.arm_partial(next, 0, &frames, true, p.viewport));
+        r.cancel(&Text::from_utf8("s"), 2);
+        assert!(!r.active());
+    }
+    #[test]
+    fn partial_omitted_live_rows_keep_outgoing_ownership_until_park_or_close() {
+        let (mut r, p, frames) = fixture();
+        let a = p.entries[0].window_id;
+        assert!(r.arm_partial(p.clone(), 0, &frames, true, p.viewport));
+        paint(&mut r, 55_000_000);
+        let mut next = p.clone();
+        next.epoch = 2.0;
+        next.fingerprint = b"partial-only-b".to_vec();
+        next.entries.remove(0);
+        assert!(r.arm_partial(next, 55_000_000, &frames, true, p.viewport));
+        assert_eq!(r.role(a), Some(WindowRole::Outgoing));
+        assert!(r.projection(a, frames[&a]).is_some());
+        r.remove(a);
+        assert!(r.projection(a, frames[&a]).is_none());
+    }
+    #[test]
+    fn partial_validator_keeps_legacy_contracts_and_rejects_malformed_geometry() {
+        let (r, p, _) = fixture();
+        assert!(r.valid_plan(&p));
+        for case in 0..12 {
+            let mut bad = p.clone();
+            match case {
+                0 => bad.partial.as_mut().unwrap().layout.x = -1.0,
+                1 => bad.partial.as_mut().unwrap().max_offset = f64::NAN,
+                2 => bad.partial.as_mut().unwrap().max_offset = MAX_SAFE_INTEGER + 1.0,
+                3 => bad.partial.as_mut().unwrap().scope_revision = 0.5,
+                4 => bad.protocol = 2.0,
+                5 => bad.kind = Text::from_utf8("SCROLL"),
+                6 => bad.clip_partial = 0,
+                7 => bad.entries[1].logical_x = bad.entries[0].logical_x + 1.0,
+                8 => bad.entries[1].window_id = bad.entries[0].window_id,
+                9 => bad.entries[0].pixel_width = 2561.0,
+                10 => bad.entries[0].old_placement = Placement::Parked,
+                _ => bad.entries[1].logical_x = f64::INFINITY,
+            }
+            assert!(!r.valid_plan(&bad), "case {case}");
+        }
+        let mut legacy = p.clone();
+        legacy.partial = None;
+        assert!(!r.valid_plan(&legacy));
+        assert!(ValidatedScrollPlan::new_reindex(
+            p.clone(),
+            p.entries[0].window_id,
+            652.0,
+            &r.windows
+        )
+        .is_err());
+    }
+    #[test]
+    fn client_source_requires_every_actual_client_paint_not_shared_camera() {
+        let (mut r, p, frames) = fixture();
+        let (a, b) = (p.entries[0].window_id, p.entries[1].window_id);
+        assert!(r.arm_partial(p.clone(), 0, &frames, true, p.viewport));
+        assert!(r.prepare_frame(50_000_000));
+        assert!(r.mark_painted(1, 50_000_000));
+        assert!(!r.client_source_complete());
+        assert!(r.record_client_painted(a, 1, 50_000_000, 10, frames[&a]));
+        assert!(
+            !r.client_source_complete(),
+            "a shared camera never proves client B painted"
+        );
+        assert!(r.record_client_painted(b, 1, 50_000_000, 10, frames[&b]));
+        assert!(r.client_source_complete());
+        let source = r.client_paint(a).unwrap();
+        let workspace: Vec<_> = "a".encode_utf16().collect();
+        let output_name: Vec<_> = "o".encode_utf16().collect();
+        assert!(r.client_source_matches(p.viewport, &workspace, &output_name));
+        assert!(!r.client_source_matches(
+            Rect {
+                width: 2559.0,
+                ..p.viewport
+            },
+            &workspace,
+            &output_name
+        ));
+        assert!(!r.client_source_matches(p.viewport, &[], &output_name));
+        assert!(!r.client_source_matches(p.viewport, &workspace, &[]));
+        assert_eq!(source.frame, frames[&a]);
+        assert_eq!(source.column_id, 1.0);
+        assert!((source.logical_x - 652.0).abs() < 1e-9);
+        assert_eq!(
+            source.velocity_x,
+            -r.frame_sample(true).unwrap().motion.velocity
+        );
+        assert!(r.prepare_frame(100_000_000));
+        assert_eq!(
+            r.client_paint(a),
+            Some(source),
+            "an unused prediction is not paint"
+        );
+        assert!(r.client_source_complete());
+        let frozen = r.clone_for_paint();
+        assert_eq!(frozen.client_paint(a), Some(source));
+        assert!(frozen.client_source_complete());
+        assert!(r.record_client_painted(a, 1, 100_000_000, 11, frames[&a]));
+        assert!(!r.client_source_complete());
+        assert!(r.mark_painted(1, 100_000_000));
+        assert!(
+            !r.client_source_complete(),
+            "mixed pass identities cannot become a source"
+        );
+        assert!(r.record_client_painted(b, 1, 100_000_000, 11, frames[&b]));
+        assert!(r.client_source_complete());
+        r.remove(a);
+        assert!(r.client_source_complete());
+        assert!(!r.record_client_painted(a, 1, 100_000_000, 11, frames[&a]));
+        r.clear();
+        assert!(!r.client_source_complete());
+        assert!(r.client_paint(b).is_none());
+    }
+    #[test]
+    fn client_paint_proof_rejects_near_frames_stale_passes_and_unpainted_epochs() {
+        let (mut r, p, frames) = fixture();
+        let a = p.entries[0].window_id;
+        assert!(r.arm_partial(p.clone(), 0, &frames, true, p.viewport));
+        assert!(!r.record_client_painted(a, 1, 0, 1, frames[&a]));
+        assert!(r.prepare_frame(50_000_000));
+        let almost = Rect {
+            x: frames[&a].x + 0.01,
+            ..frames[&a]
+        };
+        assert!(
+            r.projection(a, almost).is_some(),
+            "legacy projection retains its tolerance"
+        );
+        assert!(!r.record_client_painted(a, 1, 50_000_000, 1, almost));
+        for (epoch, time, serial) in [
+            (2, 50_000_000, 1),
+            (1, 49_000_000, 1),
+            (1, 50_000_000, 0),
+            (1, 50_000_000, MAX_SAFE_INTEGER as u64 + 1),
+        ] {
+            assert!(!r.record_client_painted(a, epoch, time, serial, frames[&a]));
+        }
+        assert!(r.record_client_painted(a, 1, 50_000_000, 10, frames[&a]));
+        assert!(r.prepare_frame(60_000_000));
+        assert!(!r.record_client_painted(a, 1, 60_000_000, 10, frames[&a]));
+        assert!(!r.record_client_painted(a, 1, 60_000_000, 9, frames[&a]));
+        let mut next = p.clone();
+        next.epoch = 2.0;
+        next.fingerprint = b"new-source-epoch".to_vec();
+        assert!(r.arm_partial(next, 60_000_000, &frames, true, p.viewport));
+        assert!(r.client_paint(a).is_none());
+        assert!(!r.client_source_complete());
+        assert!(!r.record_client_painted(a, 1, 50_000_000, 10, frames[&a]));
+        r.cancel(&Text::from_utf8("s"), 2);
+        assert!(!r.client_source_complete());
+    }
+    #[test]
+    fn actual_client_paint_ledger_has_no_hot_path_allocations() {
+        let (mut r, p, frames) = fixture();
+        let (a, b) = (p.entries[0].window_id, p.entries[1].window_id);
+        assert!(r.arm_partial(p.clone(), 0, &frames, true, p.viewport));
+        let allocations = crate::allocation_checks::count(|| {
+            for i in 1..=10_000 {
+                let time = i * 16_666_667;
+                assert!(r.prepare_frame(time));
+                assert!(r.record_client_painted(a, 1, time, i as u64, frames[&a]));
+                assert!(r.mark_painted(1, time));
+                assert!(r.record_client_painted(b, 1, time, i as u64, frames[&b]));
+                assert!(r.client_source_complete());
+                std::hint::black_box(r.client_paint(a));
+            }
+        });
+        assert_eq!(allocations, 0);
+    }
+    #[test]
+    fn partial_pairs_survive_clear_remove_cancel_and_hot_queries_allocate_nothing() {
+        let (mut r, p, frames) = fixture();
+        let a = p.entries[0].window_id;
+        assert!(r.arm_partial(p.clone(), 0, &frames, true, p.viewport));
+        let allocations = crate::allocation_checks::count(|| {
+            for i in 0..10_000 {
+                paint(&mut r, i * 16_666_667);
+                r.projection(a, r.targets()[&a]);
+                r.partial_hit(400.0, 100.0);
+                r.partial_input_blocked(a, r.targets()[&a], 400.0, 100.0);
+                r.partial_input.event(1, 272, true, 0);
+                r.partial_input.event(2, 272, false, 1);
+            }
+        });
+        assert_eq!(allocations, 0);
+        assert_eq!(r.partial_input.event(1, 272, true, 0), (true, true));
+        r.remove(a);
+        r.cancel(&Text::from_utf8("s"), 1);
+        r.clear();
+        assert_eq!(r.partial_input.pending(), (1, 0));
+        assert_eq!(r.partial_input.event(2, 272, false, 1), (true, false));
+        assert_eq!(r.partial_input.pending(), (0, 0));
     }
 }

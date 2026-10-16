@@ -1,0 +1,3 @@
+PASS isolated PARTIAL_SCROLL v3 membership, strict schema, shared sequence, scope and reversal
+PASS isolated COLUMN_GEOMETRY v4 membership, Qt/Rust validation, strict source and shared epochs
+PASS isolated SCROLL / typed reindex DBus payload, FIFO membership, shared epochs, duplicate, restart and source validation

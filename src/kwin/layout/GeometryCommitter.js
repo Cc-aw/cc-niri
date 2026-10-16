@@ -16,7 +16,8 @@ class GeometryCommitter {
         this.rememberVisibleGeometry = dependencies.rememberVisibleGeometry;
     }
 
-    commitGeometry(column, target, reason) {
+    commitGeometry(column, target, reason, isCurrent = null) {
+        if (isCurrent && !isCurrent()) return;
         const window = column.window;
         const windowState = this.stateFor(window);
         if (windowState.floating || window.fullScreen ||

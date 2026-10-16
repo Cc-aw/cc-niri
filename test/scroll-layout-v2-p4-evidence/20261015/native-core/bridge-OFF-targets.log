@@ -1,0 +1,24 @@
+[1/1] All primary targets available:
+edit_cache: phony
+rebuild_cache: phony
+list_install_components: phony
+install: phony
+install/local: phony
+install/strip: phony
+/home/cc/cc_niri/build/bridge-r7-production/cc-niri-bridge_autogen/timestamp: CUSTOM_COMMAND
+/home/cc/cc_niri/build/bridge-r7-production/CMakeFiles/cc-niri-bridge_autogen: phony
+rust-core/edit_cache: phony
+rust-core/rebuild_cache: phony
+rust-core/list_install_components: phony
+rust-core/install: phony
+rust-core/install/local: phony
+rust-core/install/strip: phony
+/home/cc/cc_niri/build/bridge-r7-production/rust-core/CMakeFiles/cc-niri-rust-build: CUSTOM_COMMAND
+/home/cc/cc_niri/build/bridge-r7-production/rust-core/cargo/release/libcc_niri_native_core.a: CUSTOM_COMMAND
+cc-niri-native-adapters: phony
+cc-niri-rust-build: phony
+build.ninja: RERUN_CMAKE
+/home/cc/cc_niri/build/bridge-r7-production/cmake_install.cmake: RERUN_CMAKE
+/home/cc/cc_niri/build/bridge-r7-production/rust-core/cmake_install.cmake: RERUN_CMAKE
+clean: CLEAN
+help: HELP

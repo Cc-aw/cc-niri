@@ -1,0 +1,383 @@
+{
+  "scope": "virtual KWin API/geometry only; no Clip/Ring/input injection",
+  "started_utc": "2026-10-14T10:57:56.820564+00:00",
+  "status": "PASS_API_FIXTURE_ONLY",
+  "kwin_command": [
+    "kwin_wayland",
+    "--virtual",
+    "--width",
+    "2560",
+    "--height",
+    "1440",
+    "--scale",
+    "1",
+    "--output-count",
+    "2",
+    "--socket",
+    "cc-niri-p0",
+    "--no-lockscreen",
+    "--no-global-shortcuts",
+    "--no-kactivities"
+  ],
+  "support": {
+    "command": [
+      "gdbus",
+      "call",
+      "--address",
+      "unix:path=/tmp/dbus-GwJljKFFCC,guid=8b90ce5bd65a8d61c461a0636acf6034",
+      "--dest",
+      "org.kde.KWin",
+      "--object-path",
+      "/KWin",
+      "--method",
+      "org.kde.KWin.supportInformation"
+    ],
+    "exit_code": 0,
+    "stdout": "('KWin \u6280\u672f\u652f\u6301\u4fe1\u606f\uff1a\\n\u8bf7\u5728\u5bfb\u6c42\u6280\u672f\u652f\u6301\u65f6 (\u4f8b\u5982 https://discuss.kde.org \u7f51\u7ad9) \u63d0\u4f9b\u4ee5\u4e0b\u4fe1\u606f\u3002\\n\u8fd9\u4e9b\u4fe1\u606f\u5305\u62ec\u5173\u4e8e\u5f53\u524d\u6b63\u5728\u8fd0\u884c\u7684 Kwin \u5b9e\u4f8b\u7684\u76f8\u5173\u4fe1\u606f\u3001\\n\u4f7f\u7528\u7684\u9009\u9879\u3001OpenGL \u9a71\u52a8\u7a0b\u5e8f\u3001\u6b63\u5728\u8fd0\u884c\u7684\u7279\u6548\u7b49\u3002\\n\u8bf7\u4e0d\u8981\u5c06\u672c\u6bb5\u6587\u5b57\u4e0b\u65b9\u7684\u4fe1\u606f\u76f4\u63a5\u7c98\u8d34\u5230\u6280\u672f\u652f\u6301\u8ba8\u8bba\u4e32\uff0c\\n\u800c\u5e94\u5c06\u5b83\u4eec\u7c98\u8d34\u5230\u5728\u7ebf\u526a\u8d34\u677f\u7f51\u7ad9 (\u4f8b\u5982 https://paste.kde.org)\u3002\\n\\n==========================\\n\\nVersion\\n=======\\nKWin version: 6.7.5\\nQt Version: 6.11.2\\nQt compile version: 6.11.2\\nXCB compile version: 1.17.0\\n\\nOperation Mode: Wayland\\n\\nBuild Options\\n=============\\nKWIN_BUILD_DECORATIONS: yes\\nKWIN_BUILD_TABBOX: yes\\nKWIN_BUILD_ACTIVITIES: yes\\nHAVE_X11_XCB: yes\\n\\nDecoration\\n==========\\nPlugin: org.kde.breeze\\nTheme: \\nPlugin recommends border size: None\\nonAllDesktopsAvailable: false\\nalphaChannelSupported: true\\ncloseOnDoubleClickOnMenu: false\\nalwaysShowExcludeFromCapture: false\\ndecorationButtonsLeft: 0, 2, 12\\ndecorationButtonsRight: 6, 3, 4, 5\\nborderSize: 0\\ngridUnit: 12\\nfont: Noto Sans Arabic,12,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0\\nsmallSpacing: 3\\nlargeSpacing: 12\\n\\nLogicalOutput backend\\n==============\\nName: KWin::VirtualBackend\\n\\nCursor\\n======\\nthemeName: default\\nthemeSize: 24\\n\\nOptions\\n=======\\nfocusPolicy: ClickToFocus\\nxwaylandCrashPolicy: 1\\nxwaylandMaxCrashCount: 3\\nnextFocusPrefersMouse: false\\nclickRaise: true\\nautoRaise: false\\nautoRaiseInterval: 0\\ndelayFocusInterval: 0\\nseparateScreenFocus: true\\nplacement: 5\\nactivationDesktopPolicy: SwitchToOtherDesktop\\nfocusPolicyIsReasonable: true\\nborderSnapZone: 10\\nwindowSnapZone: 10\\ncenterSnapZone: 0\\nsnapOnlyWhenOverlapping: false\\nedgeBarrier: 100\\ncornerBarrier: 1\\nrollOverDesktops: false\\nperOutputVirtualDesktops: false\\nfocusStealingPreventionLevel: 1\\noperationTitlebarDblClick: 5000\\noperationMaxButtonLeftClick: 5000\\noperationMaxButtonMiddleClick: 5013\\noperationMaxButtonRightClick: 5012\\ncommandActiveTitlebar1: MouseRaise\\ncommandActiveTitlebar2: MouseNothing\\ncommandActiveTitlebar3: MouseOperationsMenu\\ncommandInactiveTitlebar1: MouseActivateAndRaise\\ncommandInactiveTitlebar2: MouseNothing\\ncommandInactiveTitlebar3: MouseOperationsMenu\\ncommandWindow1: MouseActivateRaiseOnReleaseAndPassClick\\ncommandWindow2: MouseActivateAndPassClick\\ncommandWindow3: MouseActivateAndPassClick\\ncommandWindowWheel: MouseNothing\\ncommandAll1: MouseUnrestrictedMove\\ncommandAll2: MouseToggleRaiseAndLower\\ncommandAll3: MouseUnrestrictedResize\\nkeyCmdAllModKey: 16777250\\ndoubleClickBorderToMaximize: true\\ncondensedTitle: false\\nelectricBorderMaximize: true\\nelectricBorderTiling: true\\nelectricBorderAllScreenCorner: true\\nelectricBorderCornerRatio: 0.25\\nborderlessMaximizedWindows: false\\nkillPingTimeout: 5000\\ncompositingMode: 4\\nallowTearing: true\\ninteractiveWindowMoveEnabled: true\\npictureInPictureHomeCorner: BottomRightCorner\\npictureInPictureMargin: 20\\noverlayVirtualKeyboardOnWindows: false\\n\\nScreen Edges\\n============\\ndesktopSwitching: false\\ndesktopSwitchingMovingClients: false\\ncursorPushBackDistance: 1x1\\nactionTopLeft: 0\\nactionTop: 0\\nactionTopRight: 0\\nactionRight: 0\\nactionBottomRight: 0\\nactionBottom: 0\\nactionBottomLeft: 0\\nactionLeft: 0\\n\\nScreens\\n=======\\nNumber of Screens: 2\\n\\nScreen 0:\\n---------\\nName: Virtual-0\\nEnabled: 1\\nGeometry: 0,0,2560x1440\\nPhysical size: -1x-1mm\\nScale: 1\\nRefresh Rate: 60000\\nAdaptive Sync: incapable\\nScreen 1:\\n---------\\nName: Virtual-1\\nEnabled: 1\\nGeometry: 2560,0,2560x1440\\nPhysical size: -1x-1mm\\nScale: 1\\nRefresh Rate: 60000\\nAdaptive Sync: incapable\\n\\nCompositing\\n===========\\nCompositing is active\\nCompositing Type: QPainter\\n\\nLoaded Effects:\\n---------------\\noutputlocator\\nzoom\\nscreenedge\\nhighlightwindow\\nkscreen\\n\\nCurrently Active Effects:\\n-------------------------\\n\\nEffect Settings:\\n----------------\\noutputlocator:\\n\\nzoom:\\nzoomFactor: 1.2\\nmouseTracking: 0\\nfocusDelay: 350\\nmoveFactor: 20\\ntargetZoom: 1\\n\\nscreenedge:\\n\\nhighlightwindow:\\n\\nkscreen:\\n\\n\\nLoaded Plugins:\\n---------------\\nBounceKeysPlugin\\nKeyNotificationPlugin\\nMouseKeysPlugin\\nSlowKeysPlugin\\nStickyKeysPlugin\\nTouchpadShortcutsPlugin\\nbuttonsrebind\\neis\\nkrunnerintegration\\nnightlight\\nscreencast\\nscreenshot\\n\\nAvailable Plugins:\\n------------------\\nBounceKeysPlugin\\nKeyNotificationPlugin\\nMouseKeysPlugin\\nSlowKeysPlugin\\nStickyKeysPlugin\\nTouchpadShortcutsPlugin\\nbuttonsrebind\\neis\\ngamecontroller\\nkrunnerintegration\\nnightlight\\nscreencast\\nscreenshot\\n',)\n",
+    "stderr": ""
+  },
+  "load_fixture": {
+    "command": [
+      "gdbus",
+      "call",
+      "--address",
+      "unix:path=/tmp/dbus-GwJljKFFCC,guid=8b90ce5bd65a8d61c461a0636acf6034",
+      "--dest",
+      "org.kde.KWin",
+      "--object-path",
+      "/Scripting",
+      "--method",
+      "org.kde.kwin.Scripting.loadScript",
+      "/home/cc/cc_niri/test/fixtures/scroll-layout-v2-p0-kwin.js",
+      "cc-niri-p0-fixture"
+    ],
+    "exit_code": 0,
+    "stdout": "(0,)\n",
+    "stderr": ""
+  },
+  "run_fixture": {
+    "command": [
+      "gdbus",
+      "call",
+      "--address",
+      "unix:path=/tmp/dbus-GwJljKFFCC,guid=8b90ce5bd65a8d61c461a0636acf6034",
+      "--dest",
+      "org.kde.KWin",
+      "--object-path",
+      "/Scripting/Script0",
+      "--method",
+      "org.kde.kwin.Script.run"
+    ],
+    "exit_code": 0,
+    "stdout": "()\n",
+    "stderr": ""
+  },
+  "owned_processes_reaped": true,
+  "records": [
+    {
+      "kind": "api",
+      "clientArea": "function",
+      "maximizeArea": 2,
+      "screens": [
+        {
+          "name": "Virtual-0",
+          "geometry": {
+            "x": 0,
+            "y": 0,
+            "width": 2560,
+            "height": 1440
+          },
+          "scale": 1
+        },
+        {
+          "name": "Virtual-1",
+          "geometry": {
+            "x": 2560,
+            "y": 0,
+            "width": 2560,
+            "height": 1440
+          },
+          "scale": 1
+        }
+      ]
+    },
+    {
+      "kind": "working-area",
+      "output": "Virtual-0",
+      "area": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      }
+    },
+    {
+      "kind": "working-area",
+      "output": "Virtual-1",
+      "area": {
+        "x": 2560,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      }
+    },
+    {
+      "kind": "clients",
+      "count": 2
+    },
+    {
+      "kind": "initial",
+      "title": "CC_NIRI_P0_A",
+      "frame": {
+        "x": 440,
+        "y": 41,
+        "width": 1680,
+        "height": 1358
+      },
+      "output": "Virtual-0"
+    },
+    {
+      "kind": "initial",
+      "title": "CC_NIRI_P0_B",
+      "frame": {
+        "x": 652,
+        "y": 41,
+        "width": 1256,
+        "height": 1358
+      },
+      "output": "Virtual-0"
+    },
+    {
+      "kind": "request-anchor",
+      "phase": 1,
+      "before": {
+        "x": 652,
+        "y": 41,
+        "width": 1256,
+        "height": 1358
+      },
+      "target": {
+        "x": 1304,
+        "y": 66,
+        "width": 1256,
+        "height": 1358
+      }
+    },
+    {
+      "kind": "frame-changed",
+      "title": "CC_NIRI_P0_B",
+      "frame": {
+        "x": 1304,
+        "y": 66,
+        "width": 1256,
+        "height": 1358
+      },
+      "output": "Virtual-0"
+    },
+    {
+      "kind": "after-request",
+      "phase": 1,
+      "frame": {
+        "x": 1304,
+        "y": 66,
+        "width": 1256,
+        "height": 1358
+      },
+      "output": "Virtual-0"
+    },
+    {
+      "kind": "request-unsafe-test-client-only",
+      "before": {
+        "x": 1304,
+        "y": 66,
+        "width": 1256,
+        "height": 1358
+      },
+      "target": {
+        "x": 2136,
+        "y": 66,
+        "width": 1256,
+        "height": 1358
+      }
+    },
+    {
+      "kind": "frame-changed",
+      "title": "CC_NIRI_P0_B",
+      "frame": {
+        "x": 2136,
+        "y": 66,
+        "width": 1256,
+        "height": 1358
+      },
+      "output": "Virtual-1"
+    },
+    {
+      "kind": "output-changed",
+      "title": "CC_NIRI_P0_B",
+      "frame": {
+        "x": 2136,
+        "y": 66,
+        "width": 1256,
+        "height": 1358
+      },
+      "output": "Virtual-1"
+    },
+    {
+      "kind": "after-request",
+      "phase": 2,
+      "frame": {
+        "x": 2136,
+        "y": 66,
+        "width": 1256,
+        "height": 1358
+      },
+      "output": "Virtual-1"
+    },
+    {
+      "kind": "request-anchor",
+      "phase": 3,
+      "before": {
+        "x": 2136,
+        "y": 66,
+        "width": 1256,
+        "height": 1358
+      },
+      "target": {
+        "x": 1304,
+        "y": 66,
+        "width": 1256,
+        "height": 1358
+      }
+    },
+    {
+      "kind": "frame-changed",
+      "title": "CC_NIRI_P0_B",
+      "frame": {
+        "x": 1304,
+        "y": 66,
+        "width": 1256,
+        "height": 1358
+      },
+      "output": "Virtual-0"
+    },
+    {
+      "kind": "output-changed",
+      "title": "CC_NIRI_P0_B",
+      "frame": {
+        "x": 1304,
+        "y": 66,
+        "width": 1256,
+        "height": 1358
+      },
+      "output": "Virtual-0"
+    },
+    {
+      "kind": "after-request",
+      "phase": 3,
+      "frame": {
+        "x": 1304,
+        "y": 66,
+        "width": 1256,
+        "height": 1358
+      },
+      "output": "Virtual-0"
+    },
+    {
+      "kind": "request-resize",
+      "phase": 4,
+      "before": {
+        "x": 1304,
+        "y": 66,
+        "width": 1256,
+        "height": 1358
+      },
+      "target": {
+        "x": 440,
+        "y": 66,
+        "width": 1680,
+        "height": 1358
+      }
+    },
+    {
+      "kind": "after-resize-request",
+      "phase": 4,
+      "frame": {
+        "x": 1304,
+        "y": 66,
+        "width": 1256,
+        "height": 1358
+      },
+      "output": "Virtual-0"
+    },
+    {
+      "kind": "frame-changed",
+      "title": "CC_NIRI_P0_B",
+      "frame": {
+        "x": 440,
+        "y": 66,
+        "width": 1680,
+        "height": 1358
+      },
+      "output": "Virtual-0"
+    },
+    {
+      "kind": "request-resize",
+      "phase": 5,
+      "before": {
+        "x": 440,
+        "y": 66,
+        "width": 1680,
+        "height": 1358
+      },
+      "target": {
+        "x": 1304,
+        "y": 66,
+        "width": 1256,
+        "height": 1358
+      }
+    },
+    {
+      "kind": "after-resize-request",
+      "phase": 5,
+      "frame": {
+        "x": 440,
+        "y": 66,
+        "width": 1680,
+        "height": 1358
+      },
+      "output": "Virtual-0"
+    },
+    {
+      "kind": "frame-changed",
+      "title": "CC_NIRI_P0_B",
+      "frame": {
+        "x": 1304,
+        "y": 66,
+        "width": 1256,
+        "height": 1358
+      },
+      "output": "Virtual-0"
+    },
+    {
+      "kind": "complete",
+      "frame": {
+        "x": 1304,
+        "y": 66,
+        "width": 1256,
+        "height": 1358
+      },
+      "output": "Virtual-0"
+    }
+  ],
+  "checks": {
+    "two_virtual_outputs": true,
+    "clientArea_available": true,
+    "no_panel_workareas_match_outputs": true,
+    "two_test_clients": true,
+    "safe_anchor_on_primary": true,
+    "unsafe_geometry_switches_output": true,
+    "resize_converges": true,
+    "resize_is_asynchronous": true,
+    "virtual_backend_without_project_plugins": true
+  }
+}

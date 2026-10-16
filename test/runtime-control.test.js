@@ -15,7 +15,18 @@ let state = JSON.parse(fs.readFileSync(process.env.CONTROL_STATE));
 function save() { fs.writeFileSync(process.env.CONTROL_STATE, JSON.stringify(state)); }
 if (command === 'gdbus') {
  const method = args[args.indexOf('--method') + 1]; const last = args.at(-1);
- if (method.endsWith('.isScriptLoaded')) {
+ if (method.endsWith('.GetRecoveryStatus')) {
+  if (!process.env.PROOF_RUNTIME) console.log("('',)");
+  else {
+   state.proofReads=(state.proofReads||0)+1;save();
+   const proof={protocol:1,type:'recovery-status',sessionId:'proof-session',requestId:state.restoreToken||null,
+    state:state.restoreToken?(process.env.PROOF_BLOCKED?'blocked':state.proofReads<4?'pending':'restored'):'running',restoredCount:1};
+   if(process.env.PROOF_STALE && state.restoreToken) proof.requestId='old-token';
+   console.log('('+JSON.stringify(JSON.stringify(proof))+',)');
+  }
+ } else if (method.endsWith('.GetState')) console.log('('+JSON.stringify(JSON.stringify({sessionId:'proof-session',generation:1}))+',)');
+ else if (method.endsWith('.RequestCommand')) {state.restoreToken=JSON.parse(last).commandId;save();console.log('(true,)');}
+ else if (method.endsWith('.isScriptLoaded')) {
   if (process.env.QUERY_FAIL) process.exit(1);
   console.log(state.loaded ? '(true,)' : '(false,)');
  } else if (method.endsWith('.shortcutNames')) console.log(process.env.RECOVERY_FAIL ? "([], )" : "(['CCScrollEmergencyRestore', 'CCScrollApplyDockCommand'],)");
@@ -25,7 +36,7 @@ if (command === 'gdbus') {
  else if (method.endsWith('.isEffectLoaded')) console.log(last === 'cc-niri-focus-ring' ? '(false,)' : '(true,)');
  else if (method.endsWith('.loadEffect')) console.log(last === 'cc-niri-focus-ring' && process.env.RING_LOAD_FAIL ? '(false,)' : '(true,)');
  else console.log('()');
-} else if (command === 'kreadconfig6') console.log(args.includes('CCNiriFocusRing') && process.env.RING_ENABLED ? 'true' : 'false');
+} else if (command === 'kreadconfig6') console.log((args.includes('CCNiriFocusRing') && process.env.RING_ENABLED) || (args.includes('ScrollLayoutV2Enabled') && process.env.V2_CONFIG) ? 'true' : 'false');
 else if (command === 'systemctl' && args.includes('is-active')) console.log('active');
 `;
 for (const command of ["gdbus", "kwriteconfig6", "kreadconfig6", "systemctl", "sleep"]) {
@@ -45,6 +56,14 @@ function run(action, loaded, extra = {}) {
     return { ...result, calls, methods: calls.filter(c => c[0] === "gdbus").map(c => c[c.indexOf("--method") + 1]) };
 }
 try {
+    for (const extra of [{ PROOF_RUNTIME: "1" }, { PROOF_RUNTIME: "1", PROOF_BLOCKED: "1" },
+        { PROOF_RUNTIME: "1", PROOF_STALE: "1" }, { V2_CONFIG: "1" }]) {
+        const proof = run("stop", true, extra);
+        const accepted = extra.PROOF_RUNTIME && !extra.PROOF_BLOCKED && !extra.PROOF_STALE;
+        assert.equal(proof.status, accepted ? 0 : 1, proof.stderr);
+        assert.equal(proof.methods.some(m => m.endsWith(".unloadScript")), Boolean(accepted));
+        if (!accepted) assert.ok(!proof.calls.some(c => c[0] === "kwriteconfig6" || c[0] === "systemctl"), "unconfirmed restore cannot unload/disable any component");
+    }
     let result = run("stop", true); assert.equal(result.status, 0, result.stderr);
     assert.ok(result.methods.indexOf("org.kde.kglobalaccel.Component.invokeShortcut") < result.methods.indexOf("org.kde.kwin.Scripting.unloadScript"));
     const unload = result.calls.findIndex(c => c.includes("org.kde.kwin.Scripting.unloadScript"));

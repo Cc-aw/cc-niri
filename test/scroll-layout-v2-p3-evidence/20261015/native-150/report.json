@@ -1,0 +1,3495 @@
+{
+  "started_utc": "2026-10-15T02:51:29.329368+00:00",
+  "status": "PASS",
+  "scale": 1.5,
+  "ime": null,
+  "scope": "production Release Clip + Rust + Bridge + Ring, private virtual Mesa KWin; P0 raw injector only",
+  "artifacts": {
+    "build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so": "79d3face2d734d9a348d02434a3f0cf287e0b77d59d02d2e5eb8a05c262a2808",
+    "build/bridge/cc-niri-bridge": "8411ac712180bb02fe24b83653074d791a165901d4b807b3c675550873235a6e",
+    "build/scroll-layout-v2-p0-fixture/plugins/kwin/effects/plugins/cc-niri-p0-input-fixture.so": "be0d6ef4f751c56c6e2ca2330f2e2e3609733118adf46c4de813787e1ecec990",
+    "build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so": "374d54c260a8fefa2d5107f6f1b92b83c3a4117ce8be855d2f36f9a8db8b9851"
+  },
+  "checks": {
+    "raw_injector_has_no_p0_projection": true,
+    "exact_build_tree_plugins_loaded": true,
+    "native_capability_explicit": true,
+    "bridge_requires_membership": true,
+    "actual_painted_camera_and_scope": true,
+    "right_partial_strict_output": true,
+    "popup_grab_delegated_without_partial_focus": true,
+    "wayland_drag_preserves_native_authority": true,
+    "modal_preserves_native_authority": true,
+    "native_intent_relays_through_existing_bounded_bridge_pump": true,
+    "first_click_pair_consumed": true,
+    "focus_intent_only": true,
+    "pair_drained": true,
+    "pending_geometry_never_receives_wrong_click": true,
+    "js_activation_after_native_arm_and_geometry": true,
+    "safe_frames_keep_primary_and_client_width": true,
+    "second_click_native_coordinates": true,
+    "real_ring_shared_frame": true,
+    "left_partial_and_ring_no_secondary_leak": true,
+    "wheel_on_shifted_visual_consumed": true,
+    "shifted_touch_pair_consumed": true,
+    "touch_pairs_drained": true,
+    "aligned_native_touch_coordinates": true,
+    "forwarded_grab_keeps_all_button_pairs": true,
+    "no_plugin_idle_continuation_repaint": true,
+    "real_reversal_reuses_last_painted_pose_and_nonzero_velocity": true,
+    "reversal_strict_output_no_secondary_leak": true,
+    "held_pair_recorded": true,
+    "release_after_cancel_consumed": true,
+    "cancel_releases_runtime_and_pairs": true,
+    "injector_still_has_no_p0_policy": true
+  },
+  "plans": [
+    {
+      "protocol": 3,
+      "type": "PARTIAL_SCROLL",
+      "sessionId": "p3-private",
+      "workspaceId": "e69bb859-c0c6-427e-a3d8-696a9a9b4fd8",
+      "targetOutput": "Virtual-0",
+      "epoch": 1,
+      "issuedAt": 1792032690364,
+      "scopeRevision": 1,
+      "maxCamera": 1696,
+      "clipPartial": true,
+      "retargetOnly": true,
+      "oldScrollOffsetX": 212,
+      "newScrollOffsetX": 212,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "layoutRect": {
+        "x": 0,
+        "y": 66,
+        "width": 2560,
+        "height": 1358
+      },
+      "entries": [
+        {
+          "windowId": "fdcf12ab-10f3-41ec-af14-e5f1582cfa1e",
+          "columnId": 1,
+          "logicalX": 652,
+          "pixelWidth": 1680,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        },
+        {
+          "windowId": "f35c0563-d956-4dd7-9463-c185c264f787",
+          "columnId": 2,
+          "logicalX": 2348,
+          "pixelWidth": 1256,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        }
+      ]
+    },
+    {
+      "protocol": 3,
+      "type": "PARTIAL_SCROLL",
+      "sessionId": "p3-private",
+      "workspaceId": "e69bb859-c0c6-427e-a3d8-696a9a9b4fd8",
+      "targetOutput": "Virtual-0",
+      "epoch": 2,
+      "issuedAt": 1792032692101,
+      "scopeRevision": 1,
+      "maxCamera": 1696,
+      "clipPartial": true,
+      "retargetOnly": false,
+      "oldScrollOffsetX": 212,
+      "newScrollOffsetX": 1060,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "layoutRect": {
+        "x": 0,
+        "y": 66,
+        "width": 2560,
+        "height": 1358
+      },
+      "entries": [
+        {
+          "windowId": "fdcf12ab-10f3-41ec-af14-e5f1582cfa1e",
+          "columnId": 1,
+          "logicalX": 652,
+          "pixelWidth": 1680,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        },
+        {
+          "windowId": "f35c0563-d956-4dd7-9463-c185c264f787",
+          "columnId": 2,
+          "logicalX": 2348,
+          "pixelWidth": 1256,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        }
+      ]
+    },
+    {
+      "protocol": 3,
+      "type": "PARTIAL_SCROLL",
+      "sessionId": "p3-private",
+      "workspaceId": "e69bb859-c0c6-427e-a3d8-696a9a9b4fd8",
+      "targetOutput": "Virtual-0",
+      "epoch": 3,
+      "issuedAt": 1792032694311,
+      "scopeRevision": 1,
+      "maxCamera": 1696,
+      "clipPartial": true,
+      "retargetOnly": false,
+      "oldScrollOffsetX": 1060,
+      "newScrollOffsetX": 212,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "layoutRect": {
+        "x": 0,
+        "y": 66,
+        "width": 2560,
+        "height": 1358
+      },
+      "entries": [
+        {
+          "windowId": "fdcf12ab-10f3-41ec-af14-e5f1582cfa1e",
+          "columnId": 1,
+          "logicalX": 652,
+          "pixelWidth": 1680,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        },
+        {
+          "windowId": "f35c0563-d956-4dd7-9463-c185c264f787",
+          "columnId": 2,
+          "logicalX": 2348,
+          "pixelWidth": 1256,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        }
+      ]
+    },
+    {
+      "protocol": 3,
+      "type": "PARTIAL_SCROLL",
+      "sessionId": "p3-private",
+      "workspaceId": "e69bb859-c0c6-427e-a3d8-696a9a9b4fd8",
+      "targetOutput": "Virtual-0",
+      "epoch": 4,
+      "issuedAt": 1792032694391,
+      "scopeRevision": 1,
+      "maxCamera": 1696,
+      "clipPartial": true,
+      "retargetOnly": false,
+      "oldScrollOffsetX": 212,
+      "newScrollOffsetX": 1060,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "layoutRect": {
+        "x": 0,
+        "y": 66,
+        "width": 2560,
+        "height": 1358
+      },
+      "entries": [
+        {
+          "windowId": "fdcf12ab-10f3-41ec-af14-e5f1582cfa1e",
+          "columnId": 1,
+          "logicalX": 652,
+          "pixelWidth": 1680,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        },
+        {
+          "windowId": "f35c0563-d956-4dd7-9463-c185c264f787",
+          "columnId": 2,
+          "logicalX": 2348,
+          "pixelWidth": 1256,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        }
+      ]
+    },
+    {
+      "protocol": 3,
+      "type": "PARTIAL_SCROLL",
+      "sessionId": "p3-private",
+      "workspaceId": "e69bb859-c0c6-427e-a3d8-696a9a9b4fd8",
+      "targetOutput": "Virtual-0",
+      "epoch": 5,
+      "issuedAt": 1792032695560,
+      "scopeRevision": 1,
+      "maxCamera": 1696,
+      "clipPartial": true,
+      "retargetOnly": false,
+      "oldScrollOffsetX": 1060,
+      "newScrollOffsetX": 212,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "layoutRect": {
+        "x": 0,
+        "y": 66,
+        "width": 2560,
+        "height": 1358
+      },
+      "entries": [
+        {
+          "windowId": "fdcf12ab-10f3-41ec-af14-e5f1582cfa1e",
+          "columnId": 1,
+          "logicalX": 652,
+          "pixelWidth": 1680,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        },
+        {
+          "windowId": "f35c0563-d956-4dd7-9463-c185c264f787",
+          "columnId": 2,
+          "logicalX": 2348,
+          "pixelWidth": 1256,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        }
+      ]
+    }
+  ],
+  "geometry": [
+    {
+      "phase": "bootstrap",
+      "kind": "p3-geometry",
+      "label": "initial-safe-client-ack",
+      "ready": true,
+      "workspaceId": "e69bb859-c0c6-427e-a3d8-696a9a9b4fd8",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "fdcf12ab-10f3-41ec-af14-e5f1582cfa1e",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "f35c0563-d956-4dd7-9463-c185c264f787",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "585fb041-5ad8-4c34-ac5e-b990305023e1",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "7694273a-7ba6-4e7f-bf49-b6485b248cf4",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "p3-geometry",
+      "label": "modal-parent-active",
+      "ready": true,
+      "workspaceId": "e69bb859-c0c6-427e-a3d8-696a9a9b4fd8",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "fdcf12ab-10f3-41ec-af14-e5f1582cfa1e",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "f35c0563-d956-4dd7-9463-c185c264f787",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "585fb041-5ad8-4c34-ac5e-b990305023e1",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "7694273a-7ba6-4e7f-bf49-b6485b248cf4",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "p3-geometry",
+      "label": "first-click-baseline-focus",
+      "ready": true,
+      "workspaceId": "e69bb859-c0c6-427e-a3d8-696a9a9b4fd8",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "fdcf12ab-10f3-41ec-af14-e5f1582cfa1e",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "f35c0563-d956-4dd7-9463-c185c264f787",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "585fb041-5ad8-4c34-ac5e-b990305023e1",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "7694273a-7ba6-4e7f-bf49-b6485b248cf4",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "partial-first-click",
+      "kind": "p3-geometry",
+      "label": "before-js-focus",
+      "ready": true,
+      "workspaceId": "e69bb859-c0c6-427e-a3d8-696a9a9b4fd8",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "fdcf12ab-10f3-41ec-af14-e5f1582cfa1e",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "f35c0563-d956-4dd7-9463-c185c264f787",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "585fb041-5ad8-4c34-ac5e-b990305023e1",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "7694273a-7ba6-4e7f-bf49-b6485b248cf4",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "p3-geometry",
+      "label": "native-arm-then-safe-client-ack",
+      "ready": true,
+      "workspaceId": "e69bb859-c0c6-427e-a3d8-696a9a9b4fd8",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "fdcf12ab-10f3-41ec-af14-e5f1582cfa1e",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 0,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "f35c0563-d956-4dd7-9463-c185c264f787",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1288,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "585fb041-5ad8-4c34-ac5e-b990305023e1",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "7694273a-7ba6-4e7f-bf49-b6485b248cf4",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_B"
+    }
+  ],
+  "captures": [
+    {
+      "name": "right-partial",
+      "samples": [
+        {
+          "output": 0,
+          "x": 450,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 1304,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 2110,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 2135,
+          "y": 300,
+          "expected": "#000000",
+          "actual": "#000000"
+        },
+        {
+          "output": 0,
+          "x": 2140,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 0,
+          "x": 2559,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 1,
+          "expected": "#000000",
+          "actual": "#000000",
+          "scope": "entire-secondary-framebuffer"
+        }
+      ]
+    },
+    {
+      "name": "left-partial-ring",
+      "samples": [
+        {
+          "output": 0,
+          "x": 0,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 1272,
+          "y": 300,
+          "expected": "#000000",
+          "actual": "#000000"
+        },
+        {
+          "output": 0,
+          "x": 1300,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 1,
+          "expected": "#000000",
+          "actual": "#000000",
+          "scope": "entire-secondary-framebuffer"
+        }
+      ]
+    },
+    {
+      "name": "partial-reversal",
+      "samples": [
+        {
+          "output": 1,
+          "expected": "#000000",
+          "actual": "#000000",
+          "scope": "entire-secondary-framebuffer"
+        }
+      ]
+    }
+  ],
+  "support": "KWin \u6280\u672f\u652f\u6301\u4fe1\u606f\uff1a\n\u8bf7\u5728\u5bfb\u6c42\u6280\u672f\u652f\u6301\u65f6 (\u4f8b\u5982 https://discuss.kde.org \u7f51\u7ad9) \u63d0\u4f9b\u4ee5\u4e0b\u4fe1\u606f\u3002\n\u8fd9\u4e9b\u4fe1\u606f\u5305\u62ec\u5173\u4e8e\u5f53\u524d\u6b63\u5728\u8fd0\u884c\u7684 Kwin \u5b9e\u4f8b\u7684\u76f8\u5173\u4fe1\u606f\u3001\n\u4f7f\u7528\u7684\u9009\u9879\u3001OpenGL \u9a71\u52a8\u7a0b\u5e8f\u3001\u6b63\u5728\u8fd0\u884c\u7684\u7279\u6548\u7b49\u3002\n\u8bf7\u4e0d\u8981\u5c06\u672c\u6bb5\u6587\u5b57\u4e0b\u65b9\u7684\u4fe1\u606f\u76f4\u63a5\u7c98\u8d34\u5230\u6280\u672f\u652f\u6301\u8ba8\u8bba\u4e32\uff0c\n\u800c\u5e94\u5c06\u5b83\u4eec\u7c98\u8d34\u5230\u5728\u7ebf\u526a\u8d34\u677f\u7f51\u7ad9 (\u4f8b\u5982 https://paste.kde.org)\u3002\n\n==========================\n\nVersion\n=======\nKWin version: 6.7.5\nQt Version: 6.11.2\nQt compile version: 6.11.2\nXCB compile version: 1.17.0\n\nOperation Mode: Wayland\n\nBuild Options\n=============\nKWIN_BUILD_DECORATIONS: yes\nKWIN_BUILD_TABBOX: yes\nKWIN_BUILD_ACTIVITIES: yes\nHAVE_X11_XCB: yes\n\nDecoration\n==========\nPlugin: org.kde.breeze\nTheme: \nPlugin recommends border size: None\nonAllDesktopsAvailable: false\nalphaChannelSupported: true\ncloseOnDoubleClickOnMenu: false\nalwaysShowExcludeFromCapture: false\ndecorationButtonsLeft: 0, 2, 12\ndecorationButtonsRight: 6, 3, 4, 5\nborderSize: 0\ngridUnit: 12\nfont: Noto Sans Arabic,12,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0\nsmallSpacing: 3\nlargeSpacing: 12\n\nLogicalOutput backend\n==============\nName: KWin::VirtualBackend\n\nCursor\n======\nthemeName: default\nthemeSize: 24\n\nOptions\n=======\nfocusPolicy: ClickToFocus\nxwaylandCrashPolicy: 1\nxwaylandMaxCrashCount: 3\nnextFocusPrefersMouse: false\nclickRaise: true\nautoRaise: false\nautoRaiseInterval: 0\ndelayFocusInterval: 0\nseparateScreenFocus: true\nplacement: 5\nactivationDesktopPolicy: SwitchToOtherDesktop\nfocusPolicyIsReasonable: true\nborderSnapZone: 10\nwindowSnapZone: 10\ncenterSnapZone: 0\nsnapOnlyWhenOverlapping: false\nedgeBarrier: 100\ncornerBarrier: 1\nrollOverDesktops: false\nperOutputVirtualDesktops: false\nfocusStealingPreventionLevel: 1\noperationTitlebarDblClick: 5000\noperationMaxButtonLeftClick: 5000\noperationMaxButtonMiddleClick: 5013\noperationMaxButtonRightClick: 5012\ncommandActiveTitlebar1: MouseRaise\ncommandActiveTitlebar2: MouseNothing\ncommandActiveTitlebar3: MouseOperationsMenu\ncommandInactiveTitlebar1: MouseActivateAndRaise\ncommandInactiveTitlebar2: MouseNothing\ncommandInactiveTitlebar3: MouseOperationsMenu\ncommandWindow1: MouseActivateRaiseOnReleaseAndPassClick\ncommandWindow2: MouseActivateAndPassClick\ncommandWindow3: MouseActivateAndPassClick\ncommandWindowWheel: MouseNothing\ncommandAll1: MouseUnrestrictedMove\ncommandAll2: MouseToggleRaiseAndLower\ncommandAll3: MouseUnrestrictedResize\nkeyCmdAllModKey: 16777250\ndoubleClickBorderToMaximize: true\ncondensedTitle: false\nelectricBorderMaximize: true\nelectricBorderTiling: true\nelectricBorderAllScreenCorner: true\nelectricBorderCornerRatio: 0.25\nborderlessMaximizedWindows: false\nkillPingTimeout: 5000\ncompositingMode: 1\nallowTearing: true\ninteractiveWindowMoveEnabled: true\npictureInPictureHomeCorner: BottomRightCorner\npictureInPictureMargin: 20\noverlayVirtualKeyboardOnWindows: false\n\nScreen Edges\n============\ndesktopSwitching: false\ndesktopSwitchingMovingClients: false\ncursorPushBackDistance: 1x1\nactionTopLeft: 0\nactionTop: 0\nactionTopRight: 0\nactionRight: 0\nactionBottomRight: 0\nactionBottom: 0\nactionBottomLeft: 0\nactionLeft: 0\n\nScreens\n=======\nNumber of Screens: 2\n\nScreen 0:\n---------\nName: Virtual-0\nEnabled: 1\nGeometry: 0,0,3840x2160\nPhysical size: -1x-1mm\nScale: 1\nRefresh Rate: 60000\nAdaptive Sync: incapable\nScreen 1:\n---------\nName: Virtual-1\nEnabled: 1\nGeometry: 3840,0,3840x2160\nPhysical size: -1x-1mm\nScale: 1\nRefresh Rate: 60000\nAdaptive Sync: incapable\n\nCompositing\n===========\nCompositing is active\nCompositing Type: OpenGL\nOpenGL vendor string: Intel\nOpenGL renderer string: Mesa Intel(R) UHD Graphics (CML GT2)\nOpenGL version string: 4.6 (Core Profile) Mesa 26.2.3\nOpenGL platform interface: EGL\nOpenGL shading language version string: 4.60\nDriver: Intel\nGPU class: Comet Lake\nOpenGL version: 4.6\nGLSL version: 4.60\nMesa version: 26.2.3\nLinux kernel version: 7.2.8\nDirect rendering: Requires strict binding: no\nVirtual Machine:  no\nOpenGL 2 Shaders are used\n\nLoaded Effects:\n---------------\nshakecursor\noutputlocator\ncolorpicker\nzoom\nscreenedge\nblur\nslidingpopups\nslidingnotifications\nslide\ndimscreen\ndialogparent\nwindowview\ntileseditor\noverview\nhighlightwindow\nblendchanges\nstartupfeedback\nkwin4_effect_shapecorners\nsystembell\nscreentransform\nkscreen\n\nCurrently Active Effects:\n-------------------------\nblur\nkwin4_effect_shapecorners\n\nEffect Settings:\n----------------\nshakecursor:\n\noutputlocator:\n\ncolorpicker:\n\nzoom:\nzoomFactor: 1.2\nmouseTracking: 0\nfocusDelay: 350\nmoveFactor: 20\ntargetZoom: 1\n\nscreenedge:\n\nblur:\n\nslidingpopups:\nslideInDuration: 200\nslideOutDuration: 200\n\nslidingnotifications:\n\nslide:\nhorizontalGap: 45\nverticalGap: 20\nslideBackground: true\n\ndimscreen:\npluginId: dimscreen\nisActiveFullScreenEffect: false\n\ndialogparent:\npluginId: dialogparent\nisActiveFullScreenEffect: false\n\nwindowview:\nactiveView: \ndelegate: \nanimationDuration: 300\nignoreMinimized: false\nmode: ModeCurrentDesktop\npartialActivationFactor: 0\ngestureInProgress: false\nsearchText: \nselectedIds: \n\ntileseditor:\nactiveView: \ndelegate: \nanimationDuration: 200\n\noverview:\nactiveView: \ndelegate: \nanimationDuration: 300\nignoreMinimized: false\nfilterWindows: true\norganizedGrid: true\noverviewPartialActivationFactor: 0\noverviewGestureInProgress: false\ntransitionPartialActivationFactor: 0\ntransitionGestureInProgress: false\ngridPartialActivationFactor: 0\ngridGestureInProgress: false\nsearchText: \n\nhighlightwindow:\n\nblendchanges:\n\nstartupfeedback:\ntype: 1\n\nkwin4_effect_shapecorners:\n\nsystembell:\n\nscreentransform:\n\nkscreen:\n\n\nLoaded Plugins:\n---------------\nBounceKeysPlugin\nKeyNotificationPlugin\nMouseKeysPlugin\nSlowKeysPlugin\nStickyKeysPlugin\nTouchpadShortcutsPlugin\nbuttonsrebind\neis\nkrunnerintegration\nnightlight\nscreencast\nscreenshot\n\nAvailable Plugins:\n------------------\nBounceKeysPlugin\nKeyNotificationPlugin\nMouseKeysPlugin\nSlowKeysPlugin\nStickyKeysPlugin\nTouchpadShortcutsPlugin\nbuttonsrebind\neis\ngamecontroller\nkrunnerintegration\nnightlight\nscreencast\nscreenshot\n",
+  "capability": {
+    "binaryPath": "/home/cc/cc_niri/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+    "enabled": true,
+    "inputPolicy": "two-click",
+    "pendingButtons": 0,
+    "pendingTouches": 0,
+    "protocol": 3,
+    "type": "PARTIAL_SCROLL"
+  },
+  "loaded_binary_paths": {
+    "clip": "/home/cc/cc_niri/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+    "ring": "/home/cc/cc_niri/build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so"
+  },
+  "initial_painted": {
+    "active": true,
+    "cameraX": 212,
+    "clipPartial": true,
+    "completed": true,
+    "entries": [
+      {
+        "uuid": "fdcf12ab-10f3-41ec-af14-e5f1582cfa1e",
+        "visualRect": {
+          "height": 1358,
+          "width": 1680,
+          "x": 440,
+          "y": 66
+        }
+      },
+      {
+        "uuid": "f35c0563-d956-4dd7-9463-c185c264f787",
+        "visualRect": {
+          "height": 1358,
+          "width": 1256,
+          "x": 2136,
+          "y": 66
+        }
+      }
+    ],
+    "epoch": 1,
+    "sampleSerial": 2,
+    "scopeRevision": 1,
+    "sessionId": "p3-private",
+    "targetOutput": "Virtual-0",
+    "valid": true,
+    "workspaceId": "e69bb859-c0c6-427e-a3d8-696a9a9b4fd8"
+  },
+  "modal_before_input": {
+    "activeModal": true,
+    "auxiliary": [],
+    "consumed": 0,
+    "entries": [],
+    "epoch": 0,
+    "masked": 0,
+    "mode": "",
+    "nativeButtons": 0,
+    "nativeDrag": false,
+    "nativeHitClass": "python3",
+    "pendingButtons": 0,
+    "pendingTouches": 0,
+    "pointerFocusClass": "",
+    "seatSerial": 87
+  },
+  "focus_request": {
+    "active": true,
+    "clipPartial": true,
+    "completed": true,
+    "epoch": 1,
+    "scopeRevision": 1,
+    "sessionId": "p3-private",
+    "targetOutput": "Virtual-0",
+    "windowUuid": "f35c0563-d956-4dd7-9463-c185c264f787",
+    "workspaceId": "e69bb859-c0c6-427e-a3d8-696a9a9b4fd8"
+  },
+  "focus_command": {
+    "active": true,
+    "baseGeneration": 1,
+    "clipPartial": true,
+    "commandId": "partial-focus/p3-private/1/1/f35c0563-d956-4dd7-9463-c185c264f787",
+    "completed": true,
+    "epoch": 1,
+    "protocol": 1,
+    "scopeRevision": 1,
+    "sessionId": "p3-private",
+    "targetOutput": "Virtual-0",
+    "type": "focus-partial-column",
+    "windowUuid": "f35c0563-d956-4dd7-9463-c185c264f787",
+    "workspaceId": "e69bb859-c0c6-427e-a3d8-696a9a9b4fd8"
+  },
+  "second_click_events": [
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    }
+  ],
+  "ring_status": {
+    "active": true,
+    "activeTransitionCount": 0,
+    "binaryPath": "/home/cc/cc_niri/build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so",
+    "borderAlpha": 0.85,
+    "color": "#7FC8FF",
+    "coreBackend": "Rust",
+    "cornerRadius": 12,
+    "cornerSource": "round-corners",
+    "drawCount": 9,
+    "eligibilityEnabled": true,
+    "eligibilitySource": "layout-script",
+    "eligibleCount": 2,
+    "fadeRepaintRequests": 8,
+    "focusAnimation": true,
+    "focusClock": "clip-shared-presentation",
+    "focusDurationMs": 140,
+    "frameLifetime": "scene-attachment",
+    "generation": 1,
+    "glowAlpha": 0.28,
+    "glowClip": "separate-viewport-native-occlusion",
+    "glowExtent": 7.1,
+    "glowFalloff": "gaussian-three-sigma",
+    "glowGain": true,
+    "glowGainEndExtent": 7.1,
+    "glowGainRenderer": "cached-profile-blend",
+    "glowGainStartExtent": 7.4,
+    "glowOnlyDiagnostic": false,
+    "glowRadius": 1.7,
+    "glowRasterizations": 16,
+    "nativeProtocolBackend": "Rust",
+    "otherOutputPaintSkips": 0,
+    "outgoingDecorationCount": 0,
+    "paintOutputScope": "owner-output-region",
+    "paintOutset": 8,
+    "paintSource": "window-paint-pass",
+    "phase": "focus-gain-f3",
+    "pixelAlignment": "native-child-rounding-compensated",
+    "renderer": "post-window-native-item",
+    "separateGlowClipDrawCount": 9,
+    "sessionId": "p3-private-ring",
+    "sharedFrameSamples": 10,
+    "strokeGeometry": "paint-frame-fixed-width",
+    "targetOutput": "Virtual-0",
+    "viewportOutset": 5,
+    "visuals": [
+      {
+        "focused": true,
+        "glowGainMix": 0,
+        "opacity": 1,
+        "transitionActive": false,
+        "windowUuid": "f35c0563-d956-4dd7-9463-c185c264f787"
+      }
+    ],
+    "width": 2,
+    "windowOpacity": 1,
+    "windowUuid": "f35c0563-d956-4dd7-9463-c185c264f787",
+    "workspaceId": "e69bb859-c0c6-427e-a3d8-696a9a9b4fd8"
+  },
+  "native_touch_events": [
+    {
+      "phase": "native-touch",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "TouchBegin",
+      "spontaneous": true,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-touch",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "TouchEnd",
+      "spontaneous": true,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    }
+  ],
+  "native_grab_events": [
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": -1188.0,
+      "y": 234.0,
+      "button": 2,
+      "points": [
+        {
+          "id": 0,
+          "x": -1188.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": -1188.0,
+      "y": 234.0,
+      "button": 2,
+      "points": [
+        {
+          "id": 0,
+          "x": -1188.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": -1188.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": -1188.0,
+          "y": 234.0
+        }
+      ]
+    }
+  ],
+  "reversal_status": {
+    "active": true,
+    "animationProfile": "smooth60",
+    "animationProfileFallback": "",
+    "clipHandoffActive": false,
+    "clipPartial": true,
+    "clockFallbackCount": 0,
+    "clockFallbackReasons": {
+      "invalidPrediction": 0,
+      "missingPrediction": 0,
+      "regressedPrediction": 0
+    },
+    "completed": false,
+    "decorationGeometryBackend": "Rust",
+    "epoch": 4,
+    "lastRetarget": {
+      "brakeDistance": 0,
+      "brakeMs": 0,
+      "initialVelocity": -3066.3298213196144,
+      "lower": 0,
+      "reason": "none",
+      "savedVelocity": -3066.3298213196144,
+      "strategy": "carry",
+      "upper": 1696
+    },
+    "nativeProtocolBackend": "Rust",
+    "paintClip": "strict-output",
+    "retargetBrakedCount": 0,
+    "retargetCarriedCount": 1,
+    "retargetDegradedCount": 0,
+    "retargetDegradedReasons": {
+      "coverage": 0,
+      "invalidMath": 0,
+      "noBrakeSpace": 0
+    },
+    "retargetKeptCount": 0,
+    "scrollClockSource": "predicted-presentation",
+    "scrollContinuousFullRepaintRequests": 0,
+    "scrollOutputRepaintRequests": 34,
+    "scrollRepaintFallbackFullRequests": 0,
+    "scrollRepaintScope": "target-output-continuation",
+    "scrollRetargetPolicy": "bounded-last-painted-position-and-velocity",
+    "scrollRuntimeBackend": "Rust",
+    "scrollSpringStiffness": 600,
+    "scrollTargetOutput": "Virtual-0",
+    "scrollVisualCompletedCount": 1,
+    "scrollVisualSettleEnabled": false,
+    "scrollVisualSettleFallback": "awaiting-frame",
+    "scrollVisualSettleFallbackReasons": {
+      "invalidScale": 0,
+      "missingOutput": 0,
+      "unknownRefresh": 0
+    },
+    "scrollVisualSettleOutputScale": 0,
+    "scrollVisualSettlePhysicalPx": 0.25,
+    "scrollVisualSettleRefreshHz": 0,
+    "sessionId": "p3-private",
+    "targetOutput": "Virtual-0",
+    "workspaceAnimationActive": false,
+    "workspaceAnimationBackend": "RustFiniteCurve",
+    "workspaceAnimationDuration": 420,
+    "workspaceAnimationEnabled": false,
+    "workspaceDepartureVisual": "freeze-wide-until-compositor-idle",
+    "workspaceId": "e69bb859-c0c6-427e-a3d8-696a9a9b4fd8",
+    "workspaceMotion": {
+      "acceleration": {
+        "x": 0,
+        "y": 0
+      },
+      "active": false,
+      "brakeDistanceCells": {
+        "x": 0,
+        "y": 0
+      },
+      "brakeXMs": 0,
+      "brakeYMs": 0,
+      "brakedC1": 0,
+      "carriedC1": 0,
+      "carriedC2": 0,
+      "durationMs": 0,
+      "epoch": 0,
+      "frameDeltaClampingEnabled": false,
+      "frameDeltaClampingRequiresSmooth60": true,
+      "gesture": false,
+      "initialAcceleration": {
+        "x": 0,
+        "y": 0
+      },
+      "initialVelocity": {
+        "x": 0,
+        "y": 0
+      },
+      "kept": 0,
+      "liveBinding": false,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "point": {
+        "x": 0,
+        "y": 0
+      },
+      "projectionCacheEnabled": false,
+      "reasons": [
+        "none",
+        "none"
+      ],
+      "reset": 0,
+      "sampleNs": 0,
+      "samplingClock": {
+        "clampedFrames": 0,
+        "enabled": false,
+        "fallbackCount": 0,
+        "fallbackReason": 0,
+        "lagMs": 0,
+        "limiting": false,
+        "logicalNs": 0,
+        "realNs": 0
+      },
+      "savedAcceleration": {
+        "x": 0,
+        "y": 0
+      },
+      "savedVelocity": {
+        "x": 0,
+        "y": 0
+      },
+      "startNs": 0,
+      "strategies": [
+        "rest",
+        "rest"
+      ],
+      "target": {
+        "x": 0,
+        "y": 0
+      },
+      "velocity": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "workspaceRemovalGate": "compositor-idle",
+    "workspaceRetargetPolicy": "last-painted-position-quintic-zero-velocity"
+  },
+  "motion_capture": {
+    "active": true,
+    "association": "output-only-no-paint-to-present-join",
+    "captureId": 1,
+    "clockDomain": "steady-clock-monotonic-relative-ms",
+    "continuousRepaintFallbackFullRequests": 0,
+    "continuousRepaintFullRequests": 0,
+    "durationMs": 10000,
+    "lifecycle": [
+      {
+        "atMs": 8.284851,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": 3,
+        "initialVelocity": 0,
+        "kind": 0,
+        "output": 1,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 6,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 118.430425,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": 4,
+        "initialVelocity": -3066.3298213196144,
+        "kind": 0,
+        "output": 1,
+        "retargetReason": 0,
+        "retargetStrategy": 1,
+        "revision": 7,
+        "savedVelocity": -3066.3298213196144
+      }
+    ],
+    "outputs": [
+      {
+        "fullRepaintRequests": 2,
+        "name": "Virtual-0",
+        "refreshHz": 60,
+        "removed": false,
+        "scale": 1.5,
+        "targetRepaintRequests": 34,
+        "token": 1
+      },
+      {
+        "fullRepaintRequests": 2,
+        "name": "Virtual-1",
+        "refreshHz": 60,
+        "removed": false,
+        "scale": 1.5,
+        "targetRepaintRequests": 0,
+        "token": 2
+      }
+    ],
+    "paintedFrames": [
+      {
+        "epoch": 3,
+        "eventMs": 8.251691,
+        "fallback": 0,
+        "frame": 105,
+        "initialVelocity": 0,
+        "initialX": 1060,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 8.701756,
+        "predictedMs": 14.776241,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 6,
+        "sampleMs": 14.776241,
+        "scale": 1.5,
+        "startMs": 8.251691,
+        "target": 212,
+        "v": -2829.3684815129095,
+        "x": 1050.2578137705223
+      },
+      {
+        "epoch": 3,
+        "eventMs": 8.251691,
+        "fallback": 0,
+        "frame": 106,
+        "initialVelocity": 0,
+        "initialX": 1060,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 25.238347,
+        "predictedMs": 31.442907,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 6,
+        "sampleMs": 31.442907,
+        "scale": 1.5,
+        "startMs": 8.251691,
+        "target": 212,
+        "v": -6685.940322279788,
+        "x": 965.4461003001793
+      },
+      {
+        "epoch": 3,
+        "eventMs": 8.251691,
+        "fallback": 0,
+        "frame": 107,
+        "initialVelocity": 0,
+        "initialX": 1060,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 33.335462,
+        "predictedMs": 48.109573,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 6,
+        "sampleMs": 48.109573,
+        "scale": 1.5,
+        "startMs": 8.251691,
+        "target": 212,
+        "v": -7639.293913130314,
+        "x": 843.3117313953039
+      },
+      {
+        "epoch": 3,
+        "eventMs": 8.251691,
+        "fallback": 0,
+        "frame": 108,
+        "initialVelocity": 0,
+        "initialX": 1060,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 48.015035,
+        "predictedMs": 64.776239,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 6,
+        "sampleMs": 64.776239,
+        "scale": 1.5,
+        "startMs": 8.251691,
+        "target": 212,
+        "v": -7202.381601402023,
+        "x": 718.4033629418761
+      },
+      {
+        "epoch": 3,
+        "eventMs": 8.251691,
+        "fallback": 0,
+        "frame": 109,
+        "initialVelocity": 0,
+        "initialX": 1060,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 64.721472,
+        "predictedMs": 81.442905,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 6,
+        "sampleMs": 81.442905,
+        "scale": 1.5,
+        "startMs": 8.251691,
+        "target": 212,
+        "v": -6200.090197544638,
+        "x": 606.3023780131284
+      },
+      {
+        "epoch": 3,
+        "eventMs": 8.251691,
+        "fallback": 0,
+        "frame": 110,
+        "initialVelocity": 0,
+        "initialX": 1060,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 81.976406,
+        "predictedMs": 98.109571,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 6,
+        "sampleMs": 98.109571,
+        "scale": 1.5,
+        "startMs": 8.251691,
+        "target": 212,
+        "v": -5060.5212431310865,
+        "x": 512.4564888454521
+      },
+      {
+        "epoch": 3,
+        "eventMs": 8.251691,
+        "fallback": 0,
+        "frame": 111,
+        "initialVelocity": 0,
+        "initialX": 1060,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 99.35591,
+        "predictedMs": 114.776237,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 6,
+        "sampleMs": 114.776237,
+        "scale": 1.5,
+        "startMs": 8.251691,
+        "target": 212,
+        "v": -3988.3090444642503,
+        "x": 437.2225049604304
+      },
+      {
+        "epoch": 3,
+        "eventMs": 8.251691,
+        "fallback": 0,
+        "frame": 112,
+        "initialVelocity": 0,
+        "initialX": 1060,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 115.64319,
+        "predictedMs": 131.442903,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 6,
+        "sampleMs": 131.442903,
+        "scale": 1.5,
+        "startMs": 8.251691,
+        "target": 212,
+        "v": -3066.3298213196144,
+        "x": 378.6670845026771
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 113,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 132.417798,
+        "predictedMs": 148.109569,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 148.109569,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 3323.286471339361,
+        "x": 388.1448906046486
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 114,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 149.041928,
+        "predictedMs": 164.776235,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 164.776235,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 5773.981886465595,
+        "x": 467.8166451641731
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 115,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 165.364696,
+        "predictedMs": 181.442901,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 181.442901,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 6208.428217851467,
+        "x": 569.5614333073261
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 116,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 182.68308,
+        "predictedMs": 198.109567,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 198.109567,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 5702.928085375858,
+        "x": 669.6309979680948
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 117,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 198.560262,
+        "predictedMs": 214.776233,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 214.776233,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 4838.785698778663,
+        "x": 757.7173574332849
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 118,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 215.934419,
+        "predictedMs": 231.442899,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 231.442899,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 3913.2177573662248,
+        "x": 830.6109273850202
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 119,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 232.078147,
+        "predictedMs": 248.109565,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 248.109565,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 3064.48847066977,
+        "x": 888.6000507862552
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 120,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 248.489424,
+        "predictedMs": 264.776231,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 264.776231,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 2345.074686877367,
+        "x": 933.4866801052806
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 121,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 265.241525,
+        "predictedMs": 281.442897,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 281.442897,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 1763.641417247377,
+        "x": 967.5393000152948
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 122,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 282.442488,
+        "predictedMs": 298.109563,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 298.109563,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 1308.5163194568884,
+        "x": 992.9777281063549
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 123,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 297.885834,
+        "predictedMs": 314.776229,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 314.776229,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 960.3497858691312,
+        "x": 1011.7508761842844
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 124,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 305.465809,
+        "predictedMs": 331.442895,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 331.442895,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 698.5729554482468,
+        "x": 1025.4689619964327
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 125,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 315.975199,
+        "predictedMs": 348.109561,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 348.109561,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 504.3889918806606,
+        "x": 1035.4116005524204
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 126,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 331.354005,
+        "predictedMs": 364.776227,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 364.776227,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 361.8960742765618,
+        "x": 1042.568523452194
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 127,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 349.63009,
+        "predictedMs": 381.442893,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 381.442893,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 258.2584793043469,
+        "x": 1047.690144247808
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 128,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 365.565588,
+        "predictedMs": 398.109559,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 398.109559,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 183.43772021810094,
+        "x": 1051.336794521876
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 129,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 381.739644,
+        "predictedMs": 414.776225,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 414.776225,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 129.75944745121686,
+        "x": 1053.9218407899116
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 130,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 398.430937,
+        "predictedMs": 431.442891,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 431.442891,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 91.45641816152487,
+        "x": 1055.7472526903682
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 131,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 415.595479,
+        "predictedMs": 448.109557,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 448.109557,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 64.25223606835954,
+        "x": 1057.031838735928
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 132,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 432.887111,
+        "predictedMs": 464.776223,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 464.776223,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 45.00987757762211,
+        "x": 1057.9330690119884
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 133,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 449.150345,
+        "predictedMs": 481.442889,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 481.442889,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 31.448339996467375,
+        "x": 1058.5636116752685
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 134,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 464.284348,
+        "predictedMs": 498.109555,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 498.109555,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 21.921232684247432,
+        "x": 1059.0036751994812
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 135,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 482.57108,
+        "predictedMs": 514.776221,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 514.776221,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 15.247620817921977,
+        "x": 1059.3101102073601
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 136,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 498.139231,
+        "predictedMs": 531.442887,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 531.442887,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 10.584968298669928,
+        "x": 1059.523056524224
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 137,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 515.319396,
+        "predictedMs": 548.109553,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 548.109553,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 7.334962364520083,
+        "x": 1059.6707584799074
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 138,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 532.521646,
+        "predictedMs": 564.776219,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 564.776219,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 5.074451758368384,
+        "x": 1059.7730296197306
+      },
+      {
+        "epoch": 4,
+        "eventMs": 118.392601,
+        "fallback": 0,
+        "frame": 139,
+        "initialVelocity": -3066.3298213196144,
+        "initialX": 378.6670845026771,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 548.785253,
+        "predictedMs": 581.442885,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 581.442885,
+        "scale": 1.5,
+        "startMs": 131.442903,
+        "target": 1060,
+        "v": 0,
+        "x": 1060
+      }
+    ],
+    "positionUnit": "logical-px",
+    "presentations": [
+      {
+        "atMs": 14.776241,
+        "output": 1
+      },
+      {
+        "atMs": 14.776241,
+        "output": 2
+      },
+      {
+        "atMs": 31.442907,
+        "output": 2
+      },
+      {
+        "atMs": 31.442907,
+        "output": 1
+      },
+      {
+        "atMs": 48.109573,
+        "output": 1
+      },
+      {
+        "atMs": 48.109573,
+        "output": 2
+      },
+      {
+        "atMs": 64.776239,
+        "output": 1
+      },
+      {
+        "atMs": 64.776239,
+        "output": 2
+      },
+      {
+        "atMs": 81.442905,
+        "output": 1
+      },
+      {
+        "atMs": 81.442905,
+        "output": 2
+      },
+      {
+        "atMs": 98.109571,
+        "output": 2
+      },
+      {
+        "atMs": 98.109571,
+        "output": 1
+      },
+      {
+        "atMs": 114.776237,
+        "output": 2
+      },
+      {
+        "atMs": 114.776237,
+        "output": 1
+      },
+      {
+        "atMs": 131.442903,
+        "output": 2
+      },
+      {
+        "atMs": 131.442903,
+        "output": 1
+      },
+      {
+        "atMs": 148.109569,
+        "output": 2
+      },
+      {
+        "atMs": 148.109569,
+        "output": 1
+      },
+      {
+        "atMs": 164.776235,
+        "output": 1
+      },
+      {
+        "atMs": 164.776235,
+        "output": 2
+      },
+      {
+        "atMs": 181.442901,
+        "output": 2
+      },
+      {
+        "atMs": 181.442901,
+        "output": 1
+      },
+      {
+        "atMs": 198.109567,
+        "output": 1
+      },
+      {
+        "atMs": 198.109567,
+        "output": 2
+      },
+      {
+        "atMs": 214.776233,
+        "output": 2
+      },
+      {
+        "atMs": 214.776233,
+        "output": 1
+      },
+      {
+        "atMs": 231.442899,
+        "output": 1
+      },
+      {
+        "atMs": 231.442899,
+        "output": 2
+      },
+      {
+        "atMs": 248.109565,
+        "output": 2
+      },
+      {
+        "atMs": 248.109565,
+        "output": 1
+      },
+      {
+        "atMs": 264.776231,
+        "output": 2
+      },
+      {
+        "atMs": 264.776231,
+        "output": 1
+      },
+      {
+        "atMs": 281.442897,
+        "output": 2
+      },
+      {
+        "atMs": 281.442897,
+        "output": 1
+      },
+      {
+        "atMs": 298.109563,
+        "output": 2
+      },
+      {
+        "atMs": 298.109563,
+        "output": 1
+      },
+      {
+        "atMs": 298.109563,
+        "output": 1
+      },
+      {
+        "atMs": 314.776229,
+        "output": 2
+      },
+      {
+        "atMs": 314.776229,
+        "output": 1
+      },
+      {
+        "atMs": 331.442895,
+        "output": 1
+      },
+      {
+        "atMs": 331.442895,
+        "output": 2
+      },
+      {
+        "atMs": 348.109561,
+        "output": 2
+      },
+      {
+        "atMs": 348.109561,
+        "output": 1
+      },
+      {
+        "atMs": 364.776227,
+        "output": 2
+      },
+      {
+        "atMs": 364.776227,
+        "output": 1
+      },
+      {
+        "atMs": 381.442893,
+        "output": 1
+      },
+      {
+        "atMs": 381.442893,
+        "output": 2
+      },
+      {
+        "atMs": 398.109559,
+        "output": 1
+      },
+      {
+        "atMs": 398.109559,
+        "output": 2
+      },
+      {
+        "atMs": 414.776225,
+        "output": 1
+      },
+      {
+        "atMs": 414.776225,
+        "output": 2
+      },
+      {
+        "atMs": 431.442891,
+        "output": 2
+      },
+      {
+        "atMs": 431.442891,
+        "output": 1
+      },
+      {
+        "atMs": 448.109557,
+        "output": 2
+      },
+      {
+        "atMs": 448.109557,
+        "output": 1
+      },
+      {
+        "atMs": 464.776223,
+        "output": 1
+      },
+      {
+        "atMs": 464.776223,
+        "output": 2
+      },
+      {
+        "atMs": 464.776223,
+        "output": 1
+      },
+      {
+        "atMs": 481.442889,
+        "output": 2
+      },
+      {
+        "atMs": 498.109555,
+        "output": 1
+      },
+      {
+        "atMs": 498.109555,
+        "output": 2
+      },
+      {
+        "atMs": 514.776221,
+        "output": 1
+      },
+      {
+        "atMs": 514.776221,
+        "output": 2
+      },
+      {
+        "atMs": 531.442887,
+        "output": 2
+      },
+      {
+        "atMs": 531.442887,
+        "output": 1
+      },
+      {
+        "atMs": 548.109553,
+        "output": 1
+      },
+      {
+        "atMs": 548.109553,
+        "output": 2
+      }
+    ],
+    "repaintFullRequests": 2,
+    "repaintOutputRequests": 34,
+    "repaintScope": "ViewportClipEffect-full-events-and-profile-dependent-continuation-excludes-workspace-adapter",
+    "truncated": false,
+    "velocityUnit": "logical-px-per-second",
+    "version": 1
+  },
+  "records": [
+    {
+      "phase": "bootstrap",
+      "kind": "private-shortcut-service",
+      "stub": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_D",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 840.0,
+      "y": 679.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 840.0,
+          "y": 679.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 628.0,
+      "y": 679.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 628.0,
+          "y": 679.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 574.66796875,
+      "y": 649.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 574.66796875,
+          "y": 649.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 840.0,
+      "y": 654.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 840.0,
+          "y": 654.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p3-geometry",
+      "label": "initial-safe-client-ack",
+      "ready": true,
+      "workspaceId": "e69bb859-c0c6-427e-a3d8-696a9a9b4fd8",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "fdcf12ab-10f3-41ec-af14-e5f1582cfa1e",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "f35c0563-d956-4dd7-9463-c185c264f787",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "585fb041-5ad8-4c34-ac5e-b990305023e1",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "7694273a-7ba6-4e7f-bf49-b6485b248cf4",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "popup-open",
+      "kind": "mark"
+    },
+    {
+      "phase": "popup-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 560.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 560.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "popup-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 560.0,
+      "y": 234.0,
+      "button": 2,
+      "points": [
+        {
+          "id": 0,
+          "x": 560.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "popup-open",
+      "kind": "popup-shown"
+    },
+    {
+      "phase": "popup-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "popup-outside",
+      "kind": "mark"
+    },
+    {
+      "phase": "popup-outside",
+      "kind": "popup-hidden"
+    },
+    {
+      "phase": "popup-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "popup-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "popup-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "popup-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "popup-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "mark"
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 560.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 560.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 560.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 560.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 560.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 560.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 600.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 600.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "drag-start"
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "mark"
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "drag-end",
+      "action": 0
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_D",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "p3-geometry",
+      "label": "modal-parent-active",
+      "ready": true,
+      "workspaceId": "e69bb859-c0c6-427e-a3d8-696a9a9b4fd8",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "fdcf12ab-10f3-41ec-af14-e5f1582cfa1e",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "f35c0563-d956-4dd7-9463-c185c264f787",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "585fb041-5ad8-4c34-ac5e-b990305023e1",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "7694273a-7ba6-4e7f-bf49-b6485b248cf4",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "mark"
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "p3-geometry",
+      "label": "first-click-baseline-focus",
+      "ready": true,
+      "workspaceId": "e69bb859-c0c6-427e-a3d8-696a9a9b4fd8",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "fdcf12ab-10f3-41ec-af14-e5f1582cfa1e",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "f35c0563-d956-4dd7-9463-c185c264f787",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "585fb041-5ad8-4c34-ac5e-b990305023e1",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "7694273a-7ba6-4e7f-bf49-b6485b248cf4",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "partial-first-click",
+      "kind": "mark"
+    },
+    {
+      "phase": "partial-first-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "partial-first-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "partial-first-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "partial-first-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "partial-first-click",
+      "kind": "p3-geometry",
+      "label": "before-js-focus",
+      "ready": true,
+      "workspaceId": "e69bb859-c0c6-427e-a3d8-696a9a9b4fd8",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "fdcf12ab-10f3-41ec-af14-e5f1582cfa1e",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "f35c0563-d956-4dd7-9463-c185c264f787",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "585fb041-5ad8-4c34-ac5e-b990305023e1",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "7694273a-7ba6-4e7f-bf49-b6485b248cf4",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "mark"
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1112.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "p3-geometry",
+      "label": "native-arm-then-safe-client-ack",
+      "ready": true,
+      "workspaceId": "e69bb859-c0c6-427e-a3d8-696a9a9b4fd8",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "fdcf12ab-10f3-41ec-af14-e5f1582cfa1e",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 0,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "f35c0563-d956-4dd7-9463-c185c264f787",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1288,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "585fb041-5ad8-4c34-ac5e-b990305023e1",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "7694273a-7ba6-4e7f-bf49-b6485b248cf4",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_B"
+    },
+    {
+      "phase": "second-click",
+      "kind": "mark"
+    },
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "partial-wheel",
+      "kind": "mark"
+    },
+    {
+      "phase": "partial-wheel",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "partial-wheel",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 100.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 100.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "partial-wheel",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "partial-touch",
+      "kind": "mark"
+    },
+    {
+      "phase": "native-touch",
+      "kind": "mark"
+    },
+    {
+      "phase": "native-touch",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "TouchBegin",
+      "spontaneous": true,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-touch",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "TouchEnd",
+      "spontaneous": true,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "mark"
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": -1188.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": -1188.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": -1188.0,
+      "y": 234.0,
+      "button": 2,
+      "points": [
+        {
+          "id": 0,
+          "x": -1188.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": -1188.0,
+      "y": 234.0,
+      "button": 2,
+      "points": [
+        {
+          "id": 0,
+          "x": -1188.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": -1188.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": -1188.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 100.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 100.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "held-pair-retarget-cancel",
+      "kind": "mark"
+    },
+    {
+      "phase": "held-pair-retarget-cancel",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 100.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 100.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "held-pair-retarget-cancel",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "held-pair-retarget-cancel",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 100.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 100.0,
+          "y": 234.0
+        }
+      ]
+    }
+  ],
+  "ended_utc": "2026-10-15T02:51:35.747730+00:00"
+}

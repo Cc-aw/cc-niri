@@ -1,0 +1,17 @@
+[  2%] Building Rust Native Core (release)
+[ 18%] Built target cc-niri-golden-reference
+    Finished `release` profile [optimized] target(s) in 0.00s
+[ 18%] Built target cc-niri-rust-build
+[ 35%] Built target cc-niri-native-adapters
+[ 45%] Built target cc-niri-ring-differential
+[ 45%] Built target cc-niri-workspace-motion-differential
+[ 56%] Built target cc-niri-motion-differential
+[ 56%] Built target cc-niri-spring-differential
+[ 67%] Built target cc-niri-protocol-differential
+[ 67%] Built target cc-niri-scroll-differential
+[ 78%] Built target cc-niri-rust-animation-frame-tests
+[ 78%] Built target cc-niri-rust-focus-fade-tests
+[ 83%] Built target cc-niri-rust-motion-tests
+[ 89%] Built target cc-niri-rust-scroll-tests
+[ 94%] Built target cc-niri-rust-core-smoke-tests
+[100%] Built target cc-niri-rust-ring-context-tests

@@ -1,0 +1,5 @@
+[1/5] Building Rust Native Core (release)
+    Finished `release` profile [optimized] target(s) in 0.00s
+[2/5] Automatic MOC for target cc-niri-bridge
+[3/4] Building CXX object CMakeFiles/cc-niri-bridge.dir/src/CCNiriBridge.cpp.o
+[4/4] Linking CXX executable cc-niri-bridge

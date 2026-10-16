@@ -1,0 +1,685 @@
+{
+  "started_utc": "2026-10-16T01:42:36.601218+00:00",
+  "status": "INCONCLUSIVE",
+  "scale": 1.0,
+  "ime": null,
+  "scope": "production Release Clip + Rust + Bridge + Ring, private virtual Mesa KWin; P0 raw injector only",
+  "artifacts": {
+    "build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so": "7a8039ba94be81bda84b9bdd6bbba169cde548978c7da1643d377d0ed97700db",
+    "build/bridge/cc-niri-bridge": "088eb4e018a5f74a38af5b5693e4906f035049b1add5a2be856b717d027bbdc4",
+    "build/scroll-layout-v2-p0-fixture/plugins/kwin/effects/plugins/cc-niri-p0-input-fixture.so": "be0d6ef4f751c56c6e2ca2330f2e2e3609733118adf46c4de813787e1ecec990",
+    "build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so": "8a832d78835047ccffb973369d05b756b0cbbf2ec1f6d91decaab800144577ac"
+  },
+  "checks": {
+    "raw_injector_has_no_p0_projection": true,
+    "exact_build_tree_plugins_loaded": true,
+    "native_capability_explicit": true,
+    "bridge_requires_membership": true,
+    "actual_painted_camera_and_scope": true,
+    "p4_source_has_real_per_client_frames": true,
+    "p4_source_uses_actual_camera_and_pass": true,
+    "p4_source_preserves_natural_partial_visual": true,
+    "right_partial_strict_output": true
+  },
+  "plans": [
+    {
+      "protocol": 3,
+      "type": "PARTIAL_SCROLL",
+      "sessionId": "p3-private",
+      "workspaceId": "698a3a49-5962-4bac-a227-ce66c4fb18e3",
+      "targetOutput": "Virtual-0",
+      "epoch": 1,
+      "issuedAt": 1792114957873,
+      "scopeRevision": 1,
+      "maxCamera": 1696,
+      "clipPartial": true,
+      "retargetOnly": true,
+      "oldScrollOffsetX": 212,
+      "newScrollOffsetX": 212,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "layoutRect": {
+        "x": 0,
+        "y": 66,
+        "width": 2560,
+        "height": 1358
+      },
+      "entries": [
+        {
+          "windowId": "d5455843-8495-4364-a89d-eabbd77c6d83",
+          "columnId": 1,
+          "logicalX": 652,
+          "pixelWidth": 1680,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        },
+        {
+          "windowId": "788d3e5c-de9d-4494-bfa4-50b496d8dedf",
+          "columnId": 2,
+          "logicalX": 2348,
+          "pixelWidth": 1256,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        }
+      ]
+    }
+  ],
+  "geometry": [
+    {
+      "phase": "bootstrap",
+      "kind": "p3-geometry",
+      "label": "initial-safe-client-ack",
+      "ready": true,
+      "workspaceId": "698a3a49-5962-4bac-a227-ce66c4fb18e3",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "d5455843-8495-4364-a89d-eabbd77c6d83",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "788d3e5c-de9d-4494-bfa4-50b496d8dedf",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "14359561-461e-4ec0-8228-8fb25fee9f42",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "b4a35540-433c-4ffc-9e3a-934cc8502bc2",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    }
+  ],
+  "captures": [
+    {
+      "name": "right-partial",
+      "samples": [
+        {
+          "output": 0,
+          "x": 450,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 1304,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 2110,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 2135,
+          "y": 300,
+          "expected": "#000000",
+          "actual": "#000000"
+        },
+        {
+          "output": 0,
+          "x": 2140,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 0,
+          "x": 2559,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 1,
+          "expected": "#000000",
+          "actual": "#000000",
+          "scope": "entire-secondary-framebuffer"
+        }
+      ]
+    }
+  ],
+  "support": "KWin \u6280\u672f\u652f\u6301\u4fe1\u606f\uff1a\n\u8bf7\u5728\u5bfb\u6c42\u6280\u672f\u652f\u6301\u65f6 (\u4f8b\u5982 https://discuss.kde.org \u7f51\u7ad9) \u63d0\u4f9b\u4ee5\u4e0b\u4fe1\u606f\u3002\n\u8fd9\u4e9b\u4fe1\u606f\u5305\u62ec\u5173\u4e8e\u5f53\u524d\u6b63\u5728\u8fd0\u884c\u7684 Kwin \u5b9e\u4f8b\u7684\u76f8\u5173\u4fe1\u606f\u3001\n\u4f7f\u7528\u7684\u9009\u9879\u3001OpenGL \u9a71\u52a8\u7a0b\u5e8f\u3001\u6b63\u5728\u8fd0\u884c\u7684\u7279\u6548\u7b49\u3002\n\u8bf7\u4e0d\u8981\u5c06\u672c\u6bb5\u6587\u5b57\u4e0b\u65b9\u7684\u4fe1\u606f\u76f4\u63a5\u7c98\u8d34\u5230\u6280\u672f\u652f\u6301\u8ba8\u8bba\u4e32\uff0c\n\u800c\u5e94\u5c06\u5b83\u4eec\u7c98\u8d34\u5230\u5728\u7ebf\u526a\u8d34\u677f\u7f51\u7ad9 (\u4f8b\u5982 https://paste.kde.org)\u3002\n\n==========================\n\nVersion\n=======\nKWin version: 6.7.5\nQt Version: 6.11.2\nQt compile version: 6.11.2\nXCB compile version: 1.17.0\n\nOperation Mode: Wayland\n\nBuild Options\n=============\nKWIN_BUILD_DECORATIONS: yes\nKWIN_BUILD_TABBOX: yes\nKWIN_BUILD_ACTIVITIES: yes\nHAVE_X11_XCB: yes\n\nDecoration\n==========\nPlugin: org.kde.breeze\nTheme: \nPlugin recommends border size: None\nonAllDesktopsAvailable: false\nalphaChannelSupported: true\ncloseOnDoubleClickOnMenu: false\nalwaysShowExcludeFromCapture: false\ndecorationButtonsLeft: 0, 2, 12\ndecorationButtonsRight: 6, 3, 4, 5\nborderSize: 0\ngridUnit: 12\nfont: Noto Sans Arabic,12,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0\nsmallSpacing: 3\nlargeSpacing: 12\n\nLogicalOutput backend\n==============\nName: KWin::VirtualBackend\n\nCursor\n======\nthemeName: default\nthemeSize: 24\n\nOptions\n=======\nfocusPolicy: ClickToFocus\nxwaylandCrashPolicy: 1\nxwaylandMaxCrashCount: 3\nnextFocusPrefersMouse: false\nclickRaise: true\nautoRaise: false\nautoRaiseInterval: 0\ndelayFocusInterval: 0\nseparateScreenFocus: true\nplacement: 5\nactivationDesktopPolicy: SwitchToOtherDesktop\nfocusPolicyIsReasonable: true\nborderSnapZone: 10\nwindowSnapZone: 10\ncenterSnapZone: 0\nsnapOnlyWhenOverlapping: false\nedgeBarrier: 100\ncornerBarrier: 1\nrollOverDesktops: false\nperOutputVirtualDesktops: false\nfocusStealingPreventionLevel: 1\noperationTitlebarDblClick: 5000\noperationMaxButtonLeftClick: 5000\noperationMaxButtonMiddleClick: 5013\noperationMaxButtonRightClick: 5012\ncommandActiveTitlebar1: MouseRaise\ncommandActiveTitlebar2: MouseNothing\ncommandActiveTitlebar3: MouseOperationsMenu\ncommandInactiveTitlebar1: MouseActivateAndRaise\ncommandInactiveTitlebar2: MouseNothing\ncommandInactiveTitlebar3: MouseOperationsMenu\ncommandWindow1: MouseActivateRaiseOnReleaseAndPassClick\ncommandWindow2: MouseActivateAndPassClick\ncommandWindow3: MouseActivateAndPassClick\ncommandWindowWheel: MouseNothing\ncommandAll1: MouseUnrestrictedMove\ncommandAll2: MouseToggleRaiseAndLower\ncommandAll3: MouseUnrestrictedResize\nkeyCmdAllModKey: 16777250\ndoubleClickBorderToMaximize: true\ncondensedTitle: false\nelectricBorderMaximize: true\nelectricBorderTiling: true\nelectricBorderAllScreenCorner: true\nelectricBorderCornerRatio: 0.25\nborderlessMaximizedWindows: false\nkillPingTimeout: 5000\ncompositingMode: 1\nallowTearing: true\ninteractiveWindowMoveEnabled: true\npictureInPictureHomeCorner: BottomRightCorner\npictureInPictureMargin: 20\noverlayVirtualKeyboardOnWindows: false\n\nScreen Edges\n============\ndesktopSwitching: false\ndesktopSwitchingMovingClients: false\ncursorPushBackDistance: 1x1\nactionTopLeft: 0\nactionTop: 0\nactionTopRight: 0\nactionRight: 0\nactionBottomRight: 0\nactionBottom: 0\nactionBottomLeft: 0\nactionLeft: 0\n\nScreens\n=======\nNumber of Screens: 2\n\nScreen 0:\n---------\nName: Virtual-0\nEnabled: 1\nGeometry: 0,0,2560x1440\nPhysical size: -1x-1mm\nScale: 1\nRefresh Rate: 60000\nAdaptive Sync: incapable\nScreen 1:\n---------\nName: Virtual-1\nEnabled: 1\nGeometry: 2560,0,2560x1440\nPhysical size: -1x-1mm\nScale: 1\nRefresh Rate: 60000\nAdaptive Sync: incapable\n\nCompositing\n===========\nCompositing is active\nCompositing Type: OpenGL\nOpenGL vendor string: Intel\nOpenGL renderer string: Mesa Intel(R) UHD Graphics (CML GT2)\nOpenGL version string: 4.6 (Core Profile) Mesa 26.2.3\nOpenGL platform interface: EGL\nOpenGL shading language version string: 4.60\nDriver: Intel\nGPU class: Comet Lake\nOpenGL version: 4.6\nGLSL version: 4.60\nMesa version: 26.2.3\nLinux kernel version: 7.2.8\nDirect rendering: Requires strict binding: no\nVirtual Machine:  no\nOpenGL 2 Shaders are used\n\nLoaded Effects:\n---------------\nshakecursor\noutputlocator\ncolorpicker\nzoom\nscreenedge\nblur\nslidingpopups\nslidingnotifications\nslide\ndialogparent\nwindowview\ntileseditor\noverview\nhighlightwindow\nblendchanges\nstartupfeedback\nkwin4_effect_shapecorners\nsystembell\nscreentransform\nkscreen\n\nCurrently Active Effects:\n-------------------------\nblur\nkwin4_effect_shapecorners\n\nEffect Settings:\n----------------\nshakecursor:\n\noutputlocator:\n\ncolorpicker:\n\nzoom:\nzoomFactor: 1.2\nmouseTracking: 0\nfocusDelay: 350\nmoveFactor: 20\ntargetZoom: 1\n\nscreenedge:\n\nblur:\n\nslidingpopups:\nslideInDuration: 200\nslideOutDuration: 200\n\nslidingnotifications:\n\nslide:\nhorizontalGap: 45\nverticalGap: 20\nslideBackground: true\n\ndialogparent:\npluginId: dialogparent\nisActiveFullScreenEffect: false\n\nwindowview:\nactiveView: \ndelegate: \nanimationDuration: 300\nignoreMinimized: false\nmode: ModeCurrentDesktop\npartialActivationFactor: 0\ngestureInProgress: false\nsearchText: \nselectedIds: \n\ntileseditor:\nactiveView: \ndelegate: \nanimationDuration: 200\n\noverview:\nactiveView: \ndelegate: \nanimationDuration: 300\nignoreMinimized: false\nfilterWindows: true\norganizedGrid: true\noverviewPartialActivationFactor: 0\noverviewGestureInProgress: false\ntransitionPartialActivationFactor: 0\ntransitionGestureInProgress: false\ngridPartialActivationFactor: 0\ngridGestureInProgress: false\nsearchText: \n\nhighlightwindow:\n\nblendchanges:\n\nstartupfeedback:\ntype: 1\n\nkwin4_effect_shapecorners:\n\nsystembell:\n\nscreentransform:\n\nkscreen:\n\n\nLoaded Plugins:\n---------------\nBounceKeysPlugin\nKeyNotificationPlugin\nMouseKeysPlugin\nSlowKeysPlugin\nStickyKeysPlugin\nTouchpadShortcutsPlugin\nbuttonsrebind\neis\nkrunnerintegration\nnightlight\nscreencast\nscreenshot\n\nAvailable Plugins:\n------------------\nBounceKeysPlugin\nKeyNotificationPlugin\nMouseKeysPlugin\nSlowKeysPlugin\nStickyKeysPlugin\nTouchpadShortcutsPlugin\nbuttonsrebind\neis\ngamecontroller\nkrunnerintegration\nnightlight\nscreencast\nscreenshot\n",
+  "capability": {
+    "binaryPath": "/home/cc/cc_niri/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+    "enabled": true,
+    "inputPolicy": "two-click",
+    "pendingButtons": 0,
+    "pendingTouches": 0,
+    "protocol": 3,
+    "type": "PARTIAL_SCROLL"
+  },
+  "loaded_binary_paths": {
+    "clip": "/home/cc/cc_niri/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+    "ring": "/home/cc/cc_niri/build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so"
+  },
+  "initial_painted": {
+    "active": true,
+    "cameraX": 212,
+    "clipPartial": true,
+    "completed": true,
+    "entries": [
+      {
+        "uuid": "788d3e5c-de9d-4494-bfa4-50b496d8dedf",
+        "visualRect": {
+          "height": 1358,
+          "width": 1256,
+          "x": 2136,
+          "y": 66
+        }
+      },
+      {
+        "uuid": "d5455843-8495-4364-a89d-eabbd77c6d83",
+        "visualRect": {
+          "height": 1358,
+          "width": 1680,
+          "x": 440,
+          "y": 66
+        }
+      }
+    ],
+    "epoch": 1,
+    "sampleSerial": 2,
+    "scopeRevision": 1,
+    "sessionId": "p3-private",
+    "targetOutput": "Virtual-0",
+    "valid": true,
+    "workspaceId": "698a3a49-5962-4bac-a227-ce66c4fb18e3"
+  },
+  "column_geometry_source": {
+    "active": true,
+    "cameraX": 212,
+    "clipPartial": true,
+    "completed": true,
+    "entries": [
+      {
+        "acknowledged": true,
+        "columnId": 2,
+        "frameRect": {
+          "height": 1358,
+          "width": 1256,
+          "x": 1304,
+          "y": 66
+        },
+        "logicalX": 2348,
+        "owned": true,
+        "painted": true,
+        "velocityX": 0,
+        "velocityY": 0,
+        "visualRect": {
+          "height": 1358,
+          "width": 1256,
+          "x": 2136,
+          "y": 66
+        },
+        "windowId": "788d3e5c-de9d-4494-bfa4-50b496d8dedf"
+      },
+      {
+        "acknowledged": true,
+        "columnId": 1,
+        "frameRect": {
+          "height": 1358,
+          "width": 1680,
+          "x": 440,
+          "y": 66
+        },
+        "logicalX": 652,
+        "owned": true,
+        "painted": true,
+        "velocityX": 0,
+        "velocityY": 0,
+        "visualRect": {
+          "height": 1358,
+          "width": 1680,
+          "x": 440,
+          "y": 66
+        },
+        "windowId": "d5455843-8495-4364-a89d-eabbd77c6d83"
+      }
+    ],
+    "epoch": 1,
+    "layoutRect": {
+      "height": 1358,
+      "width": 2560,
+      "x": 0,
+      "y": 66
+    },
+    "maxCamera": 1696,
+    "protocol": 4,
+    "sampleSerial": 2,
+    "scopeRevision": 1,
+    "sessionId": "p3-private",
+    "targetOutput": "Virtual-0",
+    "type": "COLUMN_GEOMETRY_SOURCE",
+    "valid": true,
+    "viewport": {
+      "height": 1440,
+      "width": 2560,
+      "x": 0,
+      "y": 0
+    },
+    "workspaceId": "698a3a49-5962-4bac-a227-ce66c4fb18e3"
+  },
+  "p4_last_status": {
+    "active": false,
+    "animationProfile": "smooth60",
+    "animationProfileFallback": "",
+    "clipHandoffActive": false,
+    "clockFallbackCount": 0,
+    "clockFallbackReasons": {
+      "invalidPrediction": 0,
+      "missingPrediction": 0,
+      "regressedPrediction": 0
+    },
+    "completed": false,
+    "decorationGeometryBackend": "Rust",
+    "epoch": -1,
+    "lastRetarget": {
+      "brakeDistance": 0,
+      "brakeMs": 0,
+      "initialVelocity": 0,
+      "lower": 0,
+      "reason": "none",
+      "savedVelocity": 0,
+      "strategy": "rest",
+      "upper": 1696
+    },
+    "nativeProtocolBackend": "Rust",
+    "paintClip": "viewport-with-decoration-outsets",
+    "retargetBrakedCount": 0,
+    "retargetCarriedCount": 0,
+    "retargetDegradedCount": 0,
+    "retargetDegradedReasons": {
+      "coverage": 0,
+      "invalidMath": 0,
+      "noBrakeSpace": 0
+    },
+    "retargetKeptCount": 0,
+    "scrollClockSource": "predicted-presentation",
+    "scrollContinuousFullRepaintRequests": 0,
+    "scrollOutputRepaintRequests": 0,
+    "scrollRepaintFallbackFullRequests": 0,
+    "scrollRepaintScope": "target-output-continuation",
+    "scrollRetargetPolicy": "bounded-last-painted-position-and-velocity",
+    "scrollRuntimeBackend": "Rust",
+    "scrollSpringStiffness": 600,
+    "scrollTargetOutput": "",
+    "scrollVisualCompletedCount": 0,
+    "scrollVisualSettleEnabled": false,
+    "scrollVisualSettleFallback": "awaiting-frame",
+    "scrollVisualSettleFallbackReasons": {
+      "invalidScale": 0,
+      "missingOutput": 0,
+      "unknownRefresh": 0
+    },
+    "scrollVisualSettleOutputScale": 0,
+    "scrollVisualSettlePhysicalPx": 0.25,
+    "scrollVisualSettleRefreshHz": 0,
+    "sessionId": "1a142602007-196538a4",
+    "targetOutput": "Virtual-0",
+    "workspaceAnimationActive": false,
+    "workspaceAnimationBackend": "RustFiniteCurve",
+    "workspaceAnimationDuration": 420,
+    "workspaceAnimationEnabled": false,
+    "workspaceDepartureVisual": "freeze-wide-until-compositor-idle",
+    "workspaceId": "698a3a49-5962-4bac-a227-ce66c4fb18e3",
+    "workspaceMotion": {
+      "acceleration": {
+        "x": 0,
+        "y": 0
+      },
+      "active": false,
+      "brakeDistanceCells": {
+        "x": 0,
+        "y": 0
+      },
+      "brakeXMs": 0,
+      "brakeYMs": 0,
+      "brakedC1": 0,
+      "carriedC1": 0,
+      "carriedC2": 0,
+      "durationMs": 0,
+      "epoch": 0,
+      "frameDeltaClampingEnabled": false,
+      "frameDeltaClampingRequiresSmooth60": true,
+      "gesture": false,
+      "initialAcceleration": {
+        "x": 0,
+        "y": 0
+      },
+      "initialVelocity": {
+        "x": 0,
+        "y": 0
+      },
+      "kept": 0,
+      "liveBinding": false,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "point": {
+        "x": 0,
+        "y": 0
+      },
+      "projectionCacheEnabled": false,
+      "reasons": [
+        "none",
+        "none"
+      ],
+      "reset": 0,
+      "sampleNs": 0,
+      "samplingClock": {
+        "clampedFrames": 0,
+        "enabled": false,
+        "fallbackCount": 0,
+        "fallbackReason": 0,
+        "lagMs": 0,
+        "limiting": false,
+        "logicalNs": 0,
+        "realNs": 0
+      },
+      "savedAcceleration": {
+        "x": 0,
+        "y": 0
+      },
+      "savedVelocity": {
+        "x": 0,
+        "y": 0
+      },
+      "startNs": 0,
+      "strategies": [
+        "rest",
+        "rest"
+      ],
+      "target": {
+        "x": 0,
+        "y": 0
+      },
+      "velocity": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "workspaceRemovalGate": "compositor-idle",
+    "workspaceRetargetPolicy": "last-painted-position-quintic-zero-velocity"
+  },
+  "p4_last_source": {
+    "valid": false
+  },
+  "scroll_capture": {
+    "active": false,
+    "association": "output-only-no-paint-to-present-join",
+    "captureId": 0,
+    "clockDomain": "steady-clock-monotonic-relative-ms",
+    "continuousRepaintFallbackFullRequests": 0,
+    "continuousRepaintFullRequests": 0,
+    "durationMs": 10000,
+    "lifecycle": [],
+    "outputs": [],
+    "paintedFrames": [],
+    "positionUnit": "logical-px",
+    "presentations": [],
+    "repaintFullRequests": 0,
+    "repaintOutputRequests": 0,
+    "repaintScope": "ViewportClipEffect-full-events-and-profile-dependent-continuation-excludes-workspace-adapter",
+    "truncated": false,
+    "velocityUnit": "logical-px-per-second",
+    "version": 1
+  },
+  "error": "RuntimeError('P3 condition timed out')",
+  "records": [
+    {
+      "phase": "bootstrap",
+      "kind": "private-shortcut-service",
+      "stub": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_D",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 840.0,
+      "y": 679.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 840.0,
+          "y": 679.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 628.0,
+      "y": 679.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 628.0,
+          "y": 679.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 574.66796875,
+      "y": 649.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 574.66796875,
+          "y": 649.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 840.0,
+      "y": 654.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 840.0,
+          "y": 654.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p3-geometry",
+      "label": "initial-safe-client-ack",
+      "ready": true,
+      "workspaceId": "698a3a49-5962-4bac-a227-ce66c4fb18e3",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "d5455843-8495-4364-a89d-eabbd77c6d83",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "788d3e5c-de9d-4494-bfa4-50b496d8dedf",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "14359561-461e-4ec0-8228-8fb25fee9f42",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "b4a35540-433c-4ffc-9e3a-934cc8502bc2",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Resize",
+      "spontaneous": true
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Resize",
+      "spontaneous": true
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Resize",
+      "spontaneous": true
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_D",
+      "event": "Resize",
+      "spontaneous": true
+    }
+  ],
+  "ended_utc": "2026-10-16T01:42:45.447462+00:00"
+}

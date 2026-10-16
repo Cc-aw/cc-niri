@@ -1,0 +1,275 @@
+[
+  {
+    "name": "core-Debug-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "native",
+      "-B",
+      "build/rust-Debug",
+      "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+      "-DCC_NIRI_BUILD_KWIN_ADAPTERS=OFF",
+      "-DCMAKE_BUILD_TYPE=Debug",
+      "-DBUILD_TESTING=ON"
+    ],
+    "exit_code": 0,
+    "expected_rejection": false,
+    "elapsed_seconds": 0.16,
+    "status": "PASS"
+  },
+  {
+    "name": "core-Debug-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/rust-Debug",
+      "--parallel",
+      "2"
+    ],
+    "exit_code": 0,
+    "expected_rejection": false,
+    "elapsed_seconds": 2.32,
+    "status": "PASS"
+  },
+  {
+    "name": "core-Debug-ctest",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "build/rust-Debug",
+      "--output-on-failure"
+    ],
+    "exit_code": 0,
+    "expected_rejection": false,
+    "elapsed_seconds": 39.02,
+    "status": "PASS"
+  },
+  {
+    "name": "core-Release-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "native",
+      "-B",
+      "build/rust-Release",
+      "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+      "-DCC_NIRI_BUILD_KWIN_ADAPTERS=OFF",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DBUILD_TESTING=ON"
+    ],
+    "exit_code": 0,
+    "expected_rejection": false,
+    "elapsed_seconds": 0.16,
+    "status": "PASS"
+  },
+  {
+    "name": "core-Release-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/rust-Release",
+      "--parallel",
+      "2"
+    ],
+    "exit_code": 0,
+    "expected_rejection": false,
+    "elapsed_seconds": 3.52,
+    "status": "PASS"
+  },
+  {
+    "name": "core-Release-ctest",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "build/rust-Release",
+      "--output-on-failure"
+    ],
+    "exit_code": 0,
+    "expected_rejection": false,
+    "elapsed_seconds": 8.38,
+    "status": "PASS"
+  },
+  {
+    "name": "umbrella-Debug-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "native",
+      "-B",
+      "build/native-r7-debug",
+      "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+      "-DCC_NIRI_BUILD_KWIN_ADAPTERS=ON",
+      "-DCMAKE_BUILD_TYPE=Debug",
+      "-DBUILD_TESTING=ON"
+    ],
+    "exit_code": 0,
+    "expected_rejection": false,
+    "elapsed_seconds": 1.17,
+    "status": "PASS"
+  },
+  {
+    "name": "umbrella-Debug-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/native-r7-debug",
+      "--parallel",
+      "2"
+    ],
+    "exit_code": 0,
+    "expected_rejection": false,
+    "elapsed_seconds": 6.72,
+    "status": "PASS"
+  },
+  {
+    "name": "umbrella-Debug-ctest",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "build/native-r7-debug",
+      "--output-on-failure"
+    ],
+    "exit_code": 0,
+    "expected_rejection": false,
+    "elapsed_seconds": 49.64,
+    "status": "PASS"
+  },
+  {
+    "name": "native-OFF-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "native",
+      "-B",
+      "build/native-r7-production",
+      "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DBUILD_TESTING=OFF"
+    ],
+    "exit_code": 0,
+    "expected_rejection": false,
+    "elapsed_seconds": 0.97,
+    "status": "PASS"
+  },
+  {
+    "name": "native-OFF-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/native-r7-production",
+      "--parallel",
+      "2"
+    ],
+    "exit_code": 0,
+    "expected_rejection": false,
+    "elapsed_seconds": 0.06,
+    "status": "PASS"
+  },
+  {
+    "name": "native-OFF-targets",
+    "command": [
+      "cmake",
+      "--build",
+      "build/native-r7-production",
+      "--target",
+      "help"
+    ],
+    "exit_code": 0,
+    "expected_rejection": false,
+    "elapsed_seconds": 0.02,
+    "status": "PASS"
+  },
+  {
+    "name": "bridge-OFF-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "bridge",
+      "-B",
+      "build/bridge-r7-production",
+      "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DBUILD_TESTING=OFF"
+    ],
+    "exit_code": 0,
+    "expected_rejection": false,
+    "elapsed_seconds": 0.16,
+    "status": "PASS"
+  },
+  {
+    "name": "bridge-OFF-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/bridge-r7-production",
+      "--parallel",
+      "2"
+    ],
+    "exit_code": 0,
+    "expected_rejection": false,
+    "elapsed_seconds": 0.06,
+    "status": "PASS"
+  },
+  {
+    "name": "bridge-OFF-targets",
+    "command": [
+      "cmake",
+      "--build",
+      "build/bridge-r7-production",
+      "--target",
+      "help"
+    ],
+    "exit_code": 0,
+    "expected_rejection": false,
+    "elapsed_seconds": 0.02,
+    "status": "PASS"
+  },
+  {
+    "name": "production-boundary",
+    "command": [
+      "python3",
+      "tools/check-native-boundary.py",
+      "build/bridge-r7-production/cc-niri-bridge",
+      "/home/cc/cc_niri/build/native-r7-production/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+      "/home/cc/cc_niri/build/native-r7-production/bin/kwin/effects/plugins/cc-niri-focus-ring.so"
+    ],
+    "exit_code": 0,
+    "expected_rejection": false,
+    "elapsed_seconds": 0.11,
+    "status": "PASS"
+  },
+  {
+    "name": "reject-rustc",
+    "command": [
+      "cmake",
+      "-S",
+      "native",
+      "-B",
+      "/tmp/cc-niri-p4-toolchain-_qujbcv2/rustc-build",
+      "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+      "-DCC_NIRI_BUILD_KWIN_ADAPTERS=OFF",
+      "-DCC_NIRI_RUSTC_EXECUTABLE=/tmp/cc-niri-p4-toolchain-_qujbcv2/wrong-rustc"
+    ],
+    "exit_code": 1,
+    "expected_rejection": true,
+    "elapsed_seconds": 0.21,
+    "status": "PASS"
+  },
+  {
+    "name": "reject-cargo",
+    "command": [
+      "cmake",
+      "-S",
+      "native",
+      "-B",
+      "/tmp/cc-niri-p4-toolchain-_qujbcv2/cargo-build",
+      "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+      "-DCC_NIRI_BUILD_KWIN_ADAPTERS=OFF",
+      "-DCC_NIRI_CARGO_EXECUTABLE=/tmp/cc-niri-p4-toolchain-_qujbcv2/wrong-cargo"
+    ],
+    "exit_code": 1,
+    "expected_rejection": true,
+    "elapsed_seconds": 0.21,
+    "status": "PASS"
+  }
+]

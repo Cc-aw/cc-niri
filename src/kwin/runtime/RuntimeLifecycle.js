@@ -30,10 +30,19 @@ class RuntimeLifecycle {
         this.startupGeneration = 0;
     }
 
-    connect(signal, handler) {
+    connect(signal, handler, owner = null) {
         if (!signal || typeof signal.connect !== "function") return;
         signal.connect(handler);
-        this.connections.push({ signal, handler });
+        this.connections.push({ signal, handler, owner });
+    }
+
+    disconnectOwner(owner) {
+        const retained = [];
+        this.connections.forEach(connection => {
+            if (connection.owner !== owner) { retained.push(connection); return; }
+            try { connection.signal.disconnect(connection.handler); } catch (_error) { /* destroyed QObject */ }
+        });
+        this.connections = retained;
     }
 
     start() {

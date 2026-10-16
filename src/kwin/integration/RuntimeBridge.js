@@ -8,6 +8,9 @@ class RuntimeBridge {
         this.interfaceName = options.interfaceName;
         this.snapshotProvider = options.snapshotProvider;
         this.handlers = options.handlers;
+        if (options.partialController) this.handlers = Object.assign({}, this.handlers, {
+            "focus-partial-column": command => options.partialController.focusPartialRequest(command),
+        });
         this.generationAgnosticTypes = new Set(
             options.generationAgnosticTypes || []
         );
@@ -32,6 +35,11 @@ class RuntimeBridge {
     readPreviousState(callback) {
         this.invoke(this.service, this.path, this.interfaceName,
             "GetState", callback);
+    }
+
+    reportRecoveryStatus(status, callback = () => {}) {
+        this.invoke(this.service, this.path, this.interfaceName, "ReportRecoveryStatus",
+            JSON.stringify(Object.assign({}, status, { protocol: 1, type: "recovery-status", sessionId: this.sessionIdValue })), callback);
     }
 
     ensureVerticalDesktopLayout(count, callback) {
@@ -71,8 +79,10 @@ class RuntimeBridge {
     }
 
     publishMotionPlan(plan, callback) {
+        if (plan.type === "COLUMN_GEOMETRY" && plan.protocol !== 4) { callback(false); return null; }
         const envelope = Object.assign({}, plan, {
-            protocol: plan.type === "SCROLL" || plan.type === "COLUMN_REINDEX" ? 2 : this.protocol,
+            protocol: plan.type === "COLUMN_GEOMETRY" ? 4 : plan.type === "PARTIAL_SCROLL" ? 3 :
+                plan.type === "SCROLL" || plan.type === "COLUMN_REINDEX" ? 2 : this.protocol,
             sessionId: this.sessionIdValue,
         });
         this.invoke(this.service, this.path, this.interfaceName,
@@ -81,6 +91,7 @@ class RuntimeBridge {
     }
 
     armScrollPlan(plan, callback) {
+        if (plan.type === "COLUMN_GEOMETRY" && plan.protocol !== 4) { callback(false); return; }
         const envelope = Object.assign({}, plan, { sessionId: this.sessionIdValue });
         this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1",
             "ArmScrollPlan", JSON.stringify(envelope), callback);
@@ -94,6 +105,33 @@ class RuntimeBridge {
     scrollMotionStatus(callback) {
         this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1",
             "GetScrollMotionStatus", callback);
+    }
+
+    partialScrollCapability(callback) {
+        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1",
+            "GetPartialScrollCapability", callback);
+    }
+
+    partialPaintedState(callback) {
+        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1",
+            "GetPartialPaintedState", callback);
+    }
+
+    columnGeometryCapability(callback) {
+        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1", "GetColumnGeometryCapability", callback);
+    }
+    columnGeometrySource(entries, callback) {
+        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1", "GetColumnGeometrySourceFor", JSON.stringify({entries}), callback);
+    }
+    columnGeometryCompletion(callback) {
+        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1", "GetColumnGeometryCompletion", callback);
+    }
+    disarmColumnGeometry(epoch, callback) {
+        this.disarmScrollPlan(epoch, () => this.scrollMotionStatus(raw => {
+            let proof;try {proof=typeof raw === "string" ? JSON.parse(raw) : raw;} catch (_error) {callback(false);return;}
+            callback(Boolean(proof && proof.active===false && proof.clipHandoffActive!==true &&
+                proof.sessionId===this.sessionIdValue && Number.isSafeInteger(proof.epoch) && proof.epoch<=epoch));
+        }));
     }
 
     workspaceTransitionStatus(callback) {

@@ -217,6 +217,113 @@ with tempfile.TemporaryDirectory(prefix="cc-niri-scroll-") as directory:
         ordinary = copy.deepcopy(center_return)
         ordinary.update(epoch=5, oldScrollOffsetX=0, newScrollOffsetX=630)
         assert call("PublishMotionPlan", ordinary), "canonical SCROLL after reindex rejected"
+        # V2 camera-only protocol is additive; legacy SCROLL/reindex stay strict.
+        centered_state.update(generation=5, columns=pair_columns, workspaces=[dict(id="A", columns=pair_columns)])
+        partial3 = dict(protocol=3, type="PARTIAL_SCROLL", sessionId="single-center", workspaceId="A",
+                        targetOutput="eDP-1", epoch=6, issuedAt=1004, scopeRevision=1, maxCamera=1696,
+                        oldScrollOffsetX=212, newScrollOffsetX=1060, clipPartial=True,
+                        viewport=dict(x=0, y=0, width=2560, height=1440),
+                        layoutRect=dict(x=0, y=66, width=2560, height=1358), entries=[
+                            dict(windowId=first, columnId=1, logicalX=652, pixelWidth=1680, oldPlacement="visible", newPlacement="visible"),
+                            dict(windowId=second, columnId=2, logicalX=2348, pixelWidth=1256, oldPlacement="visible", newPlacement="visible")])
+        assert not call("PublishMotionPlan", partial3), "partial passed before membership ACK"
+        assert call("PublishState", centered_state)
+        for patch in [dict(protocol=2), dict(scopeRevision=0), dict(maxCamera=100), dict(clipPartial="true"),
+                      dict(layoutRect=dict(x=-1, y=66, width=2560, height=1358)),
+                      dict(entries=partial3["entries"] + [partial3["entries"][0]]),
+                      dict(type="COLUMN_REINDEX", sourceWindowId=first, sourceLogicalX=652)]:
+            malformed = copy.deepcopy(partial3); malformed.update(patch)
+            assert not call("PublishMotionPlan", malformed), "malformed partial accepted: " + str(patch)
+        assert call("PublishMotionPlan", partial3)
+        drain(lambda: ("MotionPlanChanged", partial3) in events)
+        assert events[-2:] == [("StateChanged", centered_state), ("MotionPlanChanged", partial3)]
+        assert call("PublishMotionPlan", partial3), "partial duplicate rejected"
+        conflict = copy.deepcopy(partial3); conflict["scopeRevision"] = 2
+        assert not call("PublishMotionPlan", conflict), "partial conflicting epoch accepted"
+        assert not call("PublishMotionPlan", ordinary), "legacy bypassed partial epoch"
+        for field, value in [("sessionId", "old"), ("workspaceId", "B"), ("targetOutput", "other")]:
+            malformed = copy.deepcopy(partial3); malformed.update(epoch=7); malformed[field] = value
+            assert not call("PublishMotionPlan", malformed), "partial scope mismatch accepted"
+        returning3 = copy.deepcopy(partial3)
+        returning3.update(epoch=7, oldScrollOffsetX=1060, newScrollOffsetX=212)
+        assert call("PublishMotionPlan", returning3)
+        drain(lambda: ("MotionPlanChanged", returning3) in events)
+        focus = dict(protocol=1, type="focus-partial-column", commandId="partial-focus-test", sessionId="single-center",
+                     workspaceId="A", targetOutput="eDP-1", epoch=7, scopeRevision=1, windowUuid=second, baseGeneration=5)
+        for field, value in [("sessionId", "old"), ("workspaceId", "B"), ("targetOutput", "other"),
+                             ("epoch", 6), ("epoch", 7.5), ("scopeRevision", "1"), ("scopeRevision", 2), ("windowUuid", "unknown")]:
+            forged = copy.deepcopy(focus); forged[field] = value
+            assert not call("RequestCommand", forged), "unscoped partial focus accepted"
+        assert call("RequestCommand", focus)
+        pending = json.loads(str(bus.get_object(service, object_path).get_dbus_method("TakePendingCommand", interface)()))
+        assert pending == focus
+        assert call("RequestCommand", focus), "duplicate partial focus not idempotent"
+        assert not str(bus.get_object(service, object_path).get_dbus_method("TakePendingCommand", interface)()), "duplicate queued focus twice"
+        print("PASS isolated PARTIAL_SCROLL v3 membership, strict schema, shared sequence, scope and reversal")
+        geometry = dict(protocol=4, type="COLUMN_GEOMETRY", sessionId="single-center", workspaceId="A",
+                        targetOutput="eDP-1", epoch=8, issuedAt=1005, sourceEpoch=7, sourceSampleSerial=10,
+                        scopeRevision=1, oldScrollOffsetX=212, newScrollOffsetX=636,
+                        oldMaxCamera=1696, maxCamera=2544, clipPartial=True,
+                        viewport=dict(x=0, y=0, width=2560, height=1440),
+                        oldLayoutRect=dict(x=0, y=66, width=2560, height=1358),
+                        layoutRect=dict(x=0, y=66, width=2560, height=1358), entries=[
+                            dict(windowId=first, columnId=1, sourceKind="painted", oldLogicalX=652,
+                                 newLogicalX=652, oldPixelWidth=1680, newPixelWidth=2528,
+                                 oldFrameRect=dict(x=440, y=66, width=1680, height=1358),
+                                 oldVisualRect=dict(x=440, y=66, width=1680, height=1358),
+                                 committedTargetRect=dict(x=16, y=66, width=2528, height=1358),
+                                 oldPlacement="visible", newPlacement="visible"),
+                            dict(windowId=second, columnId=2, sourceKind="painted", oldLogicalX=2348,
+                                 newLogicalX=3196, oldPixelWidth=1256, newPixelWidth=1256,
+                                 oldFrameRect=dict(x=1304, y=66, width=1256, height=1358),
+                                 oldVisualRect=dict(x=2136, y=66, width=1256, height=1358),
+                                 committedTargetRect=dict(x=1304, y=66, width=1256, height=1358),
+                                 oldPlacement="visible", newPlacement="parked")])
+        # Run the real JS producer, then pass its bytes through private D-Bus,
+        # the shared Qt DTO and Rust validator. Handwritten DTOs alone would not
+        # catch schema drift between the control plane and the Native decoder.
+        generated = json.loads(subprocess.check_output(["node", str(Path(__file__).parent /
+            "helpers/scroll-layout-v2-geometry-wire.js"), first, second], text=True))
+        assert generated == geometry, "JS/native geometry wire contract diverged"
+        geometry = generated
+        geometry_columns = [dict(uuid=first, widthMode="full"), dict(uuid=second, widthMode="half")]
+        centered_state.update(generation=6, columns=geometry_columns,
+                              workspaces=[dict(id="A", columns=geometry_columns)])
+        assert call("PublishState", centered_state), "new width membership ACK rejected"
+        for field, value in [("sessionId", "old"), ("workspaceId", "B"), ("targetOutput", "other"),
+                             ("sourceEpoch", 8), ("sourceSampleSerial", "10"), ("oldMaxCamera", -1),
+                             ("clipPartial", "true"), ("protocol", 3)]:
+            bad = copy.deepcopy(geometry); bad[field] = value
+            assert not call("PublishMotionPlan", bad), "malformed geometry accepted: " + field
+        for mutate in [lambda r: r.update(windowId="unknown"), lambda r: r.update(oldLogicalX="652"),
+                       lambda r: r.update(oldPixelWidth=1679.99), lambda r: r["committedTargetRect"].update(x=-1),
+                       lambda r: r.update(sourceKind="parked"), lambda r: r.update(sourceKind="culled"), lambda r: r.update(columnId=2)]:
+            bad = copy.deepcopy(geometry); mutate(bad["entries"][0])
+            assert not call("PublishMotionPlan", bad), "invalid geometry row accepted"
+        assert call("PublishMotionPlan", geometry), "typed geometry membership/validator rejected"
+        drain(lambda: ("MotionPlanChanged", geometry) in events)
+        assert call("PublishMotionPlan", geometry), "typed geometry duplicate not idempotent"
+        # Frame-ready is only a scoped wakeup; a public command cannot become
+        # Native completion authority. JS must still query the Native endpoint.
+        ready=dict(protocol=1,type="scroll-frame-ready",commandId="geometry-ready",sessionId="single-center",
+                   baseGeneration=6,workspaceId="A",targetOutput="eDP-1",scopeRevision=1,epoch=8)
+        for field,value in [("epoch",7),("scopeRevision",2),("workspaceId","other"),("targetOutput","other"),("sessionId","old")]:
+            bad=copy.deepcopy(ready);bad[field]=value
+            assert not call("RequestCommand",bad), "cross-scope frame wakeup accepted"
+        assert call("RequestCommand",ready)
+        pending=json.loads(str(bus.get_object(service,object_path).get_dbus_method("TakePendingCommand",interface)()))
+        assert pending==ready
+        assert call("RequestCommand",ready)
+        assert not str(bus.get_object(service,object_path).get_dbus_method("TakePendingCommand",interface)())
+        bad = copy.deepcopy(geometry); bad["issuedAt"] += 1
+        assert not call("PublishMotionPlan", bad), "conflicting geometry replay accepted"
+        assert not call("PublishMotionPlan", returning3), "partial bypassed shared geometry epoch"
+        resumed = copy.deepcopy(returning3)
+        resumed.update(epoch=9, maxCamera=2544, oldScrollOffsetX=636, newScrollOffsetX=1000)
+        resumed["entries"][0].update(pixelWidth=2528)
+        resumed["entries"][1].update(logicalX=3196, oldPlacement="parked")
+        assert call("PublishMotionPlan", resumed), "partial cannot resume after geometry epoch"
+        print("PASS isolated COLUMN_GEOMETRY v4 membership, Qt/Rust validation, strict source and shared epochs")
         print("PASS isolated SCROLL / typed reindex DBus payload, FIFO membership, shared epochs, duplicate, restart and source validation")
     finally:
         if server is not None:

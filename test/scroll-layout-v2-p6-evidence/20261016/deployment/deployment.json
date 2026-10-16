@@ -1,0 +1,119 @@
+{
+  "status": "DEPLOYED_V2_STARTUP_PASS",
+  "deployed": true,
+  "v2_enabled": true,
+  "v2_ready": false,
+  "recorded_utc": "2026-10-16T05:46:47.930934+00:00",
+  "authorization": "User: 开始部署",
+  "candidate_manifest": "/tmp/cc-niri-p6-20261016-deploy/manifest.json",
+  "candidate_manifest_sha256": "d3298a7e0bb4b1fd7a1c16de1cc04b080f9a0986b552cd4ef9561e978c8679ed",
+  "candidate_validation_sha256": "35d163a6298104463adee1953e5403e45eaf342f7968a9bb0c4c940c6c2bd261",
+  "immutable_rollback_ready": true,
+  "rollback_dry_run": "PASS",
+  "rollback_command": "/tmp/cc-niri-p6-20261016-deploy/rollback.sh --execute",
+  "rollback_execute": "NOT RUN",
+  "commands": [
+    {
+      "command": "build/bridge/cc-niri-bridge --save-current-state",
+      "exit_code": 0
+    },
+    {
+      "command": "prepare/verify --current --require-validated",
+      "exit_code": 0
+    },
+    {
+      "command": "./install.sh --prepared-manifest /tmp/cc-niri-p6-20261016-deploy/manifest.json",
+      "exit_code": 0
+    },
+    {
+      "command": "./cc-niri stop (new V1)",
+      "exit_code": 0
+    },
+    {
+      "command": "kwriteconfig6 ScrollLayoutV2Enabled true; ./cc-niri start",
+      "exit_code": 0
+    }
+  ],
+  "startup_checks": {
+    "kwin_pid_before": 2075,
+    "kwin_pid_after": 2075,
+    "kwin_restarted": false,
+    "script_loaded": true,
+    "bridge_active": true,
+    "clip_loaded": true,
+    "ring_loaded": true,
+    "live_recovery_state": "running",
+    "live_session_matches": true,
+    "partial_enabled": true,
+    "partial_input_policy": "two-click",
+    "column_geometry_capability": {
+      "enabled": true,
+      "inputPolicy": "two-click",
+      "protocol": 4,
+      "sourcePolicy": "painted-client-frames",
+      "type": "COLUMN_GEOMETRY"
+    },
+    "actual_geometry_source_valid": true,
+    "script_errors_found": false,
+    "scope": "read-only startup/protocol checks; no synthetic user input"
+  },
+  "components": {
+    "script": {
+      "path": "/home/cc/.local/share/kwin/scripts/cc-niri-maximize/contents/code/main.js",
+      "canonical": "/home/cc/.local/share/kwin/scripts/cc-niri-maximize/contents/code/main.js",
+      "sha256": "2d9087a731b66a1df2dec43c236f7617febbda5147fdf06c77b5b3e6fc3554a1"
+    },
+    "effect": {
+      "path": "/home/cc/.local/share/kwin/effects/cc-niri-maximize-scroll-transition/contents/code/main.js",
+      "canonical": "/home/cc/.local/share/kwin/effects/cc-niri-maximize-scroll-transition/contents/code/main.js",
+      "sha256": "cb4a6aabb609ba57ecbc6287a3880210f62cfbf20fcf2814eb736b160729a629"
+    },
+    "control": {
+      "path": "/home/cc/.local/bin/cc-niri",
+      "canonical": "/home/cc/.local/bin/cc-niri",
+      "sha256": "fe6a1a9ba3bcbf2e550032ca2a598a9b2e487fe32f0597e354c484511e6bcb03"
+    },
+    "bridge": {
+      "path": "/home/cc/.local/libexec/cc-niri-bridge",
+      "canonical": "/home/cc/.local/libexec/cc-niri-bridge",
+      "sha256": "e970bb838b54525739a6b1e7d7721b54c3a8f4abacee2a9b48175bf70ce8b278"
+    },
+    "clip": {
+      "path": "/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-viewport-clip.so",
+      "canonical": "/home/cc/.local/lib/cc-niri/viewport-clip/efcced6d70a75014709310fd4473f1ead0d56c62f67e7f2f9cc2b165bbac42a1/cc-niri-viewport-clip.so",
+      "sha256": "efcced6d70a75014709310fd4473f1ead0d56c62f67e7f2f9cc2b165bbac42a1"
+    },
+    "ring": {
+      "path": "/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-focus-ring.so",
+      "canonical": "/home/cc/.local/lib/cc-niri/focus-ring/390666ff0b8a1d08f02f104dccb7e079fd02d0305069b2ad66074d2802870b70/cc-niri-focus-ring.so",
+      "sha256": "390666ff0b8a1d08f02f104dccb7e079fd02d0305069b2ad66074d2802870b70"
+    }
+  },
+  "private_logs": {
+    "install.log": {
+      "path": "/tmp/cc-niri-p6-20261016-deploy/install.log",
+      "sha256": "1ec1fa5b847e738417254c89df1efbe79cef9abd3bbd2ba737e3c5bd1f9d0b12"
+    },
+    "enable-v2.log": {
+      "path": "/tmp/cc-niri-p6-20261016-deploy/enable-v2.log",
+      "sha256": "5393003c0186fd8ea4fe38fc4b71ad1d25559211c1d5dbae9e022479787f39c8"
+    },
+    "v1-post-install.json": {
+      "path": "/tmp/cc-niri-p6-20261016-deploy/v1-post-install.json",
+      "sha256": "3f00767dbe5ac5b9cf7ff36292ef556401d40952625b372ad7b8c037617776c2"
+    },
+    "v2-post-start.json": {
+      "path": "/tmp/cc-niri-p6-20261016-deploy/v2-post-start.json",
+      "sha256": "c1702cd6efe334f52379702465be5215e4e05e5bb0de93f69ac3d59c6f8193ea"
+    },
+    "kwin-journal.log": {
+      "path": "/tmp/cc-niri-p6-20261016-deploy/kwin-journal.log",
+      "sha256": "1e13e0b52a2a6d05fc200d66f7bc53dedcff271b9d98811452adc78a79af33f9"
+    }
+  },
+  "runtime_window_data": "kept private with backup",
+  "live_interaction_acceptance": "PENDING",
+  "frame_performance": "NOT MEASURED",
+  "global_resource_budget": "NOT MEASURED",
+  "long_run": "NOT RUN"
+}

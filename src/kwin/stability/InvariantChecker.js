@@ -2,11 +2,13 @@
 
 /* cjs:start */
 const { virtualLeadingInset } = require("../layout/ColumnLayout");
+const { deriveV2Layout } = require("../layout/ContinuousColumnLayout");
 /* cjs:end */
 
 class InvariantChecker {
     constructor(options) {
         this.appState = options.appState;
+        this.getV2Geometry = options.getV2Geometry;
         this.alwaysCenterSingleColumn = options.alwaysCenterSingleColumn === true;
         this.workspaceMembership = options.workspaceMembership || null;
         this.workspaceSnapshots = options.workspaceSnapshots || null;
@@ -28,6 +30,8 @@ class InvariantChecker {
         let expectedLogicalX = virtualLeadingInset(
             this.appState.safeRect ? this.appState.safeRect.width : 0,
             this.appState.innerGap, this.alwaysCenterSingleColumn);
+        const v2 = this.getV2Geometry && this.getV2Geometry();
+        if (v2) expectedLogicalX = (deriveV2Layout(columns, v2).columns[0] || {}).logicalX || 0;
 
         columns.forEach((column, index) => {
             const uuid = this.normalizeUuid(column.window.internalId);
@@ -65,7 +69,7 @@ class InvariantChecker {
                     column.window.output !== this.appState.targetOutput) {
                 errors.push(`wrong-output:${column.id}`);
             }
-            expectedLogicalX += column.pixelWidth + this.appState.innerGap;
+            expectedLogicalX += column.pixelWidth + (v2 ? v2.gap : this.appState.innerGap);
         });
 
         if (this.appState.activeWorkspaceId) {
@@ -91,7 +95,7 @@ class InvariantChecker {
             errors.push(`focus-index:${this.appState.focusedColumnIndex}`);
         }
 
-        const maximumOffset = Math.max(0, this.stripWidth() -
+        const maximumOffset = v2 ? deriveV2Layout(columns, v2).maxCamera : Math.max(0, this.stripWidth() -
             (this.appState.safeRect ? this.appState.safeRect.width : 0));
         if (this.appState.scrollOffsetX < 0 ||
                 this.appState.scrollOffsetX > maximumOffset) {

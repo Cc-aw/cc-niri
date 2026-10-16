@@ -35,3 +35,15 @@ for (const patch of [{ epoch: 11 }, { sessionId: "old" }, { protocol: 2 },
     assert.ok(readNativeScrollMarker(paired(patch)), "unrelated or stale width marker cannot suppress Native ownership");
 }
 console.log("PASS native motion capability plus typed scoped frame ownership, Wide and fallback boundaries");
+const partialMarker = { protocol: 3, type: "PARTIAL_SCROLL", scopeRevision: 1 };
+assert.equal(classify(fixture("continuing", left, true, partialMarker), right, left), "continuing");
+for (const patch of [{ scopeRevision: 0 }, { scopeRevision: NaN }, { scopeRevision: 0.5 },
+    { protocol: 2 }, { type: "SCROLL" }]) {
+    assert.equal(readNativeScrollMarker(fixture("continuing", left, true, { ...partialMarker, ...patch })), null);
+}
+
+const geometryMarker = {protocol:4,type:"COLUMN_GEOMETRY",scopeRevision:1};
+assert.equal(classify(fixture("continuing",left,true,geometryMarker),right,{...left,width:1348}),"continuing");
+assert.equal(classify(fixture("continuing",left,true,geometryMarker),right,{...left,x:137,width:731}),"continuing","late unknown ACK remains exclusively Native-owned");
+assert.equal(classify(fixture("incoming",left,true,geometryMarker),parking,{...left,width:1348}),"incoming");
+assert.equal(readNativeScrollMarker(fixture("continuing",left,true,{...geometryMarker,scopeRevision:0})),null);

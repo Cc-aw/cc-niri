@@ -1,0 +1,87 @@
+[  2%] Built target cc-niri-workspace-recycle-qobject-tests_qmlimportscan
+[  2%] Building Rust Native Core (release)
+[  4%] Built target cc-niri-workspace-qobject-tests_qmlimportscan
+[  5%] Built target cc-niri-kwin-syntax-tests_qmlimportscan
+   Compiling cc-niri-native-core v0.1.0 (/home/cc/cc_niri/native/rust/cc-niri-native-core)
+[  7%] Building CXX object rust-core/CMakeFiles/cc-niri-golden-reference.dir/tests/reference/FocusRingCore.cpp.o
+[  8%] Linking CXX static library libcc-niri-golden-reference.a
+[ 14%] Built target cc-niri-golden-reference
+[ 14%] Built target cc-niri-workspace-recycle-qobject-tests_autogen_timestamp_deps
+[ 14%] Built target cc-niri-workspace-qobject-tests_autogen_timestamp_deps
+[ 14%] Built target cc-niri-kwin-syntax-tests_autogen_timestamp_deps
+[ 16%] Built target cc-niri-workspace-recycle-qobject-tests_autogen
+[ 17%] Built target cc-niri-workspace-qobject-tests_autogen
+[ 19%] Built target cc-niri-kwin-syntax-tests_autogen
+[ 23%] Built target cc-niri-workspace-recycle-qobject-tests
+    Finished `release` profile [optimized] target(s) in 1.40s
+[ 23%] Built target cc-niri-rust-build
+[ 27%] Built target cc-niri-workspace-qobject-tests
+[ 32%] Built target cc-niri-kwin-syntax-tests
+[ 33%] Building CXX object rust-core/CMakeFiles/cc-niri-native-adapters.dir/home/cc/cc_niri/native/viewport-clip/RustSpring.cpp.o
+[ 35%] Building CXX object rust-core/CMakeFiles/cc-niri-native-adapters.dir/home/cc/cc_niri/native/viewport-clip/RustViewportMotion.cpp.o
+[ 36%] Building CXX object rust-core/CMakeFiles/cc-niri-native-adapters.dir/home/cc/cc_niri/native/viewport-clip/RustScrollViewportRuntime.cpp.o
+[ 38%] Building CXX object rust-core/CMakeFiles/cc-niri-native-adapters.dir/home/cc/cc_niri/native/viewport-clip/RustScrollPlanSequence.cpp.o
+[ 39%] Building CXX object rust-core/CMakeFiles/cc-niri-native-adapters.dir/home/cc/cc_niri/native/focus-ring/RustFocusRingContext.cpp.o
+[ 41%] Linking CXX static library libcc-niri-native-adapters.a
+[ 41%] Built target cc-niri-native-adapters
+[ 41%] Built target cc-niri-bridge_autogen_timestamp_deps
+[ 41%] Built target cc-scroll-motion-plan-tests_autogen_timestamp_deps
+[ 41%] Built target cc-niri-bridge-tests_autogen_timestamp_deps
+[ 42%] Building CXX object rust-core/CMakeFiles/cc-niri-workspace-motion-differential.dir/tests/WorkspaceMotionContractTest.cpp.o
+[ 44%] Building CXX object rust-core/CMakeFiles/cc-niri-ring-differential.dir/tests/FocusRingDifferentialTest.cpp.o
+[ 45%] Linking CXX executable cc-niri-ring-differential
+[ 45%] Built target cc-niri-ring-differential
+[ 47%] Building CXX object rust-core/CMakeFiles/cc-niri-spring-differential.dir/tests/SpringDifferentialTest.cpp.o
+[ 48%] Linking CXX executable cc-niri-workspace-motion-differential
+[ 48%] Built target cc-niri-workspace-motion-differential
+[ 50%] Building CXX object rust-core/CMakeFiles/cc-niri-motion-differential.dir/tests/ViewportMotionDifferentialTest.cpp.o
+[ 51%] Linking CXX executable cc-niri-spring-differential
+[ 51%] Built target cc-niri-spring-differential
+[ 52%] Building CXX object rust-core/CMakeFiles/cc-niri-protocol-differential.dir/tests/NativeProtocolDifferentialTest.cpp.o
+[ 54%] Linking CXX executable cc-niri-motion-differential
+[ 54%] Built target cc-niri-motion-differential
+[ 55%] Building CXX object rust-core/CMakeFiles/cc-niri-scroll-differential.dir/tests/ScrollRuntimeDifferentialTest.cpp.o
+[ 57%] Linking CXX executable cc-niri-protocol-differential
+[ 57%] Built target cc-niri-protocol-differential
+[ 58%] Building CXX object rust-core/CMakeFiles/cc-niri-rust-animation-frame-tests.dir/home/cc/cc_niri/native/viewport-clip/tests/AnimationFrameContextTest.cpp.o
+[ 60%] Linking CXX executable cc-niri-scroll-differential
+[ 60%] Built target cc-niri-scroll-differential
+[ 61%] Building CXX object rust-core/CMakeFiles/cc-niri-rust-focus-fade-tests.dir/tests/FocusFadeContractTest.cpp.o
+[ 63%] Linking CXX executable cc-niri-rust-focus-fade-tests
+[ 64%] Linking CXX executable cc-niri-rust-animation-frame-tests
+[ 64%] Built target cc-niri-rust-focus-fade-tests
+[ 66%] Building CXX object rust-core/CMakeFiles/cc-niri-rust-motion-tests.dir/home/cc/cc_niri/native/viewport-clip/tests/ViewportMotionTest.cpp.o
+[ 66%] Built target cc-niri-rust-animation-frame-tests
+[ 67%] Building CXX object rust-core/CMakeFiles/cc-niri-rust-scroll-tests.dir/home/cc/cc_niri/native/viewport-clip/tests/ScrollViewportRuntimeTest.cpp.o
+[ 69%] Linking CXX executable cc-niri-rust-motion-tests
+[ 69%] Built target cc-niri-rust-motion-tests
+[ 70%] Building CXX object rust-core/CMakeFiles/cc-niri-rust-ring-context-tests.dir/home/cc/cc_niri/native/focus-ring/tests/FocusRingContextTest.cpp.o
+[ 72%] Linking CXX executable cc-niri-rust-ring-context-tests
+[ 72%] Built target cc-niri-rust-ring-context-tests
+[ 73%] Building CXX object rust-core/CMakeFiles/cc-niri-rust-core-smoke-tests.dir/tests/RustCoreSmokeTest.cpp.o
+[ 75%] Linking CXX executable cc-niri-rust-core-smoke-tests
+[ 75%] Built target cc-niri-rust-core-smoke-tests
+[ 76%] Automatic MOC for target cc-niri-bridge
+[ 76%] Built target cc-niri-bridge_autogen
+[ 77%] Automatic MOC for target cc-scroll-motion-plan-tests
+[ 77%] Built target cc-scroll-motion-plan-tests_autogen
+[ 79%] Automatic MOC for target cc-niri-bridge-tests
+[ 79%] Built target cc-niri-bridge-tests_autogen
+[ 80%] Building CXX object CMakeFiles/cc-niri-bridge.dir/cc-niri-bridge_autogen/mocs_compilation.cpp.o
+[ 82%] Linking CXX executable cc-niri-rust-scroll-tests
+[ 82%] Built target cc-niri-rust-scroll-tests
+[ 83%] Building CXX object CMakeFiles/cc-scroll-motion-plan-tests.dir/cc-scroll-motion-plan-tests_autogen/mocs_compilation.cpp.o
+[ 85%] Building CXX object CMakeFiles/cc-niri-bridge.dir/src/CCNiriBridge.cpp.o
+[ 86%] Building CXX object CMakeFiles/cc-scroll-motion-plan-tests.dir/src/CCNiriBridge.cpp.o
+[ 88%] Building CXX object CMakeFiles/cc-niri-bridge.dir/src/LegacyScrollDockAdaptor.cpp.o
+[ 89%] Building CXX object CMakeFiles/cc-scroll-motion-plan-tests.dir/tests/ScrollMotionPlanTest.cpp.o
+[ 91%] Building CXX object CMakeFiles/cc-niri-bridge.dir/src/main.cpp.o
+[ 92%] Linking CXX executable cc-niri-bridge
+[ 92%] Built target cc-niri-bridge
+[ 94%] Building CXX object CMakeFiles/cc-niri-bridge-tests.dir/cc-niri-bridge-tests_autogen/mocs_compilation.cpp.o
+[ 95%] Linking CXX executable cc-scroll-motion-plan-tests
+[ 95%] Built target cc-scroll-motion-plan-tests
+[ 97%] Building CXX object CMakeFiles/cc-niri-bridge-tests.dir/src/CCNiriBridge.cpp.o
+[ 98%] Building CXX object CMakeFiles/cc-niri-bridge-tests.dir/tests/CCNiriBridgeTest.cpp.o
+[100%] Linking CXX executable cc-niri-bridge-tests
+[100%] Built target cc-niri-bridge-tests

@@ -82,6 +82,9 @@ impl ViewportMotion {
         }
         self.params = params;
     }
+    pub(crate) fn started_at(&self) -> i64 {
+        self.started_at
+    }
     pub fn stiffness(&self) -> f64 {
         self.params.stiffness
     }

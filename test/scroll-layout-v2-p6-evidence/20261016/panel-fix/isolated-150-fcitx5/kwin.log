@@ -1,0 +1,141 @@
+kwin_scene_opengl: eglInitialize failed
+kwin_scene_opengl: Error during eglInitialize  "EGL_NOT_INITIALIZED"
+kwin_scene_opengl: eglInitialize failed
+kwin_scene_opengl: Error during eglInitialize  "EGL_NOT_INITIALIZED"
+Accepting client connections on sockets: QList("cc-niri-p0")
+kwin_screencast: Failed to connect PipeWire context
+ShapeCorners: loading shaders...
+ShapeCorners: shaders loaded.
+ShapeCorners: Writing Breeze config
+I2026-10-16 13:53:01.763890 instance.cpp:669] Starting fcitx5 5.1.23
+I2026-10-16 13:53:01.768995 instance.cpp:1448] Override Enabled Addons: {classic}
+I2026-10-16 13:53:01.769022 instance.cpp:1449] Override Disabled Addons: {notifications, clipboard, cloudpinyin}
+I2026-10-16 13:53:01.771321 addonmanager.cpp:208] Loaded addon imselector
+I2026-10-16 13:53:01.771860 addonmanager.cpp:208] Loaded addon unicode
+I2026-10-16 13:53:01.773544 addonmanager.cpp:208] Loaded addon quickphrase
+I2026-10-16 13:53:01.775607 addonmanager.cpp:208] Loaded addon xcb
+I2026-10-16 13:53:01.777448 addonmanager.cpp:208] Loaded addon wayland
+I2026-10-16 13:53:01.778142 addonmanager.cpp:208] Loaded addon waylandim
+I2026-10-16 13:53:01.778768 keyboard.cpp:229] Attempting to load keyboard from: ["/usr/share/xkeyboard-config-2"] Rule: evdev
+I2026-10-16 13:53:01.783469 addonmanager.cpp:208] Loaded addon keyboard
+I2026-10-16 13:53:01.787905 addonmanager.cpp:208] Loaded addon pinyinhelper
+I2026-10-16 13:53:01.789270 addonmanager.cpp:208] Loaded addon luaaddonloader
+I2026-10-16 13:53:01.790873 addonmanager.cpp:208] Loaded addon dbus
+I2026-10-16 13:53:01.792035 addonmanager.cpp:208] Loaded addon ibusfrontend
+I2026-10-16 13:53:01.793218 addonmanager.cpp:208] Loaded addon imeapi
+I2026-10-16 13:53:01.794134 addonmanager.cpp:208] Loaded addon dbusfrontend
+I2026-10-16 13:53:01.794918 addonmanager.cpp:208] Loaded addon fcitx4frontend
+I2026-10-16 13:53:01.796398 addonmanager.cpp:208] Loaded addon xim
+I2026-10-16 13:53:01.818551 inputmethodmanager.cpp:213] Found 749 input method(s) in addon keyboard
+I2026-10-16 13:53:01.819504 addonmanager.cpp:208] Loaded addon kimpanel
+I2026-10-16 13:53:01.820141 addonmanager.cpp:208] Loaded addon virtualkeyboard
+I2026-10-16 13:53:01.837878 classicui.cpp:110] Created classicui for wayland display:
+I2026-10-16 13:53:01.837911 addonmanager.cpp:208] Loaded addon classicui
+I2026-10-16 13:53:01.838689 addonmanager.cpp:208] Loaded addon notificationitem
+I2026-10-16 13:53:01.840982 dbusmodule.cpp:844] Service name change: org.fcitx.Fcitx5  :1.8
+I2026-10-16 13:53:01.841023 kimpanel.cpp:138] Kimpanel new owner: 
+I2026-10-16 13:53:01.841555 virtualkeyboard.cpp:230] VirtualKeyboard new owner: 
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] READY scrollRuntimeBackend= "Rust"
+cc.niri.focus.ring: [FOCUS_RING] READY isolated post-window border coreBackend= Rust
+I2026-10-16 13:53:01.993050 portalsettingmonitor.cpp:97] A new portal show up, start a new query.
+I2026-10-16 13:53:01.993125 portalsettingmonitor.cpp:97] A new portal show up, start a new query.
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"d37f09d4-71c7-4817-b9fc-1680a81c0972\"},{\"columnId\":2,\"logicalX\":2348,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"76c730a9-9ef7-4b2d-abd4-de61472d75da\"}],\"epoch\":1,\"issuedAt\":1792129982295,\"layoutRect\":{\"height\":1358,\"width\":2560,\"x\":0,\"y\":66},\"maxCamera\":1696,\"newScrollOffsetX\":212,\"oldScrollOffsetX\":212,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":1,\"sessionId\":\"p3-private\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"cfb7ba31-62e9-42b1-9f6e-c8cfd3ca98d2\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+I2026-10-16 13:53:02.896552 addonmanager.cpp:208] Loaded addon punctuation
+E2026-10-16 13:53:02.923891 pinyin.cpp:937] Failed to load pinyin history: io fail: iostream error
+I2026-10-16 13:53:02.927315 addonmanager.cpp:208] Loaded addon pinyin
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-ljhtbn09/p5-entry-1.js:9376:9 Variable "app" is used before its declaration at 9425:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-ljhtbn09/p5-entry-1.js:9387:47 Variable "app" is used before its declaration at 9425:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-ljhtbn09/p5-entry-1.js:9279:42 Variable "app" is used before its declaration at 9425:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-ljhtbn09/p5-entry-1.js:9327:9 Variable "app" is used before its declaration at 9425:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-ljhtbn09/p5-entry-1.js:7236:28 Variable "geometryCommitter" is used before its declaration at 7275:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-ljhtbn09/p5-entry-1.js:7317:9 Variable "scrollPlanCommitGate" is used before its declaration at 7344:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-ljhtbn09/p5-entry-1.js:7327:17 Variable "scrollPlanCommitGate" is used before its declaration at 7344:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-ljhtbn09/p5-entry-1.js:7329:21 Variable "scrollPlanCommitGate" is used before its declaration at 7344:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-ljhtbn09/p5-entry-1.js:7352:27 Variable "deferredScrollParking" is used before its declaration at 7364:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-ljhtbn09/p5-entry-1.js:7353:28 Variable "deferredScrollParking" is used before its declaration at 7364:7.
+js: [cc-niri-maximize] [runtime] configured secondary output HDMI-A-1 not found; using rightmost non-primary output
+js: [cc-niri-maximize] [runtime] loaded primary=Virtual-0 secondary=Virtual-1 primaryOuter=50/24/8/24 secondaryOuter=24/24/24/24
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "d37f09d4-71c7-4817-b9fc-1680a81c0972"
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_A reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_B reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_C reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_D reason=workspace-mount
+js: [cc-niri-maximize] [runtime] MOUNT id=cfb7ba31-62e9-42b1-9f6e-c8cfd3ca98d2 columns=4 reason=script-start-workspace
+js: [cc-niri-maximize] [stability] BEGIN epoch=1 reason=workspace-mount
+js: [cc-niri-maximize] [stability] END epoch=1 reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE untracked->ignored caption= reason=workspace-window-added
+js: [cc-niri-maximize] [runtime] native-only reason=skip-taskbar caption=
+js: [cc-niri-maximize] [bridge] PUBLISH reason=script-start generation=1 columns=4 accepted=true
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-mount generation=2 columns=4 accepted=true
+js: [cc-niri-maximize] [layout] LAYOUT reason=workspace-mount column=1 physicalX=652 width=1256 actual=440,66 1680x1358
+js: [cc-niri-maximize] [layout] LAYOUT reason=workspace-mount column=2 physicalX=1304 width=1256 actual=1304,66 1256x1358
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"d37f09d4-71c7-4817-b9fc-1680a81c0972\"},{\"columnId\":2,\"logicalX\":1924,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"76c730a9-9ef7-4b2d-abd4-de61472d75da\"}],\"epoch\":1,\"geometryBootstrap\":true,\"issuedAt\":1792129983515,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":3816,\"newScrollOffsetX\":0,\"oldScrollOffsetX\":0,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":1,\"sessionId\":\"1a1434563dc-65b8e84c\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"cfb7ba31-62e9-42b1-9f6e-c8cfd3ca98d2\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-window-closed generation=3 columns=4 accepted=true
+js: [cc-niri-maximize] [stability] BEGIN epoch=2 reason=window-closed
+js: [cc-niri-maximize] [stability] END epoch=2 reason=window-closed
+js: [cc-niri-maximize] [stability] BEGIN epoch=3 reason=window-closed
+js: [cc-niri-maximize] [stability] END epoch=3 reason=window-closed
+js: [cc-niri-maximize] [stability] BEGIN epoch=4 reason=window-closed
+js: [cc-niri-maximize] [stability] END epoch=4 reason=window-closed
+js: [cc-niri-maximize] [stability] BEGIN epoch=5 reason=window-closed
+js: [cc-niri-maximize] [stability] END epoch=5 reason=window-closed
+kwin_scripting: Received D-Bus message is error: "The name org.cc.CCNiriP0Fixture was not provided by any .service files"
+kwin_scripting: Received D-Bus message is error: "The name org.cc.CCNiriBridge was not provided by any .service files"
+kwin_scripting: Received D-Bus message is error: "The name org.cc.CCNiriBridge was not provided by any .service files"
+kwin_scripting: Received D-Bus message is error: "The name org.cc.CCNiriP0Fixture was not provided by any .service files"
+kwin_scripting: Received D-Bus message is error: "The name org.cc.CCNiriBridge was not provided by any .service files"
+kwin_scripting: Received D-Bus message is error: "The name org.cc.CCNiriBridge was not provided by any .service files"
+kwin_scripting: Received D-Bus message is error: "The name org.cc.CCNiriP0Fixture was not provided by any .service files"
+kwin_scripting: Received D-Bus message is error: "The name org.cc.CCNiriBridge was not provided by any .service files"
+kwin_scripting: Received D-Bus message is error: "The name org.cc.CCNiriBridge was not provided by any .service files"
+kwin_scripting: Received D-Bus message is error: "The name org.cc.CCNiriP0Fixture was not provided by any .service files"
+kwin_scripting: Received D-Bus message is error: "The name org.cc.CCNiriBridge was not provided by any .service files"
+kwin_scripting: Received D-Bus message is error: "The name org.cc.CCNiriBridge was not provided by any .service files"
+kwin_scripting: Received D-Bus message is error: "The name org.cc.CCNiriBridge was not provided by any .service files"
+ShapeCorners: Skipped writing Breeze config because the last change was 1 seconds ago.
+=========================
+Fcitx 5.1.23 -- Get Signal No.: 15
+Date: try "date -d @1792129983" if you are using GNU date ***
+ProcessID: 729216
+/usr/bin/fcitx5(+0xd8c7) [0x559acd1bf8c7]
+/lib64/libc.so.6(+0x19fb0) [0x7f9654c20fb0]
+/lib64/libc.so.6(+0x7b352) [0x7f9654c82352]
+/lib64/libc.so.6(+0x6f54c) [0x7f9654c7654c]
+/lib64/libc.so.6(+0x6f594) [0x7f9654c76594]
+/lib64/libc.so.6(epoll_wait+0x25) [0x7f9654cfd895]
+/lib64/libsystemd.so.0(sd_event_wait+0x1d4) [0x7f9654b026a4]
+/lib64/libsystemd.so.0(sd_event_run+0x20b) [0x7f9654b03adb]
+/lib64/libsystemd.so.0(sd_event_loop+0x8f) [0x7f9654b03c6f]
+/lib64/libFcitx5Utils.so.2(_ZN5fcitx9EventLoop4execEv+0x2b) [0x7f9655254f5b]
+/lib64/libFcitx5Core.so.7(_ZN5fcitx8Instance4execEv+0x5b) [0x7f965531de9b]
+/usr/bin/fcitx5(+0xb854) [0x559acd1bd854]
+/lib64/libc.so.6(+0x3681) [0x7f9654c0a681]
+/lib64/libc.so.6(__libc_start_main+0x88) [0x7f9654c0a798]
+/usr/bin/fcitx5(+0xcc15) [0x559acd1bec15]
+I2026-10-16 13:53:03.678856 waylandmodule.cpp:405] Connection removed 
+I2026-10-16 13:53:03.679127 instance.cpp:1498] Save before exiting...
+I2026-10-16 13:53:03.679960 addonmanager.cpp:312] Unloading addon pinyin
+I2026-10-16 13:53:03.681579 addonmanager.cpp:312] Unloading addon punctuation
+I2026-10-16 13:53:03.681648 addonmanager.cpp:312] Unloading addon notificationitem
+I2026-10-16 13:53:03.681678 addonmanager.cpp:312] Unloading addon classicui
+I2026-10-16 13:53:03.682032 addonmanager.cpp:312] Unloading addon virtualkeyboard
+I2026-10-16 13:53:03.682059 addonmanager.cpp:312] Unloading addon kimpanel
+I2026-10-16 13:53:03.682073 addonmanager.cpp:312] Unloading addon xim
+I2026-10-16 13:53:03.682101 addonmanager.cpp:312] Unloading addon fcitx4frontend
+I2026-10-16 13:53:03.682135 addonmanager.cpp:312] Unloading addon dbusfrontend
+I2026-10-16 13:53:03.682166 addonmanager.cpp:312] Unloading addon imeapi
+I2026-10-16 13:53:03.682232 addonmanager.cpp:312] Unloading addon ibusfrontend
+I2026-10-16 13:53:03.682343 addonmanager.cpp:312] Unloading addon dbus
+I2026-10-16 13:53:03.682385 addonmanager.cpp:312] Unloading addon luaaddonloader
+I2026-10-16 13:53:03.682397 addonmanager.cpp:312] Unloading addon pinyinhelper
+I2026-10-16 13:53:03.682408 addonmanager.cpp:312] Unloading addon keyboard
+I2026-10-16 13:53:03.682518 addonmanager.cpp:312] Unloading addon waylandim
+I2026-10-16 13:53:03.682531 addonmanager.cpp:312] Unloading addon wayland
+I2026-10-16 13:53:03.682543 addonmanager.cpp:312] Unloading addon xcb
+I2026-10-16 13:53:03.682555 addonmanager.cpp:312] Unloading addon quickphrase
+I2026-10-16 13:53:03.682698 addonmanager.cpp:312] Unloading addon unicode
+I2026-10-16 13:53:03.682709 addonmanager.cpp:312] Unloading addon imselector
+kwin_scene_opengl: Could not delete render time query because no context is current
+kwin_scene_opengl: Could not delete render time query because no context is current

@@ -7,12 +7,13 @@ class ParkingManager {
         this.refreshSafeArea = options.refreshSafeArea;
         this.getSafeRect = options.getSafeRect;
         this.debug = options.debug;
+        this.trackUserMinimized = options.trackUserMinimized === true;
     }
 
     owns(window) {
         const state = this.getState(window);
         return Boolean(state && (state.scrollParkedByScript ||
-            state.scrollVisuallyHidden || state.scrollParkingMinimized));
+            state.scrollVisuallyHidden || state.scrollParkingMinimized || state.scrollUserMinimized));
     }
 
     isHidden(window) {
@@ -23,6 +24,17 @@ class ParkingManager {
     rememberVisibleGeometry(window, rect) {
         const state = this.stateFor(window);
         state.scrollLastVisibleGeometry = rect;
+    }
+
+    prepareGeometry(window) {
+        // Minimized Wayland clients can withhold resized buffers indefinitely.
+        // Keep the frame invisible while allowing its configure ACK to arrive.
+        if (!window.minimized) return;
+        const state = this.stateFor(window);
+        if (!state.scrollParkingMinimized) state.scrollUserMinimized = true;
+        this.setVisibility(window, false);
+        window.minimized = false;
+        state.scrollParkingMinimized = true;
     }
 
     setVisibility(window, visible) {
@@ -41,6 +53,8 @@ class ParkingManager {
             state.scrollVisuallyHidden = false;
             return;
         }
+        if (this.trackUserMinimized && window.minimized && !state.scrollParkingMinimized && !state.scrollVisuallyHidden)
+            state.scrollUserMinimized = true;
         window.opacity = 0;
         if (!window.minimized) {
             window.minimized = true;
@@ -78,11 +92,12 @@ class ParkingManager {
         };
     }
 
-    release(window, reason, ensureAccessible = false, fallbackIndex = 0) {
+    release(window, reason, ensureAccessible = false, fallbackIndex = 0, observe = null) {
         const state = this.getState(window);
         if (!this.owns(window)) return false;
-        if (ensureAccessible) {
-            const target = this.recoveryRect(state, fallbackIndex);
+        let target = null;
+        if (ensureAccessible && !window.fullScreen && !state.scrollUserMinimized) {
+            target = this.recoveryRect(state, fallbackIndex);
             if (target) {
                 state.internalChange = true;
                 try {
@@ -93,12 +108,15 @@ class ParkingManager {
             }
         }
         window.opacity = state.scrollOriginalOpacity;
-        if (state.scrollParkingMinimized && window.minimized) {
+        if (state.scrollUserMinimized) window.minimized = true;
+        else if (state.scrollParkingMinimized && window.minimized) {
             window.minimized = false;
         }
+        state.scrollUserMinimized = false;
         state.scrollParkedByScript = false;
         state.scrollParkingMinimized = false;
         state.scrollVisuallyHidden = false;
+        if (observe) observe({ window, target, opacity: Number(window.opacity), minimized: window.minimized });
         this.debug(`[cc-stability] RELEASE_PARKING caption=${window.caption}` +
             ` accessible=${ensureAccessible} reason=${reason}`);
         return true;

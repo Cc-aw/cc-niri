@@ -11,7 +11,10 @@ function readNativeScrollMarker(window) {
     if (!window || window.onCurrentDesktop === false || typeof window.data !== "function" ||
             window.data(CC_NIRI_SCROLL_MOTION_CAPABILITY_ROLE) !== true) return null;
     const marker = window.data(CC_NIRI_SCROLL_OWNERSHIP_ROLE);
-    if (!marker || marker.protocol !== 2 || marker.type !== "SCROLL" ||
+    const partial = marker && ((marker.protocol === 3 && marker.type === "PARTIAL_SCROLL") ||
+        (marker.protocol === 4 && marker.type === "COLUMN_GEOMETRY")) &&
+        Number.isSafeInteger(marker.scopeRevision) && marker.scopeRevision > 0;
+    if (!marker || (!(marker.protocol === 2 && marker.type === "SCROLL") && !partial) ||
             !Number.isSafeInteger(marker.epoch) || marker.epoch < 0 ||
             typeof marker.sessionId !== "string" || !marker.sessionId ||
             typeof marker.workspaceId !== "string" || !marker.workspaceId ||
@@ -34,7 +37,13 @@ function readNativeScrollMarker(window) {
 
 function nativeScrollGeometryRole(window, oldGeometry, newGeometry, screenRect) {
     const marker = readNativeScrollMarker(window);
-    if (!marker || !sameSize(oldGeometry, newGeometry)) return null;
+    if (!marker) return null;
+    // A typed geometry Arm owns configure/paint until explicit release. Unknown
+    // or late configure frames are suppressed by Rust, never animated again by
+    // the legacy JS effect (including a second width/scale timeline).
+    if (marker.protocol === 4) return marker.role === "outgoing" && parked(newGeometry, screenRect)
+        ? "outgoing-finalize" : marker.role === "incoming" ? "incoming" : "continuing";
+    if (!sameSize(oldGeometry, newGeometry)) return null;
     if (marker.role === "outgoing") {
         return rectNear(marker, oldGeometry, 0.5) && visibleSlot(oldGeometry, screenRect) &&
             parked(newGeometry, screenRect) ? "outgoing-finalize" : null;

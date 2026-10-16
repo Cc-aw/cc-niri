@@ -1,0 +1,14 @@
+{
+  "command": [
+    "dbus-run-session",
+    "--",
+    "/usr/bin/python3",
+    "/home/cc/cc_niri/tools/scroll-layout-v2-p0-probe.py",
+    "--inside-isolated",
+    "--output",
+    "/home/cc/cc_niri/test/scroll-layout-v2-p0-evidence/20261014"
+  ],
+  "exit_code": 0,
+  "stdout": "{\"isolated\": \"/home/cc/cc_niri/test/scroll-layout-v2-p0-evidence/20261014/isolated.json\", \"status\": \"PASS_API_FIXTURE_ONLY\"}\n",
+  "stderr": ""
+}

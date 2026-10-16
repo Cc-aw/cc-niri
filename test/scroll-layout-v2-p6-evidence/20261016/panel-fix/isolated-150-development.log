@@ -1,0 +1,14 @@
+{"status": "INCONCLUSIVE", "passed": 9, "total": 11, "evidence": "/home/cc/cc_niri/test/scroll-layout-v2-p6-evidence/20261016/panel-fix/isolated-150-development"}
+ice 'org.freedesktop.impl.portal.desktop.gtk' failed: Process org.freedesktop.impl.portal.desktop.gtk exited with status 1
+
+(/usr/libexec/xdg-desktop-portal:729949): xdg-desktop-portal-WARNING **: 13:53:50.811: Failed to create email proxy: 为 org.freedesktop.impl.portal.desktop.gtk 调用 StartServiceByName 时出错：Process org.freedesktop.impl.portal.desktop.gtk exited with status 1
+
+(/usr/libexec/xdg-desktop-portal:729949): xdg-desktop-portal-WARNING **: 13:53:50.812: Choosing gtk.portal for org.freedesktop.impl.portal.DynamicLauncher as a last-resort fallback
+dbus-daemon[729880]: [session uid=1000 pid=729880 pidfd=5] Activating service name='org.freedesktop.impl.portal.desktop.gtk' requested by ':1.17' (uid=1000 pid=729949 comm="/usr/libexec/xdg-desktop-portal" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+
+(xdg-desktop-portal-gtk:730030): Gtk-WARNING **: 13:53:50.821: cannot open display: 
+dbus-daemon[729880]: [session uid=1000 pid=729880 pidfd=5] Activated service 'org.freedesktop.impl.portal.desktop.gtk' failed: Process org.freedesktop.impl.portal.desktop.gtk exited with status 1
+
+(/usr/libexec/xdg-desktop-portal:729949): xdg-desktop-portal-WARNING **: 13:53:50.822: Failed to create dynamic_launcher proxy: 为 org.freedesktop.impl.portal.desktop.gtk 调用 StartServiceByName 时出错：Process org.freedesktop.impl.portal.desktop.gtk exited with status 1
+dbus-daemon[729880]: [session uid=1000 pid=729880 pidfd=5] Successfully activated service 'org.freedesktop.portal.Desktop'
+

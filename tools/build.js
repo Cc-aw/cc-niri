@@ -9,6 +9,7 @@ const root = path.resolve(__dirname, "..");
 const targets = [
     {
         outputPath: "package/contents/code/main.js",
+        entryPath: "src/kwin/runtime/RuntimeEntry.js",
         modulePaths: [
             "src/kwin/model/ColumnStore.js",
             "src/kwin/model/WindowStateStore.js",
@@ -26,6 +27,9 @@ const targets = [
             "src/kwin/layout/Geometry.js",
             "src/kwin/layout/SafeArea.js",
             "src/kwin/layout/ColumnLayout.js",
+            "src/kwin/layout/ContinuousColumnLayout.js",
+            "src/kwin/layout/ViewportPolicy.js",
+            "src/kwin/layout/ContinuousViewportController.js",
             "src/kwin/layout/SingleColumnTransition.js",
             "src/kwin/layout/ColumnWidthController.js",
             "src/kwin/layout/Projection.js",
@@ -35,9 +39,14 @@ const targets = [
             "src/kwin/layout/ScrollPlanCommitGate.js",
             "src/kwin/layout/LayoutEngine.js",
             "src/kwin/layout/ScrollMotionPlan.js",
+            "src/kwin/layout/PartialScrollPlan.js",
+            "src/kwin/layout/ColumnGeometryPlan.js",
+            "src/kwin/layout/ColumnGeometryClientGate.js",
+            "src/kwin/layout/ColumnGeometryCoordinator.js",
             "src/kwin/layout/GeometryCommitter.js",
             "src/kwin/layout/DeferredScrollParking.js",
             "src/kwin/runtime/RuntimeConfig.js",
+            "src/kwin/runtime/ContinuousLayoutRuntime.js",
             "src/kwin/runtime/RuntimeLogger.js",
             "src/kwin/runtime/OutputTopology.js",
             "src/kwin/runtime/StartupLayout.js",
@@ -52,6 +61,7 @@ const targets = [
             "src/kwin/stability/StabilitySupervisor.js",
             "src/kwin/stability/ParkingManager.js",
             "src/kwin/stability/Recovery.js",
+            "src/kwin/stability/RecoveryCompletionGate.js",
             "src/kwin/lifecycle/AdoptionController.js",
             "src/kwin/lifecycle/FloatingController.js",
             "src/kwin/lifecycle/OutputController.js",
@@ -111,7 +121,9 @@ for (const target of targets) {
         `// Generated from ${relativePath}\n${bundleSource(relativePath)}`
     ).join("\n\n");
     const next = current.slice(0, begin + target.beginMarker.length) +
-        `\n${generated}\n` + current.slice(end);
+        `\n${generated}\n` + (target.entryPath
+            ? `${target.endMarker}\n\n// Generated from ${target.entryPath}\n${bundleSource(target.entryPath)}\n`
+            : current.slice(end));
     if (process.argv.includes("--check")) {
         if (next !== current) {
             console.error(`${target.outputPath} is not up to date; run node tools/build.js`);

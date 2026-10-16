@@ -1,15 +1,22 @@
 "use strict";
 
-// Fractional presets are deferred. Old snapshots migrate to the ordinary pair
-// width, including Full's remembered restoration width.
-function normalizeColumnWidthMode(value) { return value === "full" ? "full" : "half"; }
+// Opt in only for V2 model consumers. V1 snapshots keep their existing migration.
+function normalizeColumnWidthMode(value, scrollLayoutV2Enabled = false) {
+    if (value === "full") return "full";
+    return scrollLayoutV2Enabled === true && value === "twoThirds" ? "twoThirds" : "half";
+}
 
-function normalizePreviousNonFullWidthMode() { return "half"; }
+function normalizePreviousNonFullWidthMode(value, widthMode, scrollLayoutV2Enabled = false) {
+    if (scrollLayoutV2Enabled !== true) return "half";
+    if (widthMode !== "full") return normalizeColumnWidthMode(widthMode, true);
+    return value === "twoThirds" ? "twoThirds" : "half";
+}
 
 class ColumnStore {
-    constructor(state, onMembershipChanged = () => {}) {
+    constructor(state, onMembershipChanged = () => {}, options = {}) {
         this.state = state;
         this.onMembershipChanged = onMembershipChanged;
+        this.scrollLayoutV2Enabled = options.scrollLayoutV2Enabled === true;
     }
 
     indexOf(column) {
@@ -61,8 +68,9 @@ class ColumnStore {
         const column = {
             id: this.state.nextColumnId++,
             window,
-            widthMode: normalizeColumnWidthMode(widthMode),
-            previousNonFullWidthMode: normalizePreviousNonFullWidthMode(previousNonFullWidthMode, widthMode),
+            widthMode: normalizeColumnWidthMode(widthMode, this.scrollLayoutV2Enabled),
+            previousNonFullWidthMode: normalizePreviousNonFullWidthMode(
+                previousNonFullWidthMode, widthMode, this.scrollLayoutV2Enabled),
             persistentWide: false,
             logicalX: 0,
             pixelWidth: 0,

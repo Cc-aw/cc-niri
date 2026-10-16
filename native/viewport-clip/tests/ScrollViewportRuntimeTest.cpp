@@ -2,6 +2,7 @@
 #include "ScrollRuntimeTestBackend.h"
 #include "SpringBackend.h"
 #include "ScrollClipHandoff.h"
+#include "RustScrollPlanSequence.h"
 #include <iostream>
 #include <cstdlib>
 using namespace CcNiri;
@@ -382,5 +383,99 @@ int main() {
     check(!reindexed.active() && departing.projection(QStringLiteral("b"), target).has_value(), "reindex workspace departure freezes shared Rust pose");
     departing.remove(QStringLiteral("b"));
     check(!departing.projection(QStringLiteral("b"), target), "closed reindex owner released");
-    std::cout << "PASS native scroll / typed reindex projection ownership and lifecycle" << std::endl;
+    ScrollRuntimeTestBackend v2;
+    v2.updateContext(state());
+    const QRectF output(0, 0, 2560, 1440);
+    QJsonObject v2plan{{QStringLiteral("protocol"),3},{QStringLiteral("type"),QStringLiteral("PARTIAL_SCROLL")},{QStringLiteral("sessionId"),QStringLiteral("s")},{QStringLiteral("workspaceId"),QStringLiteral("a")},
+        {QStringLiteral("targetOutput"),QStringLiteral("eDP-1")},{QStringLiteral("issuedAt"),1},{QStringLiteral("epoch"),1},{QStringLiteral("scopeRevision"),1},{QStringLiteral("maxCamera"),1696},
+        {QStringLiteral("clipPartial"),true},{QStringLiteral("oldScrollOffsetX"),212},{QStringLiteral("newScrollOffsetX"),1060},
+        {QStringLiteral("viewport"),QJsonObject{{QStringLiteral("x"),0},{QStringLiteral("y"),0},{QStringLiteral("width"),2560},{QStringLiteral("height"),1440}}},
+        {QStringLiteral("layoutRect"),QJsonObject{{QStringLiteral("x"),0},{QStringLiteral("y"),66},{QStringLiteral("width"),2560},{QStringLiteral("height"),1358}}},
+        {QStringLiteral("entries"),QJsonArray{
+            QJsonObject{{QStringLiteral("windowId"),QStringLiteral("a")},{QStringLiteral("columnId"),1},{QStringLiteral("logicalX"),652},{QStringLiteral("pixelWidth"),1680},{QStringLiteral("oldPlacement"),QStringLiteral("visible")},{QStringLiteral("newPlacement"),QStringLiteral("visible")}},
+            QJsonObject{{QStringLiteral("windowId"),QStringLiteral("b")},{QStringLiteral("columnId"),2},{QStringLiteral("logicalX"),2348},{QStringLiteral("pixelWidth"),1256},{QStringLiteral("oldPlacement"),QStringLiteral("visible")},{QStringLiteral("newPlacement"),QStringLiteral("visible")}}}}};
+    const QHash<QString,QRectF> safeSources{{QStringLiteral("a"),QRectF(440,66,1680,1358)},{QStringLiteral("b"),QRectF(1304,66,1256,1358)}};
+    check(v2.arm(v2plan,0ns,safeSources,true,output),"PARTIAL_SCROLL additive Qt DTO arm");
+    check(v2.targets()[QStringLiteral("a")].x() == 0 && v2.targets()[QStringLiteral("b")].x() == 1288,"Rust safe real anchors");
+    check(v2.projection(QStringLiteral("b"),safeSources[QStringLiteral("b")])->strictOutput,"strict OutputRect paint bit");
+    check(v2.partialInputBlocked(QStringLiteral("b"),safeSources[QStringLiteral("b")],QPointF(2400,300)),"partial coordinate mismatch blocked");
+    check(v2.paintedTargets().isEmpty(),"unpainted target query empty");
+    check(v2.prepareFrame(0ns) && v2.markPainted(1,0),"real P3 painted source");
+    check(!v2.columnGeometrySource(output,QStringLiteral("a"),QStringLiteral("eDP-1")).value(QStringLiteral("valid")).toBool(),"shared camera is insufficient P4 source proof");
+    check(v2.recordClientPainted(QStringLiteral("a"),1,0,1,safeSources[QStringLiteral("a")]),"record actual client A paint");
+    check(!v2.columnGeometrySource(output,QStringLiteral("a"),QStringLiteral("eDP-1")).value(QStringLiteral("valid")).toBool(),"unpainted client B rejects source");
+    check(v2.recordClientPainted(QStringLiteral("b"),1,0,1,safeSources[QStringLiteral("b")]),"record actual client B paint");
+    const auto sourceFacts=v2.columnGeometrySource(output,QStringLiteral("a"),QStringLiteral("eDP-1"));
+    check(sourceFacts.value(QStringLiteral("valid")).toBool() && sourceFacts.value(QStringLiteral("protocol")).toInt()==4
+        && sourceFacts.value(QStringLiteral("sampleSerial")).toInteger()==1 && sourceFacts.value(QStringLiteral("entries")).toArray().size()==2,"actual per-client facts reach Qt source query");
+    check(!v2.columnGeometrySource(QRectF(0,0,2559,1440),QStringLiteral("a"),QStringLiteral("eDP-1")).value(QStringLiteral("valid")).toBool(),"actual output resize invalidates source");
+    check(!v2.columnGeometrySource(output,QStringLiteral("another"),QStringLiteral("eDP-1")).value(QStringLiteral("valid")).toBool(),"actual workspace switch invalidates source");
+    check(!v2.columnGeometrySource(output,QStringLiteral("a"),QStringLiteral("another")).value(QStringLiteral("valid")).toBool(),"actual output identity invalidates source");
+    check(v2.paintedTargets()[QStringLiteral("b")].x() == 2136,"last painted visual row query");
+    check(v2.partialHit(QPointF(2400,300)) == QStringLiteral("b") && v2.partialHit(QPointF(2560,300)).isEmpty(),"Rust visual hit respects physical output");
+    check(v2.partialInput(1,272,true,0).consume == 1,"two-click first press consumed");
+    v2.cancel(QStringLiteral("s"),1);
+    check(!v2.columnGeometrySource(output,QStringLiteral("a"),QStringLiteral("eDP-1")).value(QStringLiteral("valid")).toBool(),"cancel releases per-client source facts");
+    check(v2.partialStatus().buttons == 1 && !v2.partialStatus().enabled,"pair survives runtime cancel");
+    check(v2.partialInput(2,272,false,1).consume == 1 && v2.partialStatus().buttons == 0,"matching release drained");
+    v2plan.insert(QStringLiteral("epoch"),2); v2plan.insert(QStringLiteral("scopeRevision"),QStringLiteral("1"));
+    check(!v2.arm(v2plan,1ms,safeSources,true,output),"Qt string scope rejected by Rust");
+    const auto jsonRect=[](double x,double y,double width,double height) {
+        return QJsonObject{{QStringLiteral("x"),x},{QStringLiteral("y"),y},{QStringLiteral("width"),width},{QStringLiteral("height"),height}};
+    };
+    QJsonObject geometry{{QStringLiteral("protocol"),4},{QStringLiteral("type"),QStringLiteral("COLUMN_GEOMETRY")},
+        {QStringLiteral("sessionId"),QStringLiteral("s")},{QStringLiteral("workspaceId"),QStringLiteral("a")},
+        {QStringLiteral("targetOutput"),QStringLiteral("eDP-1")},{QStringLiteral("epoch"),2},{QStringLiteral("issuedAt"),1},
+        {QStringLiteral("scopeRevision"),1},{QStringLiteral("sourceEpoch"),1},{QStringLiteral("sourceSampleSerial"),10},
+        {QStringLiteral("oldScrollOffsetX"),0},{QStringLiteral("newScrollOffsetX"),212},
+        {QStringLiteral("oldMaxCamera"),0},{QStringLiteral("maxCamera"),424},{QStringLiteral("clipPartial"),true},
+        {QStringLiteral("viewport"),jsonRect(0,0,2560,1440)},
+        {QStringLiteral("oldLayoutRect"),jsonRect(0,66,2560,1358)}, {QStringLiteral("layoutRect"),jsonRect(0,66,2560,1358)},
+        {QStringLiteral("entries"),QJsonArray{QJsonObject{
+            {QStringLiteral("windowId"),QStringLiteral("a")},{QStringLiteral("columnId"),1},
+            {QStringLiteral("sourceKind"),QStringLiteral("painted")},
+            {QStringLiteral("oldLogicalX"),652},{QStringLiteral("newLogicalX"),652},
+            {QStringLiteral("oldPixelWidth"),1256},{QStringLiteral("newPixelWidth"),1680},
+            {QStringLiteral("oldFrameRect"),jsonRect(652,66,1256,1358)},
+            {QStringLiteral("oldVisualRect"),jsonRect(652,66,1256,1358)},
+            {QStringLiteral("committedTargetRect"),jsonRect(440,66,1680,1358)},
+            {QStringLiteral("oldPlacement"),QStringLiteral("visible")},{QStringLiteral("newPlacement"),QStringLiteral("visible")}}}}};
+    RustScrollPlanSequence geometryObserver;
+    check(geometryObserver.updateContext(state()),"geometry shared authority context");
+    check(geometryObserver.validPlan(geometry),"Qt protocol4 typed shape reaches Rust validator");
+    check(geometryObserver.observe(geometry)==ScrollPlanDisposition::Accepted,"geometry shared epoch accepted");
+    check(geometryObserver.observe(geometry)==ScrollPlanDisposition::Duplicate,"geometry duplicate idempotent");
+    auto malformedGeometry=geometry;auto geometryRows=geometry.value(QStringLiteral("entries")).toArray();
+    auto geometryRow=geometryRows.first().toObject();geometryRow.insert(QStringLiteral("oldLogicalX"),QStringLiteral("652"));
+    geometryRows[0]=geometryRow;malformedGeometry.insert(QStringLiteral("entries"),geometryRows);
+    check(!geometryObserver.validPlan(malformedGeometry),"Qt numeric string cannot become typed geometry");
+    auto olderPartial=v2plan;olderPartial.insert(QStringLiteral("scopeRevision"),1);
+    check(geometryObserver.validPlan(olderPartial),"older partial remains schema-valid");
+    check(geometryObserver.observe(olderPartial)==ScrollPlanDisposition::Rejected,"new schema shares legacy epoch barrier");
+    ScrollRuntimeTestBackend geometryRuntime;geometryRuntime.updateContext(state());
+    check(!geometryRuntime.arm(geometry,0ns),"legacy arm cannot bypass dedicated geometry source facts");
+    auto bootstrap=v2plan;bootstrap.insert(QStringLiteral("epoch"),1);bootstrap.insert(QStringLiteral("retargetOnly"),true);
+    bootstrap.insert(QStringLiteral("oldScrollOffsetX"),0);bootstrap.insert(QStringLiteral("newScrollOffsetX"),0);
+    bootstrap.insert(QStringLiteral("maxCamera"),0);bootstrap.insert(QStringLiteral("scopeRevision"),1);
+    bootstrap.insert(QStringLiteral("entries"),QJsonArray{QJsonObject{
+        {QStringLiteral("windowId"),QStringLiteral("a")},{QStringLiteral("columnId"),1},
+        {QStringLiteral("logicalX"),652},{QStringLiteral("pixelWidth"),1256},
+        {QStringLiteral("oldPlacement"),QStringLiteral("visible")},{QStringLiteral("newPlacement"),QStringLiteral("visible")}}});
+    check(geometryRuntime.arm(bootstrap,0ns,{{QStringLiteral("a"),QRectF(652,66,1256,1358)}},true,QRectF(0,0,2560,1440)),"geometry bootstrap actual source");
+    check(geometryRuntime.prepareFrame(1ns),"geometry source real pass prepare");
+    check(geometryRuntime.recordClientPainted(QStringLiteral("a"),1,1,10,QRectF(652,66,1256,1358)),"geometry source client draw");
+    check(geometryRuntime.markPainted(1,1),"geometry source actual camera draw");
+    std::vector<CcNiriGeometrySourceRow> facts{geometryRuntime.geometryFact(QStringLiteral("a"),1,QRectF(652,66,1256,1358),1,99)};
+    check(geometryRuntime.armGeometry(geometry,2ns,facts,true,QRectF(0,0,2560,1440)),"typed geometry FFI composition arm");
+    check(geometryRuntime.columnGeometryActive(),"typed geometry ownership active");
+    check(geometryRuntime.projection(QStringLiteral("a"),QRectF(652,66,1256,1358)).has_value(),"actual old surface remains projected without scaling");
+    check(geometryRuntime.observeClientFrame(QStringLiteral("a"),QRectF(440,66,1680,1358)),"exact target configure ACK");
+    check(geometryRuntime.prepareFrame(4s),"shared camera and column motion finish");
+    facts[0]=geometryRuntime.geometryFact(QStringLiteral("a"),1,QRectF(440,66,1680,1358),1,99);
+    check(geometryRuntime.recordClientPainted(QStringLiteral("a"),2,4000000000LL,11,QRectF(440,66,1680,1358)),"target client actual draw");
+    check(geometryRuntime.markPainted(2,4000000000LL),"target camera actual draw");
+    check(geometryRuntime.finishGeometryFrame(2,4000000000LL,11,facts.data(),facts.size()),"all actual ACK and draw complete together");
+    check(geometryRuntime.geometryCompletion().value(QStringLiteral("completed")).toBool(),"Native completion endpoint proof");
+    geometryRuntime.clear();check(!geometryRuntime.columnGeometryActive(),"geometry FFI lifetime released");
+    std::cout << "PASS native scroll / typed geometry validation, ownership and lifecycle" << std::endl;
 }

@@ -1,0 +1,117 @@
+{
+  "captured_utc": "2026-10-15T06:26:31.756692+00:00",
+  "head": "8056cfe6b4a023ac8dcbfb01e4495a5acf4c2c4e",
+  "scope": "P4 first increment: JS typed producer/client ACK gate only",
+  "p4_status": "IN PROGRESS; Native/FFI and live resize pending",
+  "generated_bundles": "PASS node tools/build.js + --check",
+  "js_gate": {
+    "command": "node tools/check.js",
+    "status": "PASS",
+    "test_files": 113,
+    "node_tests": 192
+  },
+  "directed": {
+    "command": "node test/scroll-layout-v2-column-geometry.test.js",
+    "status": "PASS",
+    "tests": 21,
+    "failed_request_cleanup_iterations": 2000
+  },
+  "initial_environment_failure": "Node spawnSync python3 EPERM in existing P0 refusal fixture; complete suite rerun with approved process permissions; no assertions skipped",
+  "source_sha256": {
+    "src/kwin/layout/ColumnGeometryPlan.js": "1f9f272798957e947645eae510f7ff484fe5fa3cdbeb83fe65757e2b44e9613c",
+    "src/kwin/layout/ColumnGeometryClientGate.js": "b7d90def44956d622950658d34a7e5f03130597ea4e957ca4fb47b40fb58a27b",
+    "src/kwin/layout/ScrollPlanCommitGate.js": "9148e9dd1f2cc45c304852d628e21f07ebc2b90139dc4cd9c2ebb6e65fb26622",
+    "src/kwin/layout/GeometryCommitter.js": "97296a6eecf8ced29aaa1e41eca874fbb04450b91c468ba3ee8635efee3a47ad",
+    "src/kwin/integration/RuntimeBridge.js": "d8e3286050cfc2a96fd0117ad95b0ce0b536d6fc18bd37d2c50300e70ca1be44",
+    "tools/build.js": "564e793e7694df067697c9808bf1263ecbea54baf82840be7ecee912a074998d",
+    "package/contents/code/main.js": "3ebcb2e6556137c642777732e3af92cc665d77f011b1ec544f6ba7b511aaa146",
+    "test/scroll-layout-v2-column-geometry.test.js": "c715f7c02bc4697e33bb1d9bc1e14084469f8038b662bbd9c7c388bc818b6431"
+  },
+  "native_p3_sources": {
+    "bridge/src/CCNiriBridge.cpp": {
+      "sha256": "3791d80bf52a478f4fc8aa72f0870bec08b54f7818e803c75a5906a7e9de49b9",
+      "unchanged_from_p3": true
+    },
+    "bridge/src/CCNiriBridge.h": {
+      "sha256": "bd7647568bbc0efc07e4e7afd077286b706cb4f9e794aa1b96c1db3b833c2fe0",
+      "unchanged_from_p3": true
+    },
+    "native/common/NativeProtocolDto.h": {
+      "sha256": "99fb0764199b1fd4b6fc48282bb72cf6364bfc0bbc7ffdfe9e6b8a1e6dd0d623",
+      "unchanged_from_p3": true
+    },
+    "native/common/LoadedComponentPath.h": {
+      "sha256": "556c4ab220dc727cce01395d212693cfe1519beb36cc753bb9312e4ac72eea16",
+      "unchanged_from_p3": true
+    },
+    "native/rust/cc-niri-native-core/src/native_protocol.rs": {
+      "sha256": "7686c1f007d1d0f926e94938e2de6730fc9ce28984cbe936906c528e22330932",
+      "unchanged_from_p3": true
+    },
+    "native/rust/cc-niri-native-core/src/scroll_runtime.rs": {
+      "sha256": "8957ef74a593d123f772959974d00179e85ee5cdc0e0e398689573fa52060e70",
+      "unchanged_from_p3": true
+    },
+    "native/rust/cc-niri-native-core/src/partial_input.rs": {
+      "sha256": "ee876fc6875d66aabb95a277f17f84426b5653d119c2008c0002fc1e19a5cde5",
+      "unchanged_from_p3": true
+    },
+    "native/rust/cc-niri-native-core/src/ffi_scroll.rs": {
+      "sha256": "f26b118e5fff297b0efa63a782ea1e808275991728552e43f1dd0c15a1d33b39",
+      "unchanged_from_p3": true
+    },
+    "native/rust/cc-niri-native-core/src/ffi_protocol.rs": {
+      "sha256": "9876b4733c42060eabdf6b7aed178c3bef1c62a9cb67c04021a1c1d08ff0b15c",
+      "unchanged_from_p3": true
+    },
+    "native/rust/include/cc_niri_native_core.h": {
+      "sha256": "2cb9f7ba121494440460c1762e9b90650b376c8f914f8550766ee8225a221562",
+      "unchanged_from_p3": true
+    },
+    "native/viewport-clip/ViewportClipEffect.cpp": {
+      "sha256": "e521183794eaa64e6c0ec197177073f1fde251329c27d57d18dba62bfc907802",
+      "unchanged_from_p3": true
+    },
+    "native/viewport-clip/ViewportClipEffect.h": {
+      "sha256": "b5c5af5b077ea1d26c8277724a320db618b18f92ebf9315aa0c836be9885cf35",
+      "unchanged_from_p3": true
+    },
+    "native/focus-ring/FocusRingEffect.cpp": {
+      "sha256": "9015df2ae080bddc090c48b9d472fff14d6376c3328fe849cefe67065802881a",
+      "unchanged_from_p3": true
+    },
+    "native/viewport-clip/tests/ScrollViewportRuntimeTest.cpp": {
+      "sha256": "7556cefc08bf47741e5daf5450e0be589e939f22afdce4f6144781bcf11fd783",
+      "unchanged_from_p3": true
+    },
+    "native/rust/tests/RustCoreSmokeTest.cpp": {
+      "sha256": "c6e1bf736b54168adf92cccb2d60bbb9e5f8b3dd2dddc78b0908999e8340abc7",
+      "unchanged_from_p3": true
+    }
+  },
+  "native_gate_this_increment": "NOT RUN; no Native/CMake/FFI changes",
+  "installed_artifacts": [
+    {
+      "path": "/home/cc/.local/share/kwin/scripts/cc-niri-maximize/contents/code/main.js",
+      "sha256": "2154436e0c97251eecadadd13bb533dfedfd2146cb0dd1fff34693ad6c9814f2",
+      "unchanged_from_p3": true
+    },
+    {
+      "path": "/home/cc/.local/libexec/cc-niri-bridge",
+      "sha256": "2f923a1a158fafb3bf61bf7234aa13562702d164ba97e904b116e3823d76b3f6",
+      "unchanged_from_p3": true
+    },
+    {
+      "path": "/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-viewport-clip.so",
+      "sha256": "1c8c3d0174c572e3412d4e1c968bb3811e23e718f9aff7b0be2bc541b6372726",
+      "unchanged_from_p3": true
+    },
+    {
+      "path": "/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-focus-ring.so",
+      "sha256": "994e939d1c9e314d150728b13dbc250adc462f5deef652bb857f2d76716defa4",
+      "unchanged_from_p3": true
+    }
+  ],
+  "deployment": "NOT RUN; V2 default false; main stays V1; protocol4 transport explicitly rejected",
+  "live_resize_memory_performance": "NOT MEASURED"
+}

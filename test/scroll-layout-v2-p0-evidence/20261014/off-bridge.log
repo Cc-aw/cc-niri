@@ -1,0 +1,6 @@
+-- CC-Niri Native Core: Rust production
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/cc/cc_niri/build/bridge-r7-production
+[1/2] Building Rust Native Core (release)
+    Finished `release` profile [optimized] target(s) in 0.00s

@@ -68,7 +68,7 @@ function fixture() {
         });
         return states.get(window);
     };
-    const context = vm.createContext({
+    const context = vm.createContext({ continuousLayout: null, app: { lifecycle: { connect: (s, h) => s.connect(h), disconnectOwner: () => {} } },
         mainScreenState: appState, layoutEligibility: eligibility,
         windowPolicy: policy, states, stateFor,
         NORMAL_MODE: "normal", MAXIMIZE_MODE: "maximize", FULL_MAXIMIZE_MODE: 3,

@@ -1,0 +1,30 @@
+[  2%] Building Rust Native Core (release)
+[ 18%] Built target cc-niri-golden-reference
+   Compiling cc-niri-native-core v0.1.0 (/home/cc/cc_niri/native/rust/cc-niri-native-core)
+    Finished `release` profile [optimized] target(s) in 1.88s
+[ 18%] Built target cc-niri-rust-build
+[ 35%] Built target cc-niri-native-adapters
+[ 37%] Linking CXX executable cc-niri-ring-differential
+[ 40%] Linking CXX executable cc-niri-workspace-motion-differential
+[ 43%] Built target cc-niri-workspace-motion-differential
+[ 45%] Built target cc-niri-ring-differential
+[ 48%] Linking CXX executable cc-niri-spring-differential
+[ 51%] Linking CXX executable cc-niri-motion-differential
+[ 54%] Built target cc-niri-spring-differential
+[ 56%] Built target cc-niri-motion-differential
+[ 59%] Linking CXX executable cc-niri-protocol-differential
+[ 62%] Linking CXX executable cc-niri-scroll-differential
+[ 64%] Built target cc-niri-protocol-differential
+[ 67%] Built target cc-niri-scroll-differential
+[ 70%] Linking CXX executable cc-niri-rust-animation-frame-tests
+[ 72%] Linking CXX executable cc-niri-rust-focus-fade-tests
+[ 75%] Built target cc-niri-rust-animation-frame-tests
+[ 78%] Built target cc-niri-rust-focus-fade-tests
+[ 81%] Linking CXX executable cc-niri-rust-motion-tests
+[ 83%] Linking CXX executable cc-niri-rust-scroll-tests
+[ 86%] Built target cc-niri-rust-motion-tests
+[ 89%] Linking CXX executable cc-niri-rust-ring-context-tests
+[ 91%] Built target cc-niri-rust-scroll-tests
+[ 94%] Linking CXX executable cc-niri-rust-core-smoke-tests
+[ 97%] Built target cc-niri-rust-ring-context-tests
+[100%] Built target cc-niri-rust-core-smoke-tests

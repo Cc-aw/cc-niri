@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: P0 right partial keeps client size and real frame on primary
+ok 1 - P0 right partial keeps client size and real frame on primary
+  ---
+  duration_ms: 3.449832
+  type: 'test'
+  ...
+# Subtest: P0 left and simultaneous partial neighbors stay bounded
+ok 2 - P0 left and simultaneous partial neighbors stay bounded
+  ---
+  duration_ms: 0.251819
+  type: 'test'
+  ...
+# Subtest: P0 output origin can be negative; touching edges are not visible
+ok 3 - P0 output origin can be negative; touching edges are not visible
+  ---
+  duration_ms: 0.212687
+  type: 'test'
+  ...
+# Subtest: P0 oversize and nonfinite geometry fail closed
+ok 4 - P0 oversize and nonfinite geometry fail closed
+  ---
+  duration_ms: 0.279542
+  type: 'test'
+  ...
+# Subtest: P0 native rectangle hit test can choose visually covered background B
+ok 5 - P0 native rectangle hit test can choose visually covered background B
+  ---
+  duration_ms: 0.274494
+  type: 'test'
+  ...
+# Subtest: P0 correct window ID still gives wrong local coordinate without remapping
+ok 6 - P0 correct window ID still gives wrong local coordinate without remapping
+  ---
+  duration_ms: 0.444301
+  type: 'test'
+  ...
+# Subtest: P0 surface and expanded Ring clip share strict physical output bound
+ok 7 - P0 surface and expanded Ring clip share strict physical output bound
+  ---
+  duration_ms: 0.409232
+  type: 'test'
+  ...
+# Subtest: P0 fallback consumes press and release even after focus or geometry becomes ready
+ok 8 - P0 fallback consumes press and release even after focus or geometry becomes ready
+  ---
+  duration_ms: 0.259846
+  type: 'test'
+  ...
+# Subtest: P0 fallback does not forward wheel or a second button during suppressed sequence
+ok 9 - P0 fallback does not forward wheel or a second button during suppressed sequence
+  ---
+  duration_ms: 0.498705
+  type: 'test'
+  ...
+# Subtest: P0 fallback waits for actual geometry, not focus intent
+ok 10 - P0 fallback waits for actual geometry, not focus intent
+  ---
+  duration_ms: 0.46308
+  type: 'test'
+  ...
+# Subtest: P0 production GeometryCommitter parks partial without Native ownership
+ok 11 - P0 production GeometryCommitter parks partial without Native ownership
+  ---
+  duration_ms: 0.84019
+  type: 'test'
+  ...
+# Subtest: P0 production GeometryCommitter supersedes an unacknowledged configure
+ok 12 - P0 production GeometryCommitter supersedes an unacknowledged configure
+  ---
+  duration_ms: 0.292184
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 24.426709

@@ -1,0 +1,71 @@
+{
+  "status": "RELOADED_TOP_GAP_LIVE_PASS",
+  "new_top_gap_live": true,
+  "normal_relogin_required": false,
+  "configuration": {
+    "ScrollLayoutGap": 16,
+    "ScrollLayoutTopGap": 8
+  },
+  "authorization": "User: 好的 重新加载; explicit approval for observed-window recovery in place of failed automatic ACK",
+  "recovery_method": "fresh read-only window/Native audit followed by replacing only the old script; no forged ACK",
+  "original_automatic_ack": "FAILED; not reclassified as PASS",
+  "audited_live_managed_windows": 6,
+  "audit_window_failures": [],
+  "kwin_pid_before": 2075,
+  "kwin_pid_after": 2075,
+  "bridge_pid_before": 754130,
+  "bridge_pid_after": 754130,
+  "native_plugins_reloaded": false,
+  "apps_closed": false,
+  "script_reloaded": true,
+  "live_recovery_state": "running",
+  "new_live_session": true,
+  "native_geometry_completed": true,
+  "painted_frames": [
+    {
+      "frameRect": {
+        "height": 1364,
+        "width": 1256,
+        "x": 0,
+        "y": 60
+      },
+      "visualRect": {
+        "height": 1364,
+        "width": 1256,
+        "x": -832,
+        "y": 60
+      }
+    },
+    {
+      "frameRect": {
+        "height": 1364,
+        "width": 1680,
+        "x": 440,
+        "y": 60
+      },
+      "visualRect": {
+        "height": 1364,
+        "width": 1680,
+        "x": 440,
+        "y": 60
+      }
+    }
+  ],
+  "vertical_window_top_before": 68,
+  "vertical_window_top_after": 60,
+  "vertical_window_bottom_before": 1424,
+  "vertical_window_bottom_after": 1424,
+  "column_width_modes_preserved": true,
+  "startup_errors": [],
+  "backup": "/tmp/cc-niri-v2-top-gap-8-20261016",
+  "private_record": "/tmp/cc-niri-v2-top-gap-8-20261016/approved-reload.json",
+  "installed_main_sha256": "79f230fd099d029d457a5a119d988e113e644f47c73e43700f86e69a12a34314",
+  "recorded_utc": "2026-10-16T06:18:04.611142+00:00",
+  "tests": {
+    "js_predeployment": 235,
+    "isolated_kwin_fcitx5": 37
+  },
+  "subjective_visual_acceptance": "PASS: user confirmed 没有问题 git存档 after approved script reload and top-only spacing change",
+  "performance_memory": "NOT MEASURED",
+  "user_acceptance_scope": "Current top spacing and displayed desktop after reload only; not full P6 interaction/performance/resource acceptance"
+}

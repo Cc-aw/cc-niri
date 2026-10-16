@@ -1,0 +1,3457 @@
+{
+  "started_utc": "2026-10-15T12:44:16.322608+00:00",
+  "status": "PASS",
+  "scale": 1.5,
+  "ime": null,
+  "scope": "production Release Clip + Rust + Bridge + Ring, private virtual Mesa KWin; P0 raw injector only",
+  "artifacts": {
+    "build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so": "3580a459ccc965e358a85943049b29ee126383cb55edfbab3261520de3df875e",
+    "build/bridge/cc-niri-bridge": "5d4d791dd5c8812350af24675e641eba6d51925f1646ed37396044576cce87cb",
+    "build/scroll-layout-v2-p0-fixture/plugins/kwin/effects/plugins/cc-niri-p0-input-fixture.so": "be0d6ef4f751c56c6e2ca2330f2e2e3609733118adf46c4de813787e1ecec990",
+    "build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so": "bdf147c86c112c3d6341fab16212d247951cf1012990959527ce6a70fd969de0"
+  },
+  "checks": {
+    "raw_injector_has_no_p0_projection": true,
+    "exact_build_tree_plugins_loaded": true,
+    "native_capability_explicit": true,
+    "bridge_requires_membership": true,
+    "actual_painted_camera_and_scope": true,
+    "p4_source_has_real_per_client_frames": true,
+    "p4_source_uses_actual_camera_and_pass": true,
+    "p4_source_preserves_natural_partial_visual": true,
+    "right_partial_strict_output": true,
+    "popup_grab_delegated_without_partial_focus": true,
+    "wayland_drag_preserves_native_authority": true,
+    "modal_preserves_native_authority": true,
+    "native_intent_relays_through_existing_bounded_bridge_pump": true,
+    "first_click_pair_consumed": true,
+    "focus_intent_only": true,
+    "pair_drained": true,
+    "pending_geometry_never_receives_wrong_click": true,
+    "js_activation_after_native_arm_and_geometry": true,
+    "safe_frames_keep_primary_and_client_width": true,
+    "second_click_native_coordinates": true,
+    "real_ring_shared_frame": true,
+    "left_partial_and_ring_no_secondary_leak": true,
+    "wheel_on_shifted_visual_consumed": true,
+    "shifted_touch_pair_consumed": true,
+    "touch_pairs_drained": true,
+    "aligned_native_touch_coordinates": true,
+    "forwarded_grab_keeps_all_button_pairs": true,
+    "no_plugin_idle_continuation_repaint": true,
+    "real_reversal_reuses_last_painted_pose_and_nonzero_velocity": true,
+    "reversal_strict_output_no_secondary_leak": true,
+    "held_pair_recorded": true,
+    "release_after_cancel_consumed": true,
+    "cancel_releases_runtime_and_pairs": true,
+    "p4_source_cancel_releases_client_facts": true,
+    "injector_still_has_no_p0_policy": true
+  },
+  "plans": [
+    {
+      "protocol": 3,
+      "type": "PARTIAL_SCROLL",
+      "sessionId": "p3-private",
+      "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73",
+      "targetOutput": "Virtual-0",
+      "epoch": 1,
+      "issuedAt": 1792068257359,
+      "scopeRevision": 1,
+      "maxCamera": 1696,
+      "clipPartial": true,
+      "retargetOnly": true,
+      "oldScrollOffsetX": 212,
+      "newScrollOffsetX": 212,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "layoutRect": {
+        "x": 0,
+        "y": 66,
+        "width": 2560,
+        "height": 1358
+      },
+      "entries": [
+        {
+          "windowId": "56a958e8-a6fc-4dcf-85ae-3ef53c31742d",
+          "columnId": 1,
+          "logicalX": 652,
+          "pixelWidth": 1680,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        },
+        {
+          "windowId": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de",
+          "columnId": 2,
+          "logicalX": 2348,
+          "pixelWidth": 1256,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        }
+      ]
+    },
+    {
+      "protocol": 3,
+      "type": "PARTIAL_SCROLL",
+      "sessionId": "p3-private",
+      "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73",
+      "targetOutput": "Virtual-0",
+      "epoch": 2,
+      "issuedAt": 1792068259060,
+      "scopeRevision": 1,
+      "maxCamera": 1696,
+      "clipPartial": true,
+      "retargetOnly": false,
+      "oldScrollOffsetX": 212,
+      "newScrollOffsetX": 1060,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "layoutRect": {
+        "x": 0,
+        "y": 66,
+        "width": 2560,
+        "height": 1358
+      },
+      "entries": [
+        {
+          "windowId": "56a958e8-a6fc-4dcf-85ae-3ef53c31742d",
+          "columnId": 1,
+          "logicalX": 652,
+          "pixelWidth": 1680,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        },
+        {
+          "windowId": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de",
+          "columnId": 2,
+          "logicalX": 2348,
+          "pixelWidth": 1256,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        }
+      ]
+    },
+    {
+      "protocol": 3,
+      "type": "PARTIAL_SCROLL",
+      "sessionId": "p3-private",
+      "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73",
+      "targetOutput": "Virtual-0",
+      "epoch": 3,
+      "issuedAt": 1792068261229,
+      "scopeRevision": 1,
+      "maxCamera": 1696,
+      "clipPartial": true,
+      "retargetOnly": false,
+      "oldScrollOffsetX": 1060,
+      "newScrollOffsetX": 212,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "layoutRect": {
+        "x": 0,
+        "y": 66,
+        "width": 2560,
+        "height": 1358
+      },
+      "entries": [
+        {
+          "windowId": "56a958e8-a6fc-4dcf-85ae-3ef53c31742d",
+          "columnId": 1,
+          "logicalX": 652,
+          "pixelWidth": 1680,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        },
+        {
+          "windowId": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de",
+          "columnId": 2,
+          "logicalX": 2348,
+          "pixelWidth": 1256,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        }
+      ]
+    },
+    {
+      "protocol": 3,
+      "type": "PARTIAL_SCROLL",
+      "sessionId": "p3-private",
+      "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73",
+      "targetOutput": "Virtual-0",
+      "epoch": 4,
+      "issuedAt": 1792068261281,
+      "scopeRevision": 1,
+      "maxCamera": 1696,
+      "clipPartial": true,
+      "retargetOnly": false,
+      "oldScrollOffsetX": 212,
+      "newScrollOffsetX": 1060,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "layoutRect": {
+        "x": 0,
+        "y": 66,
+        "width": 2560,
+        "height": 1358
+      },
+      "entries": [
+        {
+          "windowId": "56a958e8-a6fc-4dcf-85ae-3ef53c31742d",
+          "columnId": 1,
+          "logicalX": 652,
+          "pixelWidth": 1680,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        },
+        {
+          "windowId": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de",
+          "columnId": 2,
+          "logicalX": 2348,
+          "pixelWidth": 1256,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        }
+      ]
+    },
+    {
+      "protocol": 3,
+      "type": "PARTIAL_SCROLL",
+      "sessionId": "p3-private",
+      "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73",
+      "targetOutput": "Virtual-0",
+      "epoch": 5,
+      "issuedAt": 1792068262482,
+      "scopeRevision": 1,
+      "maxCamera": 1696,
+      "clipPartial": true,
+      "retargetOnly": false,
+      "oldScrollOffsetX": 1060,
+      "newScrollOffsetX": 212,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "layoutRect": {
+        "x": 0,
+        "y": 66,
+        "width": 2560,
+        "height": 1358
+      },
+      "entries": [
+        {
+          "windowId": "56a958e8-a6fc-4dcf-85ae-3ef53c31742d",
+          "columnId": 1,
+          "logicalX": 652,
+          "pixelWidth": 1680,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        },
+        {
+          "windowId": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de",
+          "columnId": 2,
+          "logicalX": 2348,
+          "pixelWidth": 1256,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        }
+      ]
+    }
+  ],
+  "geometry": [
+    {
+      "phase": "bootstrap",
+      "kind": "p3-geometry",
+      "label": "initial-safe-client-ack",
+      "ready": true,
+      "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "56a958e8-a6fc-4dcf-85ae-3ef53c31742d",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "58a56cdf-26d2-46ae-9393-f0bf37d981d7",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "a9d0d280-d7cf-4736-81af-d6117d780dc3",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "p3-geometry",
+      "label": "modal-parent-active",
+      "ready": true,
+      "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "56a958e8-a6fc-4dcf-85ae-3ef53c31742d",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "58a56cdf-26d2-46ae-9393-f0bf37d981d7",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "a9d0d280-d7cf-4736-81af-d6117d780dc3",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "p3-geometry",
+      "label": "first-click-baseline-focus",
+      "ready": true,
+      "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "56a958e8-a6fc-4dcf-85ae-3ef53c31742d",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "58a56cdf-26d2-46ae-9393-f0bf37d981d7",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "a9d0d280-d7cf-4736-81af-d6117d780dc3",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "partial-first-click",
+      "kind": "p3-geometry",
+      "label": "before-js-focus",
+      "ready": true,
+      "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "56a958e8-a6fc-4dcf-85ae-3ef53c31742d",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "58a56cdf-26d2-46ae-9393-f0bf37d981d7",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "a9d0d280-d7cf-4736-81af-d6117d780dc3",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "p3-geometry",
+      "label": "native-arm-then-safe-client-ack",
+      "ready": true,
+      "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "56a958e8-a6fc-4dcf-85ae-3ef53c31742d",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 0,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1288,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "58a56cdf-26d2-46ae-9393-f0bf37d981d7",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "a9d0d280-d7cf-4736-81af-d6117d780dc3",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_B"
+    }
+  ],
+  "captures": [
+    {
+      "name": "right-partial",
+      "samples": [
+        {
+          "output": 0,
+          "x": 450,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 1304,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 2110,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 2135,
+          "y": 300,
+          "expected": "#000000",
+          "actual": "#000000"
+        },
+        {
+          "output": 0,
+          "x": 2140,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 0,
+          "x": 2559,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 1,
+          "expected": "#000000",
+          "actual": "#000000",
+          "scope": "entire-secondary-framebuffer"
+        }
+      ]
+    },
+    {
+      "name": "left-partial-ring",
+      "samples": [
+        {
+          "output": 0,
+          "x": 0,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 1272,
+          "y": 300,
+          "expected": "#000000",
+          "actual": "#000000"
+        },
+        {
+          "output": 0,
+          "x": 1300,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 1,
+          "expected": "#000000",
+          "actual": "#000000",
+          "scope": "entire-secondary-framebuffer"
+        }
+      ]
+    },
+    {
+      "name": "partial-reversal",
+      "samples": [
+        {
+          "output": 1,
+          "expected": "#000000",
+          "actual": "#000000",
+          "scope": "entire-secondary-framebuffer"
+        }
+      ]
+    }
+  ],
+  "support": "KWin \u6280\u672f\u652f\u6301\u4fe1\u606f\uff1a\n\u8bf7\u5728\u5bfb\u6c42\u6280\u672f\u652f\u6301\u65f6 (\u4f8b\u5982 https://discuss.kde.org \u7f51\u7ad9) \u63d0\u4f9b\u4ee5\u4e0b\u4fe1\u606f\u3002\n\u8fd9\u4e9b\u4fe1\u606f\u5305\u62ec\u5173\u4e8e\u5f53\u524d\u6b63\u5728\u8fd0\u884c\u7684 Kwin \u5b9e\u4f8b\u7684\u76f8\u5173\u4fe1\u606f\u3001\n\u4f7f\u7528\u7684\u9009\u9879\u3001OpenGL \u9a71\u52a8\u7a0b\u5e8f\u3001\u6b63\u5728\u8fd0\u884c\u7684\u7279\u6548\u7b49\u3002\n\u8bf7\u4e0d\u8981\u5c06\u672c\u6bb5\u6587\u5b57\u4e0b\u65b9\u7684\u4fe1\u606f\u76f4\u63a5\u7c98\u8d34\u5230\u6280\u672f\u652f\u6301\u8ba8\u8bba\u4e32\uff0c\n\u800c\u5e94\u5c06\u5b83\u4eec\u7c98\u8d34\u5230\u5728\u7ebf\u526a\u8d34\u677f\u7f51\u7ad9 (\u4f8b\u5982 https://paste.kde.org)\u3002\n\n==========================\n\nVersion\n=======\nKWin version: 6.7.5\nQt Version: 6.11.2\nQt compile version: 6.11.2\nXCB compile version: 1.17.0\n\nOperation Mode: Wayland\n\nBuild Options\n=============\nKWIN_BUILD_DECORATIONS: yes\nKWIN_BUILD_TABBOX: yes\nKWIN_BUILD_ACTIVITIES: yes\nHAVE_X11_XCB: yes\n\nDecoration\n==========\nPlugin: org.kde.breeze\nTheme: \nPlugin recommends border size: None\nonAllDesktopsAvailable: false\nalphaChannelSupported: true\ncloseOnDoubleClickOnMenu: false\nalwaysShowExcludeFromCapture: false\ndecorationButtonsLeft: 0, 2, 12\ndecorationButtonsRight: 6, 3, 4, 5\nborderSize: 0\ngridUnit: 12\nfont: Noto Sans Arabic,12,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0\nsmallSpacing: 3\nlargeSpacing: 12\n\nLogicalOutput backend\n==============\nName: KWin::VirtualBackend\n\nCursor\n======\nthemeName: default\nthemeSize: 24\n\nOptions\n=======\nfocusPolicy: ClickToFocus\nxwaylandCrashPolicy: 1\nxwaylandMaxCrashCount: 3\nnextFocusPrefersMouse: false\nclickRaise: true\nautoRaise: false\nautoRaiseInterval: 0\ndelayFocusInterval: 0\nseparateScreenFocus: true\nplacement: 5\nactivationDesktopPolicy: SwitchToOtherDesktop\nfocusPolicyIsReasonable: true\nborderSnapZone: 10\nwindowSnapZone: 10\ncenterSnapZone: 0\nsnapOnlyWhenOverlapping: false\nedgeBarrier: 100\ncornerBarrier: 1\nrollOverDesktops: false\nperOutputVirtualDesktops: false\nfocusStealingPreventionLevel: 1\noperationTitlebarDblClick: 5000\noperationMaxButtonLeftClick: 5000\noperationMaxButtonMiddleClick: 5013\noperationMaxButtonRightClick: 5012\ncommandActiveTitlebar1: MouseRaise\ncommandActiveTitlebar2: MouseNothing\ncommandActiveTitlebar3: MouseOperationsMenu\ncommandInactiveTitlebar1: MouseActivateAndRaise\ncommandInactiveTitlebar2: MouseNothing\ncommandInactiveTitlebar3: MouseOperationsMenu\ncommandWindow1: MouseActivateRaiseOnReleaseAndPassClick\ncommandWindow2: MouseActivateAndPassClick\ncommandWindow3: MouseActivateAndPassClick\ncommandWindowWheel: MouseNothing\ncommandAll1: MouseUnrestrictedMove\ncommandAll2: MouseToggleRaiseAndLower\ncommandAll3: MouseUnrestrictedResize\nkeyCmdAllModKey: 16777250\ndoubleClickBorderToMaximize: true\ncondensedTitle: false\nelectricBorderMaximize: true\nelectricBorderTiling: true\nelectricBorderAllScreenCorner: true\nelectricBorderCornerRatio: 0.25\nborderlessMaximizedWindows: false\nkillPingTimeout: 5000\ncompositingMode: 1\nallowTearing: true\ninteractiveWindowMoveEnabled: true\npictureInPictureHomeCorner: BottomRightCorner\npictureInPictureMargin: 20\noverlayVirtualKeyboardOnWindows: false\n\nScreen Edges\n============\ndesktopSwitching: false\ndesktopSwitchingMovingClients: false\ncursorPushBackDistance: 1x1\nactionTopLeft: 0\nactionTop: 0\nactionTopRight: 0\nactionRight: 0\nactionBottomRight: 0\nactionBottom: 0\nactionBottomLeft: 0\nactionLeft: 0\n\nScreens\n=======\nNumber of Screens: 2\n\nScreen 0:\n---------\nName: Virtual-0\nEnabled: 1\nGeometry: 0,0,3840x2160\nPhysical size: -1x-1mm\nScale: 1\nRefresh Rate: 60000\nAdaptive Sync: incapable\nScreen 1:\n---------\nName: Virtual-1\nEnabled: 1\nGeometry: 3840,0,3840x2160\nPhysical size: -1x-1mm\nScale: 1\nRefresh Rate: 60000\nAdaptive Sync: incapable\n\nCompositing\n===========\nCompositing is active\nCompositing Type: OpenGL\nOpenGL vendor string: Intel\nOpenGL renderer string: Mesa Intel(R) UHD Graphics (CML GT2)\nOpenGL version string: 4.6 (Core Profile) Mesa 26.2.3\nOpenGL platform interface: EGL\nOpenGL shading language version string: 4.60\nDriver: Intel\nGPU class: Comet Lake\nOpenGL version: 4.6\nGLSL version: 4.60\nMesa version: 26.2.3\nLinux kernel version: 7.2.8\nDirect rendering: Requires strict binding: no\nVirtual Machine:  no\nOpenGL 2 Shaders are used\n\nLoaded Effects:\n---------------\nshakecursor\noutputlocator\ncolorpicker\nzoom\nscreenedge\nblur\nslidingpopups\nslidingnotifications\nslide\ndialogparent\nwindowview\ntileseditor\noverview\nhighlightwindow\nblendchanges\nstartupfeedback\nkwin4_effect_shapecorners\nsystembell\nscreentransform\nkscreen\n\nCurrently Active Effects:\n-------------------------\nblur\nkwin4_effect_shapecorners\n\nEffect Settings:\n----------------\nshakecursor:\n\noutputlocator:\n\ncolorpicker:\n\nzoom:\nzoomFactor: 1.2\nmouseTracking: 0\nfocusDelay: 350\nmoveFactor: 20\ntargetZoom: 1\n\nscreenedge:\n\nblur:\n\nslidingpopups:\nslideInDuration: 200\nslideOutDuration: 200\n\nslidingnotifications:\n\nslide:\nhorizontalGap: 45\nverticalGap: 20\nslideBackground: true\n\ndialogparent:\npluginId: dialogparent\nisActiveFullScreenEffect: false\n\nwindowview:\nactiveView: \ndelegate: \nanimationDuration: 300\nignoreMinimized: false\nmode: ModeCurrentDesktop\npartialActivationFactor: 0\ngestureInProgress: false\nsearchText: \nselectedIds: \n\ntileseditor:\nactiveView: \ndelegate: \nanimationDuration: 200\n\noverview:\nactiveView: \ndelegate: \nanimationDuration: 300\nignoreMinimized: false\nfilterWindows: true\norganizedGrid: true\noverviewPartialActivationFactor: 0\noverviewGestureInProgress: false\ntransitionPartialActivationFactor: 0\ntransitionGestureInProgress: false\ngridPartialActivationFactor: 0\ngridGestureInProgress: false\nsearchText: \n\nhighlightwindow:\n\nblendchanges:\n\nstartupfeedback:\ntype: 1\n\nkwin4_effect_shapecorners:\n\nsystembell:\n\nscreentransform:\n\nkscreen:\n\n\nLoaded Plugins:\n---------------\nBounceKeysPlugin\nKeyNotificationPlugin\nMouseKeysPlugin\nSlowKeysPlugin\nStickyKeysPlugin\nTouchpadShortcutsPlugin\nbuttonsrebind\neis\nkrunnerintegration\nnightlight\nscreencast\nscreenshot\n\nAvailable Plugins:\n------------------\nBounceKeysPlugin\nKeyNotificationPlugin\nMouseKeysPlugin\nSlowKeysPlugin\nStickyKeysPlugin\nTouchpadShortcutsPlugin\nbuttonsrebind\neis\ngamecontroller\nkrunnerintegration\nnightlight\nscreencast\nscreenshot\n",
+  "capability": {
+    "binaryPath": "/home/cc/cc_niri/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+    "enabled": true,
+    "inputPolicy": "two-click",
+    "pendingButtons": 0,
+    "pendingTouches": 0,
+    "protocol": 3,
+    "type": "PARTIAL_SCROLL"
+  },
+  "loaded_binary_paths": {
+    "clip": "/home/cc/cc_niri/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+    "ring": "/home/cc/cc_niri/build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so"
+  },
+  "initial_painted": {
+    "active": true,
+    "cameraX": 212,
+    "clipPartial": true,
+    "completed": true,
+    "entries": [
+      {
+        "uuid": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de",
+        "visualRect": {
+          "height": 1358,
+          "width": 1256,
+          "x": 2136,
+          "y": 66
+        }
+      },
+      {
+        "uuid": "56a958e8-a6fc-4dcf-85ae-3ef53c31742d",
+        "visualRect": {
+          "height": 1358,
+          "width": 1680,
+          "x": 440,
+          "y": 66
+        }
+      }
+    ],
+    "epoch": 1,
+    "sampleSerial": 2,
+    "scopeRevision": 1,
+    "sessionId": "p3-private",
+    "targetOutput": "Virtual-0",
+    "valid": true,
+    "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73"
+  },
+  "column_geometry_source": {
+    "active": true,
+    "cameraX": 212,
+    "clipPartial": true,
+    "completed": true,
+    "entries": [
+      {
+        "acknowledged": true,
+        "columnId": 2,
+        "frameRect": {
+          "height": 1358,
+          "width": 1256,
+          "x": 1304,
+          "y": 66
+        },
+        "logicalX": 2348,
+        "owned": true,
+        "painted": true,
+        "velocityX": 0,
+        "velocityY": 0,
+        "visualRect": {
+          "height": 1358,
+          "width": 1256,
+          "x": 2136,
+          "y": 66
+        },
+        "windowId": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de"
+      },
+      {
+        "acknowledged": true,
+        "columnId": 1,
+        "frameRect": {
+          "height": 1358,
+          "width": 1680,
+          "x": 440,
+          "y": 66
+        },
+        "logicalX": 652,
+        "owned": true,
+        "painted": true,
+        "velocityX": 0,
+        "velocityY": 0,
+        "visualRect": {
+          "height": 1358,
+          "width": 1680,
+          "x": 440,
+          "y": 66
+        },
+        "windowId": "56a958e8-a6fc-4dcf-85ae-3ef53c31742d"
+      }
+    ],
+    "epoch": 1,
+    "layoutRect": {
+      "height": 1358,
+      "width": 2560,
+      "x": 0,
+      "y": 66
+    },
+    "maxCamera": 1696,
+    "protocol": 4,
+    "sampleSerial": 2,
+    "scopeRevision": 1,
+    "sessionId": "p3-private",
+    "targetOutput": "Virtual-0",
+    "type": "COLUMN_GEOMETRY_SOURCE",
+    "valid": true,
+    "viewport": {
+      "height": 1440,
+      "width": 2560,
+      "x": 0,
+      "y": 0
+    },
+    "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73"
+  },
+  "modal_before_input": {
+    "activeModal": true,
+    "auxiliary": [],
+    "consumed": 0,
+    "entries": [],
+    "epoch": 0,
+    "masked": 0,
+    "mode": "",
+    "nativeButtons": 0,
+    "nativeDrag": false,
+    "nativeHitClass": "python3",
+    "pendingButtons": 0,
+    "pendingTouches": 0,
+    "pointerFocusClass": "",
+    "seatSerial": 87
+  },
+  "focus_request": {
+    "active": true,
+    "clipPartial": true,
+    "completed": true,
+    "epoch": 1,
+    "scopeRevision": 1,
+    "sessionId": "p3-private",
+    "targetOutput": "Virtual-0",
+    "windowUuid": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de",
+    "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73"
+  },
+  "focus_command": {
+    "active": true,
+    "baseGeneration": 1,
+    "clipPartial": true,
+    "commandId": "partial-focus/p3-private/1/1/7af7d040-22b9-4ff6-87e8-ecf92b6b46de",
+    "completed": true,
+    "epoch": 1,
+    "protocol": 1,
+    "scopeRevision": 1,
+    "sessionId": "p3-private",
+    "targetOutput": "Virtual-0",
+    "type": "focus-partial-column",
+    "windowUuid": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de",
+    "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73"
+  },
+  "second_click_events": [
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    }
+  ],
+  "ring_status": {
+    "active": true,
+    "activeTransitionCount": 0,
+    "binaryPath": "/home/cc/cc_niri/build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so",
+    "borderAlpha": 0.85,
+    "color": "#7FC8FF",
+    "coreBackend": "Rust",
+    "cornerRadius": 12,
+    "cornerSource": "round-corners",
+    "drawCount": 10,
+    "eligibilityEnabled": true,
+    "eligibilitySource": "layout-script",
+    "eligibleCount": 2,
+    "fadeRepaintRequests": 9,
+    "focusAnimation": true,
+    "focusClock": "clip-shared-presentation",
+    "focusDurationMs": 140,
+    "frameLifetime": "scene-attachment",
+    "generation": 1,
+    "glowAlpha": 0.28,
+    "glowClip": "separate-viewport-native-occlusion",
+    "glowExtent": 7.1,
+    "glowFalloff": "gaussian-three-sigma",
+    "glowGain": true,
+    "glowGainEndExtent": 7.1,
+    "glowGainRenderer": "cached-profile-blend",
+    "glowGainStartExtent": 7.4,
+    "glowOnlyDiagnostic": false,
+    "glowRadius": 1.7,
+    "glowRasterizations": 16,
+    "nativeProtocolBackend": "Rust",
+    "otherOutputPaintSkips": 0,
+    "outgoingDecorationCount": 0,
+    "paintOutputScope": "owner-output-region",
+    "paintOutset": 8,
+    "paintSource": "window-paint-pass",
+    "phase": "focus-gain-f3",
+    "pixelAlignment": "native-child-rounding-compensated",
+    "renderer": "post-window-native-item",
+    "separateGlowClipDrawCount": 10,
+    "sessionId": "p3-private-ring",
+    "sharedFrameSamples": 11,
+    "strokeGeometry": "paint-frame-fixed-width",
+    "targetOutput": "Virtual-0",
+    "viewportOutset": 5,
+    "visuals": [
+      {
+        "focused": true,
+        "glowGainMix": 0,
+        "opacity": 1,
+        "transitionActive": false,
+        "windowUuid": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de"
+      }
+    ],
+    "width": 2,
+    "windowOpacity": 1,
+    "windowUuid": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de",
+    "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73"
+  },
+  "native_touch_events": [
+    {
+      "phase": "native-touch",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "TouchBegin",
+      "spontaneous": true,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-touch",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "TouchEnd",
+      "spontaneous": true,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    }
+  ],
+  "native_grab_events": [
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": -1188.0,
+      "y": 234.0,
+      "button": 2,
+      "points": [
+        {
+          "id": 0,
+          "x": -1188.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": -1188.0,
+      "y": 234.0,
+      "button": 2,
+      "points": [
+        {
+          "id": 0,
+          "x": -1188.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": -1188.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": -1188.0,
+          "y": 234.0
+        }
+      ]
+    }
+  ],
+  "reversal_status": {
+    "active": true,
+    "animationProfile": "smooth60",
+    "animationProfileFallback": "",
+    "clipHandoffActive": false,
+    "clipPartial": true,
+    "clockFallbackCount": 0,
+    "clockFallbackReasons": {
+      "invalidPrediction": 0,
+      "missingPrediction": 0,
+      "regressedPrediction": 0
+    },
+    "completed": false,
+    "decorationGeometryBackend": "Rust",
+    "epoch": 4,
+    "lastRetarget": {
+      "brakeDistance": 0,
+      "brakeMs": 0,
+      "initialVelocity": -6647.212407819489,
+      "lower": 0,
+      "reason": "none",
+      "savedVelocity": -6647.212407819489,
+      "strategy": "carry",
+      "upper": 1696
+    },
+    "nativeProtocolBackend": "Rust",
+    "paintClip": "strict-output",
+    "retargetBrakedCount": 0,
+    "retargetCarriedCount": 1,
+    "retargetDegradedCount": 0,
+    "retargetDegradedReasons": {
+      "coverage": 0,
+      "invalidMath": 0,
+      "noBrakeSpace": 0
+    },
+    "retargetKeptCount": 0,
+    "scrollClockSource": "predicted-presentation",
+    "scrollContinuousFullRepaintRequests": 0,
+    "scrollOutputRepaintRequests": 31,
+    "scrollRepaintFallbackFullRequests": 0,
+    "scrollRepaintScope": "target-output-continuation",
+    "scrollRetargetPolicy": "bounded-last-painted-position-and-velocity",
+    "scrollRuntimeBackend": "Rust",
+    "scrollSpringStiffness": 600,
+    "scrollTargetOutput": "Virtual-0",
+    "scrollVisualCompletedCount": 1,
+    "scrollVisualSettleEnabled": false,
+    "scrollVisualSettleFallback": "awaiting-frame",
+    "scrollVisualSettleFallbackReasons": {
+      "invalidScale": 0,
+      "missingOutput": 0,
+      "unknownRefresh": 0
+    },
+    "scrollVisualSettleOutputScale": 0,
+    "scrollVisualSettlePhysicalPx": 0.25,
+    "scrollVisualSettleRefreshHz": 0,
+    "sessionId": "p3-private",
+    "targetOutput": "Virtual-0",
+    "workspaceAnimationActive": false,
+    "workspaceAnimationBackend": "RustFiniteCurve",
+    "workspaceAnimationDuration": 420,
+    "workspaceAnimationEnabled": false,
+    "workspaceDepartureVisual": "freeze-wide-until-compositor-idle",
+    "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73",
+    "workspaceMotion": {
+      "acceleration": {
+        "x": 0,
+        "y": 0
+      },
+      "active": false,
+      "brakeDistanceCells": {
+        "x": 0,
+        "y": 0
+      },
+      "brakeXMs": 0,
+      "brakeYMs": 0,
+      "brakedC1": 0,
+      "carriedC1": 0,
+      "carriedC2": 0,
+      "durationMs": 0,
+      "epoch": 0,
+      "frameDeltaClampingEnabled": false,
+      "frameDeltaClampingRequiresSmooth60": true,
+      "gesture": false,
+      "initialAcceleration": {
+        "x": 0,
+        "y": 0
+      },
+      "initialVelocity": {
+        "x": 0,
+        "y": 0
+      },
+      "kept": 0,
+      "liveBinding": false,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "point": {
+        "x": 0,
+        "y": 0
+      },
+      "projectionCacheEnabled": false,
+      "reasons": [
+        "none",
+        "none"
+      ],
+      "reset": 0,
+      "sampleNs": 0,
+      "samplingClock": {
+        "clampedFrames": 0,
+        "enabled": false,
+        "fallbackCount": 0,
+        "fallbackReason": 0,
+        "lagMs": 0,
+        "limiting": false,
+        "logicalNs": 0,
+        "realNs": 0
+      },
+      "savedAcceleration": {
+        "x": 0,
+        "y": 0
+      },
+      "savedVelocity": {
+        "x": 0,
+        "y": 0
+      },
+      "startNs": 0,
+      "strategies": [
+        "rest",
+        "rest"
+      ],
+      "target": {
+        "x": 0,
+        "y": 0
+      },
+      "velocity": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "workspaceRemovalGate": "compositor-idle",
+    "workspaceRetargetPolicy": "last-painted-position-quintic-zero-velocity"
+  },
+  "motion_capture": {
+    "active": true,
+    "association": "output-only-no-paint-to-present-join",
+    "captureId": 1,
+    "clockDomain": "steady-clock-monotonic-relative-ms",
+    "continuousRepaintFallbackFullRequests": 0,
+    "continuousRepaintFullRequests": 0,
+    "durationMs": 10000,
+    "lifecycle": [
+      {
+        "atMs": 8.622588,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": 3,
+        "initialVelocity": 0,
+        "kind": 0,
+        "output": 1,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 6,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 60.664345,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": 4,
+        "initialVelocity": -6647.212407819489,
+        "kind": 0,
+        "output": 1,
+        "retargetReason": 0,
+        "retargetStrategy": 1,
+        "revision": 7,
+        "savedVelocity": -6647.212407819489
+      }
+    ],
+    "outputs": [
+      {
+        "fullRepaintRequests": 2,
+        "name": "Virtual-0",
+        "refreshHz": 60,
+        "removed": false,
+        "scale": 1.5,
+        "targetRepaintRequests": 30,
+        "token": 1
+      },
+      {
+        "fullRepaintRequests": 2,
+        "name": "Virtual-1",
+        "refreshHz": 60,
+        "removed": false,
+        "scale": 1.5,
+        "targetRepaintRequests": 0,
+        "token": 2
+      }
+    ],
+    "paintedFrames": [
+      {
+        "epoch": 3,
+        "eventMs": 8.585887,
+        "fallback": 0,
+        "frame": 100,
+        "initialVelocity": 0,
+        "initialX": 1060,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 9.085706,
+        "predictedMs": 24.915665,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 6,
+        "sampleMs": 24.915665,
+        "scale": 1.5,
+        "startMs": 8.585887,
+        "target": 212,
+        "v": -5569.436089742796,
+        "x": 1007.8048142246471
+      },
+      {
+        "epoch": 3,
+        "eventMs": 8.585887,
+        "fallback": 0,
+        "frame": 101,
+        "initialVelocity": 0,
+        "initialX": 1060,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 25.678934,
+        "predictedMs": 41.582331,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 6,
+        "sampleMs": 41.582331,
+        "scale": 1.5,
+        "startMs": 8.585887,
+        "target": 212,
+        "v": -7481.662449246761,
+        "x": 895.3400521873615
+      },
+      {
+        "epoch": 3,
+        "eventMs": 8.585887,
+        "fallback": 0,
+        "frame": 102,
+        "initialVelocity": 0,
+        "initialX": 1060,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 41.508038,
+        "predictedMs": 58.248997,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 6,
+        "sampleMs": 58.248997,
+        "scale": 1.5,
+        "startMs": 8.585887,
+        "target": 212,
+        "v": -7486.260084172972,
+        "x": 768.8600605887643
+      },
+      {
+        "epoch": 3,
+        "eventMs": 8.585887,
+        "fallback": 0,
+        "frame": 103,
+        "initialVelocity": 0,
+        "initialX": 1060,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 59.137867,
+        "predictedMs": 74.915663,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 6,
+        "sampleMs": 74.915663,
+        "scale": 1.5,
+        "startMs": 8.585887,
+        "target": 212,
+        "v": -6647.212407819489,
+        "x": 650.3956545204304
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 104,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 75.455629,
+        "predictedMs": 91.582329,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 91.582329,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 108.06141252248811,
+        "x": 602.8663964187983
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 105,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 91.230024,
+        "predictedMs": 108.248995,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 108.248995,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 3081.5990389950643,
+        "x": 633.2184019586458
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 106,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 99.331473,
+        "predictedMs": 124.915661,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 124.915661,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 4049.6184470635817,
+        "x": 694.5821239010154
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 107,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 108.095426,
+        "predictedMs": 141.582327,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 141.582327,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 4022.4873695452925,
+        "x": 762.7581222710729
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 108,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 124.879766,
+        "predictedMs": 158.248993,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 158.248993,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 3558.570446867115,
+        "x": 826.285433902037
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 109,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 142.054889,
+        "predictedMs": 174.915659,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 174.915659,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 2953.7250231449893,
+        "x": 880.6208511530524
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 110,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 158.789915,
+        "predictedMs": 191.582325,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 191.582325,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 2354.546642735741,
+        "x": 924.7890863383147
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 111,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 174.57892,
+        "predictedMs": 208.248991,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 208.248991,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 1825.1905308554706,
+        "x": 959.501365091375
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 112,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 191.436028,
+        "predictedMs": 224.915657,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 224.915657,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 1386.1673295996136,
+        "x": 986.134407755151
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 113,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 208.345837,
+        "predictedMs": 241.582323,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 241.582323,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 1036.393395781334,
+        "x": 1006.2043940508804
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 114,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 225.821583,
+        "predictedMs": 258.248989,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 258.248989,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 765.3626474110282,
+        "x": 1021.1187991231058
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 115,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 241.614648,
+        "predictedMs": 274.915655,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 274.915655,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 559.5848536491907,
+        "x": 1032.0789236181827
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 116,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 258.444969,
+        "predictedMs": 291.582321,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 291.582321,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 405.766481894759,
+        "x": 1040.0599778436006
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 117,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 275.884059,
+        "predictedMs": 308.248987,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 308.248987,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 292.19446127931747,
+        "x": 1045.8276806181157
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 118,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 291.663813,
+        "predictedMs": 324.915653,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 324.915653,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 209.1702103076892,
+        "x": 1049.9691319124076
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 119,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 308.827143,
+        "predictedMs": 341.582319,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 341.582319,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 148.97513981013094,
+        "x": 1052.9265256478343
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 120,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 324.562063,
+        "predictedMs": 358.248985,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 358.248985,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 105.6329543107924,
+        "x": 1055.02833015509
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 121,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 342.186127,
+        "predictedMs": 374.915651,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 374.915651,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 74.60884828087191,
+        "x": 1056.5158462779011
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 122,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 358.011931,
+        "predictedMs": 391.582317,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 391.582317,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 52.514606594442625,
+        "x": 1057.5647387030306
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 123,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 375.534398,
+        "predictedMs": 408.248983,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 408.248983,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 36.84944640939448,
+        "x": 1058.3019265296198
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 124,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 391.244767,
+        "predictedMs": 424.915649,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 424.915649,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 25.785772309740487,
+        "x": 1058.8185250753618
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 125,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 408.216049,
+        "predictedMs": 441.582315,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 441.582315,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 17.998852458192193,
+        "x": 1059.1795884094647
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 126,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 424.957925,
+        "predictedMs": 458.248981,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 458.248981,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 12.53504269030044,
+        "x": 1059.4313433076777
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 127,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 442.032621,
+        "predictedMs": 474.915647,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 474.915647,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 8.711852922238176,
+        "x": 1059.6065017392782
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 128,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 459.443725,
+        "predictedMs": 491.582313,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 491.582313,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 6.043314659127442,
+        "x": 1059.728127251845
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 129,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 475.045992,
+        "predictedMs": 508.248979,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 508.248979,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 4.184915962345782,
+        "x": 1059.812427824039
+      },
+      {
+        "epoch": 4,
+        "eventMs": 60.625633,
+        "fallback": 0,
+        "frame": 130,
+        "initialVelocity": -6647.212407819489,
+        "initialX": 650.3956545204304,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 492.161286,
+        "predictedMs": 524.915645,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 7,
+        "sampleMs": 524.915645,
+        "scale": 1.5,
+        "startMs": 74.915663,
+        "target": 1060,
+        "v": 0,
+        "x": 1060
+      }
+    ],
+    "positionUnit": "logical-px",
+    "presentations": [
+      {
+        "atMs": 24.915665,
+        "output": 2
+      },
+      {
+        "atMs": 24.915665,
+        "output": 1
+      },
+      {
+        "atMs": 41.582331,
+        "output": 1
+      },
+      {
+        "atMs": 41.582331,
+        "output": 2
+      },
+      {
+        "atMs": 58.248997,
+        "output": 1
+      },
+      {
+        "atMs": 58.248997,
+        "output": 2
+      },
+      {
+        "atMs": 74.915663,
+        "output": 1
+      },
+      {
+        "atMs": 74.915663,
+        "output": 2
+      },
+      {
+        "atMs": 91.582329,
+        "output": 1
+      },
+      {
+        "atMs": 91.582329,
+        "output": 2
+      },
+      {
+        "atMs": 91.582329,
+        "output": 1
+      },
+      {
+        "atMs": 108.248995,
+        "output": 1
+      },
+      {
+        "atMs": 108.248995,
+        "output": 2
+      },
+      {
+        "atMs": 124.915661,
+        "output": 1
+      },
+      {
+        "atMs": 124.915661,
+        "output": 2
+      },
+      {
+        "atMs": 141.582327,
+        "output": 1
+      },
+      {
+        "atMs": 141.582327,
+        "output": 2
+      },
+      {
+        "atMs": 158.248993,
+        "output": 2
+      },
+      {
+        "atMs": 158.248993,
+        "output": 1
+      },
+      {
+        "atMs": 174.915659,
+        "output": 1
+      },
+      {
+        "atMs": 174.915659,
+        "output": 2
+      },
+      {
+        "atMs": 174.915659,
+        "output": 1
+      },
+      {
+        "atMs": 191.582325,
+        "output": 2
+      },
+      {
+        "atMs": 208.248991,
+        "output": 1
+      },
+      {
+        "atMs": 208.248991,
+        "output": 2
+      },
+      {
+        "atMs": 224.915657,
+        "output": 1
+      },
+      {
+        "atMs": 224.915657,
+        "output": 2
+      },
+      {
+        "atMs": 241.582323,
+        "output": 1
+      },
+      {
+        "atMs": 241.582323,
+        "output": 2
+      },
+      {
+        "atMs": 258.248989,
+        "output": 1
+      },
+      {
+        "atMs": 258.248989,
+        "output": 2
+      },
+      {
+        "atMs": 274.915655,
+        "output": 1
+      },
+      {
+        "atMs": 274.915655,
+        "output": 2
+      },
+      {
+        "atMs": 291.582321,
+        "output": 1
+      },
+      {
+        "atMs": 291.582321,
+        "output": 2
+      },
+      {
+        "atMs": 308.248987,
+        "output": 1
+      },
+      {
+        "atMs": 308.248987,
+        "output": 2
+      },
+      {
+        "atMs": 324.915653,
+        "output": 1
+      },
+      {
+        "atMs": 324.915653,
+        "output": 2
+      },
+      {
+        "atMs": 324.915653,
+        "output": 1
+      },
+      {
+        "atMs": 341.582319,
+        "output": 2
+      },
+      {
+        "atMs": 358.248985,
+        "output": 1
+      },
+      {
+        "atMs": 358.248985,
+        "output": 2
+      },
+      {
+        "atMs": 358.248985,
+        "output": 1
+      },
+      {
+        "atMs": 374.915651,
+        "output": 2
+      },
+      {
+        "atMs": 391.582317,
+        "output": 1
+      },
+      {
+        "atMs": 391.582317,
+        "output": 2
+      },
+      {
+        "atMs": 391.582317,
+        "output": 1
+      },
+      {
+        "atMs": 408.248983,
+        "output": 2
+      },
+      {
+        "atMs": 424.915649,
+        "output": 1
+      },
+      {
+        "atMs": 424.915649,
+        "output": 2
+      },
+      {
+        "atMs": 441.582315,
+        "output": 1
+      },
+      {
+        "atMs": 441.582315,
+        "output": 2
+      },
+      {
+        "atMs": 458.248981,
+        "output": 2
+      },
+      {
+        "atMs": 458.248981,
+        "output": 1
+      },
+      {
+        "atMs": 474.915647,
+        "output": 1
+      },
+      {
+        "atMs": 474.915647,
+        "output": 2
+      },
+      {
+        "atMs": 491.582313,
+        "output": 1
+      },
+      {
+        "atMs": 491.582313,
+        "output": 2
+      },
+      {
+        "atMs": 508.248979,
+        "output": 1
+      }
+    ],
+    "repaintFullRequests": 2,
+    "repaintOutputRequests": 30,
+    "repaintScope": "ViewportClipEffect-full-events-and-profile-dependent-continuation-excludes-workspace-adapter",
+    "truncated": false,
+    "velocityUnit": "logical-px-per-second",
+    "version": 1
+  },
+  "records": [
+    {
+      "phase": "bootstrap",
+      "kind": "private-shortcut-service",
+      "stub": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_D",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 840.0,
+      "y": 679.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 840.0,
+          "y": 679.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 628.0,
+      "y": 679.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 628.0,
+          "y": 679.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 574.66796875,
+      "y": 649.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 574.66796875,
+          "y": 649.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 840.0,
+      "y": 654.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 840.0,
+          "y": 654.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p3-geometry",
+      "label": "initial-safe-client-ack",
+      "ready": true,
+      "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "56a958e8-a6fc-4dcf-85ae-3ef53c31742d",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "58a56cdf-26d2-46ae-9393-f0bf37d981d7",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "a9d0d280-d7cf-4736-81af-d6117d780dc3",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "popup-open",
+      "kind": "mark"
+    },
+    {
+      "phase": "popup-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 560.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 560.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "popup-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 560.0,
+      "y": 234.0,
+      "button": 2,
+      "points": [
+        {
+          "id": 0,
+          "x": 560.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "popup-open",
+      "kind": "popup-shown"
+    },
+    {
+      "phase": "popup-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "popup-outside",
+      "kind": "mark"
+    },
+    {
+      "phase": "popup-outside",
+      "kind": "popup-hidden"
+    },
+    {
+      "phase": "popup-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "popup-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "popup-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "popup-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "popup-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "mark"
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 560.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 560.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 560.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 560.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 560.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 560.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 600.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 600.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "drag-start"
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "dnd-open",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "mark"
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "drag-end",
+      "action": 0
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_D",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "p3-geometry",
+      "label": "modal-parent-active",
+      "ready": true,
+      "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "56a958e8-a6fc-4dcf-85ae-3ef53c31742d",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "58a56cdf-26d2-46ae-9393-f0bf37d981d7",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "a9d0d280-d7cf-4736-81af-d6117d780dc3",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "dnd-cross-partial",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "mark"
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "modal-outside",
+      "kind": "p3-geometry",
+      "label": "first-click-baseline-focus",
+      "ready": true,
+      "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "56a958e8-a6fc-4dcf-85ae-3ef53c31742d",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "58a56cdf-26d2-46ae-9393-f0bf37d981d7",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "a9d0d280-d7cf-4736-81af-d6117d780dc3",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "partial-first-click",
+      "kind": "mark"
+    },
+    {
+      "phase": "partial-first-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "partial-first-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "partial-first-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "partial-first-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "partial-first-click",
+      "kind": "p3-geometry",
+      "label": "before-js-focus",
+      "ready": true,
+      "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "56a958e8-a6fc-4dcf-85ae-3ef53c31742d",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "58a56cdf-26d2-46ae-9393-f0bf37d981d7",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "a9d0d280-d7cf-4736-81af-d6117d780dc3",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "mark"
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1096.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1096.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 1112.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 1112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "native-ack-before-client-ack",
+      "kind": "p3-geometry",
+      "label": "native-arm-then-safe-client-ack",
+      "ready": true,
+      "workspaceId": "83a56203-9eed-4676-96a6-2166595d4d73",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "56a958e8-a6fc-4dcf-85ae-3ef53c31742d",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 0,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "7af7d040-22b9-4ff6-87e8-ecf92b6b46de",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1288,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "58a56cdf-26d2-46ae-9393-f0bf37d981d7",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "a9d0d280-d7cf-4736-81af-d6117d780dc3",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_B"
+    },
+    {
+      "phase": "second-click",
+      "kind": "mark"
+    },
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "second-click",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "partial-wheel",
+      "kind": "mark"
+    },
+    {
+      "phase": "partial-wheel",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "partial-wheel",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 100.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 100.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "partial-wheel",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "partial-touch",
+      "kind": "mark"
+    },
+    {
+      "phase": "native-touch",
+      "kind": "mark"
+    },
+    {
+      "phase": "native-touch",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "TouchBegin",
+      "spontaneous": true,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-touch",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "TouchEnd",
+      "spontaneous": true,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "mark"
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": 112.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": 112.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseMove",
+      "spontaneous": true,
+      "x": -1188.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": -1188.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonPress",
+      "spontaneous": true,
+      "x": -1188.0,
+      "y": 234.0,
+      "button": 2,
+      "points": [
+        {
+          "id": 0,
+          "x": -1188.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": -1188.0,
+      "y": 234.0,
+      "button": 2,
+      "points": [
+        {
+          "id": 0,
+          "x": -1188.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "MouseButtonRelease",
+      "spontaneous": true,
+      "x": -1188.0,
+      "y": 234.0,
+      "button": 1,
+      "points": [
+        {
+          "id": 0,
+          "x": -1188.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 100.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 100.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "native-implicit-grab",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "held-pair-retarget-cancel",
+      "kind": "mark"
+    },
+    {
+      "phase": "held-pair-retarget-cancel",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 100.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 100.0,
+          "y": 234.0
+        }
+      ]
+    },
+    {
+      "phase": "held-pair-retarget-cancel",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "held-pair-retarget-cancel",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 100.0,
+      "y": 234.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 100.0,
+          "y": 234.0
+        }
+      ]
+    }
+  ],
+  "ended_utc": "2026-10-15T12:44:22.674420+00:00"
+}

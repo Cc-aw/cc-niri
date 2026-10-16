@@ -6,7 +6,7 @@ const vm = require("node:vm");
 const source = fs.readFileSync(path.join(__dirname,
     "../package/contents/code/main.js"), "utf8");
 const timerSource = source.slice(source.indexOf("function setRuntimeTimer("),
-    source.indexOf("const recovery =", source.indexOf("function setRuntimeTimer(")));
+    source.indexOf("const recoveryCompletion =", source.indexOf("function setRuntimeTimer(")));
 class KWinTimerMock {
     constructor() {
         this.timeout = {

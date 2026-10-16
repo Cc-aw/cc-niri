@@ -2,6 +2,7 @@
 
 /* cjs:start */
 const { WorkspacePersistence } = require("./WorkspacePersistence");
+const { workspaceColumnPreference } = require("./WorkspaceSnapshotStore");
 /* cjs:end */
 
 class WorkspaceMountController {
@@ -51,16 +52,22 @@ class WorkspaceMountController {
         const anchor = columns.reduce((previous, column) =>
             column.logicalX <= state.scrollOffsetX ? column : previous, null);
         const wide = columns.find(column => column.id === state.viewport.wideColumnId);
-        return this.snapshots.set(state.activeWorkspaceId, {
-            columns: columns.map(column => ({ uuid: this.normalizeUuid(column.window.internalId),
-                widthMode: column.widthMode, previousNonFullWidthMode: column.previousNonFullWidthMode,
-                persistentWide: column.persistentWide })),
+        const previous = this.snapshots.get(state.activeWorkspaceId);
+        const result = {
+            columns: columns.map(column => workspaceColumnPreference(column,
+                this.normalizeUuid(column.window.internalId), this.scrollLayoutV2Enabled)),
             focusedUuid: focused ? this.normalizeUuid(focused.window.internalId) : null,
             viewportAnchor: anchor ? { uuid: this.normalizeUuid(anchor.window.internalId),
                 delta: state.scrollOffsetX - anchor.logicalX } : null,
             viewport: { mode: state.viewport.mode, wideUuid: wide ? this.normalizeUuid(wide.window.internalId) : null },
             presentation: state.presentation,
-        });
+        };
+        if (this.captureV2View) result.viewportAnchorV2 = this.captureV2View();
+        else if (previous && previous.viewportAnchorV2 !== undefined) result.viewportAnchorV2 = previous.viewportAnchorV2;
+        if (this.scrollLayoutV2Enabled && previous) result.dormantViewportV1 = previous.dormantViewportV1 ||
+            Object.assign({ version: 1 }, previous.viewport);
+        else if (previous && previous.dormantViewportV1) result.dormantViewportV1 = Object.assign({ version: 1 }, result.viewport);
+        return this.snapshots.set(state.activeWorkspaceId, result);
     }
 
     unmount(capture = true) {
@@ -111,8 +118,10 @@ class WorkspaceMountController {
         state.activeWorkspaceId = workspaceId;
         entries.forEach(({ window, entry }) => {
             const column = this.columnStore.insertWindow(window, state.columns.length,
-                entry.widthMode, entry.previousNonFullWidthMode);
+                this.scrollLayoutV2Enabled && entry.widthV2 ? entry.widthV2.widthMode : entry.widthMode,
+                this.scrollLayoutV2Enabled && entry.widthV2 ? entry.widthV2.previousNonFullWidthMode : entry.previousNonFullWidthMode);
             column.persistentWide = entry.persistentWide;
+            if (entry.widthV2) column.widthV2 = entry.widthV2;
             const windowState = this.stateFor(window);
             windowState.workspaceOwnerId = workspaceId;
             windowState.workspaceColumnPreference = null;
@@ -128,6 +137,13 @@ class WorkspaceMountController {
         const savedIndex = snapshot ? state.columns.findIndex(column =>
             this.normalizeUuid(column.window.internalId) === snapshot.focusedUuid) : -1;
         this.columnStore.focusIndex(selectedIndex >= 0 ? selectedIndex : savedIndex >= 0 ? savedIndex : 0);
+        if (this.scrollLayoutV2Enabled) {
+            this.resetPresentation();
+            this.restoreViewport({ mode: "pair", wideColumnId: null });
+            this.restoreV2View(snapshot && snapshot.viewportAnchorV2,
+                selectedIndex < 0 || selectedIndex === savedIndex);
+            return;
+        }
         const anchor = snapshot && snapshot.viewportAnchor;
         const anchorColumn = anchor && state.columns.find(column =>
             this.normalizeUuid(column.window.internalId) === anchor.uuid);
@@ -138,7 +154,7 @@ class WorkspaceMountController {
         this.resetPresentation();
         // Snapshots store UUIDs, while newly mounted Columns receive fresh IDs.
         // Restore the saved viewport only when KDE still focuses that Wide owner.
-        const savedViewport = snapshot && snapshot.viewport;
+        const savedViewport = snapshot && (snapshot.dormantViewportV1 || snapshot.viewport);
         let restoredViewport = { mode: "pair", wideColumnId: null };
         if (focused && focused.persistentWide && !focused.window.fullScreen &&
                 savedViewport && ["wide", "wide-focus"].includes(savedViewport.mode) &&
@@ -170,7 +186,10 @@ class WorkspaceMountController {
             this.unmount(false);
             this.hydrate(id, snapshot, focusedUuid);
             this.capture();
-            if (commit) this.commitState(reason);
+            // V2 publishes the final derived camera in the P4 membership ACK
+            // stage, after the workspace barrier opens. Never persist the
+            // temporary unmounted camera before applying a signed anchor.
+            if (commit && !this.scrollLayoutV2Enabled) this.commitState(reason);
             this.debug(`[cc-workspace] MOUNT id=${id} columns=${state.columns.length} reason=${reason}`);
             return true;
         } catch (error) {
@@ -179,6 +198,7 @@ class WorkspaceMountController {
             return false;
         } finally {
             if (!prepared) state.workspaceSwitching = false;
+            if (!prepared && !this.stopped && this.onMounted) this.onMounted(reason);
             // A native change can be emitted synchronously by preparation. Its
             // handler was gated by the batch; reconcile the final KDE authority.
             if (!prepared && !this.stopped && state.activeWorkspaceId && this.currentId() &&

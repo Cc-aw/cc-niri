@@ -1,0 +1,3 @@
+PASS Rust production / no Legacy C++ policy: build/bridge-r7-production/cc-niri-bridge
+PASS Rust production / no Legacy C++ policy: build/native-r7-production/bin/kwin/effects/plugins/cc-niri-viewport-clip.so
+PASS Rust production / no Legacy C++ policy: build/native-r7-production/bin/kwin/effects/plugins/cc-niri-focus-ring.so

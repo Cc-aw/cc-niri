@@ -1,0 +1,31 @@
+Test project /home/cc/cc_niri/build/rust-Release
+      Start  1: workspace-motion-rust-contract
+ 1/13 Test  #1: workspace-motion-rust-contract ..........   Passed    0.01 sec
+      Start  2: focus-ring-cpp-rust-differential
+ 2/13 Test  #2: focus-ring-cpp-rust-differential ........   Passed    0.03 sec
+      Start  3: spring-cpp-rust-differential
+ 3/13 Test  #3: spring-cpp-rust-differential ............   Passed    0.03 sec
+      Start  4: viewport-motion-cpp-rust-differential
+ 4/13 Test  #4: viewport-motion-cpp-rust-differential ...   Passed    0.35 sec
+      Start  5: native-protocol-cpp-rust-differential
+ 5/13 Test  #5: native-protocol-cpp-rust-differential ...   Passed    2.12 sec
+      Start  6: scroll-runtime-differential
+ 6/13 Test  #6: scroll-runtime-differential .............   Passed    5.12 sec
+      Start  7: scroll-animation-frame-context
+ 7/13 Test  #7: scroll-animation-frame-context ..........   Passed    0.01 sec
+      Start  8: focus-fade-shared-frame-contract
+ 8/13 Test  #8: focus-fade-shared-frame-contract ........   Passed    0.00 sec
+      Start  9: viewport-motion-rust-contract
+ 9/13 Test  #9: viewport-motion-rust-contract ...........   Passed    0.00 sec
+      Start 10: scroll-runtime-contract
+10/13 Test #10: scroll-runtime-contract .................   Passed    0.00 sec
+      Start 11: focus-ring-rust-context-contract
+11/13 Test #11: focus-ring-rust-context-contract ........   Passed    0.00 sec
+      Start 12: rust-core-ffi-smoke
+12/13 Test #12: rust-core-ffi-smoke .....................   Passed    0.00 sec
+      Start 13: native-cxx-toolchain-policy
+13/13 Test #13: native-cxx-toolchain-policy .............   Passed    0.05 sec
+
+100% tests passed, 0 tests failed out of 13
+
+Total Test time (real) =   7.72 sec

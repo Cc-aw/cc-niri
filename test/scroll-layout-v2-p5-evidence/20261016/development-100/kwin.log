@@ -1,0 +1,45 @@
+kwin_scene_opengl: eglInitialize failed
+kwin_scene_opengl: Error during eglInitialize  "EGL_NOT_INITIALIZED"
+kwin_scene_opengl: eglInitialize failed
+kwin_scene_opengl: Error during eglInitialize  "EGL_NOT_INITIALIZED"
+Accepting client connections on sockets: QList("cc-niri-p0")
+kwin_screencast: Failed to connect PipeWire context
+ShapeCorners: loading shaders...
+ShapeCorners: shaders loaded.
+ShapeCorners: Writing Breeze config
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] READY scrollRuntimeBackend= "Rust"
+cc.niri.focus.ring: [FOCUS_RING] READY isolated post-window border coreBackend= Rust
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"d5455843-8495-4364-a89d-eabbd77c6d83\"},{\"columnId\":2,\"logicalX\":2348,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"788d3e5c-de9d-4494-bfa4-50b496d8dedf\"}],\"epoch\":1,\"issuedAt\":1792114957873,\"layoutRect\":{\"height\":1358,\"width\":2560,\"x\":0,\"y\":66},\"maxCamera\":1696,\"newScrollOffsetX\":212,\"oldScrollOffsetX\":212,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":1,\"sessionId\":\"p3-private\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"698a3a49-5962-4bac-a227-ce66c4fb18e3\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-iawft2h5/p5-entry-1.js:7092:28 Variable "geometryCommitter" is used before its declaration at 7130:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-iawft2h5/p5-entry-1.js:7172:9 Variable "scrollPlanCommitGate" is used before its declaration at 7199:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-iawft2h5/p5-entry-1.js:7182:17 Variable "scrollPlanCommitGate" is used before its declaration at 7199:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-iawft2h5/p5-entry-1.js:7184:21 Variable "scrollPlanCommitGate" is used before its declaration at 7199:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-iawft2h5/p5-entry-1.js:7207:27 Variable "deferredScrollParking" is used before its declaration at 7219:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-iawft2h5/p5-entry-1.js:7208:28 Variable "deferredScrollParking" is used before its declaration at 7219:7.
+js: [cc-niri-maximize] [runtime] configured secondary output HDMI-A-1 not found; using rightmost non-primary output
+js: [cc-niri-maximize] [runtime] loaded primary=Virtual-0 secondary=Virtual-1 primaryOuter=50/24/8/24 secondaryOuter=24/24/24/24
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "d5455843-8495-4364-a89d-eabbd77c6d83"
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_A reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_B reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_C reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_D reason=workspace-mount
+js: [cc-niri-maximize] [runtime] MOUNT id=698a3a49-5962-4bac-a227-ce66c4fb18e3 columns=4 reason=script-start-workspace
+js: [cc-niri-maximize] [stability] BEGIN epoch=1 reason=workspace-mount
+js: [cc-niri-maximize] [stability] END epoch=1 reason=workspace-mount
+js: [cc-niri-maximize] [bridge] PUBLISH reason=script-start generation=1 columns=4 accepted=true
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-mount generation=2 columns=4 accepted=true
+js: [cc-niri-maximize] [layout] LAYOUT reason=workspace-mount column=1 physicalX=652 width=1256 actual=440,66 1680x1358
+js: [cc-niri-maximize] [layout] LAYOUT reason=workspace-mount column=2 physicalX=1304 width=1256 actual=1304,66 1256x1358
+js: [cc-niri-maximize] [stability] BEGIN epoch=2 reason=v2-confirmed-recovery
+js: [cc-niri-maximize] [stability] END epoch=2 reason=v2-confirmed-recovery
+js: [cc-niri-maximize] [bridge] PUBLISH reason=v2-confirmed-recovery generation=3 columns=4 accepted=true
+js: [cc-niri-maximize] [layout] LAYOUT reason=v2-confirmed-recovery column=2 physicalX=1304 width=1256 actual=1304,16 1256x1358
+js: [cc-niri-maximize] [runtime] disabled reason=bootstrap-deadline cancelled=true
+js: [cc-niri-maximize] [stability] RELEASE_PARKING caption=CC_NIRI_P0_B accessible=true reason=v2-geometry-failure
+js: [cc-niri-maximize] [stability] RELEASE_PARKING caption=CC_NIRI_P0_C accessible=true reason=v2-geometry-failure
+js: [cc-niri-maximize] [stability] RELEASE_PARKING caption=CC_NIRI_P0_D accessible=true reason=v2-geometry-failure
+js: [cc-niri-maximize] [recovery] EMERGENCY_RESTORE count=3 reason=v2-geometry-failure
+ShapeCorners: Skipped writing Breeze config because the last change was 8 seconds ago.
+kwin_scene_opengl: Could not delete render time query because no context is current
+kwin_scene_opengl: Could not delete render time query because no context is current

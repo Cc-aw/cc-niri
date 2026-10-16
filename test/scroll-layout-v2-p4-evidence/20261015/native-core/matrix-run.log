@@ -1,0 +1,19 @@
+core-Debug-configure PASS
+core-Debug-build PASS
+core-Debug-ctest PASS
+core-Release-configure PASS
+core-Release-build PASS
+core-Release-ctest PASS
+umbrella-Debug-configure PASS
+umbrella-Debug-build PASS
+umbrella-Debug-ctest PASS
+native-OFF-configure PASS
+native-OFF-build PASS
+native-OFF-targets PASS
+bridge-OFF-configure PASS
+bridge-OFF-build PASS
+bridge-OFF-targets PASS
+production-boundary PASS
+reject-rustc PASS
+reject-cargo PASS
+PASS sequential P4 Native build/CTest/production boundary/toolchain matrix

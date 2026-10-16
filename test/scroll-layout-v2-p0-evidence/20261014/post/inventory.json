@@ -1,0 +1,155 @@
+{
+  "captured_utc": "2026-10-14T13:10:30.473627+00:00",
+  "scope": "read-only; installed hashes do not prove loaded binary SHA",
+  "head": {
+    "command": [
+      "git",
+      "-C",
+      "/home/cc/cc_niri",
+      "rev-parse",
+      "HEAD"
+    ],
+    "exit_code": 0,
+    "stdout": "8056cfe6b4a023ac8dcbfb01e4495a5acf4c2c4e\n",
+    "stderr": ""
+  },
+  "branch": {
+    "command": [
+      "git",
+      "-C",
+      "/home/cc/cc_niri",
+      "branch",
+      "--show-current"
+    ],
+    "exit_code": 0,
+    "stdout": "scroll-layout-v2-p0\n",
+    "stderr": ""
+  },
+  "status": {
+    "command": [
+      "git",
+      "-C",
+      "/home/cc/cc_niri",
+      "status",
+      "--short"
+    ],
+    "exit_code": 0,
+    "stdout": "?? doc/todo/cc-niri_Scroll_Layout_V2_Implementation_Spec.md\n?? test/SCROLL_LAYOUT_V2_P0_FEASIBILITY.md\n?? test/SCROLL_LAYOUT_V2_P0_RESULTS.md\n?? test/fixtures/\n?? test/helpers/scroll-layout-v2-p0-model.js\n?? test/scroll-layout-v2-p0-evidence/\n?? test/scroll-layout-v2-p0-feasibility.test.js\n?? test/scroll-layout-v2-p0-native-fixture.test.js\n?? tools/scroll-layout-v2-p0-input-probe.py\n?? tools/scroll-layout-v2-p0-probe.py\n",
+    "stderr": ""
+  },
+  "packages": {
+    "command": [
+      "rpm",
+      "-q",
+      "kwin",
+      "kwin-devel",
+      "python3-pyside6"
+    ],
+    "exit_code": 0,
+    "stdout": "kwin-6.7.5-1.fc44.x86_64\nkwin-devel-6.7.5-1.fc44.x86_64\npython3-pyside6-6.11.2-1.fc44.x86_64\n",
+    "stderr": ""
+  },
+  "support": {
+    "command": [
+      "gdbus",
+      "call",
+      "--session",
+      "--dest",
+      "org.kde.KWin",
+      "--object-path",
+      "/KWin",
+      "--method",
+      "org.kde.KWin.supportInformation"
+    ],
+    "exit_code": 0,
+    "stdout": "('KWin \u6280\u672f\u652f\u6301\u4fe1\u606f\uff1a\\n\u8bf7\u5728\u5bfb\u6c42\u6280\u672f\u652f\u6301\u65f6 (\u4f8b\u5982 https://discuss.kde.org \u7f51\u7ad9) \u63d0\u4f9b\u4ee5\u4e0b\u4fe1\u606f\u3002\\n\u8fd9\u4e9b\u4fe1\u606f\u5305\u62ec\u5173\u4e8e\u5f53\u524d\u6b63\u5728\u8fd0\u884c\u7684 Kwin \u5b9e\u4f8b\u7684\u76f8\u5173\u4fe1\u606f\u3001\\n\u4f7f\u7528\u7684\u9009\u9879\u3001OpenGL \u9a71\u52a8\u7a0b\u5e8f\u3001\u6b63\u5728\u8fd0\u884c\u7684\u7279\u6548\u7b49\u3002\\n\u8bf7\u4e0d\u8981\u5c06\u672c\u6bb5\u6587\u5b57\u4e0b\u65b9\u7684\u4fe1\u606f\u76f4\u63a5\u7c98\u8d34\u5230\u6280\u672f\u652f\u6301\u8ba8\u8bba\u4e32\uff0c\\n\u800c\u5e94\u5c06\u5b83\u4eec\u7c98\u8d34\u5230\u5728\u7ebf\u526a\u8d34\u677f\u7f51\u7ad9 (\u4f8b\u5982 https://paste.kde.org)\u3002\\n\\n==========================\\n\\nVersion\\n=======\\nKWin version: 6.7.5\\nQt Version: 6.11.2\\nQt compile version: 6.11.2\\nXCB compile version: 1.17.0\\n\\nOperation Mode: Wayland\\n\\nBuild Options\\n=============\\nKWIN_BUILD_DECORATIONS: yes\\nKWIN_BUILD_TABBOX: yes\\nKWIN_BUILD_ACTIVITIES: yes\\nHAVE_X11_XCB: yes\\n\\nX11\\n===\\nVendor: The X.Org Foundation\\nVendor Release: 12401013\\nProtocol Version/Revision: 11/0\\nSHAPE: yes; Version: 0x11\\nRANDR: yes; Version: 0x14\\nComposite: yes; Version: 0x4\\nRENDER: yes; Version: 0xb\\nXFIXES: yes; Version: 0x50\\nSYNC: yes; Version: 0x31\\nRES: yes; Version: 0x12\\n\\nDecoration\\n==========\\nPlugin: org.kde.klassy\\nTheme: Klassy\\nPlugin recommends border size: Normal\\nonAllDesktopsAvailable: true\\nalphaChannelSupported: true\\ncloseOnDoubleClickOnMenu: false\\nalwaysShowExcludeFromCapture: false\\ndecorationButtonsLeft: \\ndecorationButtonsRight: 3, 4, 5\\nborderSize: 3\\ngridUnit: 10\\nfont: MiSans,10,-1,5,310,0,0,0,0,0,0,0,0,0,0,1,Regular,0,0\\nsmallSpacing: 2\\nlargeSpacing: 10\\n\\nLogicalOutput backend\\n==============\\nName: DRM\\nAtomic Mode Setting on GPU 0: true\\nAtomic Mode Setting on GPU 1: true\\n\\nCursor\\n======\\nthemeName: WhiteSur-cursors\\nthemeSize: 24\\n\\nOptions\\n=======\\nfocusPolicy: ClickToFocus\\nxwaylandCrashPolicy: 1\\nxwaylandMaxCrashCount: 3\\nnextFocusPrefersMouse: false\\nclickRaise: true\\nautoRaise: false\\nautoRaiseInterval: 0\\ndelayFocusInterval: 0\\nseparateScreenFocus: true\\nplacement: 5\\nactivationDesktopPolicy: SwitchToOtherDesktop\\nfocusPolicyIsReasonable: true\\nborderSnapZone: 10\\nwindowSnapZone: 10\\ncenterSnapZone: 0\\nsnapOnlyWhenOverlapping: false\\nedgeBarrier: 100\\ncornerBarrier: 1\\nrollOverDesktops: false\\nperOutputVirtualDesktops: true\\nfocusStealingPreventionLevel: 1\\noperationTitlebarDblClick: 5000\\noperationMaxButtonLeftClick: 5000\\noperationMaxButtonMiddleClick: 5013\\noperationMaxButtonRightClick: 5012\\ncommandActiveTitlebar1: MouseRaise\\ncommandActiveTitlebar2: MouseNothing\\ncommandActiveTitlebar3: MouseOperationsMenu\\ncommandInactiveTitlebar1: MouseActivateAndRaise\\ncommandInactiveTitlebar2: MouseNothing\\ncommandInactiveTitlebar3: MouseOperationsMenu\\ncommandWindow1: MouseActivateRaiseOnReleaseAndPassClick\\ncommandWindow2: MouseActivateAndPassClick\\ncommandWindow3: MouseActivateAndPassClick\\ncommandWindowWheel: MouseNothing\\ncommandAll1: MouseUnrestrictedMove\\ncommandAll2: MouseToggleRaiseAndLower\\ncommandAll3: MouseUnrestrictedResize\\nkeyCmdAllModKey: 16777250\\ndoubleClickBorderToMaximize: true\\ncondensedTitle: false\\nelectricBorderMaximize: true\\nelectricBorderTiling: true\\nelectricBorderAllScreenCorner: true\\nelectricBorderCornerRatio: 0.25\\nborderlessMaximizedWindows: false\\nkillPingTimeout: 5000\\ncompositingMode: 1\\nallowTearing: true\\ninteractiveWindowMoveEnabled: true\\npictureInPictureHomeCorner: BottomRightCorner\\npictureInPictureMargin: 20\\noverlayVirtualKeyboardOnWindows: false\\n\\nScreen Edges\\n============\\ndesktopSwitching: false\\ndesktopSwitchingMovingClients: false\\ncursorPushBackDistance: 1x1\\nactionTopLeft: 0\\nactionTop: 0\\nactionTopRight: 0\\nactionRight: 0\\nactionBottomRight: 0\\nactionBottom: 0\\nactionBottomLeft: 0\\nactionLeft: 0\\n\\nScreens\\n=======\\nNumber of Screens: 3\\n\\nScreen 0:\\n---------\\nName: HDMI-A-1\\nEnabled: 1\\nGeometry: 2560,0,2560x1440\\nPhysical size: 597x336mm\\nScale: 1\\nRefresh Rate: 60000\\nAdaptive Sync: incapable\\nScreen 1:\\n---------\\nName: eDP-1\\nEnabled: 0\\nScreen 2:\\n---------\\nName: DP-1\\nEnabled: 1\\nGeometry: 0,0,2560x1440\\nPhysical size: 597x336mm\\nScale: 1.5\\nRefresh Rate: 60000\\nAdaptive Sync: incapable\\n\\nCompositing\\n===========\\nCompositing is active\\nCompositing Type: OpenGL\\nOpenGL vendor string: NVIDIA Corporation\\nOpenGL renderer string: NVIDIA GeForce RTX 2060/PCIe/SSE2\\nOpenGL version string: 3.1.0 NVIDIA 615.71.09\\nOpenGL platform interface: EGL\\nOpenGL shading language version string: 1.40 NVIDIA via Cg compiler\\nDriver: NVIDIA\\nDriver version: 615.71.9\\nGPU class: Unknown\\nOpenGL version: 3.1\\nGLSL version: 1.40\\nX server version: 1.24.1\\nLinux kernel version: 7.2.8\\nDirect rendering: Requires strict binding: no\\nVirtual Machine:  no\\nOpenGL 2 Shaders are used\\n\\nLoaded Effects:\\n---------------\\ncc-niri-maximize-scroll-transition\\noutputlocator\\ncolorpicker\\nzoom\\nscreenedge\\nblur\\nsessionquit\\nlogout\\nlogin\\nslidingpopups\\nslidingnotifications\\nwindowaperture\\nscale\\nmaximize\\nfullscreen\\nfrozenapp\\nfadingpopups\\ndimscreen\\ndialogparent\\nwindowview\\ntileseditor\\noverview\\nhighlightwindow\\nblendchanges\\nstartupfeedback\\ncc-niri-viewport-clip\\ncc-niri-focus-ring\\nkwin4_effect_shapecorners\\nsystembell\\nscreentransform\\nkscreen\\n\\nCurrently Active Effects:\\n-------------------------\\nslidingnotifications\\nscale\\nkwin4_effect_shapecorners\\nkscreen\\n\\nEffect Settings:\\n----------------\\ncc-niri-maximize-scroll-transition:\\npluginId: cc-niri-maximize-scroll-transition\\nisActiveFullScreenEffect: false\\n\\noutputlocator:\\n\\ncolorpicker:\\n\\nzoom:\\nzoomFactor: 1.2\\nmouseTracking: 0\\nfocusDelay: 350\\nmoveFactor: 20\\ntargetZoom: 1\\n\\nscreenedge:\\n\\nblur:\\n\\nsessionquit:\\npluginId: sessionquit\\nisActiveFullScreenEffect: false\\n\\nlogout:\\npluginId: logout\\nisActiveFullScreenEffect: false\\n\\nlogin:\\npluginId: login\\nisActiveFullScreenEffect: false\\n\\nslidingpopups:\\nslideInDuration: 200\\nslideOutDuration: 200\\n\\nslidingnotifications:\\n\\nwindowaperture:\\npluginId: windowaperture\\nisActiveFullScreenEffect: false\\n\\nscale:\\npluginId: scale\\nisActiveFullScreenEffect: false\\n\\nmaximize:\\npluginId: maximize\\nisActiveFullScreenEffect: false\\n\\nfullscreen:\\npluginId: fullscreen\\nisActiveFullScreenEffect: false\\n\\nfrozenapp:\\npluginId: frozenapp\\nisActiveFullScreenEffect: false\\n\\nfadingpopups:\\npluginId: fadingpopups\\nisActiveFullScreenEffect: false\\n\\ndimscreen:\\npluginId: dimscreen\\nisActiveFullScreenEffect: false\\n\\ndialogparent:\\npluginId: dialogparent\\nisActiveFullScreenEffect: false\\n\\nwindowview:\\nactiveView: \\ndelegate: \\nanimationDuration: 300\\nignoreMinimized: false\\nmode: \\npartialActivationFactor: 0\\ngestureInProgress: false\\nsearchText: \\nselectedIds: \\n\\ntileseditor:\\nactiveView: \\ndelegate: \\nanimationDuration: 200\\n\\noverview:\\nactiveView: \\ndelegate: \\nanimationDuration: 300\\nignoreMinimized: false\\nfilterWindows: true\\norganizedGrid: true\\noverviewPartialActivationFactor: 0\\noverviewGestureInProgress: false\\ntransitionPartialActivationFactor: 0\\ntransitionGestureInProgress: false\\ngridPartialActivationFactor: 0\\ngridGestureInProgress: false\\nsearchText: \\n\\nhighlightwindow:\\n\\nblendchanges:\\n\\nstartupfeedback:\\ntype: 1\\n\\ncc-niri-viewport-clip:\\n\\ncc-niri-focus-ring:\\n\\nkwin4_effect_shapecorners:\\n\\nsystembell:\\n\\nscreentransform:\\n\\nkscreen:\\n\\n\\nLoaded Plugins:\\n---------------\\nBounceKeysPlugin\\nKeyNotificationPlugin\\nMouseKeysPlugin\\nSlowKeysPlugin\\nStickyKeysPlugin\\nTouchpadShortcutsPlugin\\nbuttonsrebind\\neis\\nkrunnerintegration\\nnightlight\\nscreencast\\nscreenshot\\n\\nAvailable Plugins:\\n------------------\\nBounceKeysPlugin\\nKeyNotificationPlugin\\nMouseKeysPlugin\\nSlowKeysPlugin\\nStickyKeysPlugin\\nTouchpadShortcutsPlugin\\nbuttonsrebind\\neis\\ngamecontroller\\nkrunnerintegration\\nnightlight\\nscreencast\\nscreenshot\\n',)\n",
+    "stderr": ""
+  },
+  "script": {
+    "command": [
+      "gdbus",
+      "call",
+      "--session",
+      "--dest",
+      "org.kde.KWin",
+      "--object-path",
+      "/Scripting",
+      "--method",
+      "org.kde.kwin.Scripting.isScriptLoaded",
+      "cc-niri-maximize"
+    ],
+    "exit_code": 0,
+    "stdout": "(true,)\n",
+    "stderr": ""
+  },
+  "motion": {
+    "command": [
+      "gdbus",
+      "call",
+      "--session",
+      "--dest",
+      "org.kde.KWin",
+      "--object-path",
+      "/ccNiriViewportMotion",
+      "--method",
+      "org.cc.NiriViewportMotion1.GetScrollMotionStatus"
+    ],
+    "exit_code": 0,
+    "stdout": "('{\"active\":false,\"animationProfile\":\"smooth60\",\"animationProfileFallback\":\"\",\"clipHandoffActive\":false,\"clockFallbackCount\":0,\"clockFallbackReasons\":{\"invalidPrediction\":0,\"missingPrediction\":0,\"regressedPrediction\":0},\"completed\":false,\"decorationGeometryBackend\":\"Rust\",\"epoch\":432,\"lastRetarget\":{\"brakeDistance\":0,\"brakeMs\":0,\"initialVelocity\":0,\"lower\":0,\"reason\":\"none\",\"savedVelocity\":0,\"strategy\":\"rest\",\"upper\":0},\"nativeProtocolBackend\":\"Rust\",\"paintClip\":\"viewport-with-decoration-outsets\",\"retargetBrakedCount\":0,\"retargetCarriedCount\":0,\"retargetDegradedCount\":0,\"retargetDegradedReasons\":{\"coverage\":0,\"invalidMath\":0,\"noBrakeSpace\":0},\"retargetKeptCount\":0,\"scrollClockSource\":\"predicted-presentation\",\"scrollContinuousFullRepaintRequests\":0,\"scrollOutputRepaintRequests\":4231,\"scrollRepaintFallbackFullRequests\":0,\"scrollRepaintScope\":\"target-output-continuation\",\"scrollRetargetPolicy\":\"bounded-last-painted-position-and-velocity\",\"scrollRuntimeBackend\":\"Rust\",\"scrollSpringStiffness\":600,\"scrollTargetOutput\":\"\",\"scrollVisualCompletedCount\":14,\"scrollVisualSettleEnabled\":false,\"scrollVisualSettleFallback\":\"awaiting-frame\",\"scrollVisualSettleFallbackReasons\":{\"invalidScale\":0,\"missingOutput\":0,\"unknownRefresh\":0},\"scrollVisualSettleOutputScale\":0,\"scrollVisualSettlePhysicalPx\":0.25,\"scrollVisualSettleRefreshHz\":0,\"sessionId\":\"1a139a134d8-8474982e\",\"targetOutput\":\"DP-1\",\"workspaceAnimationActive\":false,\"workspaceAnimationBackend\":\"RustFiniteCurve\",\"workspaceAnimationDuration\":420,\"workspaceAnimationEnabled\":true,\"workspaceDepartureVisual\":\"freeze-wide-until-compositor-idle\",\"workspaceId\":\"31eafe4f-3d45-43d7-90ae-aac50adc1398\",\"workspaceMotion\":{\"acceleration\":{\"x\":0,\"y\":0},\"active\":false,\"brakeDistanceCells\":{\"x\":0,\"y\":0},\"brakeXMs\":0,\"brakeYMs\":0,\"brakedC1\":0,\"carriedC1\":0,\"carriedC2\":1,\"durationMs\":420,\"epoch\":207,\"frameDeltaClampingEnabled\":false,\"frameDeltaClampingRequiresSmooth60\":true,\"gesture\":false,\"initialAcceleration\":{\"x\":0,\"y\":-9.679952576248159},\"initialVelocity\":{\"x\":0,\"y\":0.06584860368920767},\"kept\":0,\"liveBinding\":false,\"origin\":{\"x\":0,\"y\":1.9997063310549412},\"point\":{\"x\":0,\"y\":1},\"projectionCacheEnabled\":false,\"reasons\":[\"none\",\"none\"],\"reset\":0,\"sampleNs\":103500569758332,\"samplingClock\":{\"clampedFrames\":0,\"enabled\":false,\"fallbackCount\":0,\"fallbackReason\":0,\"lagMs\":0,\"limiting\":false,\"logicalNs\":0,\"realNs\":0},\"savedAcceleration\":{\"x\":0,\"y\":-9.679952576248159},\"savedVelocity\":{\"x\":0,\"y\":0.06584860368920767},\"startNs\":103500136395332,\"strategies\":[\"rest\",\"carry-c2\"],\"target\":{\"x\":0,\"y\":1},\"velocity\":{\"x\":0,\"y\":0}},\"workspaceRemovalGate\":\"compositor-idle\",\"workspaceRetargetPolicy\":\"bounded-last-painted-quintic-derivatives\"}',)\n",
+    "stderr": ""
+  },
+  "bridge_service": {
+    "command": [
+      "systemctl",
+      "--user",
+      "show",
+      "cc-niri-bridge.service",
+      "--property=ActiveState,SubState,ExecStart"
+    ],
+    "exit_code": 0,
+    "stdout": "ActiveState=active\nSubState=running\nExecStart={ path=/home/cc/.local/libexec/cc-niri-bridge ; argv[]=/home/cc/.local/libexec/cc-niri-bridge ; ignore_errors=no ; start_time=[Wed 2026-10-14 16:57:08 CST] ; stop_time=[n/a] ; pid=653889 ; code=(null) ; status=0/0 }\n",
+    "stderr": ""
+  },
+  "artifacts": [
+    {
+      "path": "/home/cc/cc_niri/package/contents/code/main.js",
+      "resolved": "/home/cc/cc_niri/package/contents/code/main.js",
+      "sha256": "2154436e0c97251eecadadd13bb533dfedfd2146cb0dd1fff34693ad6c9814f2"
+    },
+    {
+      "path": "/home/cc/.local/share/kwin/scripts/cc-niri-maximize/contents/code/main.js",
+      "resolved": "/home/cc/.local/share/kwin/scripts/cc-niri-maximize/contents/code/main.js",
+      "sha256": "2154436e0c97251eecadadd13bb533dfedfd2146cb0dd1fff34693ad6c9814f2"
+    },
+    {
+      "path": "/home/cc/cc_niri/build/bridge/cc-niri-bridge",
+      "resolved": "/home/cc/cc_niri/build/bridge/cc-niri-bridge",
+      "sha256": "ecff3382f25a8a696d7a0488f6f5599cb502067512cf64d47db1f635b67186aa"
+    },
+    {
+      "path": "/home/cc/.local/libexec/cc-niri-bridge",
+      "resolved": "/home/cc/.local/libexec/cc-niri-bridge",
+      "sha256": "2f923a1a158fafb3bf61bf7234aa13562702d164ba97e904b116e3823d76b3f6"
+    },
+    {
+      "path": "/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-viewport-clip.so",
+      "resolved": "/home/cc/.local/lib/cc-niri/viewport-clip/1c8c3d0174c572e3412d4e1c968bb3811e23e718f9aff7b0be2bc541b6372726/cc-niri-viewport-clip.so",
+      "sha256": "1c8c3d0174c572e3412d4e1c968bb3811e23e718f9aff7b0be2bc541b6372726"
+    },
+    {
+      "path": "/home/cc/cc_niri/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+      "resolved": "/home/cc/cc_niri/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+      "sha256": "a8bbe99547cc69cabf55c68277e8e195320fffc18d33608ecd5b9c0d1b5a9953"
+    },
+    {
+      "path": "/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-focus-ring.so",
+      "resolved": "/home/cc/.local/lib/cc-niri/focus-ring/994e939d1c9e314d150728b13dbc250adc462f5deef652bb857f2d76716defa4/cc-niri-focus-ring.so",
+      "sha256": "994e939d1c9e314d150728b13dbc250adc462f5deef652bb857f2d76716defa4"
+    },
+    {
+      "path": "/home/cc/cc_niri/build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so",
+      "resolved": "/home/cc/cc_niri/build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so",
+      "sha256": "cd85f8b16663871177d78ad0928a75fc168708b5924a9286093b80bfddfe942a"
+    }
+  ]
+}

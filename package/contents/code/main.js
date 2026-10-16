@@ -4,16 +4,23 @@
 
 /* BEGIN GENERATED KWIN MODULES */
 // Generated from src/kwin/model/ColumnStore.js
-// Fractional presets are deferred. Old snapshots migrate to the ordinary pair
-// width, including Full's remembered restoration width.
-function normalizeColumnWidthMode(value) { return value === "full" ? "full" : "half"; }
+// Opt in only for V2 model consumers. V1 snapshots keep their existing migration.
+function normalizeColumnWidthMode(value, scrollLayoutV2Enabled = false) {
+    if (value === "full") return "full";
+    return scrollLayoutV2Enabled === true && value === "twoThirds" ? "twoThirds" : "half";
+}
 
-function normalizePreviousNonFullWidthMode() { return "half"; }
+function normalizePreviousNonFullWidthMode(value, widthMode, scrollLayoutV2Enabled = false) {
+    if (scrollLayoutV2Enabled !== true) return "half";
+    if (widthMode !== "full") return normalizeColumnWidthMode(widthMode, true);
+    return value === "twoThirds" ? "twoThirds" : "half";
+}
 
 class ColumnStore {
-    constructor(state, onMembershipChanged = () => {}) {
+    constructor(state, onMembershipChanged = () => {}, options = {}) {
         this.state = state;
         this.onMembershipChanged = onMembershipChanged;
+        this.scrollLayoutV2Enabled = options.scrollLayoutV2Enabled === true;
     }
 
     indexOf(column) {
@@ -65,8 +72,9 @@ class ColumnStore {
         const column = {
             id: this.state.nextColumnId++,
             window,
-            widthMode: normalizeColumnWidthMode(widthMode),
-            previousNonFullWidthMode: normalizePreviousNonFullWidthMode(previousNonFullWidthMode, widthMode),
+            widthMode: normalizeColumnWidthMode(widthMode, this.scrollLayoutV2Enabled),
+            previousNonFullWidthMode: normalizePreviousNonFullWidthMode(
+                previousNonFullWidthMode, widthMode, this.scrollLayoutV2Enabled),
             persistentWide: false,
             logicalX: 0,
             pixelWidth: 0,
@@ -186,24 +194,67 @@ function workspaceSnapshotId(value) {
     return typeof value === "string" ? value.trim() : "";
 }
 
+// An explicit version is required: historical, unversioned twoThirds meant half.
+function normalizeWorkspaceWidthV2(value) {
+    if (value === undefined) return undefined;
+    if (!value || value.version !== 1 || !["half", "twoThirds", "full"].includes(value.widthMode) ||
+            !["half", "twoThirds"].includes(value.previousNonFullWidthMode)) {
+        throw new TypeError("invalid-width-v2");
+    }
+    return { version: 1, widthMode: value.widthMode,
+        previousNonFullWidthMode: normalizePreviousNonFullWidthMode(
+            value.previousNonFullWidthMode, value.widthMode, true) };
+}
+
+function workspaceColumnPreference(column, uuid, v2 = false) {
+    const entry = { uuid, widthMode: column.widthMode,
+        previousNonFullWidthMode: column.previousNonFullWidthMode, persistentWide: column.persistentWide === true };
+    const width = v2 ? { version: 1, widthMode: column.widthMode,
+        previousNonFullWidthMode: column.previousNonFullWidthMode } : column.widthV2;
+    if (width !== undefined) entry.widthV2 = normalizeWorkspaceWidthV2(width);
+    return entry;
+}
+
+function normalizeViewportAnchorV2(value, member) {
+    if (value === undefined || value === null) return null;
+    const basis = value.basis;
+    if (value.version !== 1 || typeof value.uuid !== "string" ||
+            !Number.isFinite(value.delta) || Math.abs(value.delta) > 10000000 || !basis ||
+            !Number.isFinite(basis.gap) || basis.gap < 0 || basis.gap > 1000000 ||
+            !Number.isFinite(basis.physicalScale) || basis.physicalScale <= 0 || basis.physicalScale > 16 ||
+            !["outputRect", "workingArea"].every(key => basis[key] &&
+                ["x", "y", "width", "height"].every(field => Number.isFinite(basis[key][field]) && Math.abs(basis[key][field]) <= 10000000) &&
+                basis[key].width > 0 && basis[key].height > 0)) throw new TypeError("invalid-anchor-v2");
+    const uuid = member(value.uuid);
+    const rect = r => ({ x: r.x, y: r.y, width: r.width, height: r.height });
+    return uuid ? { version: 1, uuid, delta: value.delta, basis: {
+        outputRect: rect(basis.outputRect), workingArea: rect(basis.workingArea),
+        gap: basis.gap, physicalScale: basis.physicalScale } } : null;
+}
+
 function normalizeWorkspaceSnapshot(workspaceId, snapshot) {
     const id = workspaceSnapshotId(workspaceId);
     if (!id) throw new TypeError("workspaceId must be a non-empty stable ID");
     const source = snapshot && typeof snapshot === "object" ? snapshot : {};
     const seen = new Set();
     const columns = [];
+    if (Array.isArray(source.columns) && source.columns.length > 256) throw new TypeError("too-many-columns");
     for (const column of Array.isArray(source.columns) ? source.columns : []) {
         const uuid = workspaceSnapshotUuid(column && column.uuid);
         if (!uuid || seen.has(uuid)) continue;
         seen.add(uuid);
-        const widthMode = normalizeColumnWidthMode(column.widthMode);
-        columns.push({
+        const widthV2 = normalizeWorkspaceWidthV2(column.widthV2);
+        if (widthV2 && !["half", "twoThirds", "full"].includes(column.widthMode)) throw new TypeError("invalid-versioned-width");
+        const widthMode = normalizeColumnWidthMode(column.widthMode, Boolean(widthV2));
+        const entry = {
             uuid,
             widthMode,
             previousNonFullWidthMode: normalizePreviousNonFullWidthMode(
-                column.previousNonFullWidthMode, widthMode),
+                column.previousNonFullWidthMode, widthMode, Boolean(widthV2)),
             persistentWide: column.persistentWide === true,
-        });
+        };
+        if (widthV2) entry.widthV2 = widthV2;
+        columns.push(entry);
     }
     const member = value => {
         const uuid = workspaceSnapshotUuid(value);
@@ -214,14 +265,14 @@ function normalizeWorkspaceSnapshot(workspaceId, snapshot) {
     const validAnchor = anchorUuid && typeof anchor.delta === "number" &&
         Number.isFinite(anchor.delta) && anchor.delta >= 0;
     const migratedWidths = (Array.isArray(source.columns) ? source.columns : []).some(column =>
-        column && ["third", "twoThirds"].includes(column.widthMode));
+        column && !column.widthV2 && ["third", "twoThirds"].includes(column.widthMode));
     const viewport = source.viewport || {};
     const wideUuid = member(viewport.wideUuid);
     const wide = ["wide", "wide-focus"].includes(viewport.mode) && wideUuid;
     const presentation = source.presentation || {};
     const windowUuid = member(presentation.windowUuid);
     const presented = ["wide", "maximized"].includes(presentation.mode) && windowUuid;
-    return {
+    const result = {
         workspaceId: id, columns,
         focusedUuid: member(source.focusedUuid),
         viewportAnchor: validAnchor ? { uuid: anchorUuid, delta: migratedWidths ? 0 : anchor.delta } : null,
@@ -231,6 +282,16 @@ function normalizeWorkspaceSnapshot(workspaceId, snapshot) {
             windowUuid: presented ? windowUuid : null,
         },
     };
+    if (source.viewportAnchorV2 !== undefined) result.viewportAnchorV2 = normalizeViewportAnchorV2(source.viewportAnchorV2, member);
+    if (source.dormantViewportV1 !== undefined) {
+        const dormant = source.dormantViewportV1;
+        if (!dormant || dormant.version !== 1 || !["pair", "wide", "wide-focus"].includes(dormant.mode))
+            throw new TypeError("invalid-dormant-viewport");
+        const uuid = member(dormant.wideUuid);
+        result.dormantViewportV1 = { version: 1, mode: dormant.mode !== "pair" && uuid ? "wide" : "pair",
+            wideUuid: dormant.mode !== "pair" ? uuid : null };
+    }
+    return result;
 }
 
 // Accept the same protocol-1 column/anchor envelope used by StartupLayout.
@@ -335,8 +396,15 @@ class WorkspacePersistence {
         return normalized.columns.length === columns.length;
     }
 
+    validWorkspace(source) {
+        if (!source || !this.validColumns(source.columns)) return false;
+        const normalized = normalizeWorkspaceSnapshot("validation", source);
+        return !source.viewportAnchorV2 || Boolean(normalized.viewportAnchorV2);
+    }
+
     restore(previousState, currentId, targetOutput) {
         let source = previousState;
+        if (typeof source === "string" && source.length > 1024 * 1024) return false;
         if (typeof source === "string") {
             try { source = JSON.parse(source); } catch (_) { return false; }
         }
@@ -344,23 +412,27 @@ class WorkspacePersistence {
         if (!source || source.targetOutput !== targetOutput) return false;
         try {
             if (source.protocol === 1) {
+                if (!this.validWorkspace(source)) return false;
                 const legacy = migrateLegacyWorkspaceSnapshot(source, currentId, targetOutput);
                 if (!legacy) return false;
                 candidate.set(currentId, legacy);
             } else if (source.protocol === 2) {
-                if (!Array.isArray(source.workspaces) || !this.validColumns(source.columns) ||
+                if (!Array.isArray(source.workspaces) || source.workspaces.length > 256 || !this.validWorkspace(source) ||
                         typeof source.workspaceId !== "string" || !source.workspaceId.trim()) return false;
                 const ids = new Set();
                 for (const workspace of source.workspaces) {
                     const id = workspace && typeof workspace.id === "string" ? workspace.id.trim() : "";
-                    if (!id || ids.has(id) || !this.validColumns(workspace.columns)) return false;
+                    if (!id || ids.has(id) || !this.validWorkspace(workspace)) return false;
                     ids.add(id);
                     candidate.set(id, workspace); // Reject conflicting UUID owners before committing.
                 }
                 const active = candidate.get(source.workspaceId);
-                const columns = normalizeWorkspaceSnapshot("validation", source).columns;
+                const root = normalizeWorkspaceSnapshot("validation", source);
+                const columns = root.columns;
                 if (!active || columns.length !== active.columns.length || columns.some((column, index) =>
-                    column.uuid !== active.columns[index].uuid || column.widthMode !== active.columns[index].widthMode)) return false;
+                    column.uuid !== active.columns[index].uuid || column.widthMode !== active.columns[index].widthMode ||
+                    JSON.stringify(column.widthV2 || null) !== JSON.stringify(active.columns[index].widthV2 || null))) return false;
+                if (JSON.stringify(root.viewportAnchorV2 || null) !== JSON.stringify(active.viewportAnchorV2 || null)) return false;
             } else return false;
         } catch (_) { return false; }
         const restored = candidate.all().filter(snapshot => this.hasDesktop(snapshot.workspaceId));
@@ -545,16 +617,22 @@ class WorkspaceMountController {
         const anchor = columns.reduce((previous, column) =>
             column.logicalX <= state.scrollOffsetX ? column : previous, null);
         const wide = columns.find(column => column.id === state.viewport.wideColumnId);
-        return this.snapshots.set(state.activeWorkspaceId, {
-            columns: columns.map(column => ({ uuid: this.normalizeUuid(column.window.internalId),
-                widthMode: column.widthMode, previousNonFullWidthMode: column.previousNonFullWidthMode,
-                persistentWide: column.persistentWide })),
+        const previous = this.snapshots.get(state.activeWorkspaceId);
+        const result = {
+            columns: columns.map(column => workspaceColumnPreference(column,
+                this.normalizeUuid(column.window.internalId), this.scrollLayoutV2Enabled)),
             focusedUuid: focused ? this.normalizeUuid(focused.window.internalId) : null,
             viewportAnchor: anchor ? { uuid: this.normalizeUuid(anchor.window.internalId),
                 delta: state.scrollOffsetX - anchor.logicalX } : null,
             viewport: { mode: state.viewport.mode, wideUuid: wide ? this.normalizeUuid(wide.window.internalId) : null },
             presentation: state.presentation,
-        });
+        };
+        if (this.captureV2View) result.viewportAnchorV2 = this.captureV2View();
+        else if (previous && previous.viewportAnchorV2 !== undefined) result.viewportAnchorV2 = previous.viewportAnchorV2;
+        if (this.scrollLayoutV2Enabled && previous) result.dormantViewportV1 = previous.dormantViewportV1 ||
+            Object.assign({ version: 1 }, previous.viewport);
+        else if (previous && previous.dormantViewportV1) result.dormantViewportV1 = Object.assign({ version: 1 }, result.viewport);
+        return this.snapshots.set(state.activeWorkspaceId, result);
     }
 
     unmount(capture = true) {
@@ -605,8 +683,10 @@ class WorkspaceMountController {
         state.activeWorkspaceId = workspaceId;
         entries.forEach(({ window, entry }) => {
             const column = this.columnStore.insertWindow(window, state.columns.length,
-                entry.widthMode, entry.previousNonFullWidthMode);
+                this.scrollLayoutV2Enabled && entry.widthV2 ? entry.widthV2.widthMode : entry.widthMode,
+                this.scrollLayoutV2Enabled && entry.widthV2 ? entry.widthV2.previousNonFullWidthMode : entry.previousNonFullWidthMode);
             column.persistentWide = entry.persistentWide;
+            if (entry.widthV2) column.widthV2 = entry.widthV2;
             const windowState = this.stateFor(window);
             windowState.workspaceOwnerId = workspaceId;
             windowState.workspaceColumnPreference = null;
@@ -622,6 +702,13 @@ class WorkspaceMountController {
         const savedIndex = snapshot ? state.columns.findIndex(column =>
             this.normalizeUuid(column.window.internalId) === snapshot.focusedUuid) : -1;
         this.columnStore.focusIndex(selectedIndex >= 0 ? selectedIndex : savedIndex >= 0 ? savedIndex : 0);
+        if (this.scrollLayoutV2Enabled) {
+            this.resetPresentation();
+            this.restoreViewport({ mode: "pair", wideColumnId: null });
+            this.restoreV2View(snapshot && snapshot.viewportAnchorV2,
+                selectedIndex < 0 || selectedIndex === savedIndex);
+            return;
+        }
         const anchor = snapshot && snapshot.viewportAnchor;
         const anchorColumn = anchor && state.columns.find(column =>
             this.normalizeUuid(column.window.internalId) === anchor.uuid);
@@ -632,7 +719,7 @@ class WorkspaceMountController {
         this.resetPresentation();
         // Snapshots store UUIDs, while newly mounted Columns receive fresh IDs.
         // Restore the saved viewport only when KDE still focuses that Wide owner.
-        const savedViewport = snapshot && snapshot.viewport;
+        const savedViewport = snapshot && (snapshot.dormantViewportV1 || snapshot.viewport);
         let restoredViewport = { mode: "pair", wideColumnId: null };
         if (focused && focused.persistentWide && !focused.window.fullScreen &&
                 savedViewport && ["wide", "wide-focus"].includes(savedViewport.mode) &&
@@ -664,7 +751,10 @@ class WorkspaceMountController {
             this.unmount(false);
             this.hydrate(id, snapshot, focusedUuid);
             this.capture();
-            if (commit) this.commitState(reason);
+            // V2 publishes the final derived camera in the P4 membership ACK
+            // stage, after the workspace barrier opens. Never persist the
+            // temporary unmounted camera before applying a signed anchor.
+            if (commit && !this.scrollLayoutV2Enabled) this.commitState(reason);
             this.debug(`[cc-workspace] MOUNT id=${id} columns=${state.columns.length} reason=${reason}`);
             return true;
         } catch (error) {
@@ -673,6 +763,7 @@ class WorkspaceMountController {
             return false;
         } finally {
             if (!prepared) state.workspaceSwitching = false;
+            if (!prepared && !this.stopped && this.onMounted) this.onMounted(reason);
             // A native change can be emitted synchronously by preparation. Its
             // handler was gated by the batch; reconcile the final KDE authority.
             if (!prepared && !this.stopped && state.activeWorkspaceId && this.currentId() &&
@@ -837,7 +928,7 @@ class WorkspaceSwitchController {
                 if (!this.mount.mountPrepared(desktop, reason, focusedUuid)) return false;
                 if (!this.valid(epoch)) return false;
                 if (this.appState.activeWorkspaceId === this.topology.id(this.topology.current(this.appState.targetOutput))) {
-                    this.mount.commitState(reason);
+                    if (!this.mount.scrollLayoutV2Enabled) this.mount.commitState(reason);
                     committed = true;
                     return true;
                 }
@@ -851,6 +942,7 @@ class WorkspaceSwitchController {
                 this.phase = "IDLE";
                 this.appState.workspaceSwitching = false;
                 this.pendingRequest = null;
+                if (committed && this.mount.onMounted) this.mount.onMounted(reason);
                 if (request) request.onFinished(committed ? this.appState.activeWorkspaceId : null);
             }
         }
@@ -933,8 +1025,7 @@ class WorkspaceTransferController {
             this.windowPolicy.canJoinColumn(window) && !state.floating &&
             (!window.fullScreen || column || savedEntry) &&
             window.output === this.appState.targetOutput);
-        const entry = column ? { uuid, widthMode: column.widthMode,
-            previousNonFullWidthMode: column.previousNonFullWidthMode, persistentWide: column.persistentWide }
+        const entry = column ? workspaceColumnPreference(column, uuid, this.scrollLayoutV2Enabled)
             : savedEntry ||
                 state.workspaceColumnPreference || { uuid, widthMode: "half", persistentWide: false };
         const changed = owner !== previous || !eligible;
@@ -1486,6 +1577,591 @@ function scrollOffsetToRevealColumn(offset, column, stripWidth, viewportWidth) {
     return boundScrollOffset(nextOffset, stripWidth, viewportWidth);
 }
 
+// Generated from src/kwin/layout/ContinuousColumnLayout.js
+// Event-time JS geometry only. No windows, timers, motion state or retained cache.
+function scrollLayoutValidRect(rect) {
+    return Boolean(rect && [rect.x, rect.y, rect.width, rect.height].every(Number.isFinite) &&
+        rect.width >= 1 && rect.height >= 1 &&
+        [rect.x, rect.y, rect.x + rect.width, rect.y + rect.height, rect.width, rect.height]
+            .every(value => Math.abs(value) <= Number.MAX_SAFE_INTEGER));
+}
+
+function scrollLayoutIntersection(a, b) {
+    const x = Math.max(a.x, b.x);
+    const y = Math.max(a.y, b.y);
+    const right = Math.min(a.x + a.width, b.x + b.width);
+    const bottom = Math.min(a.y + a.height, b.y + b.height);
+    return right > x && bottom > y
+        ? { x, y, width: right - x, height: bottom - y } : null;
+}
+
+// Some visible panels (e.g. Plasma "windows go below") deliberately have no
+// strut. Reserve their measured edge extent as well as the official WorkArea.
+// Only bars spanning the output qualify; short auto-hide docks/popups do not.
+function reserveV2EdgePanels(output, area, panels) {
+    let left = area.x, top = area.y, right = area.x + area.width, bottom = area.y + area.height;
+    for (const panel of panels || []) {
+        if (!scrollLayoutValidRect(panel)) continue;
+        const pr = panel.x + panel.width, pb = panel.y + panel.height;
+        if (panel.x <= output.x && pr >= output.x + output.width && panel.height < output.height) {
+            if (panel.y <= output.y && pb > output.y) top = Math.max(top, pb);
+            if (pb >= output.y + output.height && panel.y < output.y + output.height) bottom = Math.min(bottom, panel.y);
+        }
+        if (panel.y <= output.y && pb >= output.y + output.height && panel.width < output.width) {
+            if (panel.x <= output.x && pr > output.x) left = Math.max(left, pr);
+            if (pr >= output.x + output.width && panel.x < output.x + output.width) right = Math.min(right, panel.x);
+        }
+    }
+    return { x: left, y: top, width: right - left, height: bottom - top };
+}
+
+function effectiveScrollLayoutGap(width, height, requestedGap) {
+    const requested = Number.isFinite(requestedGap) ? Math.max(0, requestedGap) : 16;
+    // Enough room for at least a one-pixel half column and positive height.
+    const limit = Math.max(0, Math.floor(Math.min((width - 2) / 3, (height - 1) / 2)));
+    return Math.min(requested, limit);
+}
+
+function createScrollLayoutGeometry(options) {
+    const output = options.outputRect;
+    if (!scrollLayoutValidRect(output)) throw new RangeError("invalid V2 OutputRect");
+    const outputRect = { x: output.x, y: output.y, width: output.width, height: output.height };
+    const diagnostics = [];
+    const physicalScale = Number.isFinite(options.physicalScale) && options.physicalScale > 0 &&
+        options.physicalScale <= 16 ? options.physicalScale : 1;
+    if (physicalScale !== options.physicalScale) diagnostics.push("scale-fallback");
+    let area = options.workingArea;
+    if (!scrollLayoutValidRect(area) || !scrollLayoutIntersection(outputRect, area)) {
+        // A conservative SafeArea is supplied by OutputTopology when clientArea
+        // is unavailable. Never silently substitute the full output over a panel.
+        area = options.fallbackRect;
+        diagnostics.push("working-area-fallback");
+    }
+    if (!scrollLayoutValidRect(area)) throw new RangeError("no safe V2 WorkingArea");
+    const officialArea = scrollLayoutIntersection(outputRect, area);
+    let workingArea = officialArea && reserveV2EdgePanels(outputRect, officialArea, options.panelRects);
+    if (officialArea && ["x", "y", "width", "height"].some(key => workingArea[key] !== officialArea[key])) {
+        diagnostics.push("visible-edge-panel-reserved");
+    }
+    if (!scrollLayoutValidRect(workingArea)) throw new RangeError("WorkingArea outside output");
+    if (["x", "y", "width", "height"].some(key => area[key] !== officialArea[key])) {
+        diagnostics.push("working-area-clipped-to-output");
+    }
+    // A client can report its integer buffer extent divided by fractional scale.
+    // Keep vertical bounds on the shared integer logical/device grid so strict
+    // configure ACKs remain exact (e.g. 51px panel at 150% must not yield an odd
+    // logical client height). Round inward; never enlarge into a panel.
+    const gap = effectiveScrollLayoutGap(workingArea.width, workingArea.height, options.gap);
+    const requestedTop = Number.isFinite(options.topGap) && options.topGap >= 0 ? Math.floor(options.topGap) : gap;
+    const topGap = Math.min(requestedTop, Math.max(0, workingArea.height - gap - 1));
+    let step = 1;
+    while (step < 16 && Math.abs(step * physicalScale - Math.round(step * physicalScale)) > 0.000001) step++;
+    if (Math.abs(step * physicalScale - Math.round(step * physicalScale)) < 0.000001) {
+        const y = outputRect.y + Math.ceil((workingArea.y + topGap - outputRect.y) / step) * step - topGap;
+        const bottom = outputRect.y + Math.floor((workingArea.y + workingArea.height - gap - outputRect.y) / step) * step + gap;
+        if (bottom - y > topGap + gap && (y !== workingArea.y || bottom - y !== workingArea.height)) {
+            workingArea = { x: workingArea.x, y, width: workingArea.width, height: bottom - y };
+            diagnostics.push("working-area-client-grid");
+        }
+    }
+
+    if (gap !== options.gap) diagnostics.push("gap-clamped");
+
+    return { outputRect, workingArea, gap, topGap, physicalScale, diagnostics };
+}
+
+function computeV2ColumnWidth(mode, workWidth, gap) {
+    if (!Number.isFinite(workWidth) || workWidth < 1 || workWidth > Number.MAX_SAFE_INTEGER ||
+            !Number.isFinite(gap) || gap < 0) throw new RangeError("invalid V2 width inputs");
+    const proportion = mode === "full" ? 1 : mode === "twoThirds" ? 2 / 3 : 1 / 2;
+    return Math.max(1, Math.floor((workWidth - gap) * proportion - gap));
+}
+
+function clampV2Camera(camera, maxCamera) {
+    const upper = Number.isFinite(maxCamera) ? Math.max(0, maxCamera) : 0;
+    return Math.max(0, Math.min(Number.isFinite(camera) ? camera : 0, upper));
+}
+
+function centeredCamera(column, workWidth, maxCamera) {
+    return clampV2Camera(column.logicalX - (workWidth - column.pixelWidth) / 2, maxCamera);
+}
+
+function fittedCamera(current, column, workWidth, gap, maxCamera) {
+    let target = clampV2Camera(current, maxCamera);
+    const left = column.logicalX - gap;
+    const right = column.logicalX + column.pixelWidth + gap;
+    // An oversize client gets a stable left-aligned fallback; normal presets
+    // always fit after gap clamping. Neither case creates a negative wire offset.
+    if (right - left > workWidth || left < target) target = left;
+    else if (right > target + workWidth) target = right - workWidth;
+    return clampV2Camera(target, maxCamera);
+}
+
+function focusV2Camera(layout, index, currentCamera) {
+    const column = layout.columns[index];
+    if (!column) return clampV2Camera(currentCamera, layout.maxCamera);
+    const width = layout.geometry.workingArea.width;
+    return layout.columns.length === 1 || column.widthMode === "twoThirds"
+        ? centeredCamera(column, width, layout.maxCamera)
+        : fittedCamera(currentCamera, column, width, layout.geometry.gap, layout.maxCamera);
+}
+
+function deriveV2Layout(columns, geometry, options = {}) {
+    if (!scrollLayoutValidRect(geometry.workingArea) || !scrollLayoutValidRect(geometry.outputRect) ||
+            geometry.gap !== effectiveScrollLayoutGap(geometry.workingArea.width,
+                geometry.workingArea.height, geometry.gap)) throw new RangeError("invalid V2 layout geometry");
+    const { workingArea, gap } = geometry;
+    const halfWidth = computeV2ColumnWidth("half", workingArea.width, gap);
+    const leadingInset = Math.max(0, Math.floor((workingArea.width - halfWidth) / 2));
+    const trailingInset = leadingInset;
+    let nextX = leadingInset;
+    const derived = columns.map(column => {
+        const widthMode = normalizeColumnWidthMode(column.widthMode, true);
+        const pixelWidth = computeV2ColumnWidth(widthMode, workingArea.width, gap);
+        const logicalX = nextX;
+        nextX += pixelWidth + gap;
+        if (!Number.isFinite(nextX) || nextX > Number.MAX_SAFE_INTEGER) {
+            throw new RangeError("V2 column strip overflow");
+        }
+        return { widthMode, logicalX, pixelWidth };
+    });
+    const last = derived[derived.length - 1];
+    const stripEnd = last ? last.logicalX + last.pixelWidth + trailingInset : 0;
+    if (stripEnd > Number.MAX_SAFE_INTEGER) throw new RangeError("V2 padded strip overflow");
+    const layout = { geometry, columns: derived, leadingInset, trailingInset, stripEnd,
+        maxCamera: Math.max(0, stripEnd - workingArea.width) };
+    layout.cameraX = focusV2Camera(layout, options.focusedIndex, options.cameraX);
+    return layout;
+}
+
+function v2ColumnLayoutRect(geometry) {
+    const { workingArea, gap } = geometry;
+    const topGap = geometry.topGap === undefined ? gap : geometry.topGap;
+    return { x: workingArea.x, y: workingArea.y + topGap, width: workingArea.width,
+        height: Math.max(1, workingArea.height - topGap - gap) };
+}
+
+function projectV2Column(column, geometry, cameraX) {
+    const { workingArea, gap, outputRect } = geometry;
+    const vertical = v2ColumnLayoutRect(geometry);
+    const visualRect = { x: workingArea.x + column.logicalX - cameraX,
+        y: vertical.y, width: column.pixelWidth, height: vertical.height };
+    const visibleRect = scrollLayoutIntersection(visualRect, outputRect);
+    const partiallyVisible = Boolean(visibleRect && ["x", "y", "width", "height"]
+        .some(key => visibleRect[key] !== visualRect[key]));
+    return { visualRect, visibleRect, partiallyVisible };
+}
+
+// Round shared edges, not widths independently. Origin is output-local; logical
+// column widths/camera are never multiplied by scale in the model itself.
+function v2DeviceRect(rect, geometry) {
+    const scale = geometry.physicalScale;
+    const x = Math.round((rect.x - geometry.outputRect.x) * scale);
+    const y = Math.round((rect.y - geometry.outputRect.y) * scale);
+    const right = Math.round((rect.x + rect.width - geometry.outputRect.x) * scale);
+    const bottom = Math.round((rect.y + rect.height - geometry.outputRect.y) * scale);
+    return { x, y, width: right - x, height: bottom - y };
+}
+
+// Generated from src/kwin/layout/ViewportPolicy.js
+// JS target policy only. Painted facts are observations, never a second clock.
+function resolveV2Viewport(layout, options) {
+    let camera = options.currentTarget;
+    const focused = layout.columns[options.focusedIndex];
+    if (options.anchor && focused) {
+        const anchor = layout.columns[options.anchor.index];
+        if (anchor && Number.isFinite(options.anchor.delta)) camera = anchor.logicalX + options.anchor.delta;
+    } else if (options.painted) {
+        camera = options.painted.cameraX;
+        if (options.structural && focused && options.paintedFocusRect) {
+            camera = layout.geometry.workingArea.x + focused.logicalX - options.paintedFocusRect.x;
+        }
+    }
+    return focusV2Camera(layout, options.focusedIndex, clampV2Camera(camera, layout.maxCamera));
+}
+
+// Generated from src/kwin/layout/ContinuousViewportController.js
+function freezeV2Intent(value) {
+    if (value && typeof value === "object" && !Object.isFrozen(value)) {
+        Object.values(value).forEach(freezeV2Intent);
+        Object.freeze(value);
+    }
+    return value;
+}
+
+// One active workspace, using the existing ColumnStore. Emits internal JS
+// intents only; never SCROLL/COLUMN_REINDEX, frameGeometry, activation or IPC.
+class ContinuousViewportController {
+    constructor(options) {
+        this.state = options.state;
+        this.store = options.columnStore;
+        this.transaction = options.transaction;
+        this.getPrimaryOutput = options.getPrimaryOutput;
+        this.getCurrentWorkspaceId = options.getCurrentWorkspaceId;
+        this.canJoin = options.canJoin;
+        this.getUuid = options.getUuid;
+        this.getPainted = options.getPainted || (() => null);
+        this.onTarget = options.onTarget || (() => {});
+        this.dockEnabled = options.dockEnabled === true;
+        this.enabled = options.enabled === true;
+        if (this.enabled && !this.store.scrollLayoutV2Enabled) throw new Error("V2 requires a V2 ColumnStore");
+        this.sessionId = options.sessionId;
+        if (this.enabled && (typeof this.sessionId !== "string" || !this.sessionId)) {
+            throw new Error("V2 requires the existing runtime session ID");
+        }
+        this.geometry = null;
+        this.scopeRevision = 0;
+        this.busy = false;
+        this.mounting = false;
+        this.lastTarget = null;
+        this.lastSample = null; // Two monotonic scalars, not a retained pose cache.
+        this.outputName = "";
+        this.stopRequested = false;
+        this.cleanupFailed = false;
+    }
+
+    ready() {
+        return this.enabled && this.state.enabled && !this.state.workspaceSwitching &&
+            this.state.activeWorkspaceId && this.state.targetOutput === this.getPrimaryOutput() && this.geometry &&
+            (!this.getCurrentWorkspaceId || this.getCurrentWorkspaceId() === this.state.activeWorkspaceId);
+    }
+
+    uuid(column) { return column.v2WindowUuid; }
+
+    eligible(window, scope) {
+        try { return Boolean(this.canJoin(window, scope)); } catch (_error) { return false; }
+    }
+
+    windowUuid(window) {
+        try {
+            const uuid = this.getUuid(window);
+            return typeof uuid === "string" && uuid.length ? uuid : null;
+        } catch (_error) { return null; }
+    }
+
+    validToken(token) {
+        return !token || (token.sessionId === this.sessionId && token.workspaceId === this.state.activeWorkspaceId &&
+            token.targetOutput === this.outputName && token.scopeRevision === this.scopeRevision &&
+            token.epoch === this.state.geometryGeneration);
+    }
+
+    copyGeometry(geometry) {
+        const copy = createScrollLayoutGeometry({ outputRect: geometry.outputRect, workingArea: geometry.workingArea,
+            gap: geometry.gap, topGap: geometry.topGap, physicalScale: geometry.physicalScale });
+        const allowed = ["working-area-fallback", "working-area-clipped-to-output", "gap-clamped", "scale-fallback"];
+        if (Array.isArray(geometry.diagnostics)) {
+            copy.diagnostics = Array.from(new Set(copy.diagnostics.concat(geometry.diagnostics.slice(0, 8)
+                .filter(value => allowed.includes(value)))));
+        }
+        return copy;
+    }
+
+    sameGeometry(a, b) {
+        return Boolean(a && b && a.gap === b.gap && (a.topGap ?? a.gap) === (b.topGap ?? b.gap) && a.physicalScale === b.physicalScale &&
+            a.diagnostics.length === b.diagnostics.length && a.diagnostics.every(value => b.diagnostics.includes(value)) &&
+            ["outputRect", "workingArea"].every(area => ["x", "y", "width", "height"]
+                .every(key => a[area][key] === b[area][key])));
+    }
+
+    validLayout(columns, geometry) {
+        try { deriveV2Layout(columns, geometry); return true; }
+        catch (_error) { return false; }
+    }
+
+    painted(before) {
+        let sample;
+        try { sample = this.getPainted(); } catch (_error) { return null; }
+        if (!sample || sample.sessionId !== this.sessionId || sample.workspaceId !== before.workspaceId || sample.targetOutput !== before.outputName ||
+                sample.scopeRevision !== before.scopeRevision || !Number.isSafeInteger(sample.epoch) ||
+                sample.epoch < 1 || sample.epoch > before.epoch || !Number.isSafeInteger(sample.sampleSerial) ||
+                sample.sampleSerial < 0 || !Number.isFinite(sample.cameraX) || sample.cameraX < 0 ||
+                !Array.isArray(sample.entries) ||
+                (this.lastSample && (sample.epoch < this.lastSample.epoch ||
+                    sample.sampleSerial < this.lastSample.sampleSerial))) return null;
+        // No new paint may occur between several membership changes. Reuse only
+        // the already verified facts at exactly the same sample identity, trimmed
+        // to current survivors by the preceding intent. Never synthesize a pose.
+        const cached = this.lastTarget && this.lastTarget.source;
+        if (cached && sample.epoch === cached.epoch && sample.sampleSerial === cached.sampleSerial &&
+                sample.cameraX === cached.cameraX) return cached;
+        if (sample.entries.length > before.columns.length) return null;
+        const ids = new Set(before.columns.map(c => c.uuid));
+        const seen = new Set();
+        const entries = [];
+        for (const entry of sample.entries) {
+            const r = entry.visualRect;
+            if (!ids.has(entry.uuid) || seen.has(entry.uuid) || !r ||
+                    ![r.x, r.y, r.width, r.height].every(Number.isFinite) || r.width < 1 || r.height < 1) return null;
+            seen.add(entry.uuid);
+            entries.push({ uuid: entry.uuid, visualRect: { x: r.x, y: r.y, width: r.width, height: r.height } });
+        }
+        this.lastSample = { epoch: sample.epoch, sampleSerial: sample.sampleSerial };
+        return { epoch: sample.epoch, sampleSerial: sample.sampleSerial, cameraX: sample.cameraX,
+            geometry: before.geometry, entries };
+    }
+
+    batch(reason, mutate) {
+        if (!this.enabled) return false;
+        if (this.busy) return mutate();
+        const before = { workspaceId: this.state.activeWorkspaceId, output: this.state.targetOutput,
+            scopeRevision: this.scopeRevision, outputName: this.outputName, epoch: this.state.geometryGeneration || 0,
+            geometry: this.geometry, target: this.state.scrollOffsetX,
+            columns: this.state.columns.map(c => ({ uuid: this.uuid(c), logicalX: c.logicalX,
+                pixelWidth: c.pixelWidth, widthMode: c.widthMode })) };
+        const observed = before.output && before.geometry ? this.painted(before) : null;
+        let plan = null;
+        this.transaction.run(reason, epoch => {
+            this.busy = true;
+            this.changed = false;
+            this.anchor = null;
+            try {
+                mutate();
+                if (!this.changed || this.stopRequested) return;
+                const layout = deriveV2Layout(this.state.columns, this.geometry);
+                const sameScope = before.workspaceId === this.state.activeWorkspaceId &&
+                    before.output === this.state.targetOutput;
+                const structural = !sameScope || !this.sameGeometry(before.geometry, this.geometry) ||
+                    before.columns.length !== this.state.columns.length || before.columns.some((old, i) =>
+                        old.uuid !== this.uuid(this.state.columns[i]) || old.widthMode !== this.state.columns[i].widthMode);
+                const painted = sameScope ? observed : null;
+                const focused = this.store.focusedColumn();
+                const paintedFocus = painted && focused && painted.entries.find(e => e.uuid === this.uuid(focused));
+                layout.cameraX = resolveV2Viewport(layout, { focusedIndex: this.store.focusedIndex(),
+                    currentTarget: sameScope ? before.target : 0, painted, structural,
+                    paintedFocusRect: paintedFocus && paintedFocus.visualRect, anchor: this.anchor });
+                if (this.centerRequested && focused) layout.cameraX = Math.max(0, Math.min(layout.maxCamera,
+                    focused.logicalX + focused.pixelWidth / 2 - this.geometry.workingArea.width / 2));
+                this.state.columns.forEach((column, i) => Object.assign(column, layout.columns[i]));
+                this.state.scrollOffsetX = layout.cameraX;
+                this.state.geometryGeneration = epoch;
+                const entries = this.state.columns.map(column => Object.assign({ uuid: this.uuid(column),
+                    columnId: column.id, widthMode: column.widthMode, logicalX: column.logicalX,
+                    pixelWidth: column.pixelWidth }, projectV2Column(column, this.geometry, layout.cameraX)));
+                const survivors = new Set(entries.map(e => e.uuid));
+                plan = { kind: "scroll-layout-v2-intent", sessionId: this.sessionId,
+                    requiredCapability: structural ? "v2-column-geometry" : "v2-scroll",
+                    epoch, scopeRevision: this.scopeRevision, workspaceId: this.state.activeWorkspaceId,
+                    targetOutput: this.outputName, focusedUuid: focused ? this.uuid(focused) : null,
+                    cameraTargetX: layout.cameraX, maxCamera: layout.maxCamera, geometry: this.copyGeometry(this.geometry), entries,
+                    source: painted ? { epoch: painted.epoch, sampleSerial: painted.sampleSerial,
+                        cameraX: painted.cameraX, geometry: painted.geometry,
+                        entries: painted.entries.filter(e => survivors.has(e.uuid)) } : null,
+                    continuity: !sameScope || !before.columns.length ? "initial" : painted ? "observed" : "unavailable",
+                    reason };
+                this.lastTarget = freezeV2Intent(plan);
+            } catch (error) {
+                this.stopRequested = true;
+                throw error;
+            } finally {
+                this.busy = false;
+                this.anchor = null;
+                this.centerRequested = false;
+                this.changed = false;
+                if (this.stopRequested) { this.stopRequested = false; this.stop(); plan = null; }
+            }
+        });
+        if (plan) this.onTarget(plan);
+        return Boolean(plan);
+    }
+
+    mount(scope, entries, view = {}) {
+        if (!this.enabled || this.busy || !this.state.enabled || this.state.workspaceSwitching || !scope ||
+                typeof scope.workspaceId !== "string" || !scope.workspaceId.trim() ||
+                scope.output !== this.getPrimaryOutput() || !Array.isArray(entries) ||
+                (this.getCurrentWorkspaceId && scope.workspaceId !== this.getCurrentWorkspaceId())) return false;
+        let geometry;
+        try { geometry = this.copyGeometry(scope.geometry); } catch (_error) { return false; }
+        if (entries.some(e => !e || !e.window)) return false;
+        const uuids = entries.map(e => this.windowUuid(e.window));
+        if (uuids.some(id => !id) || new Set(uuids).size !== uuids.length ||
+                entries.some(e => !this.eligible(e.window, scope)) || !this.validLayout(entries, geometry)) return false;
+        const sameScope = this.state.activeWorkspaceId === scope.workspaceId && this.state.targetOutput === scope.output;
+        const sameEntries = entries.length === this.state.columns.length && entries.every((e, i) => {
+            const c = this.state.columns[i];
+            return c.window === e.window && c.v2WindowUuid === uuids[i] && c.widthMode === normalizeColumnWidthMode(e.widthMode, true) &&
+                c.previousNonFullWidthMode === normalizePreviousNonFullWidthMode(e.previousNonFullWidthMode, e.widthMode, true) &&
+                c.persistentWide === (e.persistentWide === true);
+        });
+        if (sameScope && sameEntries && this.sameGeometry(this.geometry, geometry)) {
+            const requested = uuids.indexOf(view.focusedUuid);
+            const focusedIndex = requested >= 0 ? requested : this.store.focusedIndex();
+            const anchorIndex = view.anchor ? uuids.indexOf(view.anchor.uuid) : -1;
+            const anchor = anchorIndex >= 0 && Number.isFinite(view.anchor.delta)
+                ? { index: anchorIndex, delta: view.anchor.delta } : null;
+            const layout = deriveV2Layout(entries, geometry);
+            const camera = resolveV2Viewport(layout, { focusedIndex, anchor, currentTarget: this.state.scrollOffsetX });
+            if (focusedIndex === this.store.focusedIndex() && camera === this.state.scrollOffsetX) return false;
+        }
+        return this.batch("workspace-mount", () => {
+            this.mounting = true;
+            try {
+                if (!sameScope || this.outputName !== scope.output.name || !this.sameGeometry(this.geometry, geometry)) {
+                    this.outputName = scope.output.name;
+                    this.scopeRevision++;
+                    this.lastSample = null;
+                }
+                if (!sameScope) {
+                    this.state.activeWorkspaceId = scope.workspaceId;
+                    this.state.targetOutput = scope.output;
+                    this.outputName = scope.output.name;
+                    this.lastSample = null;
+                    this.store.clear();
+                }
+                this.geometry = geometry;
+                const keep = new Set(entries.map(e => e.window));
+                this.state.columns.slice().forEach(c => { if (!keep.has(c.window)) this.store.removeWindow(c.window); });
+                const order = entries.map((e, i) => {
+                    let c = this.state.columns.find(c => c.window === e.window);
+                    if (!c) c = this.store.insertWindow(e.window, this.state.columns.length, e.widthMode, e.previousNonFullWidthMode);
+                    c.v2WindowUuid = uuids[i];
+                    c.widthMode = normalizeColumnWidthMode(e.widthMode, true);
+                    c.previousNonFullWidthMode = normalizePreviousNonFullWidthMode(e.previousNonFullWidthMode, c.widthMode, true);
+                    c.persistentWide = e.persistentWide === true;
+                    return c;
+                });
+                // Reentrant adoption can append a new eligible window while a
+                // mount is enumerating; retain it in the same mutation batch.
+                this.store.reorder(order.concat(this.state.columns.filter(c => !order.includes(c))));
+                const requested = this.state.columns.findIndex(c => this.uuid(c) === view.focusedUuid);
+                this.store.focusIndex(requested >= 0 ? requested : sameScope && this.store.focusedColumn()
+                    ? this.store.focusedIndex() : 0);
+                const anchorIndex = view.anchor && this.state.columns.findIndex(c => this.uuid(c) === view.anchor.uuid);
+                if (anchorIndex >= 0 && view.anchor && Number.isFinite(view.anchor.delta)) {
+                    this.anchor = { index: anchorIndex, delta: view.anchor.delta };
+                }
+                this.changed = true;
+            } finally { this.mounting = false; }
+        });
+    }
+
+    focusWindow(window, source = "programmatic", token = null) {
+        if (!this.ready() || this.mounting || !this.validToken(token) ||
+                !["programmatic", "activation", "alt-tab", "history", "dock", "directional", "partial-input"].includes(source) ||
+                (source === "partial-input" && !token) ||
+                (source === "dock" && !this.dockEnabled)) return false;
+        const index = this.store.indexOfWindow(window);
+        if (index < 0 || !this.eligible(window, { workspaceId: this.state.activeWorkspaceId,
+                output: this.state.targetOutput }) || index === this.store.focusedIndex()) return false;
+        return this.batch(`focus-${source}`, () => { this.store.focusIndex(index); this.changed = true; return true; });
+    }
+
+    focusPartialRequest(request) {
+        if (!request || !this.validToken(request)) return false;
+        const column = this.state.columns.find(c => this.uuid(c) === request.windowUuid);
+        return Boolean(column && this.focusWindow(column.window, "partial-input", request));
+    }
+
+    focusRelative(delta) {
+        if (!this.ready() || ![-1, 1].includes(delta) || !this.state.columns.length) return false;
+        const next = Math.max(0, Math.min(this.state.columns.length - 1, this.store.focusedIndex() + delta));
+        return this.focusWindow(this.state.columns[next].window, "directional");
+    }
+
+    adopt(window, options = {}) {
+        const scope = { workspaceId: this.state.activeWorkspaceId, output: this.state.targetOutput };
+        if (!this.ready() || this.store.indexOfWindow(window) >= 0 || !this.eligible(window, scope)) return false;
+        const uuid = this.windowUuid(window);
+        if (!uuid || this.state.columns.some(c => this.uuid(c) === uuid)) return false;
+        const widthMode = normalizeColumnWidthMode(options.widthMode, true);
+        if (!this.validLayout(this.state.columns.concat([{ widthMode }]), this.geometry)) return false;
+        const requested = options.index === undefined ? this.store.focusedIndex() + 1 : options.index;
+        if (!Number.isInteger(requested) || requested < 0 || requested > this.state.columns.length) return false;
+        return this.batch("window-added", () => {
+            const oldFocus = this.store.focusedColumn();
+            const column = this.store.insertWindow(window, requested, widthMode, options.previousNonFullWidthMode);
+            if (!this.state.columns.includes(column)) return false;
+            column.v2WindowUuid = uuid;
+            this.store.focusColumn(options.focus === false && oldFocus ? oldFocus : column);
+            this.changed = true;
+            return true;
+        });
+    }
+
+    remove(window) {
+        if (!this.enabled || this.store.indexOfWindow(window) < 0) return false;
+        if (!this.ready()) {
+            this.store.removeWindow(window);
+            this.lastTarget = null;
+            return true; // Release closed wrappers during a native workspace/output departure; do not activate/publish.
+        }
+        return this.batch("window-removed", () => { this.store.removeWindow(window); this.changed = true; return true; });
+    }
+
+    reorder(uuids) {
+        if (!this.ready() || !Array.isArray(uuids) || uuids.length !== this.state.columns.length ||
+                new Set(uuids).size !== uuids.length) return false;
+        const byUuid = new Map(this.state.columns.map(c => [this.uuid(c), c]));
+        if (uuids.some(id => !byUuid.has(id)) || uuids.every((id, i) => this.uuid(this.state.columns[i]) === id)) return false;
+        return this.batch("column-reordered", () => {
+            this.store.reorder(uuids.map(id => byUuid.get(id))); this.changed = true; return true;
+        });
+    }
+
+    moveFocused(delta) {
+        if (!this.ready() || ![-1, 1].includes(delta)) return false;
+        const index = this.store.focusedIndex();
+        const next = index + delta;
+        if (index < 0 || next < 0 || next >= this.state.columns.length) return false;
+        return this.batch("column-moved", () => { this.store.moveFocused(delta); this.changed = true; return true; });
+    }
+
+    setWidth(column, mode, reason = "column-width") {
+        if (!this.ready() || !this.state.columns.includes(column)) return false;
+        mode = normalizeColumnWidthMode(mode, true);
+        if (column.widthMode === mode) return false;
+        const proposed = this.state.columns.map(c => ({ widthMode: c === column ? mode : c.widthMode }));
+        if (!this.validLayout(proposed, this.geometry)) return false;
+        return this.batch(reason, () => {
+            const previous = column.widthMode === "full" ? column.previousNonFullWidthMode : column.widthMode;
+            column.widthMode = mode;
+            column.previousNonFullWidthMode = normalizePreviousNonFullWidthMode(previous, mode, true);
+            this.store.focusColumn(column); this.changed = true; return true;
+        });
+    }
+
+    setGeometry(geometry) {
+        if (!this.ready()) return false;
+        let next;
+        try { next = this.copyGeometry(geometry); } catch (_error) { return false; }
+        if (this.sameGeometry(this.geometry, next) || !this.validLayout(this.state.columns, next)) return false;
+        return this.batch("working-area-changed", () => { this.geometry = next; this.scopeRevision++; this.lastSample=null; this.changed = true; return true; });
+    }
+
+    reflow(reason = "native-recovery") {
+        if (!this.ready()) return false;
+        return this.batch(reason, () => {this.changed=true;return true;});
+    }
+
+    center(window) {
+        if (!this.ready() || this.store.indexOfWindow(window) < 0) return false;
+        return this.batch("center-focused-column", () => {
+            this.store.focusWindow(window); this.centerRequested = true; this.changed = true; return true;
+        });
+    }
+
+    captureView() {
+        const focused = this.store.focusedColumn();
+        return this.ready() && focused ? { focusedUuid: this.uuid(focused),
+            anchor: { uuid: this.uuid(focused), delta: this.state.scrollOffsetX - focused.logicalX } } : null;
+    }
+
+    stop() {
+        if (!this.enabled) return false;
+        if (this.busy) { this.stopRequested = true; return true; }
+        this.enabled = false;
+        this.geometry = null;
+        this.lastTarget = null;
+        this.lastSample = null;
+        this.state.activeWorkspaceId = null;
+        this.state.targetOutput = null;
+        this.state.scrollOffsetX = 0;
+        this.outputName = "";
+        this.scopeRevision++;
+        try { this.store.clear(); } catch (_error) { this.cleanupFailed = true; }
+        return !this.cleanupFailed;
+    }
+}
+
 // Generated from src/kwin/layout/SingleColumnTransition.js
 // Short-lived metadata at membership changes only, never a second window model.
 // Rust retains the last painted camera sample when the coordinate origin agrees.
@@ -1549,7 +2225,10 @@ function classifySingleColumnTransition(previous, state) {
 
 // Generated from src/kwin/layout/ColumnWidthController.js
 class ColumnWidthController {
-    constructor(options) { Object.assign(this, options); }
+    constructor(options) {
+        Object.assign(this, options);
+        this.scrollLayoutV2Enabled = options.scrollLayoutV2Enabled === true;
+    }
 
     activeColumn() {
         const state = this.getAppState();
@@ -1560,13 +2239,20 @@ class ColumnWidthController {
     }
 
     apply(column, widthMode, reason) {
+        widthMode = normalizeColumnWidthMode(widthMode, this.scrollLayoutV2Enabled);
+        if (this.scrollLayoutV2Enabled && this.applyV2Width) {
+            return this.applyV2Width(column, widthMode, reason);
+        }
         // Capture the real pair before changing strip widths. The existing
         // presentation transaction owns only the paint/parking handoff.
         const transition = this.captureLayout(column);
         this.cancelPending(reason);
         this.clearPresentation();
+        const previous = column.widthMode === "full"
+            ? column.previousNonFullWidthMode : column.widthMode;
         column.widthMode = widthMode;
-        column.previousNonFullWidthMode = "half";
+        column.previousNonFullWidthMode = normalizePreviousNonFullWidthMode(
+            previous, widthMode, this.scrollLayoutV2Enabled);
         this.focusColumn(column);
         this.recomputeLogicalLayout();
         this.ensureColumnVisible(column);
@@ -1578,13 +2264,18 @@ class ColumnWidthController {
     cycle() {
         const column = this.activeColumn();
         if (!column) return false;
-        return this.apply(column, column.widthMode === "full" ? "half" : "full", "cycle-column-width");
+        const widthMode = this.scrollLayoutV2Enabled
+            ? ({ half: "twoThirds", twoThirds: "full", full: "half" })[column.widthMode] || "half"
+            : column.widthMode === "full" ? "half" : "full";
+        return this.apply(column, widthMode, "cycle-column-width");
     }
 
     toggleFull() {
         const column = this.activeColumn();
         if (!column) return false;
-        const widthMode = column.widthMode === "full" ? "half" : "full";
+        const widthMode = column.widthMode === "full"
+            ? normalizePreviousNonFullWidthMode(column.previousNonFullWidthMode,
+                "full", this.scrollLayoutV2Enabled) : "full";
         return this.apply(column, widthMode, "toggle-column-full");
     }
 }
@@ -1742,18 +2433,18 @@ class ScrollPlanCommitGate {
     abort(epoch, callback = () => {}) {
         const request = { epoch, timer: null };
         this.disarming.add(request);
-        const finish = () => {
+        const finish = confirmed => {
             if (!this.disarming.delete(request)) return;
             this.clearTimer(request.timer);
-            try { callback(); } finally {
+            try { callback(confirmed === true); } finally {
                 if (!this.disarming.size) this.idleCallbacks.splice(0).forEach(fn => fn());
             }
         };
         // A disconnected endpoint must not retain historical requests forever.
         // This is the same finite ACK deadline used by visible fallback commits.
-        request.timer = this.setTimer(finish, this.timeoutMs);
+        request.timer = this.setTimer(() => finish(false), this.timeoutMs);
         try { this.disarm(epoch, finish); } catch (error) {
-            this.warn(`[SCROLL_PLAN] disarm unavailable ${error}`); finish();
+            this.warn(`[SCROLL_PLAN] disarm unavailable ${error}`); finish(false);
         }
     }
     whenIdle(callback) {
@@ -1784,6 +2475,7 @@ class ScrollPlanCommitGate {
     }
     releaseForWorkspace() {
         if (this.pending) {
+            if (this.pending.cancelGeometry) this.pending.cancelGeometry();
             this.clearTimer(this.pending.timer);
             if (this.pending.cancelIdle) this.pending.cancelIdle();
             this.pending = null;
@@ -1797,6 +2489,7 @@ class ScrollPlanCommitGate {
         // Pair/Wide plan. Retire its epochs only after that publish ACK.
         if (this.releaseDeferred) this.releaseDeferred();
         if (this.pending) {
+            if (this.pending.cancelGeometry) this.pending.cancelGeometry();
             this.clearTimer(this.pending.timer);
             if (this.pending.cancelIdle) this.pending.cancelIdle();
             this.retainedEpochs.add(this.pending.plan.epoch);
@@ -1808,6 +2501,7 @@ class ScrollPlanCommitGate {
         const pending = this.pending;
         this.pending = null;
         if (pending) {
+            if (pending.cancelGeometry) pending.cancelGeometry();
             this.clearTimer(pending.timer);
             if (pending.cancelIdle) pending.cancelIdle();
             this.retainedEpochs.add(pending.plan.epoch);
@@ -1818,14 +2512,24 @@ class ScrollPlanCommitGate {
         this.retainedEpochs.clear();
         epochs.forEach(epoch => this.abort(epoch));
     }
+    supersede() {
+        const pending=this.pending;this.pending=null;
+        if (pending) {
+            if (pending.cancelGeometry) pending.cancelGeometry();
+            this.clearTimer(pending.timer);
+            if (pending.cancelIdle) pending.cancelIdle();
+        }
+    }
     schedule(plan, envelope, context) {
         if (this.pending) {
+            if (this.pending.cancelGeometry) this.pending.cancelGeometry();
             this.clearTimer(this.pending.timer);
             if (this.pending.cancelIdle) this.pending.cancelIdle();
             // The newer arm supersedes ownership. Do not cancel an in-flight
             // arm here: its last painted sample is the next Spring origin.
         }
-        const pending = { plan, envelope, context, activationWindow: null, timer: null };
+        const columnGeometry = envelope.type === "COLUMN_GEOMETRY";
+        const pending = { plan, envelope, context, activationWindow: columnGeometry && context.activationWindow || null, timer: null, phase: "membership" };
         this.pending = pending;
         const commit = () => {
             if (this.pending !== pending) return;
@@ -1836,29 +2540,95 @@ class ScrollPlanCommitGate {
         };
         const finish = accepted => {
             if (this.pending !== pending || pending.fallback) return;
+            if (columnGeometry) accepted = accepted === true;
             this.clearTimer(pending.timer);
             if (this.currentEpoch() !== plan.epoch) {
+                if (pending.cancelGeometry) pending.cancelGeometry();
+                if (columnGeometry && this.activeEpoch === plan.epoch) this.activeEpoch = null;
                 this.pending = null; this.abort(plan.epoch); return;
             }
-            if (accepted) { pending.nativeAccepted = true; this.activeEpoch = plan.epoch; commit(); return; }
+            if (accepted) {
+                pending.nativeAccepted = true; this.activeEpoch = plan.epoch;
+                if (!columnGeometry) { commit(); return; }
+                const deadline = Number.isInteger(this.geometryTimeoutMs) && this.geometryTimeoutMs > 0 &&
+                    this.geometryTimeoutMs <= 4000 ? this.geometryTimeoutMs : 3500;
+                // A one-shot lifetime deadline, never an animation/completion clock.
+                pending.timer = this.setTimer(() => finish(false), deadline);
+                try {
+                    const cancel = this.columnGeometry.begin(envelope, mayCommit => {
+                        if (this.pending !== pending || this.currentEpoch() !== plan.epoch || !mayCommit())
+                            throw new Error("obsolete geometry commit");
+                        this.commitColumnGeometry(plan, Object.assign({}, context, { nativeScroll: true, deferActivation: true }), mayCommit);
+                    }, ready => {
+                        if (this.pending !== pending || pending.fallback) return;
+                        if (ready !== true || this.currentEpoch() !== plan.epoch ||
+                                (pending.activationWindow && typeof this.activateColumnGeometry !== "function")) {
+                            finish(false); return;
+                        }
+                        this.clearTimer(pending.timer);
+                        this.pending = null;
+                        try {
+                            if (pending.activationWindow && this.activateColumnGeometry)
+                                this.activateColumnGeometry(pending.activationWindow, plan, context);
+                            if (this.currentEpoch() === plan.epoch && this.completeColumnGeometry)
+                                this.completeColumnGeometry(plan, context);
+                        } catch (error) {
+                            this.warn(`[SCROLL_PLAN] geometry completion failed ${error}`);
+                            if (this.activeEpoch === plan.epoch) this.activeEpoch = null;
+                            this.abort(plan.epoch);
+                        }
+                    });
+                    if (typeof cancel !== "function") throw new Error("missing geometry cancellation");
+                    if (this.pending === pending && !pending.fallback) pending.cancelGeometry = cancel;
+                    else if (typeof cancel === "function") cancel();
+                } catch (_error) { finish(false); }
+                return;
+            }
+            if (pending.cancelGeometry) pending.cancelGeometry();
             this.activeEpoch = null;
             pending.fallback = true;
             this.warn(`[SCROLL_PLAN] native fallback epoch=${plan.epoch}`);
+            if (envelope.type === "PARTIAL_SCROLL" || columnGeometry) {
+                // A timeout is not proof that partial paint ownership ended.
+                // Keep safe frames unchanged; JS recovery decides the next plan.
+                this.abort(plan.epoch, cancelled => {
+                    if (this.pending !== pending) return;
+                    this.pending = null;
+                    const failure = columnGeometry ? this.onColumnGeometryFailure : this.onPartialFailure;
+                    if (this.currentEpoch() === plan.epoch && failure)
+                        failure(plan, context, { cancelled });
+                });
+                return;
+            }
             // Normally wait for native ownership removal before legacy geometry
             // signals fire. An unavailable endpoint cannot block layout forever.
             pending.timer = this.setTimer(commit, this.timeoutMs);
             this.abort(plan.epoch, commit);
         };
-        pending.timer = this.setTimer(() => finish(false), this.timeoutMs);
+        pending.timer = this.setTimer(() => {
+            if (!columnGeometry || pending.phase !== "geometry") finish(false);
+        }, this.timeoutMs);
         const prepared = accepted => {
             if (this.pending !== pending || pending.fallback) return;
+            if (columnGeometry && pending.phase !== "membership") return;
+            if (columnGeometry) { accepted = accepted === true; pending.phase = "publish"; }
             if (!accepted) { finish(false); return; }
             try { this.publish(envelope, published => {
                 if (this.pending !== pending || pending.fallback) return;
+                if (columnGeometry && pending.phase !== "publish") return;
+                if (columnGeometry) { published = published === true; pending.phase = "arm"; }
                 if (!published || this.currentEpoch() !== plan.epoch) { finish(false); return; }
-                try { this.arm(envelope, finish); } catch (error) { finish(false); }
+                try { this.arm(envelope, armed => {
+                    if (columnGeometry && pending.phase !== "arm") return;
+                    if (columnGeometry) pending.phase = "geometry";
+                    finish(armed);
+                }); } catch (error) { finish(false); }
             }); } catch (error) { finish(false); }
         };
+        if (columnGeometry && (!this.columnGeometry || typeof this.columnGeometry.begin !== "function" ||
+                typeof this.commitColumnGeometry !== "function")) {
+            finish(false); return;
+        }
         try {
             if (this.prepare) this.prepare(context, prepared);
             else prepared(true);
@@ -2226,6 +2996,621 @@ function createWidthViewportClipPlan(plan, context) {
     }, context);
 }
 
+// Generated from src/kwin/layout/PartialScrollPlan.js
+// P3 is camera-only, with unchanged logical positions and client sizes.
+// Width, membership and basis changes require the P4 geometry transaction.
+function createPartialScrollPlan(intent, options) {
+    const sameRect = (a, b) => a && b && ["x", "y", "width", "height"].every(k => a[k] === b[k]);
+    const validId = value => typeof value === "string" && value.length > 0 && value.length <= 256 &&
+        value.trim() === value && value.toLowerCase() === value && !/[{}]/u.test(value);
+    const validText = value => typeof value === "string" && value.length <= 256 && Boolean(value.trim());
+    const capability = options && options.capability;
+    if (!intent || !options || !capability || capability.protocol !== 3 ||
+            capability.type !== "PARTIAL_SCROLL" || capability.enabled !== true ||
+            capability.inputPolicy !== "two-click" || intent.kind !== "scroll-layout-v2-intent" ||
+            !validText(intent.sessionId) || !validText(intent.workspaceId) || !validText(intent.targetOutput) ||
+            !Number.isSafeInteger(intent.epoch) || intent.epoch < 0 ||
+            !Number.isSafeInteger(intent.scopeRevision) || intent.scopeRevision <= 0 ||
+            !Number.isSafeInteger(options.issuedAt) || options.issuedAt < 0 ||
+            !Number.isFinite(intent.maxCamera) || intent.maxCamera < 0 || intent.maxCamera > Number.MAX_SAFE_INTEGER ||
+            !Number.isFinite(intent.cameraTargetX) || intent.cameraTargetX < 0 ||
+            intent.cameraTargetX > intent.maxCamera || !Array.isArray(intent.entries) || !intent.entries.length) return null;
+    const initial = intent.continuity === "initial" && !intent.source;
+    if (!initial && (intent.requiredCapability !== "v2-scroll" || intent.continuity !== "observed" || !intent.source)) return null;
+    let geometry;
+    try { geometry = createScrollLayoutGeometry(intent.geometry); } catch (_error) { return null; }
+    if (!sameRect(geometry.outputRect, intent.geometry.outputRect) ||
+            !sameRect(geometry.workingArea, intent.geometry.workingArea) || geometry.gap !== intent.geometry.gap || geometry.topGap !== (intent.geometry.topGap ?? intent.geometry.gap)) return null;
+    const from = initial ? intent.cameraTargetX : intent.source.cameraX;
+    if (!Number.isFinite(from) || from < 0 || from > intent.maxCamera) return null;
+    if (!initial && (!intent.source.geometry || !sameRect(intent.source.geometry.outputRect, geometry.outputRect) ||
+            !sameRect(intent.source.geometry.workingArea, geometry.workingArea) ||
+            intent.source.geometry.gap !== geometry.gap || (intent.source.geometry.topGap ?? intent.source.geometry.gap) !== geometry.topGap || !Array.isArray(intent.source.entries))) return null;
+    const source = new Map();
+    if (!initial) for (const row of intent.source.entries) {
+        if (!row || source.has(row.uuid)) return null;
+        source.set(row.uuid, row.visualRect);
+    }
+    const ids = new Set(), columns = new Set(), intervals = [], entries = [];
+    for (const row of intent.entries) {
+        if (!row || !validId(row.uuid) || ids.has(row.uuid) || columns.has(row.columnId) ||
+                !Number.isSafeInteger(row.columnId) || row.columnId < 0 ||
+                !Number.isFinite(row.logicalX) || row.logicalX < 0 ||
+                !Number.isFinite(row.pixelWidth) || row.pixelWidth < 1 || row.pixelWidth > geometry.workingArea.width ||
+                row.logicalX + row.pixelWidth > Number.MAX_SAFE_INTEGER ||
+                intervals.some(r => row.logicalX < r[1] && row.logicalX + row.pixelWidth > r[0])) return null;
+        ids.add(row.uuid); columns.add(row.columnId); intervals.push([row.logicalX, row.logicalX + row.pixelWidth]);
+        const oldPose = projectV2Column(row, geometry, from);
+        const newPose = projectV2Column(row, geometry, intent.cameraTargetX);
+        if (!sameRect(newPose.visualRect, row.visualRect)) return null;
+        if (!oldPose.visibleRect && !newPose.visibleRect &&
+                geometry.workingArea.x + row.logicalX + row.pixelWidth - Math.min(from, intent.cameraTargetX) > geometry.outputRect.x &&
+                geometry.workingArea.x + row.logicalX - Math.max(from, intent.cameraTargetX) < geometry.outputRect.x + geometry.outputRect.width) return null;
+        if (!initial && oldPose.visibleRect) {
+            const observed = source.get(row.uuid);
+            if (!observed || !["x", "y", "width", "height"].every(k =>
+                    Number.isFinite(observed[k]) && Math.abs(observed[k] - oldPose.visualRect[k]) <= 0.000001)) return null;
+        }
+        if (oldPose.visibleRect || newPose.visibleRect) entries.push({ windowId: row.uuid,
+            columnId: row.columnId, logicalX: row.logicalX, pixelWidth: row.pixelWidth,
+            oldPlacement: oldPose.visibleRect ? "visible" : "parked",
+            newPlacement: newPose.visibleRect ? "visible" : "parked" });
+    }
+    if (!entries.length || entries.length > 256 || [...source.keys()].some(id => !ids.has(id))) return null;
+    return { protocol: 3, type: "PARTIAL_SCROLL", sessionId: intent.sessionId,
+        workspaceId: intent.workspaceId, targetOutput: intent.targetOutput, epoch: intent.epoch,
+        issuedAt: options.issuedAt, scopeRevision: intent.scopeRevision, maxCamera: intent.maxCamera,
+        oldScrollOffsetX: from, newScrollOffsetX: intent.cameraTargetX,
+        retargetOnly: from === intent.cameraTargetX, clipPartial: true,
+        viewport: geometry.outputRect,
+        layoutRect: v2ColumnLayoutRect(geometry), entries };
+}
+
+// JS plans real frames; Native verifies these safe anchors against KWin facts.
+// Only new-visible rows are committed here. Outgoing retirement stays ACK gated.
+function partialScrollSafeTargets(plan) {
+    if (!plan || plan.type !== "PARTIAL_SCROLL") return [];
+    const output = plan.viewport, layout = plan.layoutRect;
+    return plan.entries.filter(e => e.newPlacement === "visible").map(e => ({ windowId: e.windowId,
+        rect: { x: Math.max(output.x, Math.min(output.x + output.width - e.pixelWidth,
+            layout.x + e.logicalX - plan.newScrollOffsetX)), y: layout.y,
+        width: e.pixelWidth, height: layout.height } }));
+}
+
+// Generated from src/kwin/layout/ColumnGeometryPlan.js
+function columnGeometryRect(rect) {
+    return Boolean(rect && [rect.x, rect.y, rect.width, rect.height,
+        rect.x + rect.width, rect.y + rect.height].every(v =>
+        Number.isFinite(v) && Math.abs(v) <= Number.MAX_SAFE_INTEGER) && rect.width >= 1 && rect.height >= 1);
+}
+function columnGeometrySameRect(a, b) {
+    return columnGeometryRect(a) && columnGeometryRect(b) &&
+        ["x", "y", "width", "height"].every(k => a[k] === b[k]);
+}
+function columnGeometryCopyRect(r) { return { x: r.x, y: r.y, width: r.width, height: r.height }; }
+function columnGeometryInside(a, b) {
+    return columnGeometryRect(a) && columnGeometryRect(b) && a.x >= b.x && a.y >= b.y &&
+        a.x + a.width <= b.x + b.width && a.y + a.height <= b.y + b.height;
+}
+function columnGeometryVisible(a, b) {
+    return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+}
+function columnGeometryLayout(geometry) {
+    let normalized;
+    try { normalized = createScrollLayoutGeometry(geometry); } catch (_error) { return null; }
+    if (!columnGeometrySameRect(normalized.outputRect, geometry.outputRect) ||
+            !columnGeometrySameRect(normalized.workingArea, geometry.workingArea) ||
+            normalized.gap !== geometry.gap || normalized.topGap !== (geometry.topGap ?? geometry.gap) || normalized.physicalScale !== geometry.physicalScale) return null;
+    return v2ColumnLayoutRect(normalized);
+}
+
+// A proposed P4 wire contract, deliberately distinct from camera-only protocol3.
+// Only a future Native capability with per-client paint/configure facts can
+// authorize it. P3's shared camera projection is insufficient evidence.
+function createColumnGeometryPlan(intent, options) {
+    const capability = options && options.capability, source = options && options.observation;
+    const integer = v => Number.isSafeInteger(v) && v >= 0;
+    const scalar = v => Number.isFinite(v) && v >= 0 && v <= Number.MAX_SAFE_INTEGER;
+    const text = v => typeof v === "string" && v.length <= 256 && Boolean(v.trim());
+    const id = v => text(v) && v.trim() === v && v.toLowerCase() === v && !/[{}]/u.test(v);
+    if (!capability || capability.protocol !== 4 || capability.type !== "COLUMN_GEOMETRY" ||
+            capability.enabled !== true || capability.inputPolicy !== "two-click" ||
+            capability.sourcePolicy !== "painted-client-frames" || !intent ||
+            intent.kind !== "scroll-layout-v2-intent" || intent.continuity !== "observed" ||
+            !["v2-scroll", "v2-column-geometry"].includes(intent.requiredCapability) ||
+            !text(intent.sessionId) || !text(intent.workspaceId) || !text(intent.targetOutput) ||
+            !integer(intent.epoch) || !integer(intent.scopeRevision) || intent.scopeRevision === 0 ||
+            !integer(options.issuedAt) || !scalar(intent.maxCamera) || !scalar(intent.cameraTargetX) ||
+            intent.cameraTargetX > intent.maxCamera || !Array.isArray(intent.entries) ||
+            !intent.entries.length || intent.entries.length > 256 || !intent.source ||
+            !source || source.protocol !== 4 || source.type !== "COLUMN_GEOMETRY_SOURCE" ||
+            !["sessionId", "workspaceId", "targetOutput", "scopeRevision"].every(k => source[k] === intent[k]) ||
+            !integer(source.epoch) || source.epoch < 1 || source.epoch >= intent.epoch ||
+            !integer(source.sampleSerial) || source.epoch !== intent.source.epoch ||
+            source.sampleSerial !== intent.source.sampleSerial || !scalar(source.maxCamera) ||
+            !scalar(source.cameraX) || source.cameraX > source.maxCamera || source.cameraX !== intent.source.cameraX ||
+            !Array.isArray(source.entries) || source.entries.length !== intent.entries.length ||
+            !Array.isArray(intent.source.entries) || intent.source.entries.length > 256) return null;
+    const layout = columnGeometryLayout(intent.geometry), oldLayout = columnGeometryLayout(intent.source.geometry);
+    if (!layout || !oldLayout || !columnGeometrySameRect(source.layoutRect, oldLayout) ||
+            !columnGeometrySameRect(source.viewport, intent.source.geometry.outputRect) ||
+            !columnGeometrySameRect(source.viewport, intent.geometry.outputRect)) return null;
+    const observed = new Map(), painted = new Map(), seenColumns = new Set(), ids = new Set(), intervals = [];
+    for (const row of intent.source.entries) {
+        if (!row || !id(row.uuid) || painted.has(row.uuid) || !columnGeometryRect(row.visualRect)) return null;
+        painted.set(row.uuid, row.visualRect);
+    }
+    for (const row of source.entries) {
+        if (!row || !id(row.windowId) || observed.has(row.windowId) || !integer(row.columnId) ||
+                !columnGeometryRect(row.frameRect) || row.frameRect.width > source.viewport.width ||
+                row.frameRect.height > source.viewport.height || row.acknowledged !== true) return null;
+        if (row.owned === true) {
+            if (!((row.painted === true && row.culled !== true) ||
+                    (row.painted === false && row.culled === true && columnGeometryRect(row.visualRect) && !columnGeometryVisible(row.visualRect, source.viewport))) || !columnGeometryInside(row.frameRect, source.viewport) ||
+                    !columnGeometryRect(row.visualRect) || (!Number.isFinite(row.logicalX) || Math.abs(row.logicalX) > Number.MAX_SAFE_INTEGER) ||
+                    row.frameRect.width > oldLayout.width ||
+                    row.logicalX + row.frameRect.width > Number.MAX_SAFE_INTEGER ||
+                    Math.abs(row.visualRect.x - (oldLayout.x + row.logicalX - source.cameraX)) > 0.000001 ||
+                    row.visualRect.y !== oldLayout.y || row.visualRect.height !== oldLayout.height ||
+                    row.visualRect.width !== row.frameRect.width || row.visualRect.height !== row.frameRect.height ||
+                    row.visualRect.y !== row.frameRect.y || !columnGeometrySameRect(painted.get(row.windowId), row.visualRect)) return null;
+        } else if (row.owned !== false || row.painted !== false || row.hidden !== true ||
+                row.visualRect !== null || painted.has(row.windowId)) return null;
+        observed.set(row.windowId, row);
+    }
+    const entries = [];
+    for (const row of intent.entries) {
+        if (!row || !id(row.uuid) || ids.has(row.uuid) || !integer(row.columnId) || seenColumns.has(row.columnId) ||
+                (!Number.isFinite(row.logicalX) || Math.abs(row.logicalX) > Number.MAX_SAFE_INTEGER) || !scalar(row.pixelWidth) || row.pixelWidth < 1 || row.pixelWidth > layout.width ||
+                row.logicalX + row.pixelWidth > Number.MAX_SAFE_INTEGER || intervals.some(r =>
+                    row.logicalX < r[1] && row.logicalX + row.pixelWidth > r[0])) return null;
+        const previous = observed.get(row.uuid);
+        if (!previous || previous.columnId !== row.columnId) return null;
+        const target = projectV2Column(row, intent.geometry, intent.cameraTargetX);
+        if (!columnGeometrySameRect(target.visualRect, row.visualRect)) return null;
+        const frame = columnGeometryCopyRect(target.visualRect);
+        frame.x = Math.max(source.viewport.x, Math.min(source.viewport.x + source.viewport.width - frame.width, frame.x));
+        if (!columnGeometryInside(frame, source.viewport)) return null;
+        ids.add(row.uuid); seenColumns.add(row.columnId); intervals.push([row.logicalX, row.logicalX + row.pixelWidth]);
+        entries.push({ windowId: row.uuid, columnId: row.columnId,
+            sourceKind: previous.culled === true ? "culled" : previous.owned ? "painted" : "parked",
+            oldLogicalX: previous.owned ? previous.logicalX : null, newLogicalX: row.logicalX,
+            oldPixelWidth: previous.frameRect.width, newPixelWidth: row.pixelWidth,
+            oldFrameRect: columnGeometryCopyRect(previous.frameRect),
+            oldVisualRect: previous.owned ? columnGeometryCopyRect(previous.visualRect) : null,
+            committedTargetRect: frame,
+            oldPlacement: previous.owned && columnGeometryVisible(previous.visualRect, source.viewport) ? "visible" : "parked",
+            newPlacement: target.visibleRect ? "visible" : "parked" });
+    }
+    if ([...painted.keys()].some(key => !ids.has(key))) return null;
+    return { protocol: 4, type: "COLUMN_GEOMETRY", sessionId: intent.sessionId,
+        workspaceId: intent.workspaceId, targetOutput: intent.targetOutput, epoch: intent.epoch,
+        issuedAt: options.issuedAt, scopeRevision: intent.scopeRevision,
+        sourceEpoch: source.epoch, sourceSampleSerial: source.sampleSerial,
+        oldScrollOffsetX: source.cameraX, newScrollOffsetX: intent.cameraTargetX,
+        oldMaxCamera: source.maxCamera, maxCamera: intent.maxCamera, clipPartial: true,
+        viewport: columnGeometryCopyRect(source.viewport), oldLayoutRect: oldLayout, layoutRect: layout, entries };
+}
+
+// Generated from src/kwin/layout/ColumnGeometryClientGate.js
+// Event-driven configure/paint barrier, called only AFTER Native Arm ACK.
+// No animation clock, interpolation, activation or parking authority here.
+class ColumnGeometryClientGate {
+    constructor(options) { Object.assign(this, options); }
+
+    begin(envelope, commit, done) {
+        const disposers = [], clients = [];
+        let live = true, committing = true, painted = false;
+        const dispose = () => {
+            if (!live) return;
+            live = false;
+            disposers.splice(0).reverse().forEach(fn => { try { fn(); } catch (_error) { /* continue releasing */ } });
+            clients.length = 0;
+        };
+        const finish = accepted => { if (live) { dispose(); done(accepted === true); } };
+        const retain = unsubscribe => {
+            if (typeof unsubscribe !== "function") throw new Error("missing geometry subscription disposer");
+            if (live) disposers.push(unsubscribe); else unsubscribe();
+        };
+        const check = () => {
+            if (!live || committing) return;
+            try {
+                if (!this.isCurrent(envelope)) { finish(false); return; }
+                for (const client of clients) {
+                    if (!this.eligible(client.window, envelope)) { finish(false); return; }
+                    if (!columnGeometrySameRect(this.readFrame(client.window), client.target)) { painted = false; return; }
+                }
+                if (painted) finish(true);
+            } catch (_error) { finish(false); }
+        };
+        try {
+            if (!envelope || envelope.type !== "COLUMN_GEOMETRY" || envelope.protocol !== 4 ||
+                    !Array.isArray(envelope.entries) || !envelope.entries.length || envelope.entries.length > 256 ||
+                    !this.isCurrent(envelope)) throw new Error("invalid geometry request");
+            const ids = new Set();
+            // Resolve all clients and observe before writing any frame. This
+            // catches synchronous ACK/close callbacks without a configure race.
+            for (const entry of envelope.entries) {
+                const window = this.resolve(entry.windowId);
+                if (ids.has(entry.windowId) || !window || !this.eligible(window, envelope) ||
+                        !columnGeometrySameRect(entry.committedTargetRect, entry.committedTargetRect) ||
+                        !columnGeometrySameRect(this.readFrame(window), entry.oldFrameRect)) throw new Error("client source changed");
+                ids.add(entry.windowId);
+                clients.push({ window, source: entry.oldFrameRect, target: entry.committedTargetRect });
+                retain(this.observeClient(window, () => check(), () => finish(false)));
+                if (!live) break;
+            }
+            if (live) retain(this.observeCompletion(envelope, sample => {
+                if (!live || !sample || sample.protocol !== 4 || sample.type !== "COLUMN_GEOMETRY_COMPLETION" ||
+                        !["sessionId", "workspaceId", "targetOutput", "scopeRevision", "epoch"].every(k => sample[k] === envelope[k]) ||
+                        sample.completed !== true || sample.painted !== true || !Number.isSafeInteger(sample.sampleSerial) ||
+                        sample.sampleSerial <= envelope.sourceSampleSerial) return;
+                painted = true;
+                check();
+            }));
+            if (live) {
+                // Revalidate after subscriptions: a reentrant close or scope
+                // change during hookup must not write a newer transaction's frame.
+                if (!this.isCurrent(envelope) || clients.some(c => !this.eligible(c.window, envelope) ||
+                        !columnGeometrySameRect(this.readFrame(c.window), c.source))) {
+                    finish(false);
+                } else {
+                    // The batch writer must check this before each client
+                    // write: a configure callback can synchronously close a
+                    // window or start a newer layout in the middle of a batch.
+                    commit(() => live && this.isCurrent(envelope));
+                    committing = false;
+                    check();
+                }
+            }
+        } catch (_error) { finish(false); }
+        return dispose;
+    }
+}
+
+// Generated from src/kwin/layout/ColumnGeometryCoordinator.js
+// Event-driven P4 composition. Layout/epochs remain in the existing controller;
+// this owner only sequences its targets through the existing ACK/cancel gate.
+// No presentation sampling, animation timer, frame polling or second model.
+class ColumnGeometryCoordinator {
+    constructor(options) {
+        Object.assign(this, options);
+        this.serial = 0;
+        this.intent = null;
+        this.geometry = null;
+        this.observed = null;
+        this.bootstrap = null;
+        this.sourceWait = null;
+        this.listener = null;
+        this.stopped = false;
+        this.quarantined = false;
+        this.recovering = false;
+        const publishState = options.prepare;
+        this.preparedEpoch = null;
+        this.prepare = (intent, done) => {
+            if (this.preparedEpoch === intent.epoch) { done(true); return; }
+            publishState(intent, accepted => {
+                if (!this.isCurrent(intent)) return;
+                if (accepted === true) this.preparedEpoch = intent.epoch;
+                done(accepted === true);
+            });
+        };
+        this.capability = null;
+        this.partialCapability = null;
+        this.clear = handle => { if (handle) this.clearTimer(handle); };
+        this.clients = new ColumnGeometryClientGate({
+            resolve: id => { const c = this.columnFor(id); return c && c.window; },
+            eligible: (w, e) => this.isCurrent(e) && this.eligible(w, e),
+            readFrame: w => w.frameGeometry,
+            isCurrent: e => this.isCurrent(e),
+            observeClient: (w, change, close) => this.watch(w, change, close),
+            observeCompletion: (e, callback) => this.observeCompletion(e, callback),
+        });
+        this.gate = new ScrollPlanCommitGate({
+            currentEpoch: () => this.currentEpoch(),
+            prepare: (context, done) => this.prepare(context.intent, done),
+            publish: (e, done) => this.bridge.publishMotionPlan(e, done),
+            arm: (e, done) => this.bridge.armScrollPlan(e, done),
+            disarm: (epoch, done) => this.bridge.disarmColumnGeometry(epoch, done),
+            columnGeometry: this.clients,
+            commitColumnGeometry: (plan, _context, guard) => this.writeGeometry(plan, guard),
+            activateColumnGeometry: (w, plan) => { if (this.isCurrent(plan)) this.activate(w, plan); },
+            completeColumnGeometry: plan => this.settle(plan),
+            onColumnGeometryFailure: (plan, _context, proof) => this.failed(plan, proof),
+            setTimer: this.setTimer, clearTimer: this.clear,
+            warn: this.warn, timeoutMs: this.ackTimeoutMs || 150,
+            geometryTimeoutMs: this.deadlineMs || 3500,
+        });
+        this.wakeHandler = command => this.completionWake(command);
+        this.bridge.handlers["scroll-frame-ready"] = this.wakeHandler;
+        this.bridge.generationAgnosticTypes.add("scroll-frame-ready");
+    }
+    parse(raw) { try { return typeof raw === "string" ? JSON.parse(raw) : raw; } catch (_error) { return null; } }
+    isCurrent(plan) {
+        return Boolean(!this.stopped && !this.quarantined && this.intent && plan &&
+            plan.epoch === this.currentEpoch() && plan.epoch === this.intent.epoch &&
+            ["sessionId", "workspaceId", "targetOutput", "scopeRevision"].every(k => plan[k] === this.intent[k]) &&
+            this.isScope(this.intent));
+    }
+    watch(window, change, close) {
+        if (this.observeClient) return this.observeClient(window, change, close);
+        window.frameGeometryChanged.connect(change); window.closed.connect(close);
+        let live = true;
+        return () => { if (!live) return; live = false;
+            try { window.frameGeometryChanged.disconnect(change); } catch (_error) { /* destroyed */ }
+            try { window.closed.disconnect(close); } catch (_error) { /* destroyed */ }
+        };
+    }
+    cancelLease() {
+        this.clear(this.flight); this.flight = null;
+        if (this.bootstrap) this.bootstrap.dispose();
+        this.bootstrap = null;
+        if (this.sourceWait) this.clear(this.sourceWait.timer);
+        this.sourceWait = null; this.listener = null;
+    }
+    submit(intent) {
+        if (this.stopped || this.quarantined) return false;
+        this.serial++; this.cancelLease(); this.gate.supersede(); this.intent = intent;
+        if (!this.isCurrent(intent)) return false;
+        if (!intent.entries.length) {
+            this.prepare(intent, accepted => {
+                if (!this.isCurrent(intent)) return;
+                if (accepted !== true) {this.failed(intent,{cancelled:false,reason:"empty-membership"});return;}
+                this.gate.abort(intent.epoch, cancelled => {
+                    if (!this.isCurrent(intent)) return;
+                    if (cancelled !== true) {this.failed(intent,{cancelled:false,reason:"empty-disarm"});return;}
+                    this.geometry=null;this.observed=null;
+                    if(this.onComplete)this.onComplete(intent,{empty:true});
+                });
+            });
+            return true;
+        }
+        const token = this.serial;
+        const guard = () => token === this.serial && this.isCurrent(intent);
+        this.flight = this.setTimer(() => { if (guard()) this.cancelThenRecover(intent, "request-deadline"); }, this.deadlineMs || 3500);
+        const ready = () => {
+            if (!guard()) return;
+            if (!this.capability || this.capability.protocol !== 4 || this.capability.type !== "COLUMN_GEOMETRY" ||
+                    this.capability.enabled !== true || this.capability.inputPolicy !== "two-click" ||
+                    this.capability.sourcePolicy !== "painted-client-frames" || !this.partialCapability ||
+                    this.partialCapability.protocol !== 3 || this.partialCapability.enabled !== true) {
+                this.failed(intent, { cancelled: false, reason: "missing-capability" }); return;
+            }
+            if (this.recovering || (this.geometry && !this.sameGeometry(this.geometry, intent.geometry))) {
+                this.hydrate(intent, guard); return;
+            }
+            this.querySource(intent, guard);
+        };
+        const prepare = () => this.prepare(intent, accepted => {
+            if (!guard()) return;
+            if (accepted !== true) { this.cancelThenRecover(intent, "membership"); return; }
+            ready();
+        });
+        if (this.capability && this.partialCapability) prepare();
+        else this.bridge.columnGeometryCapability(raw => {
+            if (!guard()) return; this.capability = this.parse(raw);
+            this.bridge.partialScrollCapability(p => { if (guard()) { this.partialCapability = this.parse(p); prepare(); } });
+        });
+        return true;
+    }
+    sameGeometry(a, b) {
+        return Boolean(a && b && a.gap === b.gap && a.physicalScale === b.physicalScale &&
+            ["outputRect", "workingArea"].every(r => columnGeometrySameRect(a[r], b[r])));
+    }
+    entries(plan) { return plan.entries.map(e => ({ windowId: e.uuid, columnId: e.columnId })); }
+    remember(source, geometry) {
+        this.observed = Object.assign({}, source, { entries: source.entries.filter(e => e.owned === true)
+            .map(e => ({ uuid: e.windowId, visualRect: e.visualRect })) });
+        this.geometry = geometry;
+    }
+    getPainted() { return this.observed; }
+    querySource(intent, guard) {
+        this.bridge.columnGeometrySource(this.entries(intent), raw => {
+            if (!guard()) return;
+            const source = this.parse(raw);
+            if (source && source.valid === true && ["sessionId", "workspaceId", "targetOutput", "scopeRevision"].every(k => source[k] === intent[k])) {
+                const oldGeometry = this.geometry || intent.geometry;
+                const rebased = Object.assign({}, intent, { continuity: "observed", source: {
+                    epoch: source.epoch, sampleSerial: source.sampleSerial, cameraX: source.cameraX, geometry: oldGeometry,
+                    entries: source.entries.filter(e => e.owned === true).map(e => ({ uuid: e.windowId, visualRect: e.visualRect })) } });
+                const envelope = createColumnGeometryPlan(rebased, { observation: source, capability: this.capability, issuedAt: this.now() });
+                if (envelope) {
+                    this.clear(this.flight); this.flight = null;
+                    if (this.sourceWait) this.clear(this.sourceWait.timer); this.sourceWait = null;
+                    this.remember(source, oldGeometry);
+                    const focus = this.columnFor(intent.focusedUuid);
+                    this.gate.schedule(Object.assign({}, intent, { envelope }), envelope,
+                        { intent, activationWindow: focus && focus.window });
+                    return;
+                }
+            }
+            // A configure ACK can precede that client's first actual draw.
+            // Native arranges one source-ready wakeup after the next real pass.
+            if (this.geometry && this.sameGeometry(this.geometry, intent.geometry)) {
+                if (!this.sourceWait) {
+                    this.clear(this.flight); this.flight = null;
+                    const waiting = { intent, guard, timer: null }; this.sourceWait = waiting;
+                    waiting.timer = this.setTimer(() => {
+                        if (this.sourceWait !== waiting || !guard()) return;
+                        this.sourceWait = null;
+                        this.cancelThenRecover(intent, "source-deadline");
+                    }, this.deadlineMs || 3500);
+                }
+            } else this.hydrate(intent, guard);
+        });
+    }
+    observeCompletion(envelope, callback) {
+        const listener = { envelope, callback }; this.listener = listener;
+        this.readCompletion(listener);
+        return () => { if (this.listener === listener) this.listener = null; };
+    }
+    readCompletion(listener) {
+        this.bridge.columnGeometryCompletion(raw => {
+            if (this.listener !== listener || !this.isCurrent(listener.envelope)) return;
+            const proof = this.parse(raw);
+            if (proof && proof.completed === true && proof.painted === true) {
+                this.lastCompletion = proof; listener.callback(proof);
+            }
+        });
+    }
+    completionWake(command) {
+        if (!command || !this.intent || !["sessionId", "workspaceId", "targetOutput", "scopeRevision"].every(k => command[k] === this.intent[k])) return false;
+        if (this.sourceWait) { const w = this.sourceWait; this.querySource(w.intent, w.guard); return true; }
+        if (this.bootstrap && this.bootstrap.phase === "paint") { this.bootstrap.readSource(); return true; }
+        if (this.listener) { this.readCompletion(this.listener); return true; }
+        return false;
+    }
+    writeGeometry(plan, guard) {
+        for (const entry of plan.envelope.entries) {
+            if (!guard() || !this.isCurrent(plan)) return;
+            const column = this.columnFor(entry.windowId);
+            if (!column || !this.eligible(column.window, plan)) throw new Error("geometry client left scope");
+            if (this.prepareClient) this.prepareClient(column.window);
+            this.committer.commitGeometry(column, entry.committedTargetRect, plan.reason, guard);
+            // Ownership already covers exact source and target frames, including
+            // hidden incoming/transit. No legacy fade/scale or pending park here.
+            if (guard()) this.setVisibility(column.window, true);
+        }
+    }
+    settle(plan) {
+        if (!this.isCurrent(plan)) return;
+        for (const entry of plan.envelope.entries) {
+            if (!this.isCurrent(plan)) return;
+            const column = this.columnFor(entry.windowId);
+            if (column && entry.newPlacement === "parked") this.setVisibility(column.window, false);
+        }
+        this.geometry = plan.geometry; this.recovering = false;
+        this.bridge.columnGeometrySource(this.entries(plan), raw => {
+            if (!this.isCurrent(plan)) return;
+            const source=this.parse(raw);
+            if(source && source.valid===true && source.epoch===plan.epoch) this.remember(source,plan.geometry);
+            if (this.onComplete) this.onComplete(plan, this.lastCompletion);
+        });
+    }
+    hydrate(intent, guard) {
+        // Unknown/different basis is a static bootstrap, after confirmed disarm.
+        // Keep the fully fitting focused client visible throughout preparation.
+        this.clear(this.flight); this.flight = null;
+        const initial = Object.assign({}, intent, { continuity: "initial", source: null });
+        const envelope = createPartialScrollPlan(initial, { capability: this.partialCapability, issuedAt: this.now() });
+        if (!envelope) { this.failed(intent, { cancelled: false, reason: "invalid-bootstrap" }); return; }
+        envelope.geometryBootstrap = true;
+        const targets = partialScrollSafeTargets(envelope), disposers = [];
+        const lease = { intent, phase: "cancel", timer: null, live: true, committing: false };
+        lease.dispose = () => {
+            if (!lease.live) return; lease.live = false; this.clear(lease.timer);
+            disposers.splice(0).reverse().forEach(fn => { try { fn(); } catch (_error) { /* release all */ } });
+        };
+        const fail = reason => {
+            if (!lease.live || !guard()) return; lease.dispose(); this.bootstrap = null;
+            this.cancelThenRecover(intent, reason);
+        };
+        this.bootstrap = lease;
+        lease.timer = this.setTimer(() => fail("bootstrap-deadline"), this.deadlineMs || 3500);
+        lease.readSource = () => this.bridge.columnGeometrySource(this.entries(intent), raw => {
+            if (!lease.live || !guard()) return;
+            const source = this.parse(raw);
+            if (!source || source.valid !== true || source.epoch !== intent.epoch ||
+                    !["sessionId", "workspaceId", "targetOutput", "scopeRevision"].every(k => source[k] === intent[k])) return;
+            this.remember(source, intent.geometry);
+            lease.dispose(); this.bootstrap = null; this.recovering = false; this.gate.activeEpoch = intent.epoch;
+            const focus = this.columnFor(intent.focusedUuid);
+            if (focus) this.activate(focus.window, intent);
+            if (guard() && this.onComplete) this.onComplete(intent, { bootstrap: true, sampleSerial: source.sampleSerial });
+        });
+        const check = () => {
+            if (!lease.live || !guard() || lease.committing || lease.phase !== "configure") return;
+            if (!targets.every(t => { const c = this.columnFor(t.windowId); return c && this.eligible(c.window, intent) && columnGeometrySameRect(c.window.frameGeometry, t.rect); })) return;
+            lease.phase = "publish";
+            this.bridge.publishMotionPlan(envelope, accepted => {
+                if (!lease.live || !guard()) return;
+                if (accepted !== true) { fail("bootstrap-publish"); return; }
+                this.bridge.armScrollPlan(envelope, armed => {
+                    if (!lease.live || !guard()) return;
+                    if (armed !== true) { fail("bootstrap-arm"); return; }
+                    lease.phase = "paint";
+                    targets.forEach(t => { const c = this.columnFor(t.windowId); if (c && guard()) this.setVisibility(c.window, true); });
+                    lease.readSource();
+                });
+            });
+        };
+        this.bridge.scrollMotionStatus(raw => {
+            if (!lease.live || !guard()) return;
+            const status = this.parse(raw);
+            if (!status || status.sessionId !== intent.sessionId || !Number.isSafeInteger(status.epoch) || status.epoch >= intent.epoch) { fail("bootstrap-scope"); return; }
+            this.bridge.disarmColumnGeometry(Math.max(0, status.epoch), confirmed => {
+                if (!lease.live || !guard()) return;
+                if (confirmed !== true) { fail("bootstrap-disarm"); return; }
+                this.prepare(intent, accepted => {
+                    if (!lease.live || !guard()) return;
+                    if (accepted !== true) { fail("bootstrap-membership"); return; }
+                    lease.phase = "configure"; lease.committing = true;
+                    try {
+                        targets.forEach(t => { const c = this.columnFor(t.windowId); if (!c || !this.eligible(c.window, intent)) throw new Error("bootstrap client missing");
+                            disposers.push(this.watch(c.window, check, () => fail("bootstrap-close"))); });
+                        for (const entry of intent.entries) {
+                            if (!guard() || !lease.live) return;
+                            const c = this.columnFor(entry.uuid); if (!c) continue;
+                            if (entry.uuid !== intent.focusedUuid) this.setVisibility(c.window, false);
+                        }
+                        targets.forEach(t => {
+                            if (!guard() || !lease.live) return;
+                            const c = this.columnFor(t.windowId);
+                            if (this.prepareClient) this.prepareClient(c.window);
+                            this.committer.commitGeometry(c, t.rect, intent.reason, () => guard() && lease.live);
+                            if (t.windowId === intent.focusedUuid && columnGeometrySameRect(c.window.frameGeometry, t.rect)) this.setVisibility(c.window, true);
+                        });
+                        lease.committing = false; check();
+                    } catch (_error) { fail("bootstrap-write"); }
+                });
+            });
+        });
+    }
+    cancelThenRecover(intent, reason) {
+        this.gate.abort(intent.epoch, cancelled => { if (this.isCurrent(intent)) this.failed(intent, { cancelled, reason }); });
+    }
+    failed(intent, proof) {
+        if (!this.isCurrent(intent)) return;
+        this.cancelLease(); this.gate.supersede();
+        if (proof.cancelled === true && !this.recovering && this.reissue) {
+            this.recovering = true;
+            if (this.reissue(intent) !== false) return;
+        }
+        // Global restoration is JS authority. It may only write after a proven
+        // disarm; an unknown ownership result quarantines further geometry.
+        this.quarantined = true;
+        this.recover(intent, proof);
+    }
+    releaseForWorkspace() {
+        this.serial++; this.cancelLease(); this.gate.releaseForWorkspace();
+        this.geometry = null; this.observed = null; this.intent = null;
+    }
+    suspend(done = () => {}) {
+        // Retire callbacks before waiting; no static host write until Native has
+        // confirmed both motion and retained handoff ownership are gone.
+        const epoch = this.intent && this.intent.epoch;
+        this.serial++; this.cancelLease(); this.gate.supersede();
+        this.intent = null; this.geometry = null; this.observed = null;
+        this.lastCompletion = null; this.preparedEpoch = null;
+        if (epoch === null || epoch === undefined) { done(true); return; }
+        this.gate.activeEpoch = null;
+        this.gate.abort(epoch, confirmed => done(confirmed === true));
+    }
+    stop(done = () => {}) {
+        const epoch = this.intent && this.intent.epoch;
+        this.serial++; this.cancelLease(); this.gate.supersede(); this.stopped = true;
+        if (this.bridge.handlers["scroll-frame-ready"] === this.wakeHandler) {
+            delete this.bridge.handlers["scroll-frame-ready"];
+            this.bridge.generationAgnosticTypes.delete("scroll-frame-ready");
+        }
+        this.intent = null; this.geometry = null; this.observed = null;
+        this.lastCompletion = null; this.preparedEpoch = null;
+        if (epoch === null || epoch === undefined) { done(true); return; }
+        this.gate.activeEpoch=null;
+        this.gate.abort(epoch, confirmed => done(confirmed === true));
+    }
+}
+
 // Generated from src/kwin/layout/GeometryCommitter.js
 class GeometryCommitter {
     constructor(dependencies) {
@@ -2243,7 +3628,8 @@ class GeometryCommitter {
         this.rememberVisibleGeometry = dependencies.rememberVisibleGeometry;
     }
 
-    commitGeometry(column, target, reason) {
+    commitGeometry(column, target, reason, isCurrent = null) {
+        if (isCurrent && !isCurrent()) return;
         const window = column.window;
         const windowState = this.stateFor(window);
         if (windowState.floating || window.fullScreen ||
@@ -2484,10 +3870,17 @@ class DeferredScrollParking {
 function loadRuntimeConfig(readValue) {
     const number = (key, fallback) =>
         Math.max(0, Number(readValue(key, fallback)) || 0);
+    const requestedScrollGap = Number(readValue("ScrollLayoutGap", 16));
+    const requestedTopGap = Number(readValue("ScrollLayoutTopGap", -1));
     return {
         targetOutputName: String(readValue("TargetOutputName", "")).trim(),
         dockIntegration: Boolean(readValue("EnableDockIntegration", false)),
         alwaysCenterSingleColumn: Boolean(readValue("AlwaysCenterSingleColumn", false)),
+        scrollLayoutV2Enabled: Boolean(readValue("ScrollLayoutV2Enabled", false)),
+        scrollLayoutTopGap: Number.isFinite(requestedTopGap)
+            ? Math.min(1000, Math.max(-1, Math.floor(requestedTopGap))) : -1,
+        scrollLayoutGap: Number.isFinite(requestedScrollGap)
+            ? Math.min(1000, Math.max(0, Math.floor(requestedScrollGap))) : 16,
         dynamicTrailingWorkspace: Boolean(readValue("DynamicTrailingWorkspace", false)),
         autoRecycleWorkspaces: Boolean(readValue("AutoRecycleWorkspaces", false)),
         primary: {
@@ -2512,6 +3905,129 @@ function loadRuntimeConfig(readValue) {
         },
         debugLogging: Boolean(readValue("DebugLogging", false)),
     };
+}
+
+// Generated from src/kwin/runtime/ContinuousLayoutRuntime.js
+// Host glue only: the existing store/transaction, P2 policy, P4 ACK coordinator
+// and global Recovery remain the respective authorities. No second layout cache.
+class ContinuousLayoutRuntime {
+    constructor(options) {
+        Object.assign(this, options);
+        this.blocked = false;
+        this.inExclusive = false;
+        this.stopped = false;
+        this.actions = new Map();
+        this.anchor = null;
+        this.controller = new ContinuousViewportController({
+            state: this.state, columnStore: this.columnStore, transaction: this.transaction,
+            enabled: true, sessionId: this.bridge.sessionId(), dockEnabled: options.dockEnabled,
+            getPrimaryOutput: this.getPrimaryOutput, getCurrentWorkspaceId: this.getCurrentWorkspaceId,
+            getUuid: this.getUuid, canJoin: (window, scope) => this.canJoin(window, scope),
+            getPainted: () => this.coordinator.getPainted(),
+            onTarget: intent => {
+                if (!this.blocked && !this.stopped) this.coordinator.submit(intent);
+            },
+        });
+        this.coordinator = new ColumnGeometryCoordinator({
+            bridge: this.bridge, currentEpoch: () => this.transaction.currentEpoch(),
+            isScope: intent => this.controller.ready() && !this.blocked && !this.stopped &&
+                !this.presentationSuspended() && intent.scopeRevision === this.controller.scopeRevision &&
+                intent.workspaceId === this.state.activeWorkspaceId &&
+                intent.targetOutput === this.state.targetOutput.name,
+            columnFor: uuid => this.state.columns.find(column => this.getUuid(column.window) === uuid),
+            eligible: (window, intent) => !window.fullScreen && this.canJoin(window, {
+                workspaceId: intent.workspaceId, output: this.state.targetOutput }),
+            prepare: (intent, done) => this.commitState(intent.reason, done),
+            committer: this.committer, setVisibility: this.setVisibility, prepareClient: this.prepareClient,
+            activate: (window, intent) => {
+                if (!this.blocked && !this.stopped && this.state.enabled && !this.state.workspaceSwitching &&
+                        intent.epoch === this.transaction.currentEpoch() &&
+                        (this.columnStore.focusedColumn() || {}).window === window) this.activate(window);
+            },
+            recover: (_intent, proof) => this.fail(proof.reason, proof.cancelled),
+            reissue: () => this.controller.reflow("v2-confirmed-recovery"),
+            setTimer: this.setTimer, clearTimer: this.clearTimer, now: this.now, warn: this.warn,
+            onComplete: () => this.onSettled(),
+        });
+        this.bridge.handlers["focus-partial-column"] = command => !this.blocked &&
+            !this.presentationSuspended() && this.controller.focusPartialRequest(command);
+    }
+
+    presentationSuspended() {
+        return this.state.presentation.mode === "maximized" || this.state.columns.some(c => c.window.fullScreen);
+    }
+
+    ready() { return !this.blocked && !this.stopped && !this.presentationSuspended() && this.controller.ready(); }
+
+    restoreView(anchor, preserve) { this.anchor = preserve ? anchor : null; }
+
+    captureView() {
+        const column = this.columnStore.focusedColumn(), geometry = this.getGeometry();
+        if (!column || !geometry) return null;
+        return { version: 1, uuid: this.getUuid(column.window),
+            delta: this.state.scrollOffsetX - column.logicalX,
+            basis: { outputRect: geometry.outputRect, workingArea: geometry.workingArea,
+                gap: geometry.gap, physicalScale: geometry.physicalScale } };
+    }
+
+    sync(reason = "v2-layout") {
+        if (this.blocked || this.stopped || !this.state.enabled || this.state.workspaceSwitching ||
+                !this.state.activeWorkspaceId || this.presentationSuspended()) return false;
+        const geometry = this.getGeometry();
+        if (!geometry) { this.fail("missing-working-area", false); return false; }
+        const focused = this.columnStore.focusedColumn();
+        const anchor = this.anchor; this.anchor = null;
+        const basisMatches = anchor && anchor.basis && geometry.gap === anchor.basis.gap &&
+            geometry.physicalScale === anchor.basis.physicalScale &&
+            ["outputRect", "workingArea"].every(key => ["x", "y", "width", "height"]
+                .every(field => geometry[key][field] === anchor.basis[key][field]));
+        const mounted = this.controller.mount({ workspaceId: this.state.activeWorkspaceId,
+            output: this.state.targetOutput, geometry }, this.state.columns.map(column => ({
+            window: column.window, widthMode: column.widthMode,
+            previousNonFullWidthMode: column.previousNonFullWidthMode, persistentWide: column.persistentWide,
+        })), { focusedUuid: focused ? this.getUuid(focused.window) : null,
+            anchor: basisMatches ? anchor : null });
+        return mounted || this.controller.reflow(reason);
+    }
+
+    exclusive(key, action) {
+        if (this.stopped) return false;
+        if (this.inExclusive) return action();
+        // Coalesce repeated signals from one live window, bounded by membership.
+        if (this.actions.size >= 512 && !this.actions.has(key)) { this.fail("departure-overflow", false); return false; }
+        this.actions.set(key, action);
+        if (this.blocked) return true;
+        this.blocked = true;
+        this.coordinator.suspend(confirmed => {
+            if (this.stopped) return;
+            if (!confirmed) { this.actions.clear(); this.fail("departure-disarm", false); return; }
+            this.inExclusive = true;
+            try {
+                const actions = Array.from(this.actions.values()); this.actions.clear();
+                actions.forEach(callback => callback());
+            } catch (error) { this.fail(`departure:${error}`, true); }
+            finally { this.inExclusive = false; this.blocked = false; }
+            if (!this.stopped) this.sync(key);
+        });
+        return true;
+    }
+
+    releaseForWorkspace() {
+        this.coordinator.releaseForWorkspace();
+        this.controller.geometry = null; this.controller.lastTarget = null;
+        this.controller.lastSample = null; this.anchor = null;
+    }
+
+    stop(done) {
+        if (this.stopped) { done(this.stopConfirmed === true); return; }
+        this.stopped = true; this.blocked = true; this.actions.clear(); this.anchor = null;
+        delete this.bridge.handlers["focus-partial-column"];
+        this.coordinator.stop(confirmed => {
+            this.stopConfirmed = confirmed;
+            this.controller.geometry = null; this.controller.lastTarget = null; this.controller.lastSample = null;
+            done(confirmed);
+        });
+    }
 }
 
 // Generated from src/kwin/runtime/RuntimeLogger.js
@@ -2576,8 +4092,10 @@ class RuntimeLogger {
 class OutputTopology {
     constructor(options) {
         this.getScreens = options.getScreens;
+        this.getWindows = options.getWindows || (() => []);
         this.config = options.config;
         this.computeSafeRect = options.computeSafeRect;
+        this.getWorkingArea = options.getWorkingArea;
         this.warn = options.warn;
         this.warnedMissingPrimary = false;
         this.warnedMissingSecondary = false;
@@ -2662,6 +4180,32 @@ class OutputTopology {
     safeRect(output) {
         const profile = this.profile(output);
         return profile ? this.computeSafeRect(output.geometry, profile) : null;
+    }
+
+    panelRects(output, desktop) {
+        return this.getWindows().filter(window => window.dock && !window.deleted && !window.hidden &&
+            !window.minimized && window.opacity !== 0 && (!window.output || window.output === output) &&
+            (!desktop || window.onAllDesktops || !window.desktops || !window.desktops.length ||
+                Array.from(window.desktops).some(owner => String(owner.id) === String(desktop.id))))
+            .map(window => window.frameGeometry);
+    }
+
+    // Keep official struts and visible full-edge overlay bars separate from gap.
+    v2Geometry(output, desktop) {
+        if (!this.config.scrollLayoutV2Enabled || !output || output !== this.primary()) return null;
+        let workingArea;
+        if (this.getWorkingArea) {
+            try { workingArea = this.getWorkingArea(output, desktop); }
+            catch (_error) { /* Use the conservative, panel-safe profile below. */ }
+        }
+        try {
+            return createScrollLayoutGeometry({ outputRect: output.geometry, workingArea,
+                fallbackRect: this.safeRect(output), panelRects: this.panelRects(output, desktop), gap: this.config.scrollLayoutGap,
+                topGap: this.config.scrollLayoutTopGap,
+                physicalScale: output.devicePixelRatio || output.scale });
+        } catch (_error) {
+            return null; // No trustworthy output/area means no V2 layout.
+        }
     }
 }
 
@@ -2774,10 +4318,19 @@ class RuntimeLifecycle {
         this.startupGeneration = 0;
     }
 
-    connect(signal, handler) {
+    connect(signal, handler, owner = null) {
         if (!signal || typeof signal.connect !== "function") return;
         signal.connect(handler);
-        this.connections.push({ signal, handler });
+        this.connections.push({ signal, handler, owner });
+    }
+
+    disconnectOwner(owner) {
+        const retained = [];
+        this.connections.forEach(connection => {
+            if (connection.owner !== owner) { retained.push(connection); return; }
+            try { connection.signal.disconnect(connection.handler); } catch (_error) { /* destroyed QObject */ }
+        });
+        this.connections = retained;
     }
 
     start() {
@@ -3109,6 +4662,7 @@ class LayoutTransaction {
 class InvariantChecker {
     constructor(options) {
         this.appState = options.appState;
+        this.getV2Geometry = options.getV2Geometry;
         this.alwaysCenterSingleColumn = options.alwaysCenterSingleColumn === true;
         this.workspaceMembership = options.workspaceMembership || null;
         this.workspaceSnapshots = options.workspaceSnapshots || null;
@@ -3130,6 +4684,8 @@ class InvariantChecker {
         let expectedLogicalX = virtualLeadingInset(
             this.appState.safeRect ? this.appState.safeRect.width : 0,
             this.appState.innerGap, this.alwaysCenterSingleColumn);
+        const v2 = this.getV2Geometry && this.getV2Geometry();
+        if (v2) expectedLogicalX = (deriveV2Layout(columns, v2).columns[0] || {}).logicalX || 0;
 
         columns.forEach((column, index) => {
             const uuid = this.normalizeUuid(column.window.internalId);
@@ -3167,7 +4723,7 @@ class InvariantChecker {
                     column.window.output !== this.appState.targetOutput) {
                 errors.push(`wrong-output:${column.id}`);
             }
-            expectedLogicalX += column.pixelWidth + this.appState.innerGap;
+            expectedLogicalX += column.pixelWidth + (v2 ? v2.gap : this.appState.innerGap);
         });
 
         if (this.appState.activeWorkspaceId) {
@@ -3193,7 +4749,7 @@ class InvariantChecker {
             errors.push(`focus-index:${this.appState.focusedColumnIndex}`);
         }
 
-        const maximumOffset = Math.max(0, this.stripWidth() -
+        const maximumOffset = v2 ? deriveV2Layout(columns, v2).maxCamera : Math.max(0, this.stripWidth() -
             (this.appState.safeRect ? this.appState.safeRect.width : 0));
         if (this.appState.scrollOffsetX < 0 ||
                 this.appState.scrollOffsetX > maximumOffset) {
@@ -3376,12 +4932,13 @@ class ParkingManager {
         this.refreshSafeArea = options.refreshSafeArea;
         this.getSafeRect = options.getSafeRect;
         this.debug = options.debug;
+        this.trackUserMinimized = options.trackUserMinimized === true;
     }
 
     owns(window) {
         const state = this.getState(window);
         return Boolean(state && (state.scrollParkedByScript ||
-            state.scrollVisuallyHidden || state.scrollParkingMinimized));
+            state.scrollVisuallyHidden || state.scrollParkingMinimized || state.scrollUserMinimized));
     }
 
     isHidden(window) {
@@ -3392,6 +4949,17 @@ class ParkingManager {
     rememberVisibleGeometry(window, rect) {
         const state = this.stateFor(window);
         state.scrollLastVisibleGeometry = rect;
+    }
+
+    prepareGeometry(window) {
+        // Minimized Wayland clients can withhold resized buffers indefinitely.
+        // Keep the frame invisible while allowing its configure ACK to arrive.
+        if (!window.minimized) return;
+        const state = this.stateFor(window);
+        if (!state.scrollParkingMinimized) state.scrollUserMinimized = true;
+        this.setVisibility(window, false);
+        window.minimized = false;
+        state.scrollParkingMinimized = true;
     }
 
     setVisibility(window, visible) {
@@ -3410,6 +4978,8 @@ class ParkingManager {
             state.scrollVisuallyHidden = false;
             return;
         }
+        if (this.trackUserMinimized && window.minimized && !state.scrollParkingMinimized && !state.scrollVisuallyHidden)
+            state.scrollUserMinimized = true;
         window.opacity = 0;
         if (!window.minimized) {
             window.minimized = true;
@@ -3447,11 +5017,12 @@ class ParkingManager {
         };
     }
 
-    release(window, reason, ensureAccessible = false, fallbackIndex = 0) {
+    release(window, reason, ensureAccessible = false, fallbackIndex = 0, observe = null) {
         const state = this.getState(window);
         if (!this.owns(window)) return false;
-        if (ensureAccessible) {
-            const target = this.recoveryRect(state, fallbackIndex);
+        let target = null;
+        if (ensureAccessible && !window.fullScreen && !state.scrollUserMinimized) {
+            target = this.recoveryRect(state, fallbackIndex);
             if (target) {
                 state.internalChange = true;
                 try {
@@ -3462,12 +5033,15 @@ class ParkingManager {
             }
         }
         window.opacity = state.scrollOriginalOpacity;
-        if (state.scrollParkingMinimized && window.minimized) {
+        if (state.scrollUserMinimized) window.minimized = true;
+        else if (state.scrollParkingMinimized && window.minimized) {
             window.minimized = false;
         }
+        state.scrollUserMinimized = false;
         state.scrollParkedByScript = false;
         state.scrollParkingMinimized = false;
         state.scrollVisuallyHidden = false;
+        if (observe) observe({ window, target, opacity: Number(window.opacity), minimized: window.minimized });
         this.debug(`[cc-stability] RELEASE_PARKING caption=${window.caption}` +
             ` accessible=${ensureAccessible} reason=${reason}`);
         return true;
@@ -3482,22 +5056,106 @@ class Recovery {
         this.parking = options.parking;
         this.indexOfWindow = options.indexOfWindow;
         this.beforeRestore = options.beforeRestore;
+        this.retire = options.retire || null;
+        this.retiring = false;
+        this.waitForRestored = options.waitForRestored || null;
+        this.onStatus = options.onStatus || (() => {});
+        this.status = { state: "running", requestId: null, restoredCount: 0 };
+        this.waiting = false;
+        this.blocked = false;
         this.debug = options.debug;
         this.warn = options.warn || options.debug;
     }
 
-    restoreAll(reason) {
+    report(state, restoredCount = 0) {
+        this.status = Object.assign({}, this.status, { state, restoredCount });
+        this.onStatus(this.status);
+    }
+
+    restoreAll(reason, requestId = null) {
+        if (this.retiring || this.waiting) return 0;
+        this.status = { state: "pending", requestId, restoredCount: 0 };
+        this.onStatus(this.status);
+        if (this.blocked) { this.report("blocked"); return 0; }
+        if (this.retire) {
+            if (this.retiring) return 0;
+            this.retiring = true;
+            this.retire(confirmed => {
+                this.retiring = false;
+                if (confirmed === true) this.restoreReleased(reason);
+                else { this.blocked = true; this.report("blocked"); this.warn(`[cc-stability] RESTORE_BLOCKED native ownership unconfirmed reason=${reason}`); }
+            });
+            return 0;
+        }
+        return this.restoreReleased(reason);
+    }
+
+    restoreReleased(reason) {
         this.beforeRestore(reason);
         let restored = 0;
-        this.appState.columns.forEach((column, index) => {
-            if (this.parking.release(column.window, reason, true, index)) restored += 1;
+        const requests = [];
+        this.appState.columns.slice().forEach((column, index) => {
+            if (this.parking.release(column.window, reason, true, index, row => requests.push(row))) restored += 1;
         });
         this.windowStates.forEach((_windowState, window) => {
             if (this.indexOfWindow(window) >= 0) return;
-            if (this.parking.release(window, reason, true, restored)) restored += 1;
+            if (this.parking.release(window, reason, true, restored, row => requests.push(row))) restored += 1;
         });
+        if (this.waitForRestored) {
+            this.waiting = true;
+            this.waitForRestored(requests, accepted => { this.waiting = false; this.blocked = accepted !== true;
+                this.report(accepted ? "restored" : "blocked", restored); });
+        } else this.report("restored", restored);
         this.warn(`[cc-stability] EMERGENCY_RESTORE count=${restored} reason=${reason}`);
         return restored;
+    }
+}
+
+// Generated from src/kwin/stability/RecoveryCompletionGate.js
+// Event-driven proof of restored KWin frames/visibility. No paint sampling,
+// geometry authority or persistent window references after completion/timeout.
+class RecoveryCompletionGate {
+    constructor(options) { Object.assign(this, options); this.pending = null; }
+
+    wait(requests, done) {
+        if (this.pending) { done(false); return; }
+        const pending = { rows: new Set(requests), disposers: [], timer: null };
+        this.pending = pending;
+        const finish = accepted => {
+            if (this.pending !== pending) return;
+            this.pending = null;
+            if (pending.timer) this.clearTimer(pending.timer);
+            pending.disposers.splice(0).forEach(dispose => { try { dispose(); } catch (_error) { /* destroyed */ } });
+            pending.rows.clear();
+            done(accepted);
+        };
+        const check = () => {
+            if (this.pending !== pending) return;
+            const windows = this.getWindows();
+            for (const row of pending.rows) {
+                if (!windows.includes(row.window)) continue;
+                try {
+                    if (row.target && !this.sameRect(row.window.frameGeometry, row.target)) return;
+                    if (Math.abs(Number(row.window.opacity) - row.opacity) > 0.000001 ||
+                            row.window.minimized !== row.minimized) return;
+                } catch (_error) { finish(false); return; }
+            }
+            finish(true);
+        };
+        try {
+            for (const row of requests) {
+                const window = row.window;
+                if (!this.getWindows().includes(window)) continue;
+                for (const signal of [window.frameGeometryChanged, window.opacityChanged, window.minimizedChanged]) {
+                    if (!signal || !signal.connect) continue;
+                    signal.connect(check); pending.disposers.push(() => signal.disconnect(check));
+                }
+                const closed = () => { pending.rows.delete(row); check(); };
+                window.closed.connect(closed); pending.disposers.push(() => window.closed.disconnect(closed));
+            }
+            pending.timer = this.setTimer(() => finish(false), this.timeoutMs || 3500);
+            check();
+        } catch (_error) { finish(false); }
     }
 }
 
@@ -4084,6 +5742,9 @@ class RuntimeBridge {
         this.interfaceName = options.interfaceName;
         this.snapshotProvider = options.snapshotProvider;
         this.handlers = options.handlers;
+        if (options.partialController) this.handlers = Object.assign({}, this.handlers, {
+            "focus-partial-column": command => options.partialController.focusPartialRequest(command),
+        });
         this.generationAgnosticTypes = new Set(
             options.generationAgnosticTypes || []
         );
@@ -4108,6 +5769,11 @@ class RuntimeBridge {
     readPreviousState(callback) {
         this.invoke(this.service, this.path, this.interfaceName,
             "GetState", callback);
+    }
+
+    reportRecoveryStatus(status, callback = () => {}) {
+        this.invoke(this.service, this.path, this.interfaceName, "ReportRecoveryStatus",
+            JSON.stringify(Object.assign({}, status, { protocol: 1, type: "recovery-status", sessionId: this.sessionIdValue })), callback);
     }
 
     ensureVerticalDesktopLayout(count, callback) {
@@ -4147,8 +5813,10 @@ class RuntimeBridge {
     }
 
     publishMotionPlan(plan, callback) {
+        if (plan.type === "COLUMN_GEOMETRY" && plan.protocol !== 4) { callback(false); return null; }
         const envelope = Object.assign({}, plan, {
-            protocol: plan.type === "SCROLL" || plan.type === "COLUMN_REINDEX" ? 2 : this.protocol,
+            protocol: plan.type === "COLUMN_GEOMETRY" ? 4 : plan.type === "PARTIAL_SCROLL" ? 3 :
+                plan.type === "SCROLL" || plan.type === "COLUMN_REINDEX" ? 2 : this.protocol,
             sessionId: this.sessionIdValue,
         });
         this.invoke(this.service, this.path, this.interfaceName,
@@ -4157,6 +5825,7 @@ class RuntimeBridge {
     }
 
     armScrollPlan(plan, callback) {
+        if (plan.type === "COLUMN_GEOMETRY" && plan.protocol !== 4) { callback(false); return; }
         const envelope = Object.assign({}, plan, { sessionId: this.sessionIdValue });
         this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1",
             "ArmScrollPlan", JSON.stringify(envelope), callback);
@@ -4170,6 +5839,33 @@ class RuntimeBridge {
     scrollMotionStatus(callback) {
         this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1",
             "GetScrollMotionStatus", callback);
+    }
+
+    partialScrollCapability(callback) {
+        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1",
+            "GetPartialScrollCapability", callback);
+    }
+
+    partialPaintedState(callback) {
+        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1",
+            "GetPartialPaintedState", callback);
+    }
+
+    columnGeometryCapability(callback) {
+        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1", "GetColumnGeometryCapability", callback);
+    }
+    columnGeometrySource(entries, callback) {
+        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1", "GetColumnGeometrySourceFor", JSON.stringify({entries}), callback);
+    }
+    columnGeometryCompletion(callback) {
+        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1", "GetColumnGeometryCompletion", callback);
+    }
+    disarmColumnGeometry(epoch, callback) {
+        this.disarmScrollPlan(epoch, () => this.scrollMotionStatus(raw => {
+            let proof;try {proof=typeof raw === "string" ? JSON.parse(raw) : raw;} catch (_error) {callback(false);return;}
+            callback(Boolean(proof && proof.active===false && proof.clipHandoffActive!==true &&
+                proof.sessionId===this.sessionIdValue && Number.isSafeInteger(proof.epoch) && proof.epoch<=epoch));
+        }));
     }
 
     workspaceTransitionStatus(callback) {
@@ -5404,6 +7100,8 @@ class ReorderController {
 }
 /* END GENERATED KWIN MODULES */
 
+// Generated from src/kwin/runtime/RuntimeEntry.js
+// Runtime composition. Generated into package/contents/code/main.js by tools/build.js.
 const TAG = "[cc-niri-maximize]";
 const FULL_MAXIMIZE_MODE = 3;
 const NORMAL_MODE = "normal";
@@ -5457,11 +7155,12 @@ const mainScreenState = {
 };
 const contextualViewport = new ContextualViewport(mainScreenState);
 let focusRingController;
+let continuousLayout;
+const runtimeConfig = loadRuntimeConfig(readConfig);
 const columnStore = new ColumnStore(mainScreenState, () => {
     if (focusRingController) focusRingController.membershipChanged();
-});
+}, { scrollLayoutV2Enabled: runtimeConfig.scrollLayoutV2Enabled });
 const states = new WindowStateStore(createWindowState);
-const runtimeConfig = loadRuntimeConfig(readConfig);
 const windowPolicy = new WindowPolicy();
 const virtualDesktopTopology = new VirtualDesktopTopology({
     getDesktops: () => workspace.desktops,
@@ -5501,8 +7200,11 @@ const runtimeLogger = new RuntimeLogger({
 });
 const outputTopology = new OutputTopology({
     getScreens: () => workspace.screens,
+    getWindows: () => workspace.windowList(),
     config: runtimeConfig,
     computeSafeRect,
+    getWorkingArea: (output, desktop) => workspace.clientArea(KWin.MaximizeArea,
+        output, desktop || virtualDesktopTopology.current(output)),
     warn,
 });
 const innerGap = runtimeConfig.primary.inner;
@@ -5515,7 +7217,7 @@ const runtimeBridge = new RuntimeBridge({
     interfaceName: RUNTIME_BRIDGE_INTERFACE,
     snapshotProvider: createRuntimeSnapshot,
     handlers: Object.assign({
-        "emergency-restore": () => emergencyRestoreAllWindows("bridge-unload"),
+        "emergency-restore": command => emergencyRestoreAllWindows("bridge-unload", command.commandId),
         "finalize-contextual-wide": command =>
             runWorkspaceAction(() => contextualWideCoordinator.finalizePark(command)),
         "finalize-contextual-wide-exit": command =>
@@ -5583,6 +7285,7 @@ contextualWideCoordinator = new ContextualWideCoordinator({
 let connectedManagedOutputs = new Set();
 let scrollLayoutInitialized = false;
 const parkingManager = new ParkingManager({
+    trackUserMinimized: runtimeConfig.scrollLayoutV2Enabled,
     stateFor,
     getState: window => states.get(window),
     refreshSafeArea: refreshMainScreenState,
@@ -5608,6 +7311,7 @@ const geometryCommitter = new GeometryCommitter({
 const invariantChecker = new InvariantChecker({
     appState: mainScreenState,
     alwaysCenterSingleColumn: runtimeConfig.alwaysCenterSingleColumn,
+    getV2Geometry: () => runtimeConfig.scrollLayoutV2Enabled ? v2Geometry() : null,
     workspaceMembership,
     windowStates: states,
     workspaceSnapshots,
@@ -5704,11 +7408,21 @@ function clearRuntimeTimer(handle) {
     handle.timer.stop();
     handle.timer.timeout.disconnect(handle.callback);
 }
+const recoveryCompletion = new RecoveryCompletionGate({
+    getWindows: () => workspace.windowList(), sameRect,
+    setTimer: setRuntimeTimer, clearTimer: clearRuntimeTimer,
+});
 const recovery = new Recovery({
     appState: mainScreenState,
     windowStates: states,
     parking: parkingManager,
     indexOfWindow: window => columnStore.indexOfWindow(window),
+    waitForRestored: runtimeConfig.scrollLayoutV2Enabled ? (rows, done) => recoveryCompletion.wait(rows, done) : null,
+    onStatus: runtimeConfig.scrollLayoutV2Enabled ? status => runtimeBridge.reportRecoveryStatus(status) : null,
+    retire: runtimeConfig.scrollLayoutV2Enabled ? done => {
+        mainScreenState.enabled = false;
+        continuousLayout.stop(done);
+    } : null,
     beforeRestore: reason => {
         if (workspaceMoveController) workspaceMoveController.stop();
         if (workspaceSwitchController) workspaceSwitchController.stop();
@@ -5717,6 +7431,7 @@ const recovery = new Recovery({
         if (workspaceRecycleController) workspaceRecycleController.stop();
         if (workspaceMountController) workspaceMountController.stop();
         mainScreenState.enabled = false;
+        connectedManagedOutputs.clear();
         motionPlanCommitGate.cancel();
         scrollPlanCommitGate.cancel();
         contextualWideCoordinator.cancel();
@@ -5897,6 +7612,9 @@ const dockScrollController = runtimeConfig.dockIntegration ? new DockScrollContr
     debug,
 }) : null;
 const columnWidthController = new ColumnWidthController({
+    scrollLayoutV2Enabled: runtimeConfig.scrollLayoutV2Enabled,
+    applyV2Width: (column, mode, reason) => continuousLayout.ready() &&
+        continuousLayout.controller.setWidth(column, mode, reason),
     getAppState: () => mainScreenState,
     getActiveWindow: () => workspace.activeWindow,
     captureLayout: column => captureColumnWidthTransition(column,
@@ -5938,6 +7656,10 @@ const reorderController = new ReorderController({
     debug,
 });
 workspaceMountController = new WorkspaceMountController({
+    scrollLayoutV2Enabled: runtimeConfig.scrollLayoutV2Enabled,
+    captureV2View: runtimeConfig.scrollLayoutV2Enabled ? () => continuousLayout.captureView() : null,
+    restoreV2View: (anchor, preserve) => continuousLayout.restoreView(anchor, preserve),
+    onMounted: runtimeConfig.scrollLayoutV2Enabled ? reason => continuousLayout.sync(reason) : null,
     appState: mainScreenState,
     columnStore,
     snapshots: workspaceSnapshots,
@@ -5955,6 +7677,7 @@ workspaceMountController = new WorkspaceMountController({
         adoptionController.transition(window, state, phase, reason),
     phases: { managed: ADOPTION_MANAGED, waitingWorkspace: ADOPTION_WAITING_WORKSPACE },
     cancelPending: reason => {
+        if (continuousLayout && reason !== "workspace-stop" && reason !== "workspace-column-move") continuousLayout.releaseForWorkspace();
         motionPlanCommitGate.cancel();
         if (reason !== "workspace-stop" && reason !== "workspace-column-move" &&
                 deferredScrollParking.pending && deferredScrollParking.pending.partialItems.length)
@@ -6003,6 +7726,7 @@ workspaceSwitchController = new WorkspaceSwitchController({
     debug,
 });
 workspaceTransferController = new WorkspaceTransferController({
+    scrollLayoutV2Enabled: runtimeConfig.scrollLayoutV2Enabled,
     appState: mainScreenState,
     snapshots: workspaceSnapshots,
     topology: virtualDesktopTopology,
@@ -6047,7 +7771,9 @@ workspaceMoveController = new WorkspaceMoveController({
     normalizeUuid: normalizeWindowUuid,
     getActiveWindow: () => workspace.activeWindow,
     getWindows: () => workspace.windowList(),
-    settleMotion: callback => scrollPlanCommitGate.whenIdle(callback),
+    settleMotion: callback => continuousLayout
+        ? continuousLayout.exclusive("workspace-column-move", callback)
+        : scrollPlanCommitGate.whenIdle(callback),
     clearPresentation: () => {
         contextualWideCoordinator.cancel();
         clearPresentationState();
@@ -6130,6 +7856,43 @@ focusRingController = new FocusRingController({
     now: () => Date.now(),
     random: () => Math.random(),
 });
+if (runtimeConfig.scrollLayoutV2Enabled) {
+    continuousLayout = new ContinuousLayoutRuntime({
+        state: mainScreenState, columnStore, transaction: layoutTransaction, bridge: runtimeBridge,
+        dockEnabled: runtimeConfig.dockIntegration,
+        getPrimaryOutput: resolveTargetOutput,
+        getCurrentWorkspaceId: () => virtualDesktopTopology.id(virtualDesktopTopology.current(mainScreenState.targetOutput)),
+        getUuid: window => normalizeWindowUuid(window.internalId),
+        getGeometry: v2Geometry,
+        canJoin: (window, scope) => windowPolicy.canJoinColumn(window) &&
+            workspaceMembership.belongsTo(window, scope.workspaceId) && window.output === scope.output && !stateFor(window).floating,
+        commitState: (reason, done) => { if (!commitRuntimeState(reason, done)) done(false); },
+        committer: geometryCommitter,
+        prepareClient: window => parkingManager.prepareGeometry(window),
+        setVisibility: (window, visible) => parkingManager.setVisibility(window, visible),
+        activate: window => { stateFor(window).scrollUserMinimized = false; workspace.activeWindow = window; },
+        fail: (reason, cancelled) => {
+            warn(`[cc-v2] disabled reason=${reason} cancelled=${cancelled}`);
+            mainScreenState.enabled = false;
+            if (cancelled === true) emergencyRestoreAllWindows("v2-geometry-failure");
+        },
+        onSettled: () => focusRingController.publish(),
+        setTimer: setRuntimeTimer, clearTimer: clearRuntimeTimer, now: () => Date.now(), warn,
+    });
+}
+
+function v2Geometry() {
+    return outputTopology.v2Geometry(mainScreenState.targetOutput,
+        virtualDesktopTopology.current(mainScreenState.targetOutput));
+}
+
+function v2Departure(window, reason, action) {
+    if (!window || !continuousLayout || continuousLayout.inExclusive) return action();
+    return continuousLayout.exclusive(`${reason}:${normalizeWindowUuid(window.internalId)}`, () => {
+        if (workspace.windowList().includes(window)) action();
+    });
+}
+
 const controllerComposition = new ControllerComposition(Object.assign({
     focusRing: focusRingController,
     workspaceRecycle: workspaceRecycleController,
@@ -6175,7 +7938,8 @@ function createRuntimeSnapshot() {
     const anchorColumn = mainScreenState.columns.reduce((anchor, column) =>
         column.logicalX <= mainScreenState.scrollOffsetX ? column : anchor, null);
     if (workspaceMountController && workspaceMountController.canUseActiveWorkspace()) workspaceMountController.capture();
-    return workspacePersistence.snapshot({
+    const saved = mainScreenState.activeWorkspaceId && workspaceSnapshots.get(mainScreenState.activeWorkspaceId);
+    const active = {
         workspaceId: mainScreenState.activeWorkspaceId,
         workspaceIndex: virtualDesktopTopology.indexOf(
             virtualDesktopTopology.byId(mainScreenState.activeWorkspaceId)),
@@ -6190,15 +7954,19 @@ function createRuntimeSnapshot() {
             mode: wideColumn
                 ? PRESENTATION_WIDE : mainScreenState.presentation.mode,
         },
-        columns: mainScreenState.columns.map(column => ({
-            uuid: normalizeWindowUuid(column.window.internalId),
-            widthMode: column.widthMode,
-        })),
+        columns: mainScreenState.columns.map(column => {
+            const entry = workspaceColumnPreference(column, normalizeWindowUuid(column.window.internalId),
+                runtimeConfig.scrollLayoutV2Enabled);
+            if (!continuousLayout) { delete entry.previousNonFullWidthMode; delete entry.persistentWide; }
+            return entry;
+        }),
         viewportAnchor: anchorColumn ? {
             uuid: normalizeWindowUuid(anchorColumn.window.internalId),
             delta: mainScreenState.scrollOffsetX - anchorColumn.logicalX,
         } : null,
-    });
+    };
+    if (saved && saved.viewportAnchorV2 !== undefined) active.viewportAnchorV2 = saved.viewportAnchorV2;
+    return workspacePersistence.snapshot(active);
 }
 
 function publishRuntimeState(reason) {
@@ -6243,6 +8011,10 @@ function handleDockFocusCommand(command) {
 }
 
 function handleDockReorderCommand(command) {
+    if (continuousLayout) {
+        const order = Array.isArray(command.order) ? command.order : command.windowUuids;
+        return continuousLayout.ready() && continuousLayout.controller.reorder(order);
+    }
     return reorderController.applyRuntimeCommand(command);
 }
 
@@ -6319,6 +8091,13 @@ function widthForMode(mode) {
 }
 
 function recomputeLogicalLayout() {
+    if (continuousLayout) {
+        const geometry = v2Geometry();
+        if (!geometry) return;
+        const layout = deriveV2Layout(mainScreenState.columns, geometry);
+        mainScreenState.columns.forEach((column, index) => Object.assign(column, layout.columns[index]));
+        return;
+    }
     if (!mainScreenState.safeRect) return;
     const layout = deriveColumnLayout(
         mainScreenState.columns,
@@ -6333,10 +8112,16 @@ function recomputeLogicalLayout() {
 }
 
 function stripWidth() {
+    if (continuousLayout && v2Geometry()) return deriveV2Layout(mainScreenState.columns, v2Geometry()).stripEnd;
     return computeStripWidth(mainScreenState.columns);
 }
 
 function clampScrollOffset() {
+    if (continuousLayout && v2Geometry()) {
+        mainScreenState.scrollOffsetX = clampV2Camera(mainScreenState.scrollOffsetX,
+            deriveV2Layout(mainScreenState.columns, v2Geometry()).maxCamera);
+        return;
+    }
     const viewportWidth = mainScreenState.safeRect ? mainScreenState.safeRect.width : 0;
     mainScreenState.scrollOffsetX = boundScrollOffset(
         mainScreenState.scrollOffsetX,
@@ -6346,6 +8131,11 @@ function clampScrollOffset() {
 }
 
 function ensureColumnVisible(column) {
+    if (continuousLayout && v2Geometry()) {
+        const layout = deriveV2Layout(mainScreenState.columns, v2Geometry());
+        mainScreenState.scrollOffsetX = focusV2Camera(layout, columnStore.indexOf(column), mainScreenState.scrollOffsetX);
+        return;
+    }
     if (!column || !mainScreenState.safeRect) return;
     const oldOffset = mainScreenState.scrollOffsetX;
     mainScreenState.scrollOffsetX = scrollOffsetToRevealColumn(
@@ -6362,6 +8152,7 @@ function ensureColumnVisible(column) {
 }
 
 function projectedRectForColumnAtOffset(column, scrollOffsetX) {
+    if (continuousLayout && v2Geometry()) return projectV2Column(column, v2Geometry(), scrollOffsetX).visualRect;
     return projectColumnRect(column, mainScreenState.safeRect, scrollOffsetX);
 }
 
@@ -6442,10 +8233,10 @@ function releaseParkingOwnership(window, reason, ensureAccessible = false,
     );
 }
 
-function emergencyRestoreAllWindows(reason) {
+function emergencyRestoreAllWindows(reason, requestId = null) {
     focusRingController.stop();
     stabilitySupervisor.stop();
-    return recovery.restoreAll(reason);
+    return recovery.restoreAll(reason, requestId);
 }
 
 function beginLayoutTransaction(reason) {
@@ -6601,6 +8392,10 @@ function commitLayoutPlan(plan, wideExitColumn, activationWindow, options) {
 }
 
 function activateColumnWhenReady(window) {
+    if (continuousLayout && columnStore.indexOfWindow(window) >= 0) {
+        if (continuousLayout.ready()) continuousLayout.controller.focusWindow(window);
+        return; // P4 activates only after the matching client/paint proof.
+    }
     if (scrollPlanCommitGate.deferActivation(window)) return;
     if (motionPlanCommitGate.deferActivation(window)) return;
     if (!contextualWideCoordinator.deferActivation(window)) {
@@ -6612,6 +8407,7 @@ function relayout(reason, scrollOffsets, widthTransition, previousSingleLayout) 
     if (reason !== "workspace-mount" && workspaceTransferController &&
             workspaceTransferController.deferLayout()) return;
     if (reason !== "workspace-mount" && !workspaceMountController.canUseActiveWorkspace()) return;
+    if (continuousLayout) { refreshMainScreenState(); return continuousLayout.sync(reason); }
     const epoch = beginLayoutTransaction(reason);
     try {
         return relayoutImpl(reason, scrollOffsets, widthTransition, previousSingleLayout);
@@ -6643,6 +8439,7 @@ function advancePendingDockScroll(command) {
 }
 
 function beginDockScroll(column, reason) {
+    if (continuousLayout) return continuousLayout.ready() && continuousLayout.controller.focusWindow(column.window, "dock");
     if (!dockScrollController) return false;
     contextualViewport.cancelReveal();
     return dockScrollController.begin(column, reason);
@@ -6672,6 +8469,24 @@ function relayoutFocusedColumnTransition(column, reason, oldScrollOffsetX,
 }
 
 function setPresentationMode(windowUuid, mode, reason) {
+    if (continuousLayout) {
+        const column = mainScreenState.columns.find(c => normalizeWindowUuid(c.window.internalId) === windowUuid);
+        if (!column || column.window.fullScreen) return false;
+        if (mode === PRESENTATION_WIDE) return continuousLayout.ready() && continuousLayout.controller.center(column.window);
+        return continuousLayout.exclusive("v2-presentation", () => {
+            const state = stateFor(column.window);
+            state.internalChange = true;
+            try { column.window.setMaximize(false, false); } finally { state.internalChange = false; }
+            columnStore.focusColumn(column);
+            mainScreenState.presentation = { mode, windowUuid: mode === PRESENTATION_MAXIMIZED ? windowUuid : null };
+            setLayoutMode(state, mode === PRESENTATION_MAXIMIZED ? MAXIMIZE_MODE : NORMAL_MODE);
+            if (mode === PRESENTATION_MAXIMIZED) {
+                mainScreenState.columns.forEach(c => parkingManager.setVisibility(c.window, c === column));
+                applyLayoutGeometry(column.window, state, MAXIMIZE_MODE, reason);
+            }
+            commitRuntimeState(reason);
+        });
+    }
     contextualWideCoordinator.cancelExit();
     return presentationController.setMode(windowUuid, mode, reason);
 }
@@ -6688,9 +8503,11 @@ function addColumnAt(window, insertionIndex, reason) {
     if (!column) return null;
     const preference = windowState.workspaceColumnPreference;
     if (preference) {
-        column.widthMode = preference.widthMode;
+        column.widthMode = continuousLayout && preference.widthV2 ? preference.widthV2.widthMode : normalizeColumnWidthMode(preference.widthMode);
+        if (preference.widthV2) column.widthV2 = preference.widthV2;
         column.previousNonFullWidthMode = normalizePreviousNonFullWidthMode(
-            preference.previousNonFullWidthMode, preference.widthMode);
+            continuousLayout && preference.widthV2 ? preference.widthV2.previousNonFullWidthMode : preference.previousNonFullWidthMode,
+            column.widthMode, Boolean(continuousLayout));
         column.persistentWide = preference.persistentWide;
         windowState.workspaceColumnPreference = null;
     }
@@ -6763,6 +8580,28 @@ function prepareInitialColumn(window) {
 }
 
 function removeColumn(window, reason, activateSuccessor = true) {
+    if (continuousLayout) {
+        const remove = () => {
+            workspaceSnapshots.removeWindow(normalizeWindowUuid(window.internalId));
+            const column = mainScreenState.columns[columnStore.indexOfWindow(window)];
+            if (!column) return;
+            if (reason !== "window-closed") stateFor(window).workspaceColumnPreference = workspaceColumnPreference(
+                column, normalizeWindowUuid(window.internalId), true);
+            if (reason !== "window-closed") releaseParkingOwnership(window, reason,
+                window.output === mainScreenState.targetOutput && !window.fullScreen);
+            columnStore.removeWindow(window);
+            const state = states.get(window);
+            if (state) { state.managedByScrollLayout = false; state.columnId = null; }
+            if (mainScreenState.presentation.windowUuid === normalizeWindowUuid(window.internalId)) clearPresentationState();
+            recomputeLogicalLayout(); clampScrollOffset();
+            if (workspaceTransferController && workspaceTransferController.deferLayout()) return;
+            if (!continuousLayout.inExclusive) continuousLayout.sync(reason);
+            if (workspaceMountController.canUseActiveWorkspace()) commitRuntimeState(reason);
+        };
+        if (reason === "window-closed" || continuousLayout.inExclusive) remove();
+        else continuousLayout.exclusive(`remove:${normalizeWindowUuid(window.internalId)}`, remove);
+        return;
+    }
     const previousSingleLayout = captureSingleColumnLayout(mainScreenState, runtimeConfig.alwaysCenterSingleColumn);
     workspaceSnapshots.removeWindow(normalizeWindowUuid(window.internalId));
     contextualWideCoordinator.cancelForWindow(window);
@@ -6899,6 +8738,7 @@ function adoptNewWindowAsColumn(window, reason, focusNew = true) {
         window, mainScreenState.columns);
     const insertionIndex = savedIndex >= 0 ? savedIndex : focusNew
         ? focusedIndex + 1 : mainScreenState.columns.length;
+    if (continuousLayout) parkingManager.setVisibility(window, false);
     const column = addColumnAt(window, insertionIndex, reason);
     if (!column) return false;
 
@@ -6924,6 +8764,12 @@ function setAdoptionPhase(window, windowState, phase, reason) {
 }
 
 function settleAdoptionGeometry(window, index, reason) {
+    if (continuousLayout) {
+        const column = mainScreenState.columns[index];
+        return { column, expected: projectedRectForColumn(column),
+            settled: !continuousLayout.coordinator.gate.pending && !continuousLayout.coordinator.bootstrap &&
+                sameRect(window.frameGeometry, projectedRectForColumn(column)) };
+    }
     const column = mainScreenState.columns[index];
     if (runtimeConfig.alwaysCenterSingleColumn &&
             ((scrollPlanCommitGate.pending && scrollPlanCommitGate.pending.plan.windows.some(item => item.column === column)) ||
@@ -6986,6 +8832,12 @@ function onWindowActivatedForScrollLayout(window) {
         cancelPendingDockScroll("window-activated");
     }
     const column = mainScreenState.columns[index];
+    if (continuousLayout) {
+        if (mainScreenState.presentation.mode === PRESENTATION_MAXIMIZED &&
+                mainScreenState.presentation.windowUuid !== normalizeWindowUuid(window.internalId))
+            return setPresentationMode(normalizeWindowUuid(window.internalId), PRESENTATION_NORMAL, "activation-exit-maximized");
+        return continuousLayout.ready() && continuousLayout.controller.focusWindow(window, "activation");
+    }
     const windowUuid = normalizeWindowUuid(window.internalId);
     const presentationMatches = (mainScreenState.presentation.mode ===
             PRESENTATION_MAXIMIZED &&
@@ -7013,6 +8865,7 @@ function onWindowActivatedForScrollLayout(window) {
 }
 
 function focusRelativeColumn(delta) {
+    if (continuousLayout) return continuousLayout.ready() && continuousLayout.controller.focusRelative(delta);
     const columns = mainScreenState.columns;
     if (!mainScreenState.enabled || !columns.length) return;
     cancelPendingDockScroll(delta < 0 ? "focus-previous" : "focus-next", true);
@@ -7069,6 +8922,7 @@ function focusRelativeColumn(delta) {
 }
 
 function toggleFocusWide(window) {
+    if (continuousLayout) return continuousLayout.ready() && continuousLayout.controller.center(window);
     const index = columnIndexForWindow(window);
     if (!window || index < 0 || window.output !== mainScreenState.targetOutput ||
             window.fullScreen) return;
@@ -7083,6 +8937,7 @@ function toggleFocusWide(window) {
 }
 
 function moveFocusedColumn(delta) {
+    if (continuousLayout) return continuousLayout.ready() && continuousLayout.controller.moveFocused(delta);
     return reorderController.moveFocused(delta);
 }
 
@@ -7099,6 +8954,7 @@ function rememberFloatingWindow(window, guardFocus) {
 }
 
 function toggleFloating(window) {
+    if (continuousLayout) return v2Departure(window, "floating", () => floatingController.toggle(window));
     return floatingController.toggle(window);
 }
 
@@ -7245,7 +9101,13 @@ function leavePseudoMaximize(window, state, reason) {
     debug(`RESTORE ${window.caption} reason=${reason} geometry=${rectText(window.frameGeometry)}`);
 }
 
+function onPanelGeometryChanged(window) {
+    if (window.dock && continuousLayout && scrollLayoutInitialized) relayout("v2-panel-area-changed");
+}
+
 function onFrameGeometryChanged(window, oldGeometry) {
+    if (window.dock) return onPanelGeometryChanged(window);
+    if (continuousLayout && columnStore.indexOfWindow(window) >= 0) return;
     const state = stateFor(window);
     if (!layoutEligibility.isWorkspaceReady(window)) return;
     if (state.internalChange || state.interactiveMoveResize || window.fullScreen) return;
@@ -7362,6 +9224,10 @@ function onMaximizedChanged(window) {
         );
         return;
     }
+    if (continuousLayout && managedColumn && action === "leaveMaximize") {
+        setPresentationMode(normalizeWindowUuid(window.internalId), PRESENTATION_NORMAL, "native-restore");
+        return;
+    }
     if (managedColumn && action === "leaveMaximize") {
         presentationController.restoreFromMaximize(
             normalizeWindowUuid(window.internalId),
@@ -7383,6 +9249,8 @@ function onMaximizedChanged(window) {
 }
 
 function onOutputChanged(window) {
+    if (window.dock) return onPanelGeometryChanged(window);
+    if (continuousLayout && !continuousLayout.inExclusive) return v2Departure(window, "output", () => onOutputChanged(window));
     if (!windowPolicy.canJoinColumn(window)) {
         adoptionController.onPolicyChanged(window, "output-policy-changed");
         return false;
@@ -7392,11 +9260,17 @@ function onOutputChanged(window) {
 }
 
 function onFullScreenChanged(window) {
+    if (continuousLayout && columnStore.indexOfWindow(window) >= 0) return v2Departure(window, "fullscreen", () => {
+        // KDE owns the fullscreen frame. Never restore a parked frame over it.
+        mainScreenState.columns.forEach(c => parkingManager.release(c.window, "v2-fullscreen", !c.window.fullScreen));
+        focusRingController.publish();
+    });
     if (!windowPolicy.canJoinColumn(window)) return false;
     return fullscreenController.onFullscreenChanged(window);
 }
 
 function onInteractiveMoveResizeStarted(window) {
+    if (continuousLayout && !continuousLayout.inExclusive) return v2Departure(window, "interactive", () => onInteractiveMoveResizeStarted(window));
     const state = stateFor(window);
     if (floatingController.onInteractiveMoveResize(window)) return;
     if (state.internalChange || !isLayoutMode(state.layoutMode)) return;
@@ -7406,6 +9280,8 @@ function onInteractiveMoveResizeStarted(window) {
 }
 
 function onWindowPolicyChanged(window, reason) {
+    if (continuousLayout && !continuousLayout.inExclusive && columnStore.indexOfWindow(window) >= 0)
+        return v2Departure(window, reason, () => onWindowPolicyChanged(window, reason));
     dynamicWorkspaceController.request();
     workspaceRecycleController.request();
     workspaceMountController.onWindowMembershipChanged(window);
@@ -7420,52 +9296,61 @@ function onWindowPolicyChanged(window, reason) {
 function setupWindow(window) {
     if (!window || states.has(window)) return;
     const state = stateFor(window);
-    window.frameGeometryChanged.connect(oldGeometry =>
+    const connect = (signal, handler) => app.lifecycle.connect(signal, handler, window);
+    connect(window.frameGeometryChanged, oldGeometry =>
         onFrameGeometryChanged(window, oldGeometry));
-    window.tileChanged.connect(() => applyDetectedTile(window, "tileChanged"));
-    window.quickTileModeChanged.connect(() => applyDetectedTile(window, "quickTileModeChanged"));
-    window.maximizedAboutToChange.connect(mode => onMaximizedAboutToChange(window, mode));
-    window.maximizedChanged.connect(() => onMaximizedChanged(window));
-    window.outputChanged.connect(() => {
+    connect(window.tileChanged, () => applyDetectedTile(window, "tileChanged"));
+    connect(window.quickTileModeChanged, () => applyDetectedTile(window, "quickTileModeChanged"));
+    connect(window.maximizedAboutToChange, mode => onMaximizedAboutToChange(window, mode));
+    connect(window.maximizedChanged, () => onMaximizedChanged(window));
+    connect(window.outputChanged, () => {
         onOutputChanged(window);
         dynamicWorkspaceController.request();
         workspaceRecycleController.request();
     });
-    if (window.desktopsChanged) window.desktopsChanged.connect(() => {
-        workspaceTransferController.onMembershipChanged(window);
+    if (window.desktopsChanged) connect(window.desktopsChanged, () => {
+        if (window.dock) return onPanelGeometryChanged(window);
+        if (continuousLayout) v2Departure(window, "membership", () => workspaceTransferController.onMembershipChanged(window));
+        else workspaceTransferController.onMembershipChanged(window);
         dynamicWorkspaceController.request();
         workspaceRecycleController.request();
     });
-    window.fullScreenChanged.connect(() => onFullScreenChanged(window));
-    if (window.skipTaskbarChanged) window.skipTaskbarChanged.connect(() =>
+    if (window.dock) {
+        connect(window.hiddenChanged, () => onPanelGeometryChanged(window));
+        connect(window.minimizedChanged, () => onPanelGeometryChanged(window));
+    }
+    connect(window.fullScreenChanged, () => onFullScreenChanged(window));
+    if (window.skipTaskbarChanged) connect(window.skipTaskbarChanged, () =>
         onWindowPolicyChanged(window, "skip-taskbar-changed"));
-    if (window.transientChanged) window.transientChanged.connect(() =>
+    if (window.transientChanged) connect(window.transientChanged, () =>
         onWindowPolicyChanged(window, "transient-changed"));
-    if (window.modalChanged) window.modalChanged.connect(() =>
+    if (window.modalChanged) connect(window.modalChanged, () =>
         onWindowPolicyChanged(window, "modal-changed"));
-    window.activeChanged.connect(() => {
+    connect(window.activeChanged, () => {
         if (window.active && !layoutTransaction.isActive()) {
             adoptionController.onActivated(window, "active-changed");
         }
     });
-    window.readyForPaintingChanged.connect(() => {
+    connect(window.readyForPaintingChanged, () => {
         adoptionController.onReady(window);
     });
     if (window.windowShown) {
-        window.windowShown.connect(() => {
+        connect(window.windowShown, () => {
             adoptionController.onReady(window, "window-shown");
         });
     }
-    window.interactiveMoveResizeStarted.connect(() => onInteractiveMoveResizeStarted(window));
-    window.interactiveMoveResizeFinished.connect(() => {
+    connect(window.interactiveMoveResizeStarted, () => onInteractiveMoveResizeStarted(window));
+    connect(window.interactiveMoveResizeFinished, () => {
         stateFor(window).interactiveMoveResize = false;
     });
-    window.closed.connect(() => {
+    connect(window.closed, () => {
+        app.lifecycle.disconnectOwner(window);
         const wasMounted = columnIndexForWindow(window) >= 0;
         workspaceTransferController.onWindowClosed(window);
         removeColumn(window, "window-closed");
         floatingController.onWindowClosed(window);
         states.delete(window);
+        onPanelGeometryChanged(window);
         if (!wasMounted) workspaceTransferController.commitClosed();
         dynamicWorkspaceController.request();
         workspaceRecycleController.request();
@@ -7508,17 +9393,26 @@ function connectManagedGeometry() {
     managedOutputs().forEach(output => {
         if (connectedManagedOutputs.has(output)) return;
         connectedManagedOutputs.add(output);
-        output.geometryChanged.connect(() => {
+        app.lifecycle.connect(output.geometryChanged, () => {
             if (profileForOutput(output)) {
                 reapplyManagedLayouts("managed-output-geometry-changed");
                 relayout("managed-output-geometry-changed");
             }
-        });
+        }, output);
     });
 }
 
 function onScreensChanged() {
+    if (continuousLayout && !continuousLayout.inExclusive) return continuousLayout.exclusive("screens-changed", onScreensChanged);
+    connectedManagedOutputs.forEach(output => app.lifecycle.disconnectOwner(output));
     connectedManagedOutputs = new Set();
+    refreshMainScreenState();
+    if (continuousLayout) {
+        mainScreenState.columns.slice().forEach(column => {
+            if (column.window.output !== mainScreenState.targetOutput) removeColumn(column.window, "output-left-primary", false);
+        });
+        workspaceSwitchController.onDesktopChanged(null, null, mainScreenState.targetOutput);
+    }
     connectManagedGeometry();
     reapplyManagedLayouts("screens-changed");
     relayout("screens-changed");
@@ -7557,6 +9451,7 @@ const app = new CCNiri({
             setupWindow(window);
             adoptionController.onWindowAdded(window);
             workspaceTransferController.onWindowAdded(window);
+            onPanelGeometryChanged(window);
             dynamicWorkspaceController.request();
             workspaceRecycleController.request();
         },
@@ -7593,7 +9488,9 @@ const app = new CCNiri({
         },
         registerShortcut,
         shortcuts,
-        commitInitialState: () => commitRuntimeState("script-start"),
+        commitInitialState: () => commitRuntimeState("script-start", accepted => {
+            if (accepted && continuousLayout) runtimeBridge.reportRecoveryStatus(recovery.status);
+        }),
     },
     onStarted: () => {
         focusRingController.start();

@@ -10,7 +10,7 @@ const runtimeSource = fs.readFileSync(
     path.join(__dirname, "../package/contents/code/main.js"), "utf8");
 assert.ok(runtimeSource.includes("audit: (reason, epoch) => stabilitySupervisor.audit(reason, epoch)"),
     "transaction audits must reach the supervisor");
-assert.ok(runtimeSource.includes("stabilitySupervisor.stop();\n    return recovery.restoreAll(reason);"),
+assert.ok(runtimeSource.includes("stabilitySupervisor.stop();\n    return recovery.restoreAll(reason, requestId);"),
     "manual emergency restore must cancel pending supervisor timers");
 
 function harness(initialErrors) {

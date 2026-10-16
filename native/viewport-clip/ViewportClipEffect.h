@@ -20,6 +20,7 @@ namespace KWin
 {
 class WorkspaceSlideAdapter;
 class ViewportInputClip;
+class Window;
 
 class CcNiriViewportClipEffect : public Effect
 {
@@ -51,10 +52,22 @@ public Q_SLOTS:
     Q_SCRIPTABLE QString GetScrollMotionStatus() const;
     Q_SCRIPTABLE bool WorkspaceTransitionActive() const;
     Q_SCRIPTABLE QString GetViewportHitTest(double x, double y) const;
+    Q_SCRIPTABLE QString GetPartialScrollCapability() const;
+    Q_SCRIPTABLE QString GetPartialPaintedState() const;
+    Q_SCRIPTABLE QString GetColumnGeometrySource() const;
+    Q_SCRIPTABLE QString GetColumnGeometrySourceFor(const QString &json);
+    Q_SCRIPTABLE QString GetColumnGeometryCapability() const;
+    Q_SCRIPTABLE QString GetColumnGeometryCompletion() const;
     Q_SCRIPTABLE void StartWorkspaceFrameCapture();
     Q_SCRIPTABLE QString GetWorkspaceFrameCapture() const;
     Q_SCRIPTABLE void StartScrollFrameCapture();
     Q_SCRIPTABLE QString GetScrollFrameCapture() const;
+
+Q_SIGNALS:
+    Q_SCRIPTABLE void PartialScrollFrameReady(const QString &json);
+    Q_SCRIPTABLE void ColumnGeometryCompleted(const QString &json);
+    Q_SCRIPTABLE void PartialFocusRequested(const QString &json);
+    Q_SCRIPTABLE void PartialNativeInteraction(const QString &json);
 
 private:
     friend class WorkspaceSlideAdapter;
@@ -78,8 +91,12 @@ private Q_SLOTS:
 
 private:
 
+    std::vector<CcNiriGeometrySourceRow> geometryFacts(const QJsonArray &entries,LogicalOutput *output,bool includeOwned);
+    CcNiriGeometrySourceRow geometryFact(EffectWindow *window,const QString &id,double columnId,LogicalOutput *output);
     bool resolveScrollPlan(const QJsonObject &plan) const;
     void updateScrollOwnership();
+    void queueScrollReady();
+    void watchPartialNativeInteraction(EffectWindow *window);
     void clearScrollState();
     void configureAnimationProfile();
     void syncScrollOutput();
@@ -88,6 +105,15 @@ private:
     void requestScrollContinuationRepaint();
     CcNiri::AnimationProfile m_animationProfile = CcNiri::AnimationProfile::Stable;
     bool m_invalidAnimationProfile = false;
+    bool m_partialScrollEnabled = false;
+    uint64_t m_partialPaintedSerial = 0;
+    struct GeometryTracked { QString id; QPointer<Window> window; };
+    std::vector<GeometryTracked> m_geometryTracked;
+    qint64 m_geometryNotifiedEpoch=-1;
+    bool m_geometryCompletionQueued=false;
+    bool m_notifyPartialFrameReady=false;
+    bool m_sourceReadyRequested=false;
+    uint64_t m_readyPassSerial=0;
     CcNiri::AnimationFrameContext m_scrollFrameContext;
     QPointer<LogicalOutput> m_scrollTargetOutput;
     QString m_scrollTargetName;

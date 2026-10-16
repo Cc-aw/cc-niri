@@ -28,10 +28,64 @@ shortcut() {
     gdbus call --session --dest org.kde.kglobalaccel --object-path /component/kwin --method org.kde.kglobalaccel.Component.invokeShortcut "$1";
 }
 
+# Parse gdbus data as data, including large snapshots via stdin. Proof is
+# ephemeral and scoped to this exact live session + restore command ID.
+recovery_json() {
+    python3 -c '
+import ast,json,sys
+mode=sys.argv[1]
+try:
+    wrapped=ast.literal_eval(sys.stdin.read().strip())
+    data=json.loads(wrapped[0]) if isinstance(wrapped,tuple) and len(wrapped)==1 and isinstance(wrapped[0],str) and wrapped[0] else {}
+    if mode=="protocol":
+        print("1" if data.get("protocol")==1 and data.get("type")=="recovery-status" else "legacy")
+    elif mode=="request":
+        if not isinstance(data.get("sessionId"),str) or not data["sessionId"] or type(data.get("generation")) is not int: raise ValueError("invalid live state")
+        print(json.dumps(dict(protocol=1,type="emergency-restore",sessionId=data["sessionId"],baseGeneration=data["generation"],commandId=sys.argv[2])))
+    elif mode=="session": print(data["sessionId"])
+    elif mode=="proof":
+        if not data: print("pending")
+        elif data.get("sessionId")!=sys.argv[3]: print("replaced")
+        elif data.get("requestId")!=sys.argv[2]: print("pending")
+        else: print(data.get("state","pending"))
+except (ValueError,TypeError,KeyError,IndexError,SyntaxError):
+    if mode=="protocol": print("legacy")
+    else: sys.exit(1)
+' "$@"
+}
+
+restore_with_proof() {
+    local initial="$1" request_id state session command reply proof attempt
+    request_id="stop-$$-$(date +%s%N)"
+    state="$(gdbus call --session --timeout 2 --dest org.cc.CCNiriBridge --object-path /CCNiriBridge --method org.cc.CCNiriBridge1.GetState)" || fail 'Cannot read live state; keeping all components loaded.'
+    session="$(printf '%s' "$initial" | recovery_json session)" || fail 'Invalid recovery session; keeping all components loaded.'
+    command="$(printf '%s' "$state" | recovery_json request "$request_id")" || fail 'Invalid live state; keeping all components loaded.'
+    reply="$(gdbus call --session --timeout 2 --dest org.cc.CCNiriBridge --object-path /CCNiriBridge --method org.cc.CCNiriBridge1.RequestCommand "$command")" || fail 'Recovery request failed; keeping all components loaded.'
+    [[ "$reply" == '(true,)' ]] || fail 'Recovery request rejected; keeping all components loaded.'
+    shortcut CCScrollApplyRuntimeCommand >/dev/null || shortcut CCScrollApplyDockCommand >/dev/null ||
+        fail 'Cannot wake recovery command pump; keeping all components loaded.'
+    for attempt in {1..50}; do
+        reply="$(gdbus call --session --timeout 2 --dest org.cc.CCNiriBridge --object-path /CCNiriBridge --method org.cc.CCNiriBridge1.GetRecoveryStatus)" || fail 'Recovery proof unavailable; keeping all components loaded.'
+        proof="$(printf '%s' "$reply" | recovery_json proof "$request_id" "$session")" || fail 'Invalid recovery proof; keeping all components loaded.'
+        case "$proof" in
+            restored) return 0 ;;
+            blocked|replaced) fail 'Recovery not confirmed by the current runtime; keeping all components loaded.' ;;
+        esac
+        sleep 0.1
+    done
+    fail 'Recovery confirmation timed out; keeping all components loaded.'
+}
+
 restore_parked_windows() {
     # Recovery must execute in the old runtime while all WindowState ownership
     # still exists, before unloading either the script, effects, or Bridge.
-    local reply
+    local reply protocol
+    reply="$(gdbus call --session --timeout 2 --dest org.cc.CCNiriBridge --object-path /CCNiriBridge --method org.cc.CCNiriBridge1.GetRecoveryStatus 2>/dev/null || true)"
+    protocol="$(printf '%s' "$reply" | recovery_json protocol)"
+    if [[ "$protocol" == 1 ]]; then restore_with_proof "$reply"; return; fi
+    if [[ "$(kreadconfig6 --file kwinrc --group "Script-${PLUGIN_ID}" --key ScrollLayoutV2Enabled --default false)" == true ]]; then
+        fail 'V2 requires a matching recovery-proof runtime and Bridge; keeping all components loaded.'
+    fi
     if ! shortcut CCScrollEmergencyRestore >/dev/null 2>&1; then
         reply="$(gdbus call --session --dest org.cc.CCNiriBridge --object-path /CCNiriBridge \
             --method org.cc.CCNiriBridge1.RequestEmergencyRestore 2>/dev/null || true)"
@@ -246,7 +300,7 @@ case "${1:-help}" in
     start|stop|restart|status) [[ $# == 1 ]] || { usage >&2; exit 2; } ;;
     *) usage >&2; exit 2 ;;
 esac
-for dependency in gdbus kwriteconfig6 kreadconfig6 systemctl; do
+for dependency in gdbus kwriteconfig6 kreadconfig6 systemctl python3; do
     command -v "$dependency" >/dev/null || fail "$dependency is required."
 done
 case "$1" in

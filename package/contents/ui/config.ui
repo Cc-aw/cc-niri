@@ -75,6 +75,9 @@
      <property name="title"><string>Primary workspace columns</string></property>
      <layout class="QVBoxLayout" name="columnLayout">
       <item><widget class="QCheckBox" name="kcfg_AlwaysCenterSingleColumn"><property name="text"><string>Center the only half-width column on the primary workspace</string></property><property name="toolTip"><string>Multiple columns keep the Pair layout; Full, Wide and secondary windows keep their existing behavior. Restart cc-niri after changing this option.</string></property></widget></item>
+      <item><widget class="QCheckBox" name="kcfg_ScrollLayoutV2Enabled"><property name="text"><string>Scroll Layout V2 (preview)</string></property><property name="enabled"><bool>false</bool></property><property name="toolTip"><string>Not available in this build. Existing column controls remain active.</string></property></widget></item>
+      <item><widget class="QLabel" name="scrollLayoutGapLabel"><property name="text"><string>Scroll Layout V2 uniform gap:</string></property><property name="buddy"><cstring>kcfg_ScrollLayoutGap</cstring></property></widget></item>
+      <item><widget class="QSpinBox" name="kcfg_ScrollLayoutGap"><property name="maximum"><number>1000</number></property><property name="value"><number>16</number></property><property name="suffix"><string> px</string></property><property name="enabled"><bool>false</bool></property></widget></item>
      </layout>
     </widget>
    </item>

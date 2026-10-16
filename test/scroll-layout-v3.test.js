@@ -234,7 +234,7 @@ const setupWindowSource = mainSource.slice(
     mainSource.indexOf("function setupWindow(window)"),
     mainSource.indexOf("function reapplyManagedLayouts")
 );
-assert.ok(setupWindowSource.includes("window.skipTaskbarChanged.connect"),
+assert.ok(setupWindowSource.includes("connect(window.skipTaskbarChanged,"),
     "a taskbar change reevaluates window policy");
 const dockFocusSource = mainSource.slice(
     mainSource.indexOf("function handleDockFocusCommand"),

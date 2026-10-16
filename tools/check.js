@@ -47,6 +47,8 @@ if (native) {
     run("Bridge native build", "cmake", ["--build", "build/bridge"]);
     run("Bridge native persistence tests", "ctest", ["--test-dir", "build/bridge", "--output-on-failure"]);
     run("Bridge isolated DBus restart tests", "dbus-run-session", ["--", "python3", "test/bridge-persistence-integration.py", "build/bridge/cc-niri-bridge"]);
+    run("Bridge isolated recovery proof tests", "dbus-run-session", ["--", "python3", "test/bridge-recovery-proof-integration.py", "build/bridge/cc-niri-bridge"]);
+    run("Bridge isolated V2 persistence tests", "dbus-run-session", ["--", "python3", "test/bridge-scroll-layout-v2-persistence-integration.py", "build/bridge/cc-niri-bridge"]);
     run("Bridge isolated vertical workspace tests", "dbus-run-session", ["--", "python3", "test/bridge-workspace-layout-integration.py", "build/bridge/cc-niri-bridge"]);
     run("Bridge isolated SCROLL protocol tests", "dbus-run-session", ["--", "python3", "test/bridge-scroll-plan-integration.py", "build/bridge/cc-niri-bridge"]);
     run("Bridge isolated legacy motion tests", "dbus-run-session", ["--", "python3", "test/bridge-scroll-plan-integration.py", "build/bridge/cc-niri-bridge", "--legacy"]);

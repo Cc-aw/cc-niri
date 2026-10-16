@@ -1,0 +1,15 @@
+[1/13] Building Rust Native Core (release)
+   Compiling cc-niri-native-core v0.1.0 (/home/cc/cc_niri/native/rust/cc-niri-native-core)
+    Finished `release` profile [optimized] target(s) in 0.85s
+[2/13] Building CXX object CMakeFiles/cc-niri-native-adapters.dir/home/cc/cc_niri/native/viewport-clip/RustSpring.cpp.o
+[3/13] Building CXX object CMakeFiles/cc-niri-native-adapters.dir/home/cc/cc_niri/native/viewport-clip/RustViewportMotion.cpp.o
+[4/13] Building CXX object CMakeFiles/cc-niri-native-adapters.dir/home/cc/cc_niri/native/viewport-clip/RustScrollPlanSequence.cpp.o
+[5/13] Building CXX object CMakeFiles/cc-niri-native-adapters.dir/home/cc/cc_niri/native/viewport-clip/RustScrollViewportRuntime.cpp.o
+[6/13] Building CXX object CMakeFiles/cc-niri-native-adapters.dir/home/cc/cc_niri/native/focus-ring/RustFocusRingContext.cpp.o
+[7/13] Linking CXX static library libcc-niri-native-adapters.a
+[8/13] Automatic MOC for target cc-niri-bridge
+[9/13] Building CXX object CMakeFiles/cc-niri-bridge.dir/cc-niri-bridge_autogen/mocs_compilation.cpp.o
+[10/13] Building CXX object CMakeFiles/cc-niri-bridge.dir/src/main.cpp.o
+[11/13] Building CXX object CMakeFiles/cc-niri-bridge.dir/src/LegacyScrollDockAdaptor.cpp.o
+[12/13] Building CXX object CMakeFiles/cc-niri-bridge.dir/src/CCNiriBridge.cpp.o
+[13/13] Linking CXX executable cc-niri-bridge

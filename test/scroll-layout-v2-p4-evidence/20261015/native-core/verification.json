@@ -1,0 +1,378 @@
+{
+  "captured_utc": "2026-10-15T12:45:21.059691+00:00",
+  "head": "8056cfe6b4a023ac8dcbfb01e4495a5acf4c2c4e",
+  "branch": "scroll-layout-v2-p0",
+  "scope": "P4 Rust typed geometry/numerical component, Bridge validator, real per-client scene paint source; geometry runtime/configure completion pending",
+  "p4_status": "IN PROGRESS",
+  "deployed": false,
+  "v2_enabled": false,
+  "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+  "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+  "compiler": "g++ (GCC) 16.2.1 20260819 (Red Hat 16.2.1-2)",
+  "source_sha256": {
+    "native/rust/cc-niri-native-core/src/column_geometry.rs": "cca56196d11b877f3b1e5ed1b921d9e4c19f1900d155cffaf51576d18e6797e5",
+    "native/rust/cc-niri-native-core/src/column_geometry_tests.rs": "f8e26b262b4abb51429bf7ca4cf75ae98f8bf4d9fa04943982e5f9c4b532dacd",
+    "native/rust/cc-niri-native-core/src/scroll_client_paint.rs": "cb6488f8984d13d3016a0c8ba33d05d5d17fe1cae04f326dea3490adf5f9d452",
+    "native/rust/cc-niri-native-core/src/scroll_runtime.rs": "9b1d9bff616c441c057329642b76595c518b7118fe9f41a039de6d747d50bfb6",
+    "native/rust/cc-niri-native-core/src/ffi_scroll.rs": "15c5b04501a411fef4c7f74ff8a7677e8dcce605e6c79b515214f21e44620b41",
+    "native/rust/cc-niri-native-core/src/ffi_protocol.rs": "108c3320e7be7b4e78f3c928c85c9b13d492ca0cfcfd8c3d666c58dd7d1b7b73",
+    "native/rust/cc-niri-native-core/src/native_protocol.rs": "0ae642e68c1b71bad39c54750e6e28a71f370559d73d0efbca582a66146c1d3c",
+    "native/rust/cc-niri-native-core/src/lib.rs": "4a6e211bcd51a07c9596401d63979f6419e160d33eaf34b15ae9a3eb4fa31bc7",
+    "native/rust/include/cc_niri_native_core.h": "7bbbefe3977caff09983f486c861467bf978427d17c34889d30591fecd0ed7c7",
+    "native/rust/tests/RustCoreSmokeTest.cpp": "a5228dcff1ca5e757f4e3315dd3fc4060180f0459a8ca92ae99f557af86b230c",
+    "native/common/NativeProtocolDto.h": "89048a35c1bce571801a04e329ef73991f5e351a555574ab105d95da13ade6fd",
+    "native/viewport-clip/RustScrollPlanSequence.cpp": "fce8ad3c893fa4218138feb6c6794dc325b7cd82cfa01b21c166d61b29a53d0e",
+    "native/viewport-clip/RustScrollViewportRuntime.cpp": "a219991a701b4a2fa655f16565fd17449b28f13868857e411b42494fc36285bc",
+    "native/viewport-clip/RustScrollViewportRuntime.h": "9f5806f8515415843ab90adfe8c1b9f2df082c395468bcdf2a322bf09683bcfa",
+    "native/viewport-clip/ViewportClipEffect.cpp": "4e9f08b92893de16465503c5152c20a4fdcef6f32e0afc53160c2fe65c03eb80",
+    "native/viewport-clip/ViewportClipEffect.h": "9d3df43a1d098daa42a227734475e6269cad03e969bb9644e5c62cc19971b58f",
+    "native/viewport-clip/tests/ScrollViewportRuntimeTest.cpp": "591f42e3e238176eac0dd74629222778035babbc43dba3f856f14ca838f9db35",
+    "bridge/src/CCNiriBridge.cpp": "266c2dd71f10615229052a919cccdca1af08bf1187eefad8a93801a692600422",
+    "test/bridge-scroll-plan-integration.py": "6b8ec1d6d5bb17fd5a264b073e14b7df751106951b8ec00c57043f7a53d64966",
+    "test/helpers/scroll-layout-v2-geometry-wire.js": "68f418c092042c8ca1bbc6724fe00e847be21520f1cd9226e548a19904b4a29a",
+    "tools/scroll-layout-v2-p3-probe.py": "39a88ea68d648344488a21397f138c22a48643d4bfdc012465d3978d7667f95a",
+    "src/kwin/layout/ColumnGeometryPlan.js": "1f9f272798957e947645eae510f7ff484fe5fa3cdbeb83fe65757e2b44e9613c",
+    "src/kwin/layout/ColumnGeometryClientGate.js": "b7d90def44956d622950658d34a7e5f03130597ea4e957ca4fb47b40fb58a27b",
+    "src/kwin/integration/RuntimeBridge.js": "d8e3286050cfc2a96fd0117ad95b0ce0b536d6fc18bd37d2c50300e70ca1be44",
+    "package/contents/code/main.js": "3ebcb2e6556137c642777732e3af92cc665d77f011b1ec544f6ba7b511aaa146",
+    "native/rust/Cargo.lock": "d8de03de4cc23ab813c841c1fcd67a12882a1b624b003ad8213b08d3427b6244"
+  },
+  "installed_artifacts_unchanged": [
+    {
+      "path": "/home/cc/.local/share/kwin/scripts/cc-niri-maximize/contents/code/main.js",
+      "before_sha256": "2154436e0c97251eecadadd13bb533dfedfd2146cb0dd1fff34693ad6c9814f2",
+      "after_sha256": "2154436e0c97251eecadadd13bb533dfedfd2146cb0dd1fff34693ad6c9814f2",
+      "unchanged": true
+    },
+    {
+      "path": "/home/cc/.local/libexec/cc-niri-bridge",
+      "before_sha256": "2f923a1a158fafb3bf61bf7234aa13562702d164ba97e904b116e3823d76b3f6",
+      "after_sha256": "2f923a1a158fafb3bf61bf7234aa13562702d164ba97e904b116e3823d76b3f6",
+      "unchanged": true
+    },
+    {
+      "path": "/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-viewport-clip.so",
+      "before_sha256": "1c8c3d0174c572e3412d4e1c968bb3811e23e718f9aff7b0be2bc541b6372726",
+      "after_sha256": "1c8c3d0174c572e3412d4e1c968bb3811e23e718f9aff7b0be2bc541b6372726",
+      "unchanged": true
+    },
+    {
+      "path": "/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-focus-ring.so",
+      "before_sha256": "994e939d1c9e314d150728b13dbc250adc462f5deef652bb857f2d76716defa4",
+      "after_sha256": "994e939d1c9e314d150728b13dbc250adc462f5deef652bb857f2d76716defa4",
+      "unchanged": true
+    }
+  ],
+  "reference_and_lockfile_unchanged": true,
+  "native_gate": {
+    "status": "PASS",
+    "js_tests": 192,
+    "test_files": 113,
+    "rust_tests": 97,
+    "bridge_ctest": 18,
+    "clip_ctest": 18,
+    "ring_ctest": 25
+  },
+  "release_rust_tests": {
+    "status": "PASS",
+    "tests": 97
+  },
+  "build_matrix": [
+    {
+      "name": "core-Debug-configure",
+      "command": [
+        "cmake",
+        "-S",
+        "native",
+        "-B",
+        "build/rust-Debug",
+        "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+        "-DCC_NIRI_BUILD_KWIN_ADAPTERS=OFF",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DBUILD_TESTING=ON"
+      ],
+      "exit_code": 0,
+      "expected_rejection": false,
+      "elapsed_seconds": 0.16,
+      "status": "PASS"
+    },
+    {
+      "name": "core-Debug-build",
+      "command": [
+        "cmake",
+        "--build",
+        "build/rust-Debug",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0,
+      "expected_rejection": false,
+      "elapsed_seconds": 15.34,
+      "status": "PASS"
+    },
+    {
+      "name": "core-Debug-ctest",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "build/rust-Debug",
+        "--output-on-failure"
+      ],
+      "exit_code": 0,
+      "expected_rejection": false,
+      "elapsed_seconds": 36.42,
+      "status": "PASS"
+    },
+    {
+      "name": "core-Release-configure",
+      "command": [
+        "cmake",
+        "-S",
+        "native",
+        "-B",
+        "build/rust-Release",
+        "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+        "-DCC_NIRI_BUILD_KWIN_ADAPTERS=OFF",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DBUILD_TESTING=ON"
+      ],
+      "exit_code": 0,
+      "expected_rejection": false,
+      "elapsed_seconds": 0.16,
+      "status": "PASS"
+    },
+    {
+      "name": "core-Release-build",
+      "command": [
+        "cmake",
+        "--build",
+        "build/rust-Release",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0,
+      "expected_rejection": false,
+      "elapsed_seconds": 21.95,
+      "status": "PASS"
+    },
+    {
+      "name": "core-Release-ctest",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "build/rust-Release",
+        "--output-on-failure"
+      ],
+      "exit_code": 0,
+      "expected_rejection": false,
+      "elapsed_seconds": 8.33,
+      "status": "PASS"
+    },
+    {
+      "name": "umbrella-Debug-configure",
+      "command": [
+        "cmake",
+        "-S",
+        "native",
+        "-B",
+        "build/native-r7-debug",
+        "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+        "-DCC_NIRI_BUILD_KWIN_ADAPTERS=ON",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DBUILD_TESTING=ON"
+      ],
+      "exit_code": 0,
+      "expected_rejection": false,
+      "elapsed_seconds": 1.22,
+      "status": "PASS"
+    },
+    {
+      "name": "umbrella-Debug-build",
+      "command": [
+        "cmake",
+        "--build",
+        "build/native-r7-debug",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0,
+      "expected_rejection": false,
+      "elapsed_seconds": 99.27,
+      "status": "PASS"
+    },
+    {
+      "name": "umbrella-Debug-ctest",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "build/native-r7-debug",
+        "--output-on-failure"
+      ],
+      "exit_code": 0,
+      "expected_rejection": false,
+      "elapsed_seconds": 50.09,
+      "status": "PASS"
+    },
+    {
+      "name": "native-OFF-configure",
+      "command": [
+        "cmake",
+        "-S",
+        "native",
+        "-B",
+        "build/native-r7-production",
+        "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DBUILD_TESTING=OFF"
+      ],
+      "exit_code": 0,
+      "expected_rejection": false,
+      "elapsed_seconds": 1.02,
+      "status": "PASS"
+    },
+    {
+      "name": "native-OFF-build",
+      "command": [
+        "cmake",
+        "--build",
+        "build/native-r7-production",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0,
+      "expected_rejection": false,
+      "elapsed_seconds": 25.81,
+      "status": "PASS"
+    },
+    {
+      "name": "native-OFF-targets",
+      "command": [
+        "cmake",
+        "--build",
+        "build/native-r7-production",
+        "--target",
+        "help"
+      ],
+      "exit_code": 0,
+      "expected_rejection": false,
+      "elapsed_seconds": 0.03,
+      "status": "PASS"
+    },
+    {
+      "name": "bridge-OFF-configure",
+      "command": [
+        "cmake",
+        "-S",
+        "bridge",
+        "-B",
+        "build/bridge-r7-production",
+        "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DBUILD_TESTING=OFF"
+      ],
+      "exit_code": 0,
+      "expected_rejection": false,
+      "elapsed_seconds": 0.16,
+      "status": "PASS"
+    },
+    {
+      "name": "bridge-OFF-build",
+      "command": [
+        "cmake",
+        "--build",
+        "build/bridge-r7-production",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0,
+      "expected_rejection": false,
+      "elapsed_seconds": 14.04,
+      "status": "PASS"
+    },
+    {
+      "name": "bridge-OFF-targets",
+      "command": [
+        "cmake",
+        "--build",
+        "build/bridge-r7-production",
+        "--target",
+        "help"
+      ],
+      "exit_code": 0,
+      "expected_rejection": false,
+      "elapsed_seconds": 0.02,
+      "status": "PASS"
+    },
+    {
+      "name": "production-boundary",
+      "command": [
+        "python3",
+        "tools/check-native-boundary.py",
+        "build/bridge-r7-production/cc-niri-bridge",
+        "/home/cc/cc_niri/build/native-r7-production/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+        "/home/cc/cc_niri/build/native-r7-production/bin/kwin/effects/plugins/cc-niri-focus-ring.so"
+      ],
+      "exit_code": 0,
+      "expected_rejection": false,
+      "elapsed_seconds": 0.06,
+      "status": "PASS"
+    },
+    {
+      "name": "reject-rustc",
+      "command": [
+        "cmake",
+        "-S",
+        "native",
+        "-B",
+        "/tmp/cc-niri-p4-toolchain-ly7xj70r/rustc-build",
+        "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+        "-DCC_NIRI_BUILD_KWIN_ADAPTERS=OFF",
+        "-DCC_NIRI_RUSTC_EXECUTABLE=/tmp/cc-niri-p4-toolchain-ly7xj70r/wrong-rustc"
+      ],
+      "exit_code": 1,
+      "expected_rejection": true,
+      "elapsed_seconds": 0.21,
+      "status": "PASS"
+    },
+    {
+      "name": "reject-cargo",
+      "command": [
+        "cmake",
+        "-S",
+        "native",
+        "-B",
+        "/tmp/cc-niri-p4-toolchain-ly7xj70r/cargo-build",
+        "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+        "-DCC_NIRI_BUILD_KWIN_ADAPTERS=OFF",
+        "-DCC_NIRI_CARGO_EXECUTABLE=/tmp/cc-niri-p4-toolchain-ly7xj70r/wrong-cargo"
+      ],
+      "exit_code": 1,
+      "expected_rejection": true,
+      "elapsed_seconds": 0.26,
+      "status": "PASS"
+    }
+  ],
+  "isolated_production_p3_regression_and_p4_paint_source": {
+    "regression-100": {
+      "status": "PASS",
+      "passed": 35,
+      "total": 35,
+      "sha256": "d1d7a21c40cdc90492dac02d93ffac357003b2fd355b704db6fcad4c88ec769d"
+    },
+    "regression-150": {
+      "status": "PASS",
+      "passed": 35,
+      "total": 35,
+      "sha256": "777cdb40803622f3fddd659f8b5f1b3f33085a121d6df59978b81a942f60c103"
+    },
+    "regression-fcitx5": {
+      "status": "PASS",
+      "passed": 38,
+      "total": 38,
+      "sha256": "1b9923c9e179b2b649cd03384738466708aa1d8610d06fc2ad662283e12b802e"
+    }
+  },
+  "p4_live_resize": "NOT RUN: ownership remains explicitly rejected",
+  "resource_budget": "NOT MEASURED: full-project PSS/Private_Dirty/objects/textures/GPU/4K60/30-60min",
+  "environment_failure": "Initial unprivileged gate failed existing P0 Python spawn/refusal fixture; full gate rerun with approved process permissions; no assertion removed"
+}

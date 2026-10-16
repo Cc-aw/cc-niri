@@ -1,2 +1,5 @@
 # Preserve raw KWin diagnostic output: spaces and '=' section headings are data.
 test/memory-data/20261013/kwin-support.txt -whitespace conflict-marker-size=64
+
+# Preserve raw V2 diagnostic logs and their recorded hashes.
+test/scroll-layout-v2-p*-evidence/**/*.log -whitespace

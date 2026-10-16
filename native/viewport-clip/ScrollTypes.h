@@ -7,5 +7,5 @@
 namespace CcNiri {
 inline constexpr qsizetype MaxMotionPlanBytes = 256 * 1024;
 enum class ScrollPlanDisposition { Rejected, Duplicate, Accepted };
-struct ScrollProjection { double translationX; QRectF viewport; };
+struct ScrollProjection { double translationX; QRectF viewport; bool strictOutput = false; double translationY = 0; };
 }

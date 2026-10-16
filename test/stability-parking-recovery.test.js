@@ -24,7 +24,7 @@ assert.ok(mainSource.includes("Number(rect.x) < virtualScreenLeft()"),
 assert.ok(mainSource.includes("scrollParkedByScript"));
 assert.ok(mainSource.includes("scrollLastVisibleGeometry"));
 assert.ok(mainSource.includes("function releaseParkingOwnership("));
-assert.ok(mainSource.includes("function emergencyRestoreAllWindows(reason)"));
+assert.ok(mainSource.includes("function emergencyRestoreAllWindows(reason, requestId = null)"));
 assert.ok(mainSource.includes("mainScreenState.enabled = false"),
     "emergency recovery prevents signals from immediately parking windows again");
 
@@ -109,7 +109,7 @@ assert.ok(mainSource.includes('"Meta+Ctrl+Alt+Shift+F11"'),
 assert.ok(mainSource.includes('"Meta+Ctrl+Alt+Shift+F12"'),
     "the direct emergency fallback needs an invokable non-empty binding");
 assert.ok(mainSource.includes(
-    '"emergency-restore": () => emergencyRestoreAllWindows("bridge-unload")'
+    '"emergency-restore": command => emergencyRestoreAllWindows("bridge-unload", command.commandId)'
 ));
 assert.ok(mainSource.includes("this.handlers[command.type](command)"));
 assert.ok(bridgeHeader.includes("bool RequestEmergencyRestore();"));

@@ -60,3 +60,63 @@
 按基线文档的具体方案，先取得只读KWin内存权限及安全stop/start许可，固定窗口、输出、特效与Dock条件，再做三轮B0/B1。用隔离模型/DBus验证Bridge deferred timer、紧急队列与disarm ACK异常；对输出历史barrier用测试fixture，不在用户桌面热插拔。只有实测收益与正确性证据充分后进入M2最小生产变更，并跑全量门禁与M3实机验收。
 
 当前运行时无需回滚：没有配置/部署变更，采样已自行结束。仓库回滚只需移除本轮新增工具/测试/报告/原始数据并撤回AGENTS新增低内存节；保留原有用户工作区修改，**不使用整库reset**。README / doc索引验收状态未更新。未创建提交。
+
+## 2026-10-15 Scroll Layout V2 P1 补充
+
+新增默认关闭的 V2 配置和纯几何/三档列宽离线实现，尚未接入生产 V2；现有 V1 运行入口保留。
+源码资源账本更新在 [M1 审计](CC_NIRI_GLOBAL_MEMORY_AUDIT.md)，功能/自动检查见 [P1 结果](SCROLL_LAYOUT_V2_P1_RESULTS.md)。
+本阶段未做内存优化或桌面 A/B，特性≤2/8MiB和全项目≤32/64MiB目标均 **NOT MEASURED / Pending**；
+Private_Dirty、GPU、真实对象/纹理数量、帧时间和30–60分钟增长也 **NOT MEASURED**。
+没有把算法/回归测试通过写成资源预算通过；M0–M3 验收状态保持原结论。
+
+## 2026-10-15 Scroll Layout V2 P2 补充
+
+新增统一视口/工作区离线事件模型，主入口仍V1；[P2 模拟与验证](SCROLL_LAYOUT_V2_P2_RESULTS.md) 和
+[资源账本](CC_NIRI_GLOBAL_MEMORY_AUDIT.md) 已记录单份 O(N) intent/source 和2000次模型操作收敛。
+真实Release A/B PSS、Private_Dirty、对象/纹理、GPU、帧时间和30–60分钟斜率均 **NOT MEASURED**。
+无新增 Native handle 或 paint 路径；不能据模型通过宣称全项目/特性预算达标，M0–M3结论不变。
+
+## 2026-10-15 Scroll Layout V2 P3
+
+生产构建的私有虚拟 KWin/Bridge/Ring 集成：100%与150%各31/31，150%+Fcitx5为34/34，均 PASS。
+Rust 输入/帧查询零堆分配、JS 5000次失联 callback 收敛属于局部契约；短 idle Scroll repaint 稳定属于局部观测。
+全项目同负载 B0/B1、PSS/Private_Dirty、GPU/对象/纹理归因、4K60帧时间和30–60分钟生命周期：
+**NOT MEASURED / Pending**。没有用虚拟测试、sizeof、产物大小或 Rust 零分配替代总预算。
+源码账本见 [M1 P3 补充](CC_NIRI_GLOBAL_MEMORY_AUDIT.md)，功能与构建门禁见 [P3 结果](SCROLL_LAYOUT_V2_P3_RESULTS.md)。
+V2 默认关闭，安装组件未改动，没有进行用户桌面的卸载、重启、热插拔或内存耗尽测试。
+
+## 2026-10-15 Scroll Layout V2 P4 JS 事务
+
+完成新 typed producer 与复用现有 Gate 的 client-ACK/painted-completion 等待，21项定向契约含2000次模型失败清理。
+Native protocol4/resize 尚未实现，RuntimeBridge 显式拒绝新类型，main 不启用 V2。
+源码账本与限制见 [M1 P4 补充](CC_NIRI_GLOBAL_MEMORY_AUDIT.md) 和 [P4 进度](SCROLL_LAYOUT_V2_P4_RESULTS.md)。
+全项目同负载 B0/B1 PSS/Private_Dirty、真实 callback/对象/纹理、GPU、4K60帧时间与30–60分钟增长均
+**NOT MEASURED / Pending**；没有把模型状态归零当作资源预算通过。未部署或操作运行桌面的组件。
+
+P4 后续 Rust/Bridge 增量：typed validator/共享 sequence 与列相对 motion 已实现，场景端尚未构造组件；
+Core 10000次帧查询零分配不作为项目预算验收。生产启用、真实 resize、GPU/对象生命周期、PSS 与4K60长测
+继续 **Pending / NOT MEASURED**，详见 [Native 阶段结果](RUST_NATIVE_R7_SCROLL_LAYOUT_V2_P4_RESULTS.md)。
+
+同批逐窗口真实 paint source 接线：隔离 Release KWin 100% / 150% 各35/35、150%+Fcitx5为38/38通过，
+包括 P3 回归和新增 source/cancel 事实。Core 10,000次 paint 账本更新/查询零堆分配；
+没有将这些结果作为真实 resize、全项目资源预算或4K60验收。PSS/Private_Dirty、对象/纹理/GPU及长测仍 NOT MEASURED。
+
+### P4 完整实现后的结果边界
+
+上述 P4 JS/数值/source 增量中的“未接线”描述为历史。完整 runtime、FFI、Scene 和事件驱动 JS 协调器现已接通，并在私有 Release KWin 中实际运行宽度循环、快速 retarget、隐藏列、长跳转反向、途中关闭、工作区返回、Fcitx5 和取消恢复。最终功能/构建计数见 [P4 报告](SCROLL_LAYOUT_V2_P4_RESULTS.md) 及其 verification；不把这些结果作为总资源预算通过。
+
+M1 已补充 current-row/observation/closing/弱引用/连接/timer 账本。Core 10,000帧零堆分配、模型与私有 stop 清理属于局部验证。全项目 B0/B1、PSS/Private_Dirty、真实 Qt callback/Scene对象/纹理统计、GPU归因、4K60、30–60分钟增长仍 **NOT MEASURED / Pending**，M0–M3没有因此转为 PASS。V2 默认关闭，用户安装版及当前桌面未变，未执行用户桌面卸载、强杀、热插拔或内存耗尽测试。
+
+### 2026-10-16 P5 完整入口后的结果边界
+
+P5 持久化/兼容与生产主入口接线完成，详见 [P5 报告](SCROLL_LAYOUT_V2_P5_RESULTS.md)。完整生成入口在私有 Release KWin 100%/150%分别30/30、150%+Fcitx5为33/33通过，P4回归35/35；Native/JS、Debug/Release/OFF边界、旧Bridge私有读取测试通过。生命周期回归覆盖关闭释放、拓扑连接不随历史增长、透明配置ACK及用户最小化状态恢复。
+
+这些结果不将 M0–M3 转为 PASS。全项目相对原生 KDE 的 PSS/Private_Dirty、峰值、Qt/Scene对象/纹理、GPU、4K60、30–60分钟斜率仍 **NOT MEASURED / Pending**。下一阶段 P6 执行真实同负载基线与用户桌面验收。V2 默认关闭、已安装四组件 SHA 不变；未重载/卸载用户桌面组件，未做热插拔或压力耗尽测试。
+
+### 2026-10-16 P6 准备范围
+
+安全恢复模型、私有Bridge与完整入口CLI stop、候选完整性、回滚dry-run及离线分析通过范围见 [P6报告](SCROLL_LAYOUT_V2_P6_LIVE_RESULTS.md)。用户桌面尚未部署或停止组件；B0/V1/V2 PSS/Private_Dirty、正常动画峰值、对象/纹理/GPU、4K60和30–60分钟增长均 **NOT MEASURED / Pending**。工具输出MEASURED或局部清理不将全项目预算标PASS；M0–M3状态不变。
+
+### 2026-10-16 P6 授权部署后
+
+V2经授权部署并开启，启动/协议/实际Native路径核验PASS，详见[P6部署记录](scroll-layout-v2-p6-evidence/20261016/deployment/deployment.json)。未运行受控B0/V1/V2采样或长测，PSS/Private_Dirty/GPU/对象/纹理、正常动画峰值、4K60与30–60分钟增长均仍 **NOT MEASURED / Pending**；M0–M3未转为PASS。

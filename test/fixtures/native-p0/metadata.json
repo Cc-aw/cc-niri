@@ -1,0 +1,10 @@
+{
+    "KPlugin": {
+        "Name": "CC Niri P0 isolated input fixture",
+        "Description": "Test-only; refuses non-isolated and non-Virtual compositors",
+        "EnabledByDefault": false,
+        "License": "GPL-2.0-or-later",
+        "Version": "0.1.0"
+    },
+    "org.kde.kwin.effect": { "internal": false }
+}

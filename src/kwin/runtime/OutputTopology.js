@@ -1,10 +1,16 @@
 "use strict";
 
+/* cjs:start */
+const { createScrollLayoutGeometry } = require("../layout/ContinuousColumnLayout");
+/* cjs:end */
+
 class OutputTopology {
     constructor(options) {
         this.getScreens = options.getScreens;
+        this.getWindows = options.getWindows || (() => []);
         this.config = options.config;
         this.computeSafeRect = options.computeSafeRect;
+        this.getWorkingArea = options.getWorkingArea;
         this.warn = options.warn;
         this.warnedMissingPrimary = false;
         this.warnedMissingSecondary = false;
@@ -89,6 +95,32 @@ class OutputTopology {
     safeRect(output) {
         const profile = this.profile(output);
         return profile ? this.computeSafeRect(output.geometry, profile) : null;
+    }
+
+    panelRects(output, desktop) {
+        return this.getWindows().filter(window => window.dock && !window.deleted && !window.hidden &&
+            !window.minimized && window.opacity !== 0 && (!window.output || window.output === output) &&
+            (!desktop || window.onAllDesktops || !window.desktops || !window.desktops.length ||
+                Array.from(window.desktops).some(owner => String(owner.id) === String(desktop.id))))
+            .map(window => window.frameGeometry);
+    }
+
+    // Keep official struts and visible full-edge overlay bars separate from gap.
+    v2Geometry(output, desktop) {
+        if (!this.config.scrollLayoutV2Enabled || !output || output !== this.primary()) return null;
+        let workingArea;
+        if (this.getWorkingArea) {
+            try { workingArea = this.getWorkingArea(output, desktop); }
+            catch (_error) { /* Use the conservative, panel-safe profile below. */ }
+        }
+        try {
+            return createScrollLayoutGeometry({ outputRect: output.geometry, workingArea,
+                fallbackRect: this.safeRect(output), panelRects: this.panelRects(output, desktop), gap: this.config.scrollLayoutGap,
+                topGap: this.config.scrollLayoutTopGap,
+                physicalScale: output.devicePixelRatio || output.scale });
+        } catch (_error) {
+            return null; // No trustworthy output/area means no V2 layout.
+        }
     }
 }
 

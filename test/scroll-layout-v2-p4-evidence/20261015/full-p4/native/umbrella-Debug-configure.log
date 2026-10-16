@@ -1,0 +1,7 @@
+-- CC-Niri Native Core: Rust production
+fatal: no upstream configured for branch 'scroll-layout-v2-p0'
+-- Found KF6: success (found suitable version "6.30.0", minimum required is "6.0") found components: CoreAddons
+-- Found KF6: success (found suitable version "6.30.0", minimum required is "6.0") found components: CoreAddons Config
+-- Configuring done (1.0s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/cc/cc_niri/build/native-r7-debug

@@ -1,0 +1,28 @@
+{
+  "status": "INSTALLED_PENDING_NORMAL_RELOGIN",
+  "deployed_source": true,
+  "hot_reload": "BLOCKED_BY_RECOVERY_PROOF",
+  "new_top_gap_live": false,
+  "configuration": {
+    "ScrollLayoutGap": 16,
+    "ScrollLayoutTopGap": 8
+  },
+  "package_upgrade_exit_code": 0,
+  "installed_main_sha256": "79f230fd099d029d457a5a119d988e113e644f47c73e43700f86e69a12a34314",
+  "live_recovery_state": "blocked",
+  "live_restore_count": 1,
+  "native_ownership_released": true,
+  "component_unload_performed": false,
+  "forced_kwin_restart": false,
+  "normal_relogin_required": true,
+  "backup": "/tmp/cc-niri-v2-top-gap-8-20261016",
+  "original_stable_backup": "/tmp/cc-niri-p6-20261016-deploy",
+  "raw_recovery_evidence": "/tmp/cc-niri-v2-top-gap-8-20261016/stop-failure.json",
+  "automatic_review_rejection": "Prior global-gap command was rejected because user only authorized top spacing; it was not executed",
+  "recorded_utc": "2026-10-16T06:12:09.602443+00:00",
+  "tests": {
+    "js": 235,
+    "private_kwin_fcitx5": 37
+  },
+  "live_geometry": "NOT VERIFIED: old runtime cannot resume after recovery failure"
+}

@@ -1,0 +1,127 @@
+[
+  {
+    "name": "full-native-gate",
+    "command": [
+      "node",
+      "tools/check.js",
+      "--native"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 110.3,
+    "status": "PASS"
+  },
+  {
+    "name": "all-native-build-matrices",
+    "command": [
+      "python3",
+      "/tmp/cc-niri-p4-full-matrix.py"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 112.96,
+    "status": "PASS"
+  },
+  {
+    "name": "locked-release-rust",
+    "command": [
+      "cargo",
+      "test",
+      "--manifest-path",
+      "native/rust/Cargo.toml",
+      "--locked",
+      "--workspace",
+      "--release"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.1,
+    "status": "PASS"
+  },
+  {
+    "name": "100",
+    "command": [
+      "python3",
+      "tools/scroll-layout-v2-p3-probe.py",
+      "--isolated",
+      "--scenario",
+      "p4",
+      "--output",
+      "/home/cc/cc_niri/test/scroll-layout-v2-p4-evidence/20261015/full-p4/100"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 11.13,
+    "status": "PASS"
+  },
+  {
+    "name": "150",
+    "command": [
+      "python3",
+      "tools/scroll-layout-v2-p3-probe.py",
+      "--isolated",
+      "--scenario",
+      "p4",
+      "--scale",
+      "1.5",
+      "--output",
+      "/home/cc/cc_niri/test/scroll-layout-v2-p4-evidence/20261015/full-p4/150"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 12.29,
+    "status": "PASS"
+  },
+  {
+    "name": "150-fcitx5",
+    "command": [
+      "python3",
+      "tools/scroll-layout-v2-p3-probe.py",
+      "--isolated",
+      "--scenario",
+      "p4",
+      "--scale",
+      "1.5",
+      "--ime",
+      "--output",
+      "/home/cc/cc_niri/test/scroll-layout-v2-p4-evidence/20261015/full-p4/150-fcitx5"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 15.48,
+    "status": "PASS"
+  },
+  {
+    "name": "regression-100",
+    "command": [
+      "python3",
+      "tools/scroll-layout-v2-p3-probe.py",
+      "--isolated",
+      "--output",
+      "/home/cc/cc_niri/test/scroll-layout-v2-p4-evidence/20261015/full-p4/regression-100"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 5.37,
+    "status": "PASS"
+  },
+  {
+    "name": "regression-150-fcitx5",
+    "command": [
+      "python3",
+      "tools/scroll-layout-v2-p3-probe.py",
+      "--isolated",
+      "--scale",
+      "1.5",
+      "--ime",
+      "--output",
+      "/home/cc/cc_niri/test/scroll-layout-v2-p4-evidence/20261015/full-p4/regression-150-fcitx5"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 7.7,
+    "status": "PASS"
+  },
+  {
+    "name": "final-source-artifact-installed-and-symbol-verification",
+    "command": [
+      "python3",
+      "/tmp/cc-niri-p4-full-verify.py"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.84,
+    "status": "PASS"
+  }
+]

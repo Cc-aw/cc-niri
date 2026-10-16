@@ -1,0 +1,126 @@
+[1/121] Building CXX object rust/CMakeFiles/cc-niri-golden-reference.dir/tests/reference/FocusRingCore.cpp.o
+[2/121] Linking CXX static library rust/libcc-niri-golden-reference.a
+[3/121] Building Rust Native Core (dev)
+   Compiling cc-niri-native-core v0.1.0 (/home/cc/cc_niri/native/rust/cc-niri-native-core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.34s
+[4/121] Building CXX object rust/CMakeFiles/cc-niri-native-adapters.dir/__/viewport-clip/RustViewportMotion.cpp.o
+[5/121] Building CXX object rust/CMakeFiles/cc-niri-native-adapters.dir/__/viewport-clip/RustSpring.cpp.o
+[6/121] Building CXX object rust/CMakeFiles/cc-niri-native-adapters.dir/__/viewport-clip/RustScrollPlanSequence.cpp.o
+[7/121] Building CXX object rust/CMakeFiles/cc-niri-native-adapters.dir/__/viewport-clip/RustScrollViewportRuntime.cpp.o
+[8/121] Building CXX object rust/CMakeFiles/cc-niri-workspace-motion-differential.dir/tests/WorkspaceMotionContractTest.cpp.o
+[9/121] Building CXX object rust/CMakeFiles/cc-niri-ring-differential.dir/tests/FocusRingDifferentialTest.cpp.o
+[10/121] Building CXX object rust/CMakeFiles/cc-niri-native-adapters.dir/__/focus-ring/RustFocusRingContext.cpp.o
+[11/121] Linking CXX static library rust/libcc-niri-native-adapters.a
+[12/121] Automatic MOC for target cc-niri-viewport-clip
+AutoMoc warning
+---------------
+"SRC:/viewport-clip/main.cpp"
+includes the moc file "main.moc", but does not contain a Q_OBJECT, Q_GADGET, Q_NAMESPACE, Q_NAMESPACE_EXPORT, Q_GADGET_EXPORT, Q_ENUM_NS, K_PLUGIN_FACTORY, K_PLUGIN_CLASS, K_PLUGIN_FACTORY_WITH_JSON or K_PLUGIN_CLASS_WITH_JSON macro.
+
+[13/120] Building CXX object rust/CMakeFiles/cc-niri-spring-differential.dir/tests/SpringDifferentialTest.cpp.o
+[14/120] Automatic MOC for target cc-niri-focus-ring-corner-style-tests
+[15/120] Automatic MOC for target cc-niri-focus-ring
+[16/120] Automatic MOC for target cc-niri-focus-ring-controller-tests
+[17/119] Automatic MOC for target cc-niri-focus-ring-item-tests
+[18/119] Automatic MOC for target cc-niri-focus-ring-paint-tests
+[19/119] Automatic MOC for target cc-niri-focus-ring-viewport-clip-tests
+[20/119] Automatic MOC for target cc-niri-focus-ring-visual-transform-tests
+[21/119] Automatic MOC for target cc-niri-focus-ring-retarget-tests
+[22/119] Automatic MOC for target cc-niri-focus-ring-fade-tests
+[23/119] Automatic MOC for target cc-niri-focus-ring-presentation-tests
+[24/119] Automatic MOC for target cc-niri-focus-ring-hidpi-tests
+[25/119] Building CXX object rust/CMakeFiles/cc-niri-motion-differential.dir/tests/ViewportMotionDifferentialTest.cpp.o
+[26/119] Building CXX object rust/CMakeFiles/cc-niri-protocol-differential.dir/tests/NativeProtocolDifferentialTest.cpp.o
+[27/119] Building CXX object rust/CMakeFiles/cc-niri-scroll-differential.dir/tests/ScrollRuntimeDifferentialTest.cpp.o
+[28/119] Building CXX object rust/CMakeFiles/cc-niri-rust-animation-frame-tests.dir/__/viewport-clip/tests/AnimationFrameContextTest.cpp.o
+[29/119] Building CXX object rust/CMakeFiles/cc-niri-rust-focus-fade-tests.dir/tests/FocusFadeContractTest.cpp.o
+[30/119] Building CXX object rust/CMakeFiles/cc-niri-rust-motion-tests.dir/__/viewport-clip/tests/ViewportMotionTest.cpp.o
+[31/119] Building CXX object rust/CMakeFiles/cc-niri-rust-ring-context-tests.dir/__/focus-ring/tests/FocusRingContextTest.cpp.o
+[32/119] Building CXX object rust/CMakeFiles/cc-niri-rust-scroll-tests.dir/__/viewport-clip/tests/ScrollViewportRuntimeTest.cpp.o
+[33/119] Building CXX object rust/CMakeFiles/cc-niri-rust-core-smoke-tests.dir/tests/RustCoreSmokeTest.cpp.o
+[34/119] Building CXX object viewport-clip/CMakeFiles/cc-niri-viewport-motion-tests.dir/tests/ViewportMotionTest.cpp.o
+[35/119] Building CXX object viewport-clip/CMakeFiles/cc-niri-scroll-viewport-tests.dir/tests/ScrollViewportRuntimeTest.cpp.o
+[36/119] Building CXX object viewport-clip/CMakeFiles/cc-niri-workspace-projection-tests.dir/tests/WorkspaceProjectionCacheTest.cpp.o
+[37/119] Building CXX object viewport-clip/CMakeFiles/cc-niri-viewport-clip.dir/main.cpp.o
+[38/119] Building CXX object viewport-clip/CMakeFiles/cc-niri-viewport-clip.dir/WorkspaceSlideAdapter.cpp.o
+[39/119] Building CXX object viewport-clip/CMakeFiles/cc-niri-viewport-clip.dir/ViewportClipEffect.cpp.o
+[40/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-context-tests.dir/tests/FocusRingContextTest.cpp.o
+[41/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring.dir/cc-niri-focus-ring_autogen/mocs_compilation.cpp.o
+[42/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring.dir/main.cpp.o
+[43/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring.dir/FocusRingEffect.cpp.o
+[44/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring.dir/FocusRingItem.cpp.o
+[45/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring.dir/FocusRingPaintFrame.cpp.o
+[46/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring.dir/FocusRingStrokeItem.cpp.o
+[47/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring.dir/FocusRingCornerStyle.cpp.o
+[48/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-corner-style-tests.dir/cc-niri-focus-ring-corner-style-tests_autogen/mocs_compilation.cpp.o
+[49/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-corner-style-tests.dir/tests/FocusRingCornerStyleTest.cpp.o
+[50/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-corner-style-tests.dir/FocusRingCornerStyle.cpp.o
+[51/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-controller-tests.dir/tests/FocusRingControllerTest.cpp.o
+[52/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-item-tests.dir/cc-niri-focus-ring-item-tests_autogen/mocs_compilation.cpp.o
+[53/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-item-tests.dir/FocusRingItem.cpp.o
+[54/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-item-tests.dir/tests/FocusRingItemTest.cpp.o
+[55/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-item-tests.dir/FocusRingPaintFrame.cpp.o
+[56/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-item-tests.dir/FocusRingStrokeItem.cpp.o
+[57/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-paint-tests.dir/cc-niri-focus-ring-paint-tests_autogen/mocs_compilation.cpp.o
+[58/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-paint-tests.dir/tests/FocusRingPaintTest.cpp.o
+[59/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-paint-tests.dir/FocusRingItem.cpp.o
+[60/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-paint-tests.dir/FocusRingPaintFrame.cpp.o
+[61/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-paint-tests.dir/FocusRingStrokeItem.cpp.o
+[62/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-viewport-clip-tests.dir/cc-niri-focus-ring-viewport-clip-tests_autogen/mocs_compilation.cpp.o
+[63/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-viewport-clip-tests.dir/tests/FocusRingViewportClipTest.cpp.o
+[64/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-viewport-clip-tests.dir/FocusRingItem.cpp.o
+[65/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-viewport-clip-tests.dir/FocusRingPaintFrame.cpp.o
+[66/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-viewport-clip-tests.dir/FocusRingStrokeItem.cpp.o
+[67/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-visual-transform-tests.dir/cc-niri-focus-ring-visual-transform-tests_autogen/mocs_compilation.cpp.o
+[68/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-visual-transform-tests.dir/tests/FocusRingVisualTransformTest.cpp.o
+[69/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-visual-transform-tests.dir/FocusRingItem.cpp.o
+[70/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-visual-transform-tests.dir/FocusRingPaintFrame.cpp.o
+[71/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-visual-transform-tests.dir/FocusRingStrokeItem.cpp.o
+[72/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-retarget-tests.dir/cc-niri-focus-ring-retarget-tests_autogen/mocs_compilation.cpp.o
+[73/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-retarget-tests.dir/FocusRingItem.cpp.o
+[74/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-retarget-tests.dir/tests/FocusRingRetargetTest.cpp.o
+[75/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-retarget-tests.dir/FocusRingPaintFrame.cpp.o
+[76/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-retarget-tests.dir/FocusRingStrokeItem.cpp.o
+[77/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-fade-tests.dir/cc-niri-focus-ring-fade-tests_autogen/mocs_compilation.cpp.o
+[78/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-fade-tests.dir/tests/FocusRingFadeTest.cpp.o
+[79/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-fade-tests.dir/FocusRingItem.cpp.o
+[80/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-fade-tests.dir/FocusRingPaintFrame.cpp.o
+[81/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-fade-tests.dir/FocusRingStrokeItem.cpp.o
+[82/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-presentation-tests.dir/cc-niri-focus-ring-presentation-tests_autogen/mocs_compilation.cpp.o
+[83/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-presentation-tests.dir/FocusRingItem.cpp.o
+[84/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-presentation-tests.dir/tests/FocusRingPresentationTest.cpp.o
+[85/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-presentation-tests.dir/FocusRingPaintFrame.cpp.o
+[86/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-presentation-tests.dir/FocusRingStrokeItem.cpp.o
+[87/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-hidpi-tests.dir/cc-niri-focus-ring-hidpi-tests_autogen/mocs_compilation.cpp.o
+[88/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-hidpi-tests.dir/tests/FocusRingHiDpiTest.cpp.o
+[89/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-hidpi-tests.dir/FocusRingItem.cpp.o
+[90/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-hidpi-tests.dir/FocusRingPaintFrame.cpp.o
+[91/119] Linking CXX executable rust/cc-niri-workspace-motion-differential
+[92/119] Linking CXX executable rust/cc-niri-ring-differential
+[93/119] Linking CXX executable rust/cc-niri-spring-differential
+[94/119] Linking CXX executable rust/cc-niri-motion-differential
+[95/119] Linking CXX executable rust/cc-niri-protocol-differential
+[96/119] Linking CXX executable rust/cc-niri-scroll-differential
+[97/119] Linking CXX executable rust/cc-niri-rust-animation-frame-tests
+[98/119] Building CXX object focus-ring/CMakeFiles/cc-niri-focus-ring-hidpi-tests.dir/FocusRingStrokeItem.cpp.o
+[99/119] Linking CXX executable rust/cc-niri-rust-focus-fade-tests
+[100/119] Linking CXX executable rust/cc-niri-rust-motion-tests
+[101/119] Linking CXX executable rust/cc-niri-rust-scroll-tests
+[102/119] Linking CXX executable rust/cc-niri-rust-ring-context-tests
+[103/119] Linking CXX executable rust/cc-niri-rust-core-smoke-tests
+[104/119] Linking CXX executable bin/cc-niri-scroll-viewport-tests
+[105/119] Linking CXX shared module bin/kwin/effects/plugins/cc-niri-viewport-clip.so
+[106/119] Linking CXX executable bin/cc-niri-viewport-motion-tests
+[107/119] Linking CXX shared module bin/kwin/effects/plugins/cc-niri-focus-ring.so
+[108/119] Linking CXX executable bin/cc-niri-workspace-projection-tests
+[109/119] Linking CXX executable bin/cc-niri-focus-ring-controller-tests
+[110/119] Linking CXX executable bin/cc-niri-focus-ring-corner-style-tests
+[111/119] Linking CXX executable bin/cc-niri-focus-ring-context-tests
+[112/119] Linking CXX executable bin/cc-niri-focus-ring-item-tests
+[113/119] Linking CXX executable bin/cc-niri-focus-ring-paint-tests
+[114/119] Linking CXX executable bin/cc-niri-focus-ring-viewport-clip-tests
+[115/119] Linking CXX executable bin/cc-niri-focus-ring-visual-transform-tests
+[116/119] Linking CXX executable bin/cc-niri-focus-ring-retarget-tests
+[117/119] Linking CXX executable bin/cc-niri-focus-ring-fade-tests
+[118/119] Linking CXX executable bin/cc-niri-focus-ring-presentation-tests
+[119/119] Linking CXX executable bin/cc-niri-focus-ring-hidpi-tests

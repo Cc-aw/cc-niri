@@ -24,22 +24,36 @@ DIM_INACTIVE_EFFECT_ID="diminactive"
 COMPAT_GROUP="CCNiriCompatibility"
 
 WITH_DOCK=false
-for option in "$@"; do
-    case "${option}" in
-        --with-dock) WITH_DOCK=true ;;
+PREPARED_MANIFEST=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --with-dock) WITH_DOCK=true; shift ;;
+        --prepared-manifest)
+            [[ $# -ge 2 ]] || { echo "--prepared-manifest requires a path" >&2; exit 2; }
+            PREPARED_MANIFEST="$2"; shift 2 ;;
         --help|-h)
-            echo "Usage: ./install.sh [--with-dock]"
-            echo "Install the core; --with-dock also installs and enables CC Scroll Tasks integration."
+            echo "Usage: ./install.sh [--with-dock] [--prepared-manifest PATH]"
+            echo "Install core; a verified P6 manifest reuses exact tested artifacts without rebuilding."
             exit 0 ;;
-        *) echo "Unknown option: ${option}" >&2; exit 2 ;;
+        *) echo "Unknown option: $1" >&2; exit 2 ;;
     esac
 done
+if [[ -n "$PREPARED_MANIFEST" ]] && $WITH_DOCK; then
+    echo "Prepared P6 candidates cover Dockless only." >&2; exit 2
+fi
+if [[ -n "$PREPARED_MANIFEST" ]]; then
+    python3 "$SCRIPT_DIR/tools/scroll-layout-v2-p6.py" verify "$PREPARED_MANIFEST" --current --require-validated
+fi
 
 command -v gdbus >/dev/null || { echo "gdbus is required." >&2; exit 1; }
 command -v cargo >/dev/null || { echo "cargo is required (Rust 1.99.0; see rust-toolchain.toml)." >&2; exit 1; }
 command -v rustc >/dev/null || { echo "rustc is required (Rust 1.99.0; see rust-toolchain.toml)." >&2; exit 1; }
 [[ -x /usr/bin/g++ ]] || { echo "/usr/bin/g++ (GNU GCC 16.x) is required." >&2; exit 1; }
-node "${SCRIPT_DIR}/tools/build.js"
+if [[ -n "$PREPARED_MANIFEST" ]]; then
+    node "${SCRIPT_DIR}/tools/build.js" --check
+else
+    node "${SCRIPT_DIR}/tools/build.js"
+fi
 
 command -v kpackagetool6 >/dev/null || {
     echo "kpackagetool6 is required." >&2
@@ -64,6 +78,7 @@ if [[ -z "$(find /usr/lib /usr/lib64 \
 fi
 
 
+if [[ -z "$PREPARED_MANIFEST" ]]; then
 cmake -S "${NATIVE_CLIP_DIR}" -B "${NATIVE_CLIP_BUILD_DIR}" \
     -DCMAKE_CXX_COMPILER=/usr/bin/g++ \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
@@ -91,6 +106,8 @@ if ${WITH_DOCK}; then
         -DCMAKE_INSTALL_PREFIX="${HOME}/.local" \
         -DKDE_INSTALL_PLUGINDIR=lib64/qt6/plugins
     cmake --build "${PLASMOID_BUILD_DIR}"
+fi
+
 fi
 
 # Preserve protocol 1/2 data before stopping the old Bridge during an upgrade.

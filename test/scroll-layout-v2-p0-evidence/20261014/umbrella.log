@@ -1,0 +1,74 @@
+-- CC-Niri Native Core: Rust production
+fatal: no upstream configured for branch 'scroll-layout-v2-p0'
+-- Found KF6: success (found suitable version "6.30.0", minimum required is "6.0") found components: CoreAddons
+-- Found KF6: success (found suitable version "6.30.0", minimum required is "6.0") found components: CoreAddons Config
+-- Configuring done (1.1s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/cc/cc_niri/build/native-r7-debug
+[1/29] Building Rust Native Core (dev)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+Test project /home/cc/cc_niri/build/native-r7-debug
+      Start  1: workspace-motion-rust-contract
+ 1/30 Test  #1: workspace-motion-rust-contract ..........   Passed    0.02 sec
+      Start  2: focus-ring-cpp-rust-differential
+ 2/30 Test  #2: focus-ring-cpp-rust-differential ........   Passed    0.12 sec
+      Start  3: spring-cpp-rust-differential
+ 3/30 Test  #3: spring-cpp-rust-differential ............   Passed    0.09 sec
+      Start  4: viewport-motion-cpp-rust-differential
+ 4/30 Test  #4: viewport-motion-cpp-rust-differential ...   Passed    1.54 sec
+      Start  5: native-protocol-cpp-rust-differential
+ 5/30 Test  #5: native-protocol-cpp-rust-differential ...   Passed    4.07 sec
+      Start  6: scroll-runtime-differential
+ 6/30 Test  #6: scroll-runtime-differential .............   Passed   27.73 sec
+      Start  7: scroll-animation-frame-context
+ 7/30 Test  #7: scroll-animation-frame-context ..........   Passed    0.03 sec
+      Start  8: focus-fade-shared-frame-contract
+ 8/30 Test  #8: focus-fade-shared-frame-contract ........   Passed    0.01 sec
+      Start  9: viewport-motion-rust-contract
+ 9/30 Test  #9: viewport-motion-rust-contract ...........   Passed    0.01 sec
+      Start 10: scroll-runtime-contract
+10/30 Test #10: scroll-runtime-contract .................   Passed    0.01 sec
+      Start 11: focus-ring-rust-context-contract
+11/30 Test #11: focus-ring-rust-context-contract ........   Passed    0.01 sec
+      Start 12: rust-core-ffi-smoke
+12/30 Test #12: rust-core-ffi-smoke .....................   Passed    0.01 sec
+      Start 13: native-cxx-toolchain-policy
+13/30 Test #13: native-cxx-toolchain-policy .............   Passed    0.04 sec
+      Start 14: appstreamtest
+14/30 Test #14: appstreamtest ...........................   Passed    0.01 sec
+      Start 15: scroll-viewport-runtime
+15/30 Test #15: scroll-viewport-runtime .................   Passed    0.01 sec
+      Start 16: viewport-spring-motion
+16/30 Test #16: viewport-spring-motion ..................   Passed    0.01 sec
+      Start 17: workspace-clip-barrier
+17/30 Test #17: workspace-clip-barrier ..................   Passed    0.00 sec
+      Start 18: workspace-projection-cache
+18/30 Test #18: workspace-projection-cache ..............   Passed    0.07 sec
+      Start 19: appstreamtest
+19/30 Test #19: appstreamtest ...........................   Passed    0.01 sec
+      Start 20: focus-ring-corner-style-lifecycle
+20/30 Test #20: focus-ring-corner-style-lifecycle .......   Passed    0.07 sec
+      Start 21: focus-ring-controller-qobject
+21/30 Test #21: focus-ring-controller-qobject ...........   Passed    0.46 sec
+      Start 22: focus-ring-context
+22/30 Test #22: focus-ring-context ......................   Passed    0.02 sec
+      Start 23: focus-ring-scene-item
+23/30 Test #23: focus-ring-scene-item ...................   Passed    0.06 sec
+      Start 24: focus-ring-isolated-paint
+24/30 Test #24: focus-ring-isolated-paint ...............   Passed    0.10 sec
+      Start 25: focus-ring-viewport-decoration-clip
+25/30 Test #25: focus-ring-viewport-decoration-clip .....   Passed    0.09 sec
+      Start 26: focus-ring-visual-transform
+26/30 Test #26: focus-ring-visual-transform .............   Passed    1.01 sec
+      Start 27: focus-ring-retarget
+27/30 Test #27: focus-ring-retarget .....................   Passed    5.55 sec
+      Start 28: focus-ring-fade-paint
+28/30 Test #28: focus-ring-fade-paint ...................   Passed    0.15 sec
+      Start 29: focus-ring-presentation
+29/30 Test #29: focus-ring-presentation .................   Passed    1.46 sec
+      Start 30: focus-ring-hidpi
+30/30 Test #30: focus-ring-hidpi ........................   Passed    3.85 sec
+
+100% tests passed, 0 tests failed out of 30
+
+Total Test time (real) =  46.60 sec

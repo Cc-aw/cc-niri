@@ -15,6 +15,7 @@
 #include <QDBusMessage>
 #include <QDBusPendingCall>
 #include <QDBusVariant>
+#include <cmath>
 
 Q_LOGGING_CATEGORY(logBridge, "cc.niri.bridge")
 
@@ -36,7 +37,7 @@ QString normalizedUuid(const QJsonValue &value)
 
 bool validColumns(const QJsonValue &value, QStringList *order = nullptr, QSet<QString> *owners = nullptr)
 {
-    if (!value.isArray()) return false;
+    if (!value.isArray() || value.toArray().size() > 256) return false;
     QSet<QString> seen;
     for (const QJsonValue &column : value.toArray()) {
         if (!column.isObject()) return false;
@@ -45,6 +46,48 @@ bool validColumns(const QJsonValue &value, QStringList *order = nullptr, QSet<QS
         seen.insert(uuid);
         if (owners) owners->insert(uuid);
         if (order) order->append(uuid);
+        const auto width = column.toObject().value(QStringLiteral("widthV2"));
+        if (!width.isUndefined()) {
+            const auto object = width.toObject();
+            const auto mode = object.value(QStringLiteral("widthMode")).toString();
+            const auto previous = object.value(QStringLiteral("previousNonFullWidthMode")).toString();
+            if (!width.isObject() || object.value(QStringLiteral("version")) != QJsonValue(1) ||
+                !QStringList{QStringLiteral("half"), QStringLiteral("twoThirds"), QStringLiteral("full")}.contains(mode) ||
+                !QStringList{QStringLiteral("half"), QStringLiteral("twoThirds")}.contains(previous)) return false;
+        }
+    }
+    return true;
+}
+
+bool validAnchorV2(const QJsonObject &state)
+{
+    const auto value = state.value(QStringLiteral("viewportAnchorV2"));
+    if (value.isUndefined() || value.isNull()) return true;
+    if (!value.isObject()) return false;
+    const auto anchor = value.toObject();
+    const auto delta = anchor.value(QStringLiteral("delta"));
+    if (anchor.value(QStringLiteral("version")) != QJsonValue(1) || !delta.isDouble() ||
+        !std::isfinite(delta.toDouble()) || std::abs(delta.toDouble()) > 10000000) return false;
+    const auto uuid = normalizedUuid(anchor.value(QStringLiteral("uuid")));
+    bool member = false;
+    for (const auto &column : state.value(QStringLiteral("columns")).toArray())
+        member |= normalizedUuid(column.toObject().value(QStringLiteral("uuid"))) == uuid;
+    if (uuid.isEmpty() || !member) return false;
+    const auto basis = anchor.value(QStringLiteral("basis")).toObject();
+    for (const auto &key : {QStringLiteral("gap"), QStringLiteral("physicalScale")}) {
+        const auto number = basis.value(key);
+        if (!number.isDouble() || !std::isfinite(number.toDouble()) || number.toDouble() < 0 ||
+            (key == QStringLiteral("physicalScale") && (number.toDouble() == 0 || number.toDouble() > 16)) ||
+            (key == QStringLiteral("gap") && number.toDouble() > 1000000)) return false;
+    }
+    for (const auto &key : {QStringLiteral("outputRect"), QStringLiteral("workingArea")}) {
+        const auto rect = basis.value(key).toObject();
+        for (const auto &field : {QStringLiteral("x"), QStringLiteral("y"), QStringLiteral("width"), QStringLiteral("height")}) {
+            const auto number = rect.value(field);
+            if (!number.isDouble() || !std::isfinite(number.toDouble()) ||
+                std::abs(number.toDouble()) > 10000000 ||
+                ((field == QStringLiteral("width") || field == QStringLiteral("height")) && number.toDouble() <= 0)) return false;
+        }
     }
     return true;
 }
@@ -56,28 +99,36 @@ bool validState(const QJsonObject &state)
         state.value(QStringLiteral("sessionId")).toString().isEmpty() ||
         state.value(QStringLiteral("generation")).toInteger(-1) < 0 ||
         !state.value(QStringLiteral("columns")).isArray()) return false;
-    if (protocol == 1) return true;
+    if (protocol == 1) return validColumns(state.value(QStringLiteral("columns"))) && validAnchorV2(state);
     const QString activeId = state.value(QStringLiteral("workspaceId")).toString().trimmed();
     if (activeId.isEmpty() || state.value(QStringLiteral("targetOutput")).toString().isEmpty() ||
-        !state.value(QStringLiteral("workspaces")).isArray()) return false;
+        !state.value(QStringLiteral("workspaces")).isArray() ||
+        state.value(QStringLiteral("workspaces")).toArray().size() > 256 || !validAnchorV2(state)) return false;
     QStringList activeOrder, rootOrder;
     if (!validColumns(state.value(QStringLiteral("columns")), &rootOrder)) return false;
     QSet<QString> ids, owners;
     QJsonArray activeColumns;
+    QJsonValue activeAnchor;
     for (const QJsonValue &value : state.value(QStringLiteral("workspaces")).toArray()) {
         if (!value.isObject()) return false;
         const QJsonObject workspace = value.toObject();
         const QString id = workspace.value(QStringLiteral("id")).toString().trimmed();
         QStringList order;
-        if (id.isEmpty() || ids.contains(id) || !validColumns(workspace.value(QStringLiteral("columns")), &order, &owners)) return false;
+        if (id.isEmpty() || ids.contains(id) || !validColumns(workspace.value(QStringLiteral("columns")), &order, &owners) || !validAnchorV2(workspace)) return false;
         ids.insert(id);
-        if (id == activeId) { activeOrder = order; activeColumns = workspace.value(QStringLiteral("columns")).toArray(); }
+        if (id == activeId) { activeOrder = order; activeColumns = workspace.value(QStringLiteral("columns")).toArray();
+            activeAnchor = workspace.value(QStringLiteral("viewportAnchorV2")); }
     }
     if (!ids.contains(activeId) || activeOrder != rootOrder) return false;
+    const auto rootAnchor = state.value(QStringLiteral("viewportAnchorV2"));
+    if (!(rootAnchor.isUndefined() || rootAnchor.isNull()) || !(activeAnchor.isUndefined() || activeAnchor.isNull()))
+        if (rootAnchor != activeAnchor) return false;
     const QJsonArray rootColumns = state.value(QStringLiteral("columns")).toArray();
     for (qsizetype index = 0; index < rootColumns.size(); ++index) {
         if (rootColumns.at(index).toObject().value(QStringLiteral("widthMode")).toString(QStringLiteral("half")) !=
             activeColumns.at(index).toObject().value(QStringLiteral("widthMode")).toString(QStringLiteral("half"))) return false;
+        if (rootColumns.at(index).toObject().value(QStringLiteral("widthV2")) !=
+            activeColumns.at(index).toObject().value(QStringLiteral("widthV2"))) return false;
     }
     return true;
 }
@@ -100,6 +151,11 @@ CCNiriBridge::CCNiriBridge(QObject *parent, const QString &statePath)
         ? QStandardPaths::writableLocation(QStandardPaths::GenericStateLocation) + QStringLiteral("/cc-niri/workspaces.json")
         : statePath)
 {
+    QDBusConnection::sessionBus().connect(QStringLiteral("org.kde.KWin"),
+        QStringLiteral("/ccNiriViewportMotion"), QStringLiteral("org.cc.NiriViewportMotion1"),
+        QStringLiteral("PartialFocusRequested"), this, SLOT(onPartialFocusRequested(QString)));
+    for (const auto &signal:{QStringLiteral("ColumnGeometryCompleted"),QStringLiteral("PartialScrollFrameReady")})
+        QDBusConnection::sessionBus().connect(QStringLiteral("org.kde.KWin"),QStringLiteral("/ccNiriViewportMotion"),QStringLiteral("org.cc.NiriViewportMotion1"),signal,this,SLOT(onScrollFrameReady(QString)));
     QFile file(m_statePath);
     if (!file.exists()) return;
     if (!file.open(QIODevice::ReadOnly) || file.size() > MaxStateBytes) {
@@ -145,6 +201,8 @@ bool CCNiriBridge::PublishState(const QString &json)
         m_recentCommandOrder.clear();
         m_lastMotionToken.clear();
         m_lastMotionTarget.clear();
+        m_recoveryStatus.clear();
+        m_restoreRequestId.clear();
     }
     m_sessionId = sessionId;
     m_generation = generation;
@@ -177,7 +235,8 @@ bool CCNiriBridge::PublishMotionPlan(const QString &json)
     const QJsonObject plan = document.object();
     const QString type = plan.value(QStringLiteral("type")).toString();
     const QJsonArray entries = plan.value(QStringLiteral("entries")).toArray();
-    if (type == QStringLiteral("SCROLL") || type == QStringLiteral("COLUMN_REINDEX")) {
+    if (type == QStringLiteral("SCROLL") || type == QStringLiteral("COLUMN_REINDEX") || type == QStringLiteral("PARTIAL_SCROLL")
+        || type == QStringLiteral("COLUMN_GEOMETRY")) {
         // Resolve membership against the last authoritative active workspace.
         // Never alter Wide completion tokens when publishing scroll telemetry.
         const auto state = QJsonDocument::fromJson(m_lastState.toUtf8()).object();
@@ -194,6 +253,11 @@ bool CCNiriBridge::PublishMotionPlan(const QString &json)
         const auto disposition = m_scrollPlans.observe(plan);
         if (disposition == CcNiri::ScrollPlanDisposition::Rejected) return false;
         if (disposition == CcNiri::ScrollPlanDisposition::Duplicate) return true;
+        m_partialEpoch = (type == QStringLiteral("PARTIAL_SCROLL") || type == QStringLiteral("COLUMN_GEOMETRY")) ? plan.value(QStringLiteral("epoch")).toInteger() : -1;
+        m_partialScopeRevision = (type == QStringLiteral("PARTIAL_SCROLL") || type == QStringLiteral("COLUMN_GEOMETRY")) ? plan.value(QStringLiteral("scopeRevision")).toInteger() : -1;
+        m_partialWorkspace = plan.value(QStringLiteral("workspaceId")).toString();
+        m_partialOutput = plan.value(QStringLiteral("targetOutput")).toString();
+        m_partialSession = plan.value(QStringLiteral("sessionId")).toString();
         Q_EMIT MotionPlanChanged(QString::fromUtf8(document.toJson(QJsonDocument::Compact)));
         return true;
     }
@@ -223,6 +287,7 @@ bool CCNiriBridge::PublishMotionPlan(const QString &json)
             .value(QStringLiteral("role")).toString() != QStringLiteral("target")) return false;
     m_lastMotionToken = type == QStringLiteral("PAIR_TO_WIDE")
         ? plan.value(QStringLiteral("transitionToken")).toString() : QString();
+    m_partialEpoch = -1;
     m_lastMotionTarget = type == QStringLiteral("PAIR_TO_WIDE")
         ? plan.value(QStringLiteral("targetWindowUuid")).toString() : QString();
     Q_EMIT MotionPlanChanged(QString::fromUtf8(
@@ -312,6 +377,37 @@ bool CCNiriBridge::EnsureVerticalDesktopLayout(int expectedCount)
     return bus.call(message, QDBus::Block, 1000).type() == QDBusMessage::ReplyMessage;
 }
 
+QString CCNiriBridge::GetRecoveryStatus() const
+{
+    return m_recoveryStatus;
+}
+
+bool CCNiriBridge::ReportRecoveryStatus(const QString &json)
+{
+    // Ephemeral transport proof: never add ACKs or request IDs to workspaces.json.
+    if (json.toUtf8().size() > 4096 || m_sessionId.isEmpty()) return false;
+    const auto document = QJsonDocument::fromJson(json.toUtf8());
+    if (!document.isObject()) return false;
+    const auto value = document.object();
+    const auto state = value.value(QStringLiteral("state")).toString();
+    const auto tokenValue = value.value(QStringLiteral("requestId"));
+    const auto token = tokenValue.toString();
+    const auto count = value.value(QStringLiteral("restoredCount")).toInteger(-1);
+    if (value.value(QStringLiteral("protocol")) != QJsonValue(1) ||
+        value.value(QStringLiteral("type")) != QJsonValue(QStringLiteral("recovery-status")) ||
+        value.value(QStringLiteral("sessionId")) != QJsonValue(m_sessionId) ||
+        (!tokenValue.isNull() && !tokenValue.isString()) || token.size() > 256 ||
+        token != m_restoreRequestId || count < 0 || count > 65536 ||
+        !QStringList{QStringLiteral("running"), QStringLiteral("pending"), QStringLiteral("restored"), QStringLiteral("blocked")}.contains(state)) return false;
+    const auto previous = QJsonDocument::fromJson(m_recoveryStatus.toUtf8()).object();
+    if (state == QStringLiteral("running") && !token.isEmpty()) return false;
+    if ((state == QStringLiteral("restored") || state == QStringLiteral("blocked")) &&
+        (previous.value(QStringLiteral("state")) != QJsonValue(QStringLiteral("pending")) ||
+         previous.value(QStringLiteral("requestId")) != tokenValue)) return false;
+    m_recoveryStatus = QString::fromUtf8(document.toJson(QJsonDocument::Compact));
+    return true;
+}
+
 QString CCNiriBridge::GetState() const
 {
     return m_lastState;
@@ -345,6 +441,9 @@ bool CCNiriBridge::RequestCommand(const QString &json)
     const bool dockFocusRight = type == QStringLiteral("focus-column-right") &&
         !command.value(QStringLiteral("windowUuid")).toString().isEmpty();
     const bool emergencyRestore = type == QStringLiteral("emergency-restore");
+    if (emergencyRestore && commandId.size() > 256) return false;
+    const bool partialFocus = type == QStringLiteral("focus-partial-column") && currentPartialRequest(command);
+    const bool frameReady = type == QStringLiteral("scroll-frame-ready") && currentScrollScope(command);
     const bool deferredDockScroll = type == QStringLiteral("advance-dock-scroll") &&
         !command.value(QStringLiteral("windowUuid")).toString().isEmpty() &&
         !command.value(QStringLiteral("transitionToken")).toString().isEmpty();
@@ -358,7 +457,7 @@ bool CCNiriBridge::RequestCommand(const QString &json)
         command.value(QStringLiteral("sessionId")).toString().isEmpty() ||
         command.value(QStringLiteral("baseGeneration")).toInteger(-1) < 0 ||
         (!reorder && !presentation && !dockFocusRight && !emergencyRestore &&
-         !deferredDockScroll && !deferredContextualWide)) {
+         !deferredDockScroll && !deferredContextualWide && !partialFocus && !frameReady)) {
         qCWarning(logBridge) << "rejecting command with invalid schema";
         return false;
     }
@@ -379,10 +478,72 @@ bool CCNiriBridge::RequestCommand(const QString &json)
 
     const QString compact =
         QString::fromUtf8(document.toJson(QJsonDocument::Compact));
-    if (emergencyRestore) m_pendingCommands.prepend(compact);
+    if (emergencyRestore) {
+        m_restoreRequestId = commandId;
+        m_recoveryStatus.clear();
+        m_pendingCommands.prepend(compact);
+    }
     else m_pendingCommands.enqueue(compact);
     wakeKWinCommandPump();
     return true;
+}
+
+bool CCNiriBridge::currentScrollScope(const QJsonObject &request) const
+{
+    if (m_partialEpoch < 0 || m_sessionId.isEmpty() || m_partialSession != m_sessionId
+        || !request.value(QStringLiteral("epoch")).isDouble()
+        || !cc_niri_json_integer_valid(request.value(QStringLiteral("epoch")).toDouble()).value
+        || !request.value(QStringLiteral("scopeRevision")).isDouble()
+        || !cc_niri_json_integer_valid(request.value(QStringLiteral("scopeRevision")).toDouble()).value
+        || request.value(QStringLiteral("sessionId")).toString() != m_sessionId
+        || request.value(QStringLiteral("epoch")).toInteger(-1) != m_partialEpoch
+        || request.value(QStringLiteral("scopeRevision")).toInteger(-1) != m_partialScopeRevision
+        || request.value(QStringLiteral("workspaceId")).toString() != m_partialWorkspace
+        || request.value(QStringLiteral("targetOutput")).toString() != m_partialOutput) return false;
+    const auto state = QJsonDocument::fromJson(m_lastState.toUtf8()).object();
+    if (state.value(QStringLiteral("workspaceId")).toString() != m_partialWorkspace
+        || state.value(QStringLiteral("targetOutput")).toString() != m_partialOutput) return false;
+    return true;
+}
+bool CCNiriBridge::currentPartialRequest(const QJsonObject &request) const
+{
+    if(!currentScrollScope(request)) return false;
+    const auto state=QJsonDocument::fromJson(m_lastState.toUtf8()).object();
+    const QString id = request.value(QStringLiteral("windowUuid")).toString();
+    if (id.isEmpty()) return false;
+    for (const auto &row : state.value(QStringLiteral("columns")).toArray())
+        if (normalizedUuid(row.toObject().value(QStringLiteral("uuid"))) == id) return true;
+    return false;
+}
+
+void CCNiriBridge::onPartialFocusRequested(const QString &json)
+{
+    // Relay a scoped intent through the existing bounded command pump. JS owns
+    // camera and activation; Bridge creates no focus or input authority.
+    if (json.toUtf8().size() > 4096) return;
+    const auto document = QJsonDocument::fromJson(json.toUtf8());
+    if (!document.isObject() || !currentPartialRequest(document.object())) return;
+    auto command = document.object();
+    command.insert(QStringLiteral("type"), QStringLiteral("focus-partial-column"));
+    command.insert(QStringLiteral("protocol"), 1);
+    command.insert(QStringLiteral("baseGeneration"), m_generation);
+    command.insert(QStringLiteral("commandId"), QStringLiteral("partial-focus/%1/%2/%3/%4")
+        .arg(m_sessionId).arg(m_partialScopeRevision).arg(m_partialEpoch).arg(command.value(QStringLiteral("windowUuid")).toString()));
+    RequestCommand(QString::fromUtf8(QJsonDocument(command).toJson(QJsonDocument::Compact)));
+}
+
+void CCNiriBridge::onScrollFrameReady(const QString &json)
+{
+    if(json.toUtf8().size()>4096) return;
+    const auto document=QJsonDocument::fromJson(json.toUtf8());
+    if(!document.isObject() || !currentScrollScope(document.object())) return;
+    auto command=document.object();
+    // This is a wakeup only. JS must query Native's typed proof again; public
+    // RequestCommand callers cannot manufacture configure/paint completion.
+    command.insert(QStringLiteral("type"),QStringLiteral("scroll-frame-ready"));
+    command.insert(QStringLiteral("protocol"),1);command.insert(QStringLiteral("baseGeneration"),m_generation);
+    command.insert(QStringLiteral("commandId"),QStringLiteral("scroll-ready/%1/%2/%3/%4/%5").arg(m_sessionId).arg(m_partialScopeRevision).arg(m_partialEpoch).arg(command.value(QStringLiteral("sampleSerial")).toInteger()).arg(document.object().value(QStringLiteral("type")).toString()));
+    RequestCommand(QString::fromUtf8(QJsonDocument(command).toJson(QJsonDocument::Compact)));
 }
 
 bool CCNiriBridge::RequestDeferredCommand(const QString &json, int delayMs)

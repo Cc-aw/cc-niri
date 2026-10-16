@@ -1,0 +1,79 @@
+{
+  "status": "PASS",
+  "checks": {
+    "working_area_reserves_client_grid": true,
+    "actual_frame_below_bar": true,
+    "painted_frame_below_bar": true,
+    "native_geometry_completed": true,
+    "recovery_running": true,
+    "two_click_policy": true,
+    "kwin_not_restarted": true,
+    "installed_script_matches": true
+  },
+  "observed_utc": "2026-10-16T06:02:09.001335+00:00",
+  "before": {
+    "official_working_area": {
+      "x": 0,
+      "y": 0,
+      "width": 2560,
+      "height": 1440
+    },
+    "visible_panel_frame": {
+      "x": 0,
+      "y": 0,
+      "width": 2560,
+      "height": 51
+    },
+    "window_top": 16
+  },
+  "after": {
+    "basis": {
+      "gap": 16,
+      "outputRect": {
+        "height": 1440,
+        "width": 2560,
+        "x": 0,
+        "y": 0
+      },
+      "physicalScale": 1.5,
+      "workingArea": {
+        "height": 1388,
+        "width": 2560,
+        "x": 0,
+        "y": 52
+      }
+    },
+    "painted_frames": [
+      {
+        "frameRect": {
+          "height": 1356,
+          "width": 2528,
+          "x": 16,
+          "y": 68
+        },
+        "visualRect": {
+          "height": 1356,
+          "width": 2528,
+          "x": 16,
+          "y": 68
+        },
+        "painted": true
+      }
+    ],
+    "kwin_pid": 2075
+  },
+  "commands": {
+    "install_exit_code": 0,
+    "sequence": "save-state → verified V2 stop → immutable install → V2 start"
+  },
+  "backup_directory": "/tmp/cc-niri-p6-20261016-panel-grid-fix",
+  "original_stable_backup": "/tmp/cc-niri-p6-20261016-deploy",
+  "raw_window_state": "private backup directory only",
+  "subjective_visual_acceptance": "PENDING",
+  "performance_and_memory": "NOT MEASURED",
+  "final_startup_errors": [],
+  "candidate_manifest_sha256": "0f03fcd2979e0d1187fca770b17dbc4e36cf921523e57a9d2c6c6db389bbb922",
+  "install_log_sha256": "504a7e97262ae0cc114eec989537cec80b2063639e0e0ad2ba0597216f3b9ade",
+  "kwin_log_sha256": "fd6134584d281f7d1a8e4007eabe57c58434e19003fccae0742a3f0790f7bb94",
+  "journal_exit_code": 0
+}

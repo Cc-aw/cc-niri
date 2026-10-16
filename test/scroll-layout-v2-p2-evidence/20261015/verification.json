@@ -1,0 +1,85 @@
+{
+  "captured_utc": "2026-10-15T01:27:55.548949+00:00",
+  "client_report_date": "2026-10-15",
+  "scope": "P2 offline model only; paint samples are synthetic test observations; installed SHA does not identify running ELF",
+  "head": "8056cfe6b4a023ac8dcbfb01e4495a5acf4c2c4e",
+  "branch": "scroll-layout-v2-p0",
+  "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+  "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+  "compiler": "g++ (GCC) 16.2.1 20260819 (Red Hat 16.2.1-2)",
+  "source_sha256": {
+    "src/kwin/layout/ViewportPolicy.js": "222517bea3d5c808e3a923fb2c85a55919eb1edb5a2c1d72a170c7e313037815",
+    "src/kwin/layout/ContinuousViewportController.js": "d0ca4447b948e9398080518f1edf895c930b4faee311be08689f7c6c38c938d2",
+    "src/kwin/layout/ColumnWidthController.js": "0e778dd5318530d7be0a3379138315d119a0607e3ed185052d875da3662a4596",
+    "tools/build.js": "13f12a081a276246e373bc07f743625f8f47618134499b3313a1b86629e2be4f",
+    "package/contents/code/main.js": "fe8f3d8a004f7880d373dd4644b83fd27a8c3aaa81c440b59f88134e6abe48a4",
+    "test/helpers/scroll-layout-v2-runtime.js": "0774d55eec09b571a8ca97fb4f7252ffa70b66d99b98f8d3fff7b69bca72ade4",
+    "test/scroll-layout-v2-runtime.test.js": "43ee27ced23090c9e243df62458f5200398f25c6a746e6e84236a6e530129a47"
+  },
+  "installed_artifacts_unchanged": [
+    {
+      "path": "/home/cc/.local/share/kwin/scripts/cc-niri-maximize/contents/code/main.js",
+      "before_sha256": "2154436e0c97251eecadadd13bb533dfedfd2146cb0dd1fff34693ad6c9814f2",
+      "after_sha256": "2154436e0c97251eecadadd13bb533dfedfd2146cb0dd1fff34693ad6c9814f2"
+    },
+    {
+      "path": "/home/cc/.local/libexec/cc-niri-bridge",
+      "before_sha256": "2f923a1a158fafb3bf61bf7234aa13562702d164ba97e904b116e3823d76b3f6",
+      "after_sha256": "2f923a1a158fafb3bf61bf7234aa13562702d164ba97e904b116e3823d76b3f6"
+    },
+    {
+      "path": "/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-viewport-clip.so",
+      "before_sha256": "1c8c3d0174c572e3412d4e1c968bb3811e23e718f9aff7b0be2bc541b6372726",
+      "after_sha256": "1c8c3d0174c572e3412d4e1c968bb3811e23e718f9aff7b0be2bc541b6372726"
+    },
+    {
+      "path": "/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-focus-ring.so",
+      "before_sha256": "994e939d1c9e314d150728b13dbc250adc462f5deef652bb857f2d76716defa4",
+      "after_sha256": "994e939d1c9e314d150728b13dbc250adc462f5deef652bb857f2d76716defa4"
+    }
+  ],
+  "commands": [
+    {
+      "argv": [
+        "node",
+        "tools/build.js"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "node",
+        "--test",
+        "test/scroll-layout-v2-runtime.test.js",
+        "test/scroll-layout-v2-geometry.test.js",
+        "test/scroll-layout-v2-width-cycle.test.js"
+      ],
+      "exit_code": 0,
+      "tests": 33,
+      "log": "model-tests.log"
+    },
+    {
+      "env": {
+        "CMAKE_BUILD_PARALLEL_LEVEL": "2"
+      },
+      "argv": [
+        "node",
+        "tools/check.js",
+        "--native"
+      ],
+      "exit_code": 0,
+      "js_test_files": 111,
+      "node_tests": 164,
+      "rust_tests": 71,
+      "ctest_counts": {
+        "bridge": 18,
+        "clip": 18,
+        "ring": 25
+      },
+      "log": "native-gate.log"
+    }
+  ],
+  "memory_performance_status": "NOT MEASURED",
+  "production_v2_status": "NOT READY",
+  "deployment_status": "NOT RUN"
+}

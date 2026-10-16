@@ -21,6 +21,8 @@ public Q_SLOTS:
     bool ReportMotionComplete(const QString &json);
     bool ReportMotionParked(const QString &json);
     QString GetState() const;
+    QString GetRecoveryStatus() const;
+    bool ReportRecoveryStatus(const QString &json);
     bool EnsureVerticalDesktopLayout(int expectedCount);
     bool RequestReorder(const QString &json);
     bool RequestCommand(const QString &json);
@@ -33,11 +35,24 @@ Q_SIGNALS:
     void MotionPlanChanged(const QString &json);
     void MotionParked(const QString &json);
 
+private Q_SLOTS:
+    void onPartialFocusRequested(const QString &json);
+    void onScrollFrameReady(const QString &json);
+
 private:
+    bool currentPartialRequest(const QJsonObject &request) const;
+    bool currentScrollScope(const QJsonObject &request) const;
+    qint64 m_partialEpoch = -1;
+    qint64 m_partialScopeRevision = -1;
+    QString m_partialWorkspace;
+    QString m_partialOutput;
+    QString m_partialSession;
     bool m_lastSaveSucceeded = false;
     QString m_statePath;
     QString m_lastState;
     QString m_sessionId;
+    QString m_recoveryStatus;
+    QString m_restoreRequestId;
     QString m_lastMotionToken;
     QString m_lastMotionTarget;
     QQueue<QString> m_pendingCommands;

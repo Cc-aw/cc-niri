@@ -1,0 +1,122 @@
+[
+  {
+    "name": "full-native-gate",
+    "command": [
+      "node",
+      "tools/check.js",
+      "--native"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 91.58,
+    "status": "PASS"
+  },
+  {
+    "name": "locked-release-rust",
+    "command": [
+      "cargo",
+      "test",
+      "--manifest-path",
+      "native/rust/Cargo.toml",
+      "--locked",
+      "--workspace",
+      "--release"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.12,
+    "status": "PASS"
+  },
+  {
+    "name": "old-bridge-additive-reader",
+    "command": [
+      "dbus-run-session",
+      "--",
+      "python3",
+      "test/bridge-scroll-layout-v2-persistence-integration.py",
+      "/home/cc/.local/libexec/cc-niri-bridge",
+      "--old-reader"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.19,
+    "status": "PASS"
+  },
+  {
+    "name": "100",
+    "command": [
+      "python3",
+      "tools/scroll-layout-v2-p3-probe.py",
+      "--isolated",
+      "--scenario",
+      "p5",
+      "--output",
+      "/home/cc/cc_niri/test/scroll-layout-v2-p5-evidence/20261016/full-p5/100"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 5.46,
+    "status": "PASS"
+  },
+  {
+    "name": "150",
+    "command": [
+      "python3",
+      "tools/scroll-layout-v2-p3-probe.py",
+      "--isolated",
+      "--scenario",
+      "p5",
+      "--scale",
+      "1.5",
+      "--output",
+      "/home/cc/cc_niri/test/scroll-layout-v2-p5-evidence/20261016/full-p5/150"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 6.64,
+    "status": "PASS"
+  },
+  {
+    "name": "150-fcitx5",
+    "command": [
+      "python3",
+      "tools/scroll-layout-v2-p3-probe.py",
+      "--isolated",
+      "--scenario",
+      "p5",
+      "--scale",
+      "1.5",
+      "--ime",
+      "--output",
+      "/home/cc/cc_niri/test/scroll-layout-v2-p5-evidence/20261016/full-p5/150-fcitx5"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 7.7,
+    "status": "PASS"
+  },
+  {
+    "name": "p4-regression-150-fcitx5",
+    "command": [
+      "python3",
+      "tools/scroll-layout-v2-p3-probe.py",
+      "--isolated",
+      "--scenario",
+      "p4",
+      "--scale",
+      "1.5",
+      "--ime",
+      "--output",
+      "/home/cc/cc_niri/test/scroll-layout-v2-p5-evidence/20261016/full-p5/p4-regression-150-fcitx5"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 15.5,
+    "status": "PASS"
+  },
+  {
+    "name": "final-complete-js-including-numbered-move-and-v2-recycle",
+    "command": [
+      "node",
+      "tools/check.js"
+    ],
+    "exit_code": 0,
+    "status": "PASS",
+    "tests": 220,
+    "test_files": 116,
+    "log": "final-js.log"
+  }
+]

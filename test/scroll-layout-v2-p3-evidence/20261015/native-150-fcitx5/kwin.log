@@ -1,0 +1,106 @@
+kwin_scene_opengl: eglInitialize failed
+kwin_scene_opengl: Error during eglInitialize  "EGL_NOT_INITIALIZED"
+kwin_scene_opengl: eglInitialize failed
+kwin_scene_opengl: Error during eglInitialize  "EGL_NOT_INITIALIZED"
+Accepting client connections on sockets: QList("cc-niri-p0")
+kwin_screencast: Failed to connect PipeWire context
+ShapeCorners: loading shaders...
+ShapeCorners: shaders loaded.
+ShapeCorners: Writing Breeze config
+I2026-10-15 10:54:18.275827 instance.cpp:669] Starting fcitx5 5.1.23
+I2026-10-15 10:54:18.281135 instance.cpp:1448] Override Enabled Addons: {classic}
+I2026-10-15 10:54:18.281156 instance.cpp:1449] Override Disabled Addons: {notifications, clipboard, cloudpinyin}
+I2026-10-15 10:54:18.285046 addonmanager.cpp:208] Loaded addon imselector
+I2026-10-15 10:54:18.285198 addonmanager.cpp:208] Loaded addon unicode
+I2026-10-15 10:54:18.286664 addonmanager.cpp:208] Loaded addon quickphrase
+I2026-10-15 10:54:18.289560 addonmanager.cpp:208] Loaded addon xcb
+I2026-10-15 10:54:18.291145 addonmanager.cpp:208] Loaded addon wayland
+I2026-10-15 10:54:18.291356 addonmanager.cpp:208] Loaded addon waylandim
+I2026-10-15 10:54:18.291948 keyboard.cpp:229] Attempting to load keyboard from: ["/usr/share/xkeyboard-config-2"] Rule: evdev
+I2026-10-15 10:54:18.299472 addonmanager.cpp:208] Loaded addon keyboard
+I2026-10-15 10:54:18.299965 addonmanager.cpp:208] Loaded addon pinyinhelper
+I2026-10-15 10:54:18.301160 addonmanager.cpp:208] Loaded addon luaaddonloader
+I2026-10-15 10:54:18.301823 addonmanager.cpp:208] Loaded addon dbus
+I2026-10-15 10:54:18.302423 addonmanager.cpp:208] Loaded addon ibusfrontend
+I2026-10-15 10:54:18.303037 addonmanager.cpp:208] Loaded addon imeapi
+I2026-10-15 10:54:18.303437 addonmanager.cpp:208] Loaded addon dbusfrontend
+I2026-10-15 10:54:18.303936 addonmanager.cpp:208] Loaded addon fcitx4frontend
+I2026-10-15 10:54:18.304170 addonmanager.cpp:208] Loaded addon xim
+I2026-10-15 10:54:18.327359 inputmethodmanager.cpp:213] Found 749 input method(s) in addon keyboard
+I2026-10-15 10:54:18.327785 addonmanager.cpp:208] Loaded addon kimpanel
+I2026-10-15 10:54:18.328035 addonmanager.cpp:208] Loaded addon virtualkeyboard
+I2026-10-15 10:54:18.344134 classicui.cpp:110] Created classicui for wayland display:
+I2026-10-15 10:54:18.344165 addonmanager.cpp:208] Loaded addon classicui
+I2026-10-15 10:54:18.344460 addonmanager.cpp:208] Loaded addon notificationitem
+I2026-10-15 10:54:18.346675 dbusmodule.cpp:844] Service name change: org.fcitx.Fcitx5  :1.8
+I2026-10-15 10:54:18.347127 kimpanel.cpp:138] Kimpanel new owner: 
+I2026-10-15 10:54:18.347146 virtualkeyboard.cpp:230] VirtualKeyboard new owner: 
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] READY scrollRuntimeBackend= "Rust"
+cc.niri.focus.ring: [FOCUS_RING] READY isolated post-window border coreBackend= Rust
+I2026-10-15 10:54:18.485103 portalsettingmonitor.cpp:97] A new portal show up, start a new query.
+I2026-10-15 10:54:18.485150 portalsettingmonitor.cpp:97] A new portal show up, start a new query.
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"5132e224-b868-4939-8d84-c903a652c606\"},{\"columnId\":2,\"logicalX\":2348,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"7d1a1b59-cfd4-4ebf-bbf6-a103cf8c5386\"}],\"epoch\":1,\"issuedAt\":1792032858777,\"layoutRect\":{\"height\":1358,\"width\":2560,\"x\":0,\"y\":66},\"maxCamera\":1696,\"newScrollOffsetX\":212,\"oldScrollOffsetX\":212,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":1,\"sessionId\":\"p3-private\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"fde7e6da-d501-42c4-a95c-05714acb8b0b\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+I2026-10-15 10:54:19.524867 addonmanager.cpp:208] Loaded addon punctuation
+E2026-10-15 10:54:19.547486 pinyin.cpp:937] Failed to load pinyin history: io fail: iostream error
+I2026-10-15 10:54:19.550656 addonmanager.cpp:208] Loaded addon pinyin
+I2026-10-15 10:54:20.629633 addonmanager.cpp:208] Loaded addon fullwidth
+I2026-10-15 10:54:20.632707 addonmanager.cpp:208] Loaded addon chttrans
+I2026-10-15 10:54:20.637171 addonmanager.cpp:208] Loaded addon spell
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"5132e224-b868-4939-8d84-c903a652c606\"},{\"columnId\":2,\"logicalX\":2348,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"7d1a1b59-cfd4-4ebf-bbf6-a103cf8c5386\"}],\"epoch\":2,\"issuedAt\":1792032861824,\"layoutRect\":{\"height\":1358,\"width\":2560,\"x\":0,\"y\":66},\"maxCamera\":1696,\"newScrollOffsetX\":1060,\"oldScrollOffsetX\":212,\"protocol\":3,\"retargetOnly\":false,\"scopeRevision\":1,\"sessionId\":\"p3-private\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"fde7e6da-d501-42c4-a95c-05714acb8b0b\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "7d1a1b59-cfd4-4ebf-bbf6-a103cf8c5386"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"5132e224-b868-4939-8d84-c903a652c606\"},{\"columnId\":2,\"logicalX\":2348,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"7d1a1b59-cfd4-4ebf-bbf6-a103cf8c5386\"}],\"epoch\":3,\"issuedAt\":1792032864028,\"layoutRect\":{\"height\":1358,\"width\":2560,\"x\":0,\"y\":66},\"maxCamera\":1696,\"newScrollOffsetX\":212,\"oldScrollOffsetX\":1060,\"protocol\":3,\"retargetOnly\":false,\"scopeRevision\":1,\"sessionId\":\"p3-private\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"fde7e6da-d501-42c4-a95c-05714acb8b0b\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"5132e224-b868-4939-8d84-c903a652c606\"},{\"columnId\":2,\"logicalX\":2348,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"7d1a1b59-cfd4-4ebf-bbf6-a103cf8c5386\"}],\"epoch\":4,\"issuedAt\":1792032864109,\"layoutRect\":{\"height\":1358,\"width\":2560,\"x\":0,\"y\":66},\"maxCamera\":1696,\"newScrollOffsetX\":1060,\"oldScrollOffsetX\":212,\"protocol\":3,\"retargetOnly\":false,\"scopeRevision\":1,\"sessionId\":\"p3-private\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"fde7e6da-d501-42c4-a95c-05714acb8b0b\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"5132e224-b868-4939-8d84-c903a652c606\"},{\"columnId\":2,\"logicalX\":2348,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"7d1a1b59-cfd4-4ebf-bbf6-a103cf8c5386\"}],\"epoch\":5,\"issuedAt\":1792032865261,\"layoutRect\":{\"height\":1358,\"width\":2560,\"x\":0,\"y\":66},\"maxCamera\":1696,\"newScrollOffsetX\":212,\"oldScrollOffsetX\":1060,\"protocol\":3,\"retargetOnly\":false,\"scopeRevision\":1,\"sessionId\":\"p3-private\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"fde7e6da-d501-42c4-a95c-05714acb8b0b\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+ShapeCorners: Skipped writing Breeze config because the last change was 7 seconds ago.
+=========================
+Fcitx 5.1.23 -- Get Signal No.: 15
+Date: try "date -d @1792032865" if you are using GNU date ***
+ProcessID: 1186688
+/usr/bin/fcitx5(+0xd8c7) [0x556ea21b58c7]
+/lib64/libc.so.6(+0x19fb0) [0x7f6af1e20fb0]
+/lib64/libc.so.6(+0x7b352) [0x7f6af1e82352]
+/lib64/libc.so.6(+0x6f54c) [0x7f6af1e7654c]
+/lib64/libc.so.6(+0x6f594) [0x7f6af1e76594]
+/lib64/libc.so.6(epoll_wait+0x25) [0x7f6af1efd895]
+/lib64/libsystemd.so.0(sd_event_wait+0x1d4) [0x7f6af1d026a4]
+/lib64/libsystemd.so.0(sd_event_run+0x20b) [0x7f6af1d03adb]
+/lib64/libsystemd.so.0(sd_event_loop+0x8f) [0x7f6af1d03c6f]
+/lib64/libFcitx5Utils.so.2(_ZN5fcitx9EventLoop4execEv+0x2b) [0x7f6af2493f5b]
+/lib64/libFcitx5Core.so.7(_ZN5fcitx8Instance4execEv+0x5b) [0x7f6af255ce9b]
+/usr/bin/fcitx5(+0xb854) [0x556ea21b3854]
+/lib64/libc.so.6(+0x3681) [0x7f6af1e0a681]
+/lib64/libc.so.6(__libc_start_main+0x88) [0x7f6af1e0a798]
+/usr/bin/fcitx5(+0xcc15) [0x556ea21b4c15]
+I2026-10-15 10:54:25.418505 waylandmodule.cpp:405] Connection removed 
+I2026-10-15 10:54:25.418833 instance.cpp:1498] Save before exiting...
+I2026-10-15 10:54:25.419882 addonmanager.cpp:312] Unloading addon spell
+I2026-10-15 10:54:25.420010 addonmanager.cpp:312] Unloading addon chttrans
+I2026-10-15 10:54:25.420033 addonmanager.cpp:312] Unloading addon fullwidth
+I2026-10-15 10:54:25.420046 addonmanager.cpp:312] Unloading addon pinyin
+I2026-10-15 10:54:25.421606 addonmanager.cpp:312] Unloading addon punctuation
+I2026-10-15 10:54:25.421680 addonmanager.cpp:312] Unloading addon notificationitem
+I2026-10-15 10:54:25.421710 addonmanager.cpp:312] Unloading addon classicui
+I2026-10-15 10:54:25.422048 addonmanager.cpp:312] Unloading addon virtualkeyboard
+I2026-10-15 10:54:25.422066 addonmanager.cpp:312] Unloading addon kimpanel
+I2026-10-15 10:54:25.422078 addonmanager.cpp:312] Unloading addon xim
+I2026-10-15 10:54:25.422088 addonmanager.cpp:312] Unloading addon fcitx4frontend
+I2026-10-15 10:54:25.422124 addonmanager.cpp:312] Unloading addon dbusfrontend
+I2026-10-15 10:54:25.422156 addonmanager.cpp:312] Unloading addon imeapi
+I2026-10-15 10:54:25.422231 addonmanager.cpp:312] Unloading addon ibusfrontend
+I2026-10-15 10:54:25.422373 addonmanager.cpp:312] Unloading addon dbus
+I2026-10-15 10:54:25.422430 addonmanager.cpp:312] Unloading addon luaaddonloader
+I2026-10-15 10:54:25.422444 addonmanager.cpp:312] Unloading addon pinyinhelper
+I2026-10-15 10:54:25.425090 addonmanager.cpp:312] Unloading addon keyboard
+I2026-10-15 10:54:25.425219 addonmanager.cpp:312] Unloading addon waylandim
+I2026-10-15 10:54:25.425234 addonmanager.cpp:312] Unloading addon wayland
+I2026-10-15 10:54:25.425249 addonmanager.cpp:312] Unloading addon xcb
+I2026-10-15 10:54:25.425262 addonmanager.cpp:312] Unloading addon quickphrase
+I2026-10-15 10:54:25.425467 addonmanager.cpp:312] Unloading addon unicode
+I2026-10-15 10:54:25.425481 addonmanager.cpp:312] Unloading addon imselector
+kwin_scene_opengl: Could not delete render time query because no context is current
+kwin_scene_opengl: Could not delete render time query because no context is current

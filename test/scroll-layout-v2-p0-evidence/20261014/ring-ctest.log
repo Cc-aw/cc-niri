@@ -1,0 +1,9 @@
+Test project /home/cc/cc_niri/build/native-focus-ring
+    Start 7: focus-ring-viewport-decoration-clip
+1/2 Test #7: focus-ring-viewport-decoration-clip ...   Passed    0.12 sec
+    Start 8: focus-ring-visual-transform
+2/2 Test #8: focus-ring-visual-transform ...........   Passed    1.09 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =   1.22 sec

@@ -1,0 +1,15 @@
+[1/13] Building Rust Native Core (dev)
+   Compiling cc-niri-native-core v0.1.0 (/home/cc/cc_niri/native/rust/cc-niri-native-core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.30s
+[2/13] Linking CXX executable rust/cc-niri-workspace-motion-differential
+[3/13] Linking CXX executable rust/cc-niri-ring-differential
+[4/13] Linking CXX executable rust/cc-niri-motion-differential
+[5/13] Linking CXX executable rust/cc-niri-spring-differential
+[6/13] Linking CXX executable rust/cc-niri-protocol-differential
+[7/13] Linking CXX executable rust/cc-niri-scroll-differential
+[8/13] Linking CXX executable rust/cc-niri-rust-focus-fade-tests
+[9/13] Linking CXX executable rust/cc-niri-rust-animation-frame-tests
+[10/13] Linking CXX executable rust/cc-niri-rust-motion-tests
+[11/13] Linking CXX executable rust/cc-niri-rust-scroll-tests
+[12/13] Linking CXX executable rust/cc-niri-rust-ring-context-tests
+[13/13] Linking CXX executable rust/cc-niri-rust-core-smoke-tests

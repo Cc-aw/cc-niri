@@ -1,0 +1,36 @@
+[
+  {
+    "case": "wrong-rustc",
+    "command": [
+      "cmake",
+      "-S",
+      "native",
+      "-B",
+      "/tmp/cc-niri-p0-toolchain-ytpwwkfd/wrong-rustc-build",
+      "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+      "-DCC_NIRI_BUILD_KWIN_ADAPTERS=OFF",
+      "-DCC_NIRI_RUSTC_EXECUTABLE=/tmp/cc-niri-p0-toolchain-ytpwwkfd/wrong-rustc"
+    ],
+    "exit_code": 1,
+    "stdout": "-- The CXX compiler identification is GNU 16.2.1\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/g++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring incomplete, errors occurred!\n",
+    "stderr": "CMake Error at rust/CMakeLists.txt:34 (message):\n  CC-Niri requires Rust 1.99.0 exactly; found rustc 1.98.0 (P0 rejection\n  fixture).  Check PATH and the cached CC_NIRI_RUSTC_EXECUTABLE.\n\n\n",
+    "status": "PASS_EXPECTED_REJECTION"
+  },
+  {
+    "case": "wrong-cargo",
+    "command": [
+      "cmake",
+      "-S",
+      "native",
+      "-B",
+      "/tmp/cc-niri-p0-toolchain-ytpwwkfd/wrong-cargo-build",
+      "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+      "-DCC_NIRI_BUILD_KWIN_ADAPTERS=OFF",
+      "-DCC_NIRI_CARGO_EXECUTABLE=/tmp/cc-niri-p0-toolchain-ytpwwkfd/wrong-cargo"
+    ],
+    "exit_code": 1,
+    "stdout": "-- The CXX compiler identification is GNU 16.2.1\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/g++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring incomplete, errors occurred!\n",
+    "stderr": "CMake Error at rust/CMakeLists.txt:44 (message):\n  CC-Niri requires Cargo 1.99.0 exactly; found cargo 1.98.0 (P0 rejection\n  fixture).  Check PATH and the cached CC_NIRI_CARGO_EXECUTABLE.\n\n\n",
+    "status": "PASS_EXPECTED_REJECTION"
+  }
+]

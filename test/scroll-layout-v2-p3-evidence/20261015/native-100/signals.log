@@ -1,0 +1,6 @@
+Monitoring signals on object /ccNiriViewportMotion owned by org.kde.KWin
+The name org.kde.KWin is owned by :1.0
+/ccNiriViewportMotion: org.cc.NiriViewportMotion1.PartialFocusRequested ('{"active":true,"clipPartial":true,"completed":true,"epoch":1,"scopeRevision":1,"sessionId":"p3-private","targetOutput":"Virtual-0","windowUuid":"e5b3573f-050a-4a02-bb79-58e28e6178d1","workspaceId":"80c778e9-87d4-4cc5-877e-5631ec475579"}',)
+/ccNiriViewportMotion: org.cc.NiriViewportMotion1.PartialFocusRequested ('{"active":true,"clipPartial":true,"completed":false,"epoch":2,"scopeRevision":1,"sessionId":"p3-private","targetOutput":"Virtual-0","windowUuid":"e5b3573f-050a-4a02-bb79-58e28e6178d1","workspaceId":"80c778e9-87d4-4cc5-877e-5631ec475579"}',)
+/ccNiriViewportMotion: org.cc.NiriViewportMotion1.PartialFocusRequested ('{"active":true,"clipPartial":true,"completed":true,"epoch":2,"scopeRevision":1,"sessionId":"p3-private","targetOutput":"Virtual-0","windowUuid":"5c8c8900-469b-4ff7-a6b0-f11e3559b5f6","workspaceId":"80c778e9-87d4-4cc5-877e-5631ec475579"}',)
+/ccNiriViewportMotion: org.cc.NiriViewportMotion1.PartialFocusRequested ('{"active":true,"clipPartial":true,"completed":true,"epoch":4,"scopeRevision":1,"sessionId":"p3-private","targetOutput":"Virtual-0","windowUuid":"5c8c8900-469b-4ff7-a6b0-f11e3559b5f6","workspaceId":"80c778e9-87d4-4cc5-877e-5631ec475579"}',)
