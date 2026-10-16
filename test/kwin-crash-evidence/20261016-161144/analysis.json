@@ -1,0 +1,36 @@
+{
+  "status": "ANALYZED_NOT_FIXED",
+  "crash_local": "2026-10-16T16:11:44+08:00",
+  "signal": "SIGSEGV",
+  "old_kwin_pid": 2075,
+  "restarted_kwin_pid": 896650,
+  "kwin_version": "6.7.5-1.fc44",
+  "qt_version": "6.11.2",
+  "confirmed_path": [
+    "InputRedirection::globalPointerChanged",
+    "ViewportInputClip::apply",
+    "KWin::InternalWindow::hitTest",
+    "QWindow::mask"
+  ],
+  "plugin_source": "native/viewport-clip/ViewportClipEffect.cpp:128",
+  "plugin_symbol_offset": "0x363cc (addr2line nearest line129)",
+  "likely_defect": "apply unconditionally hitTests every effect stacking entry before checking scroll ownership and without excluding deleted/internal windows; an InternalWindow backing QWindow lifetime is invalid at hitTest",
+  "certainty": {
+    "crash_and_plugin_path": "CONFIRMED by coredump stack",
+    "exact_internal_window_identity_and_handle_value": "NOT CONFIRMED: full core inaccessible; sudo needs interactive password",
+    "lifecycle_diagnosis": "STRONG INFERENCE from stack, local code and disassembly"
+  },
+  "oom_records_in_window": 0,
+  "nvidia_errors_first_local": "2026-10-16T16:11:48+08:00",
+  "nvidia_errors_message": "NVRM: VM: invalid mmap context",
+  "nvidia_errors_relation": "after crash; not evidence of initiating GPU fault",
+  "build_finished_local": "2026-10-16T15:50:06+08:00",
+  "private_test_finished_local": "2026-10-16T15:50:51+08:00",
+  "cleanup_deployed": false,
+  "installed_script_sha256": "035f146f690437257693e5141752bae78a9d8e0842043f03d0cb1e8e2f236490",
+  "checkout_cleanup_script_sha256": "66a0dbb953f556ee298d18ba7a4083a9eb875804ed844c6727c9b4584b5a1d4f",
+  "pre_cleanup_commit": "9cf6503d87c60505cfd164cdabf5aebd812d8461",
+  "installed_script_matches_pre_cleanup_commit": true,
+  "raw_evidence_private": "/tmp/cc-niri-crash-20261016-161144",
+  "actions": "read-only diagnostics; no runtime component reload/disable or production source edits"
+}
