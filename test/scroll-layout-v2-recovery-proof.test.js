@@ -34,6 +34,15 @@ test("missing restore ACK times out without claiming success; a closed window re
         assert.deepEqual(replies,[closed]); assert.equal(f.gate.pending,null); assert.equal(f.window.closed.size(),0);
     }
 });
+test("non-finite opacity cannot satisfy recovery and a diagnostic failure cannot prevent cleanup", () => {
+    const f=fixture(),replies=[];
+    f.window.frameGeometry=f.target;f.window.minimized=false;f.window.opacity=NaN;
+    f.gate.getWindowId=()=>"test";f.gate.warn=()=>{throw new Error("diagnostic failed");};
+    f.gate.wait([{window:f.window,target:f.target,opacity:1,minimized:false}],v=>replies.push(v));
+    assert.deepEqual(replies,[]);
+    f.timer()();assert.deepEqual(replies,[false]);assert.equal(f.gate.pending,null);
+    assert.equal(f.timer(),null);assert.equal(f.window.closed.size(),0);
+});
 test("global recovery cannot publish restored until Native retirement and client recovery proof", () => {
     let retire, client; const status = [];
     const recovery = new Recovery({ appState:{columns:[]}, windowStates:[], parking:{}, indexOfWindow:()=>-1,
@@ -49,6 +58,8 @@ test("unconfirmed Native cancel reports blocked and never writes restoration geo
     const recovery = new Recovery({ appState:{columns:[]}, windowStates:[], parking:{}, indexOfWindow:()=>-1,
         retire: done=>done(false), beforeRestore:()=>assert.fail("unsafe write"),onStatus:s=>status.push(s.state),warn:()=>{} });
     recovery.restoreAll("test","token");assert.deepEqual(status,["pending","blocked"]);
+    recovery.restoreAll("retry","retry-token");assert.deepEqual(status,["pending","blocked","pending","blocked"]);
+    assert.equal(recovery.obligations.size,0);
 });
 test("full generated V2 entry emits only transient proof after delayed real recovery frames", () => {
     const r=createRuntime({ScrollLayoutV2Enabled:true,MockV2Native:true,PrimaryWindowCount:5});r.paintV2();
@@ -61,14 +72,56 @@ test("full generated V2 entry emits only transient proof after delayed real reco
     assert.ok(r.published.every(s=>s.recovery===undefined && s.requestId===undefined));
     assert.equal(r.evaluate("recoveryCompletion.pending"),null);
 });
-test("a failed client restore remains blocked on retry instead of acknowledging cleared ownership flags", () => {
+test("a failed client restore retries the original obligations instead of acknowledging cleared ownership flags", () => {
     const r=createRuntime({ScrollLayoutV2Enabled:true,MockV2Native:true,PrimaryWindowCount:5});r.paintV2();
     const parked=r.a[4];parked.frameGeometry={...parked.frameGeometry,x:-6000};r.holdGeometry(parked);
     r.evaluate('emergencyRestoreAllWindows("first", "first-token")');
     r.evaluate('recoveryCompletion.pending.timer.callback()');
     assert.equal(r.evaluate("recovery.status.state"),"blocked");
     r.evaluate('emergencyRestoreAllWindows("retry", "retry-token")');
-    assert.equal(r.evaluate("recovery.status.state"),"blocked");
+    assert.equal(r.evaluate("recovery.status.state"),"pending");
     assert.equal(r.evaluate("recovery.status.requestId"),"retry-token");
+    assert.equal(r.evaluate('Array.from(recovery.obligations.values()).some(row => "window" in row)'),false);
+    r.evaluate('recoveryCompletion.pending.timer.callback()');
+    assert.equal(r.evaluate("recovery.status.state"),"blocked");
+    r.evaluate('emergencyRestoreAllWindows("second-retry", "second-retry-token")');
+    r.flushGeometry(parked);
+    assert.equal(r.evaluate("recovery.status.state"),"restored");
+    assert.equal(r.evaluate("recovery.status.requestId"),"second-retry-token");
     assert.equal(r.evaluate("recoveryCompletion.pending"),null);
+    assert.equal(r.evaluate("recovery.obligations.size"),0);
+});
+
+test("V2 recovery preserves accepted fractional-scale client frames instead of restoring stale sizes", () => {
+    const r=createRuntime({ScrollLayoutV2Enabled:true,MockV2Native:true,PrimaryWindowCount:5,
+        OutputScale:1.5,ClientBufferScale:1.5,ScrollLayoutTopGap:8});r.paintV2();
+    const parked=r.a[4];parked.frameGeometry={x:0,y:60,width:1256,height:1364};
+    const frame={...parked.frameGeometry};
+    r.evaluate('stateFor(workspace.windowList().find(w => w.internalId === "a4")).scrollLastVisibleGeometry = {x:100,y:60,width:800,height:1357}');
+    r.evaluate('emergencyRestoreAllWindows("fractional-restore", "fractional-token")');
+    assert.deepEqual({...parked.frameGeometry},frame);
+    assert.equal(r.evaluate("recovery.status.state"),"restored");
+    assert.equal(r.evaluate("recoveryCompletion.pending"),null);
+});
+
+test("V2 recovery preserves a full client's accepted width and panel-safe bounds", () => {
+    const r=createRuntime({ScrollLayoutV2Enabled:true,MockV2Native:true,PrimaryWindowCount:5,
+        OutputScale:1.5,ClientBufferScale:1.5,ScrollLayoutTopGap:8});r.paintV2();
+    const parked=r.a[4];parked.frameGeometry={x:16,y:60,width:2528,height:1364};
+    r.evaluate('emergencyRestoreAllWindows("full-restore", "full-token")');
+    assert.deepEqual({...parked.frameGeometry},{x:16,y:60,width:2528,height:1364});
+    assert.equal(r.evaluate("recovery.status.state"),"restored");
+});
+
+test("closed clients clear retry obligations without retaining destroyed windows", () => {
+    const r=createRuntime({ScrollLayoutV2Enabled:true,MockV2Native:true,PrimaryWindowCount:5});r.paintV2();
+    const parked=r.a[4];parked.frameGeometry={...parked.frameGeometry,x:-6000};r.holdGeometry(parked);
+    r.evaluate('emergencyRestoreAllWindows("first", "first-token")');
+    r.evaluate('recoveryCompletion.pending.timer.callback()');
+    assert.ok(r.evaluate("recovery.obligations.size")>0);
+    r.close(parked);
+    assert.equal(r.evaluate('recovery.obligations.has("a4")'),false);
+    r.evaluate('emergencyRestoreAllWindows("retry", "retry-token")');
+    assert.equal(r.evaluate("recovery.status.state"),"restored");
+    assert.equal(r.evaluate("recovery.obligations.size"),0);
 });

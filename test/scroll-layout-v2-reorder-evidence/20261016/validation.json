@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "js_tests": 237,
+  "js_files": 118,
+  "isolated_checks": 41,
+  "desktop": "DEPLOYED; startup verified; visual acceptance Pending",
+  "native_changed": false,
+  "sha256": {
+    "src/kwin/layout/ViewportPolicy.js": "89c155fe5b71377224e96ef0530956b4f901923da6e113f83a4b140e36a8bdca",
+    "src/kwin/layout/ContinuousViewportController.js": "9f9ef8947f3c648b85a7568ebbedb94b862f5bc3c3d402ecfdbc28e108b34a4d",
+    "package/contents/code/main.js": "1c268667612e053ce50b7fb722ea988bddd145d0b11b1cc72604191b8a24834d"
+  }
+}

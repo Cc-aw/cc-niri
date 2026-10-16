@@ -26,6 +26,21 @@ test("generated entry routes R/F, H/L, reorder and center through P4 typed ACKs"
     assert.ok(r.motionPlans.every(p => ["PARTIAL_SCROLL", "COLUMN_GEOMETRY"].includes(p.type)));
     assert.ok(r.nativeArms.some(p => p.type === "COLUMN_GEOMETRY")); check(r);
 });
+test("Win+Shift+H fits the half column swapped left of a centered 2/3 column", () => {
+    const r = fixture({ PrimaryWindowCount: 2 });
+    key(r, "CycleColumnWidth"); r.paintV2();
+    assert.equal(r.a[0].frameGeometry.x, 440);
+    key(r, "FocusNextColumn"); r.paintV2();
+    key(r, "MoveColumnLeft"); r.paintV2();
+    assert.deepEqual(r.ids(), ["a1", "a0"]);
+    assert.equal(r.workspace.activeWindow, r.a[1]);
+    assert.equal(r.a[1].frameGeometry.x, 16);
+    assert.equal(r.a[1].frameGeometry.width, 1256);
+    const plan = r.nativeArms.at(-1);
+    assert.equal(plan.type, "COLUMN_GEOMETRY");
+    assert.equal(plan.layoutRect.x + plan.entries.find(e => e.windowId === "a0").newLogicalX - plan.newScrollOffsetX, 1288);
+    check(r);
+});
 test("fullscreen releases Native before static writes and restores exact 2/3 preference", () => {
     const r = fixture(); key(r, "CycleColumnWidth"); r.paintV2();
     const before = r.state.columns[0].widthMode;

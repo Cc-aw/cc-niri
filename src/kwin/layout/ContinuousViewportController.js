@@ -125,7 +125,7 @@ class ContinuousViewportController {
             geometry: before.geometry, entries };
     }
 
-    batch(reason, mutate) {
+    batch(reason, mutate, options = {}) {
         if (!this.enabled) return false;
         if (this.busy) return mutate();
         const before = { workspaceId: this.state.activeWorkspaceId, output: this.state.targetOutput,
@@ -153,7 +153,8 @@ class ContinuousViewportController {
                 const paintedFocus = painted && focused && painted.entries.find(e => e.uuid === this.uuid(focused));
                 layout.cameraX = resolveV2Viewport(layout, { focusedIndex: this.store.focusedIndex(),
                     currentTarget: sameScope ? before.target : 0, painted, structural,
-                    paintedFocusRect: paintedFocus && paintedFocus.visualRect, anchor: this.anchor });
+                    paintedFocusRect: paintedFocus && paintedFocus.visualRect, anchor: this.anchor,
+                    preserveFocusedPosition: options.preserveFocusedPosition });
                 if (this.centerRequested && focused) layout.cameraX = Math.max(0, Math.min(layout.maxCamera,
                     focused.logicalX + focused.pixelWidth / 2 - this.geometry.workingArea.width / 2));
                 this.state.columns.forEach((column, i) => Object.assign(column, layout.columns[i]));
@@ -319,7 +320,7 @@ class ContinuousViewportController {
         if (uuids.some(id => !byUuid.has(id)) || uuids.every((id, i) => this.uuid(this.state.columns[i]) === id)) return false;
         return this.batch("column-reordered", () => {
             this.store.reorder(uuids.map(id => byUuid.get(id))); this.changed = true; return true;
-        });
+        }, { preserveFocusedPosition: false });
     }
 
     moveFocused(delta) {
@@ -327,7 +328,8 @@ class ContinuousViewportController {
         const index = this.store.focusedIndex();
         const next = index + delta;
         if (index < 0 || next < 0 || next >= this.state.columns.length) return false;
-        return this.batch("column-moved", () => { this.store.moveFocused(delta); this.changed = true; return true; });
+        return this.batch("column-moved", () => { this.store.moveFocused(delta); this.changed = true; return true; },
+            { preserveFocusedPosition: false });
     }
 
     setWidth(column, mode, reason = "column-width") {

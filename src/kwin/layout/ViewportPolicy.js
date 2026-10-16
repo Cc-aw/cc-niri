@@ -13,7 +13,10 @@ function resolveV2Viewport(layout, options) {
         if (anchor && Number.isFinite(options.anchor.delta)) camera = anchor.logicalX + options.anchor.delta;
     } else if (options.painted) {
         camera = options.painted.cameraX;
-        if (options.structural && focused && options.paintedFocusRect) {
+        // Insert/close/resize preserve the focused client's screen position.
+        // Reorder moves that client along the strip: retain the observed camera
+        // and fit its new slot, rather than carrying its old position to an edge.
+        if (options.structural && options.preserveFocusedPosition !== false && focused && options.paintedFocusRect) {
             camera = layout.geometry.workingArea.x + focused.logicalX - options.paintedFocusRect.x;
         }
     }

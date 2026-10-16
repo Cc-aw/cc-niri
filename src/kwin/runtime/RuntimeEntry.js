@@ -185,10 +185,14 @@ let connectedManagedOutputs = new Set();
 let scrollLayoutInitialized = false;
 const parkingManager = new ParkingManager({
     trackUserMinimized: runtimeConfig.scrollLayoutV2Enabled,
+    preserveClientGeometry: runtimeConfig.scrollLayoutV2Enabled,
     stateFor,
     getState: window => states.get(window),
     refreshSafeArea: refreshMainScreenState,
-    getSafeRect: () => mainScreenState.safeRect,
+    getSafeRect: () => {
+        const geometry = runtimeConfig.scrollLayoutV2Enabled ? v2Geometry() : null;
+        return geometry ? geometry.workingArea : mainScreenState.safeRect;
+    },
     debug,
 });
 const geometryCommitter = new GeometryCommitter({
@@ -309,6 +313,7 @@ function clearRuntimeTimer(handle) {
 }
 const recoveryCompletion = new RecoveryCompletionGate({
     getWindows: () => workspace.windowList(), sameRect,
+    getWindowId: window => normalizeWindowUuid(window.internalId), warn,
     setTimer: setRuntimeTimer, clearTimer: clearRuntimeTimer,
 });
 const recovery = new Recovery({
@@ -316,6 +321,8 @@ const recovery = new Recovery({
     windowStates: states,
     parking: parkingManager,
     indexOfWindow: window => columnStore.indexOfWindow(window),
+    getWindows: () => workspace.windowList(),
+    getWindowId: window => normalizeWindowUuid(window.internalId),
     waitForRestored: runtimeConfig.scrollLayoutV2Enabled ? (rows, done) => recoveryCompletion.wait(rows, done) : null,
     onStatus: runtimeConfig.scrollLayoutV2Enabled ? status => runtimeBridge.reportRecoveryStatus(status) : null,
     retire: runtimeConfig.scrollLayoutV2Enabled ? done => {
@@ -2244,6 +2251,7 @@ function setupWindow(window) {
     });
     connect(window.closed, () => {
         app.lifecycle.disconnectOwner(window);
+        recovery.forgetWindow(window);
         const wasMounted = columnIndexForWindow(window) >= 0;
         workspaceTransferController.onWindowClosed(window);
         removeColumn(window, "window-closed");

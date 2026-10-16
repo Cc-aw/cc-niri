@@ -119,6 +119,32 @@ test("P2 insert/move/reorder preserve IDs, focus identity, independent widths an
     assert.equal(r.controller.lastTarget.requiredCapability, "v2-column-geometry");
 });
 
+test("moving or reordering a half column past 2/3 fits its new position without centering", () => {
+    for (const delta of [-1, 1]) for (const reorder of [false, true]) {
+        const r = createV2Runtime();
+        const windows = seed(r, delta < 0 ? ["twoThirds", "half"] : ["half", "twoThirds"]);
+        const half = windows[delta < 0 ? 1 : 0], wide = windows[delta < 0 ? 0 : 1];
+        r.controller.focusWindow(wide);
+        r.paint();
+        r.controller.focusWindow(half);
+        const sample = r.paint(), focused = r.store.focusedColumn();
+        const epoch = r.transaction.currentEpoch();
+        assert.equal(reorder ? r.controller.reorder(ids(r).reverse()) : r.controller.moveFocused(delta), true);
+        const plan = r.controller.lastTarget;
+        assert.equal(r.store.focusedColumn(), focused);
+        assert.equal(r.transaction.currentEpoch(), epoch + 1);
+        assert.equal(plan.requiredCapability, "v2-column-geometry");
+        assert.deepEqual(plan.source.entries, sample.entries);
+        assert.equal(plan.entries.find(e => e.uuid === half.internalId).visualRect.x, delta < 0 ? 16 : 1288);
+        assert.deepEqual(r.state.columns.map(c => c.widthMode), delta < 0 ? ["half", "twoThirds"] : ["twoThirds", "half"]);
+        r.paint();
+        r.controller.focusWindow(wide);
+        r.paint();
+        assert.equal(r.controller.moveFocused(delta), true);
+        assert.equal(r.controller.lastTarget.entries.find(e => e.uuid === wide.internalId).visualRect.x, 440);
+    }
+});
+
 test("P2 empty -> first column and width shortcut use one event/epoch with no legacy transaction", () => {
     const r = createV2Runtime();
     assert.equal(r.mount([]), true);

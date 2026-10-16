@@ -37,6 +37,7 @@
         case "full": columnWidthController.toggleFull(); break;
         case "focus-next": focusRelativeColumn(1); break;
         case "focus-prev": focusRelativeColumn(-1); break;
+        case "move-left": moveFocusedColumn(-1); break;
         case "move-right": moveFocusedColumn(1); break;
         case "center": toggleFocusWide(window); break;
         case "fullscreen-enter": staticAction = true; window.fullScreen = true; break;
@@ -53,9 +54,11 @@
             staticAction = true;
             const sleeping = workspace.windowList().find(w => w.normalWindow && columnStore.indexOfWindow(w) < 0);
             if (!sleeping) throw new Error("missing bounded recovery fixture");
-            parkingManager.rememberVisibleGeometry(sleeping, copy(sleeping.frameGeometry));
+            const accepted = copy(sleeping.frameGeometry);
+            parkingManager.rememberVisibleGeometry(sleeping, Object.assign({}, accepted, { height: accepted.height + 1 }));
+            record({ kind: "p5-recovery-client", uuid: normalizeWindowUuid(sleeping.internalId), accepted });
             parkingManager.setVisibility(sleeping, false);
-            sleeping.frameGeometry = { x: -6000, y: 50, width: 800, height: 600 };
+            sleeping.frameGeometry = Object.assign({}, accepted, { x: -6000 });
             break;
         }
         case "stop": staticAction = true; app.stop(); break;

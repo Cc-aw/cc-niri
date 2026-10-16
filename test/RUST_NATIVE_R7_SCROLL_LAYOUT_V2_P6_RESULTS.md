@@ -19,3 +19,7 @@ P6实机后续纯JS修复：可见Plasma边缘面板避让与150%客户端尺寸
 独立顶部间距后续：纯JS235项、私有KWin37项通过，Native/FFI未变。新包已安装但热重载恢复确认blocked，当前旧布局暂停，待用户正常重新登录；详见[顶部结果](SCROLL_LAYOUT_V2_TOP_GAP_RESULTS.md)，不记新配置实机PASS。
 
 顶部调整最新状态：用户明确批准逐窗恢复确认后，已仅替换Script完成热恢复；顶部8生效，真实/painted几何核验PASS。Native插件、Bridge与KWin进程未重启，原自动ACK失败不改记通过，详见[最终顶部记录](SCROLL_LAYOUT_V2_TOP_GAP_RESULTS.md)。
+
+混合宽度换位后续：纯 JS 目标策略修复 half 左移到首列时意外居中；237 项 JS 与私有 150%+Fcitx5 KWin 41/41 通过，Native 实现未变。经用户本次明确人工恢复确认后仅替换 Script，部署和启动核验 PASS，实机换位目测 Pending；自动恢复 ACK 仍 blocked，不改记通过。见[换位结果](SCROLL_LAYOUT_V2_REORDER_RESULTS.md)。
+
+热重载后续修复：V2 恢复保留当前真实客户端尺寸并使用 V2 WorkingArea；超时后以 UUID/值类型账本重试原目标，仍要求真实 ACK 与已确认 Native 退休。241 项 JS、私有100% 41/41、150%+Fcitx5 44/44通过。正常部署后，实机四轮正常 restart 成功，其中补测两轮各有2个真实停放窗口；无人工恢复例外，原失败记录不改写。临时窗口已清理，最终 source有效完成、KWin未重启，资源预算仍NOT MEASURED。见[热重载结果](SCROLL_LAYOUT_V2_RELOAD_RESULTS.md)。

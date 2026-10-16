@@ -38,7 +38,7 @@ def run(e):
         source += "\n" + (root / "test/fixtures/p5-runtime-entry.js").read_text()
         path = base / f"p5-entry-{serial}.js"; path.write_text(source)
         before = len(records())
-        plugin_name = "cc-niri-maximize" if e.get("scenario") == "p6" and len(report.get("p5_runs", [])) == 2 else f"p5-entry-{serial}"
+        plugin_name = "cc-niri-maximize" if e.get("scenario") == "p6" and len(report.get("p5_runs", [])) >= 2 else f"p5-entry-{serial}"
         script = call("/Scripting", "org.kde.kwin.Scripting.loadScript", path, plugin_name)
         call(f"/Scripting/Script{script}", "org.kde.kwin.Script.run")
         row = latest("initial", before, 7)
@@ -98,7 +98,23 @@ def run(e):
         checks["full_entry_candidate_commits_real_text"] = any(r.get("kind") == "ime-text" and any(ord(c)>127 for c in r["text"]) for r in records())
         e["send"]("key", code=1, pressed=True); e["send"]("key", code=1, pressed=False)
         subprocess.run(["fcitx5-remote", "--check", "-c"], check=True, timeout=3)
-    focused = action("focus-next"); action("focus-prev")
+    focused = action("focus-next")
+    swapped = action("move-left")
+    half = next(c for c in swapped["columns"] if c["uuid"] == focused["focusedUuid"])
+    checks["half_swapped_left_of_two_thirds_fits_left_edge"] = half["widthMode"] == "half" and half["frame"]["x"] == 16 and half["frame"]["width"] == 1256 and swapped["activeUuid"] == half["uuid"] and not swapped["pending"]
+    intent = next(r["intent"] for r in reversed(records()) if r.get("kind") == "p5-target" and r["intent"]["epoch"] == swapped["epoch"])
+    request = json.dumps(dict(entries=[dict(windowId=row["uuid"], columnId=row["columnId"]) for row in intent["entries"]]))
+    def reorder_source():
+        # Same live membership-bound query used by production. Unbound telemetry
+        # can be invalid once outgoing clients are parked after completion.
+        source = json.loads(native("GetColumnGeometrySourceFor", request))
+        return source if source.get("valid") and source.get("epoch") == swapped["epoch"] else None
+    report["half_reorder_source"] = wait(reorder_source)
+    checks["half_reorder_native_source_valid"] = report["half_reorder_source"]["valid"]
+    checks["half_reorder_no_secondary_leak"] = e["capture"]("half-reorder-left", {})
+    swapped_back = action("move-right")
+    checks["half_swapped_right_fits_right_edge"] = next(c for c in swapped_back["columns"] if c["uuid"] == half["uuid"])["frame"]["x"] == 1288
+    action("focus-prev")
     checks["hl_uses_actual_client_paint_before_activation"] = focused["focusedUuid"] == focused["activeUuid"] and not focused["pending"]
     center = action("center")
     checks["meta_z_only_centers_without_wide_mutation"] = [c["widthMode"] for c in center["columns"]] == [c["widthMode"] for c in back["columns"]] and not any(c["persistentWide"] for c in center["columns"])
@@ -153,6 +169,22 @@ else:
         checks["p6_cli_unloads_script_only_after_recovery"] = not call("/Scripting", "org.kde.kwin.Scripting.isScriptLoaded", "cc-niri-maximize")
         checks["p6_cli_unloads_both_native_plugins_without_kwin_crash"] = e["owned"]("org.kde.KWin", e["kwin"]) and all(not call("/Effects", "org.kde.kwin.Effects.isEffectLoaded", plugin) for plugin in ["cc-niri-viewport-clip","cc-niri-focus-ring"])
         checks["p6_recovery_ack_not_in_durable_workspace_snapshot"] = "recovery-status" not in (base/"state/cc-niri/workspaces.json").read_text()
+        client = next(r for r in reversed(records()) if r.get("kind") == "p5-recovery-client")
+        actual = next(r for r in e["geometry"]("recovery-accepted-frame")["rows"] if r["uuid"] == client["uuid"])
+        checks["recovery_preserves_accepted_size_despite_stale_odd_height"] = all(actual["rect"][k] == client["accepted"][k] for k in ["width", "height"]) and not actual["minimized"]
+        report["p6_repeat_stops"] = []
+        sessions = {proof["sessionId"]}
+        for iteration in range(2):
+            for plugin in ["cc-niri-viewport-clip", "cc-niri-focus-ring"]:
+                assert call("/Effects", "org.kde.kwin.Effects.loadEffect", plugin)
+            load(True)
+            action("recovery-probe")
+            cli = subprocess.run(["bash", str(root/"cc-niri"), "stop"], env=environment, capture_output=True, text=True, timeout=15)
+            proof = json.loads(bridge("GetRecoveryStatus"))
+            report["p6_repeat_stops"].append(dict(exit_code=cli.returncode, stdout=cli.stdout, stderr=cli.stderr, proof=proof))
+            checks[f"p6_repeat_stop_{iteration+1}_fresh_session_and_exact_proof"] = cli.returncode == 0 and proof["state"] == "restored" and proof["sessionId"] not in sessions and proof["requestId"].startswith("stop-")
+            assert checks[f"p6_repeat_stop_{iteration+1}_fresh_session_and_exact_proof"], report["p6_repeat_stops"][-1]
+            sessions.add(proof["sessionId"])
     else: stop()
     checks["no_fixture_faults"] = not any(r.get("kind") == "p5-fault" for r in records())
     if e.get("scenario") != "p6": report["scroll_capture"] = json.loads(native("GetScrollFrameCapture"))

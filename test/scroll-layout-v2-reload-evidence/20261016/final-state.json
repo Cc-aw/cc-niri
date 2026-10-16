@@ -1,0 +1,83 @@
+{
+  "status": "PASS",
+  "native_source": {
+    "active": true,
+    "cameraX": 1696,
+    "clipPartial": true,
+    "completed": true,
+    "entries": [
+      {
+        "acknowledged": true,
+        "columnId": 2,
+        "frameRect": {
+          "height": 1364,
+          "width": 1256,
+          "x": 652,
+          "y": 60
+        },
+        "logicalX": 2348,
+        "owned": true,
+        "painted": true,
+        "velocityX": 0,
+        "velocityY": 0,
+        "visualRect": {
+          "height": 1364,
+          "width": 1256,
+          "x": 652,
+          "y": 60
+        },
+        "windowId": "b0c65f8b-d2e1-4088-8dfb-56fe609121ad"
+      },
+      {
+        "acknowledged": true,
+        "columnId": 1,
+        "frameRect": {
+          "height": 1364,
+          "width": 1680,
+          "x": 0,
+          "y": 60
+        },
+        "logicalX": 652,
+        "owned": true,
+        "painted": true,
+        "velocityX": 0,
+        "velocityY": 0,
+        "visualRect": {
+          "height": 1364,
+          "width": 1680,
+          "x": -1044,
+          "y": 60
+        },
+        "windowId": "943fc327-6f52-4474-84e7-50cbe17445a0"
+      }
+    ],
+    "epoch": 4,
+    "layoutRect": {
+      "height": 1364,
+      "width": 2560,
+      "x": 0,
+      "y": 60
+    },
+    "maxCamera": 1696,
+    "protocol": 4,
+    "sampleSerial": 2631,
+    "scopeRevision": 1,
+    "sessionId": "1a143943ef5-ca819807",
+    "targetOutput": "DP-1",
+    "type": "COLUMN_GEOMETRY_SOURCE",
+    "valid": true,
+    "viewport": {
+      "height": 1440,
+      "width": 2560,
+      "x": 0,
+      "y": 0
+    },
+    "workspaceId": "6770e9dc-2448-4c55-9db9-684f4cedd1ee"
+  },
+  "restore_logs": [
+    "[cc-niri-maximize] [recovery] EMERGENCY_RESTORE count=2 reason=bridge-unload",
+    "[cc-niri-maximize] [recovery] EMERGENCY_RESTORE count=2 reason=bridge-unload"
+  ],
+  "failures": [],
+  "temporary_windows_remaining": 0
+}

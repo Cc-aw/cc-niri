@@ -1,0 +1,29 @@
+{
+  "reason": "Unbound source telemetry may become invalid after outgoing clients park; corrected harness to use production membership-bound GetColumnGeometrySourceFor and wait for the matching epoch. No Native acceptance rules changed.",
+  "prior_attempts": [
+    {
+      "attempt": "100",
+      "status": "FAIL",
+      "error": null,
+      "failed_checks": [
+        "half_reorder_native_source_valid"
+      ]
+    },
+    {
+      "attempt": "100-final",
+      "status": "INCONCLUSIVE",
+      "error": "RuntimeError('P3 condition timed out')",
+      "failed_checks": []
+    },
+    {
+      "attempt": "150-final",
+      "status": "INCONCLUSIVE",
+      "error": "RuntimeError('P3 condition timed out')",
+      "failed_checks": []
+    }
+  ],
+  "final_results": {
+    "100": "PASS 41/41",
+    "150+Fcitx5": "PASS 44/44"
+  }
+}

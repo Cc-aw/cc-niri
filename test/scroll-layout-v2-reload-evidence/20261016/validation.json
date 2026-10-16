@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "js_tests": 241,
+  "js_files": 118,
+  "isolated": {
+    "100": 41,
+    "150+Fcitx5": 44
+  },
+  "isolated_cli_stops_per_scale": 3,
+  "source_sha256": {
+    "src/kwin/stability/ParkingManager.js": "9e1d0af32ea232de51d4c42c7d82a2574e9373dc5868f1d0f673d9851c091436",
+    "src/kwin/stability/Recovery.js": "e2dd2535fd5277b08227f064bfc34b5d54d94ea5caa00df8e11522c60a94d6d6",
+    "src/kwin/stability/RecoveryCompletionGate.js": "a02a954ea7dcad8f9e588ce7cc65b867c398836aa69a0f852bf39509b9190caf",
+    "src/kwin/runtime/RuntimeEntry.js": "d69783e6bce1909fde8a09b8e9428a183d1ddc263d6c4a79777f0cfe7c85e877",
+    "package/contents/code/main.js": "035f146f690437257693e5141752bae78a9d8e0842043f03d0cb1e8e2f236490"
+  },
+  "native_unchanged_files": 140,
+  "artifact_sha256": {
+    "build/bridge/cc-niri-bridge": "e970bb838b54525739a6b1e7d7721b54c3a8f4abacee2a9b48175bf70ce8b278",
+    "build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so": "7a8039ba94be81bda84b9bdd6bbba169cde548978c7da1643d377d0ed97700db",
+    "build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so": "8a832d78835047ccffb973369d05b756b0cbbf2ec1f6d91decaab800144577ac"
+  },
+  "resource_budget": "NOT MEASURED",
+  "live": "PASS: initial normal stop/deployment; four normal CLI restarts, last two with two actually parked clients each; fresh sessions and completed Native source; KWin unchanged; no manual ACK exception"
+}

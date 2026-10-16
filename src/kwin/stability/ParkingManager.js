@@ -8,6 +8,7 @@ class ParkingManager {
         this.getSafeRect = options.getSafeRect;
         this.debug = options.debug;
         this.trackUserMinimized = options.trackUserMinimized === true;
+        this.preserveClientGeometry = options.preserveClientGeometry === true;
     }
 
     owns(window) {
@@ -64,12 +65,15 @@ class ParkingManager {
         state.scrollVisuallyHidden = true;
     }
 
-    recoveryRect(windowState, fallbackIndex) {
+    recoveryRect(windowState, fallbackIndex, currentFrame = null) {
         this.refreshSafeArea();
         const safeRect = this.getSafeRect();
         if (!safeRect) return null;
-        const source = windowState.scrollLastVisibleGeometry;
-        if (source) {
+        // V2 parks real clients on-output. Restore their accepted size instead
+        // of reconfiguring to a stale size that may violate scale/size hints.
+        const valid = r => r && [r.x, r.y, r.width, r.height].every(Number.isFinite) && r.width > 0 && r.height > 0;
+        const source = valid(currentFrame) ? currentFrame : windowState.scrollLastVisibleGeometry;
+        if (valid(source)) {
             const width = Math.max(1, Math.min(Number(source.width), safeRect.width));
             const height = Math.max(1, Math.min(Number(source.height), safeRect.height));
             return {
@@ -97,7 +101,7 @@ class ParkingManager {
         if (!this.owns(window)) return false;
         let target = null;
         if (ensureAccessible && !window.fullScreen && !state.scrollUserMinimized) {
-            target = this.recoveryRect(state, fallbackIndex);
+            target = this.recoveryRect(state, fallbackIndex, this.preserveClientGeometry ? window.frameGeometry : null);
             if (target) {
                 state.internalChange = true;
                 try {

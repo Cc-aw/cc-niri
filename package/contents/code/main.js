@@ -1773,7 +1773,10 @@ function resolveV2Viewport(layout, options) {
         if (anchor && Number.isFinite(options.anchor.delta)) camera = anchor.logicalX + options.anchor.delta;
     } else if (options.painted) {
         camera = options.painted.cameraX;
-        if (options.structural && focused && options.paintedFocusRect) {
+        // Insert/close/resize preserve the focused client's screen position.
+        // Reorder moves that client along the strip: retain the observed camera
+        // and fit its new slot, rather than carrying its old position to an edge.
+        if (options.structural && options.preserveFocusedPosition !== false && focused && options.paintedFocusRect) {
             camera = layout.geometry.workingArea.x + focused.logicalX - options.paintedFocusRect.x;
         }
     }
@@ -1900,7 +1903,7 @@ class ContinuousViewportController {
             geometry: before.geometry, entries };
     }
 
-    batch(reason, mutate) {
+    batch(reason, mutate, options = {}) {
         if (!this.enabled) return false;
         if (this.busy) return mutate();
         const before = { workspaceId: this.state.activeWorkspaceId, output: this.state.targetOutput,
@@ -1928,7 +1931,8 @@ class ContinuousViewportController {
                 const paintedFocus = painted && focused && painted.entries.find(e => e.uuid === this.uuid(focused));
                 layout.cameraX = resolveV2Viewport(layout, { focusedIndex: this.store.focusedIndex(),
                     currentTarget: sameScope ? before.target : 0, painted, structural,
-                    paintedFocusRect: paintedFocus && paintedFocus.visualRect, anchor: this.anchor });
+                    paintedFocusRect: paintedFocus && paintedFocus.visualRect, anchor: this.anchor,
+                    preserveFocusedPosition: options.preserveFocusedPosition });
                 if (this.centerRequested && focused) layout.cameraX = Math.max(0, Math.min(layout.maxCamera,
                     focused.logicalX + focused.pixelWidth / 2 - this.geometry.workingArea.width / 2));
                 this.state.columns.forEach((column, i) => Object.assign(column, layout.columns[i]));
@@ -2094,7 +2098,7 @@ class ContinuousViewportController {
         if (uuids.some(id => !byUuid.has(id)) || uuids.every((id, i) => this.uuid(this.state.columns[i]) === id)) return false;
         return this.batch("column-reordered", () => {
             this.store.reorder(uuids.map(id => byUuid.get(id))); this.changed = true; return true;
-        });
+        }, { preserveFocusedPosition: false });
     }
 
     moveFocused(delta) {
@@ -2102,7 +2106,8 @@ class ContinuousViewportController {
         const index = this.store.focusedIndex();
         const next = index + delta;
         if (index < 0 || next < 0 || next >= this.state.columns.length) return false;
-        return this.batch("column-moved", () => { this.store.moveFocused(delta); this.changed = true; return true; });
+        return this.batch("column-moved", () => { this.store.moveFocused(delta); this.changed = true; return true; },
+            { preserveFocusedPosition: false });
     }
 
     setWidth(column, mode, reason = "column-width") {
@@ -4933,6 +4938,7 @@ class ParkingManager {
         this.getSafeRect = options.getSafeRect;
         this.debug = options.debug;
         this.trackUserMinimized = options.trackUserMinimized === true;
+        this.preserveClientGeometry = options.preserveClientGeometry === true;
     }
 
     owns(window) {
@@ -4989,12 +4995,15 @@ class ParkingManager {
         state.scrollVisuallyHidden = true;
     }
 
-    recoveryRect(windowState, fallbackIndex) {
+    recoveryRect(windowState, fallbackIndex, currentFrame = null) {
         this.refreshSafeArea();
         const safeRect = this.getSafeRect();
         if (!safeRect) return null;
-        const source = windowState.scrollLastVisibleGeometry;
-        if (source) {
+        // V2 parks real clients on-output. Restore their accepted size instead
+        // of reconfiguring to a stale size that may violate scale/size hints.
+        const valid = r => r && [r.x, r.y, r.width, r.height].every(Number.isFinite) && r.width > 0 && r.height > 0;
+        const source = valid(currentFrame) ? currentFrame : windowState.scrollLastVisibleGeometry;
+        if (valid(source)) {
             const width = Math.max(1, Math.min(Number(source.width), safeRect.width));
             const height = Math.max(1, Math.min(Number(source.height), safeRect.height));
             return {
@@ -5022,7 +5031,7 @@ class ParkingManager {
         if (!this.owns(window)) return false;
         let target = null;
         if (ensureAccessible && !window.fullScreen && !state.scrollUserMinimized) {
-            target = this.recoveryRect(state, fallbackIndex);
+            target = this.recoveryRect(state, fallbackIndex, this.preserveClientGeometry ? window.frameGeometry : null);
             if (target) {
                 state.internalChange = true;
                 try {
@@ -5065,6 +5074,12 @@ class Recovery {
         this.blocked = false;
         this.debug = options.debug;
         this.warn = options.warn || options.debug;
+        this.getWindows = options.getWindows;
+        this.getWindowId = options.getWindowId;
+        this.obligations = new Map(); // UUID + value DTOs only, never QObject references.
+        this.retired = !this.retire;
+        this.retryable = false;
+        this.restoredCount = 0;
     }
 
     report(state, restoredCount = 0) {
@@ -5076,13 +5091,25 @@ class Recovery {
         if (this.retiring || this.waiting) return 0;
         this.status = { state: "pending", requestId, restoredCount: 0 };
         this.onStatus(this.status);
-        if (this.blocked) { this.report("blocked"); return 0; }
+        if (this.blocked) {
+            if (this.retired && this.retryable) {
+                const live = new Map(this.getWindows().map(window => [this.getWindowId(window), window]));
+                const rows = [];
+                for (const [id, obligation] of this.obligations) {
+                    const window = live.get(id);
+                    if (window) rows.push(Object.assign({ window }, obligation));
+                    else this.obligations.delete(id);
+                }
+                this.checkRestored(rows, this.restoredCount);
+            } else this.report("blocked");
+            return 0;
+        }
         if (this.retire) {
             if (this.retiring) return 0;
             this.retiring = true;
             this.retire(confirmed => {
                 this.retiring = false;
-                if (confirmed === true) this.restoreReleased(reason);
+                if (confirmed === true) { this.retired = true; this.restoreReleased(reason); }
                 else { this.blocked = true; this.report("blocked"); this.warn(`[cc-stability] RESTORE_BLOCKED native ownership unconfirmed reason=${reason}`); }
             });
             return 0;
@@ -5102,12 +5129,31 @@ class Recovery {
             if (this.parking.release(window, reason, true, restored, row => requests.push(row))) restored += 1;
         });
         if (this.waitForRestored) {
-            this.waiting = true;
-            this.waitForRestored(requests, accepted => { this.waiting = false; this.blocked = accepted !== true;
-                this.report(accepted ? "restored" : "blocked", restored); });
+            this.retryable = Boolean(this.getWindows && this.getWindowId);
+            if (this.retryable) for (const row of requests) {
+                this.obligations.set(this.getWindowId(row.window), {
+                    target: row.target ? Object.assign({}, row.target) : null,
+                    opacity: row.opacity, minimized: row.minimized,
+                });
+            }
+            this.checkRestored(requests, restored);
         } else this.report("restored", restored);
         this.warn(`[cc-stability] EMERGENCY_RESTORE count=${restored} reason=${reason}`);
         return restored;
+    }
+
+    checkRestored(requests, restored) {
+        this.restoredCount = restored;
+        this.waiting = true;
+        this.waitForRestored(requests, accepted => {
+            this.waiting = false; this.blocked = accepted !== true;
+            if (accepted === true) { this.obligations.clear(); this.retryable = false; }
+            this.report(accepted ? "restored" : "blocked", restored);
+        });
+    }
+
+    forgetWindow(window) {
+        if (this.getWindowId) this.obligations.delete(this.getWindowId(window));
     }
 }
 
@@ -5121,11 +5167,27 @@ class RecoveryCompletionGate {
         if (this.pending) { done(false); return; }
         const pending = { rows: new Set(requests), disposers: [], timer: null };
         this.pending = pending;
-        const finish = accepted => {
+        const finish = (accepted, reason = "observer-error") => {
             if (this.pending !== pending) return;
             this.pending = null;
             if (pending.timer) this.clearTimer(pending.timer);
             pending.disposers.splice(0).forEach(dispose => { try { dispose(); } catch (_error) { /* destroyed */ } });
+            if (!accepted && this.warn) {
+                // One bounded failure report, never per-frame diagnostics.
+                try {
+                    const live = this.getWindows(), details = [];
+                    for (const row of pending.rows) {
+                        if (details.length >= 8) break;
+                        if (!live.includes(row.window)) continue;
+                        try {
+                            details.push({ windowId: this.getWindowId(row.window), target: row.target,
+                                actual: row.window.frameGeometry, opacity: Number(row.window.opacity),
+                                expectedOpacity: row.opacity, minimized: row.window.minimized, expectedMinimized: row.minimized });
+                        } catch (_error) { /* destroyed */ }
+                    }
+                    this.warn(`[cc-stability] RESTORE_ACK_FAILED reason=${reason} clients=${pending.rows.size} details=${JSON.stringify(details)}`);
+                } catch (_error) { /* diagnostics must not interrupt proof cleanup */ }
+            }
             pending.rows.clear();
             done(accepted);
         };
@@ -5136,7 +5198,8 @@ class RecoveryCompletionGate {
                 if (!windows.includes(row.window)) continue;
                 try {
                     if (row.target && !this.sameRect(row.window.frameGeometry, row.target)) return;
-                    if (Math.abs(Number(row.window.opacity) - row.opacity) > 0.000001 ||
+                    if (!Number.isFinite(Number(row.window.opacity)) || !Number.isFinite(row.opacity) ||
+                            Math.abs(Number(row.window.opacity) - row.opacity) > 0.000001 ||
                             row.window.minimized !== row.minimized) return;
                 } catch (_error) { finish(false); return; }
             }
@@ -5153,7 +5216,7 @@ class RecoveryCompletionGate {
                 const closed = () => { pending.rows.delete(row); check(); };
                 window.closed.connect(closed); pending.disposers.push(() => window.closed.disconnect(closed));
             }
-            pending.timer = this.setTimer(() => finish(false), this.timeoutMs || 3500);
+            pending.timer = this.setTimer(() => finish(false, "deadline"), this.timeoutMs || 3500);
             check();
         } catch (_error) { finish(false); }
     }
@@ -7286,10 +7349,14 @@ let connectedManagedOutputs = new Set();
 let scrollLayoutInitialized = false;
 const parkingManager = new ParkingManager({
     trackUserMinimized: runtimeConfig.scrollLayoutV2Enabled,
+    preserveClientGeometry: runtimeConfig.scrollLayoutV2Enabled,
     stateFor,
     getState: window => states.get(window),
     refreshSafeArea: refreshMainScreenState,
-    getSafeRect: () => mainScreenState.safeRect,
+    getSafeRect: () => {
+        const geometry = runtimeConfig.scrollLayoutV2Enabled ? v2Geometry() : null;
+        return geometry ? geometry.workingArea : mainScreenState.safeRect;
+    },
     debug,
 });
 const geometryCommitter = new GeometryCommitter({
@@ -7410,6 +7477,7 @@ function clearRuntimeTimer(handle) {
 }
 const recoveryCompletion = new RecoveryCompletionGate({
     getWindows: () => workspace.windowList(), sameRect,
+    getWindowId: window => normalizeWindowUuid(window.internalId), warn,
     setTimer: setRuntimeTimer, clearTimer: clearRuntimeTimer,
 });
 const recovery = new Recovery({
@@ -7417,6 +7485,8 @@ const recovery = new Recovery({
     windowStates: states,
     parking: parkingManager,
     indexOfWindow: window => columnStore.indexOfWindow(window),
+    getWindows: () => workspace.windowList(),
+    getWindowId: window => normalizeWindowUuid(window.internalId),
     waitForRestored: runtimeConfig.scrollLayoutV2Enabled ? (rows, done) => recoveryCompletion.wait(rows, done) : null,
     onStatus: runtimeConfig.scrollLayoutV2Enabled ? status => runtimeBridge.reportRecoveryStatus(status) : null,
     retire: runtimeConfig.scrollLayoutV2Enabled ? done => {
@@ -9345,6 +9415,7 @@ function setupWindow(window) {
     });
     connect(window.closed, () => {
         app.lifecycle.disconnectOwner(window);
+        recovery.forgetWindow(window);
         const wasMounted = columnIndexForWindow(window) >= 0;
         workspaceTransferController.onWindowClosed(window);
         removeColumn(window, "window-closed");

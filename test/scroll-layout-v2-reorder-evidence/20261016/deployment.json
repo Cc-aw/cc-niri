@@ -1,0 +1,149 @@
+{
+  "status": "PASS",
+  "backup": "/tmp/cc-niri-half-reorder-deploy-20261016-145838",
+  "authorization": "允许安全部署并重新加载",
+  "manual_authorization": "允许本次人工确认后重载脚本",
+  "old_script_sha256": "79f230fd099d029d457a5a119d988e113e644f47c73e43700f86e69a12a34314",
+  "candidate_sha256": "1c268667612e053ce50b7fb722ea988bddd145d0b11b1cc72604191b8a24834d",
+  "installed_sha256": "1c268667612e053ce50b7fb722ea988bddd145d0b11b1cc72604191b8a24834d",
+  "stop": {
+    "exit_code": 1,
+    "stdout": "",
+    "stderr": "cc-niri: Recovery not confirmed by the current runtime; keeping all components loaded.\n"
+  },
+  "manual_audit": {
+    "snapshot_ids": 11,
+    "live_managed_windows": 11,
+    "live_windows": 19,
+    "window_failures": [],
+    "native_scroll_active": false,
+    "native_workspace_active": false,
+    "native_handoff_active": false,
+    "recovery": {
+      "protocol": 1,
+      "requestId": "stop-808524-1792133918575487463",
+      "restoredCount": 3,
+      "sessionId": "1a1435bb04f-e7199597",
+      "state": "blocked",
+      "type": "recovery-status"
+    },
+    "scope": "actual visibility/accessibility only; does not satisfy or replace failed exact-geometry ACK"
+  },
+  "upgrade": {
+    "exit_code": 0,
+    "stdout": "Upgrading package from file: /home/cc/cc_niri/package\nSuccessfully upgraded /home/cc/.local/share/kwin/scripts/cc-niri-maximize/\n",
+    "stderr": ""
+  },
+  "new_script_id": 1,
+  "kwin_pid_before": 2075,
+  "kwin_pid_after": 2075,
+  "bridge_pid_before": 754130,
+  "bridge_pid_after": 754130,
+  "finished_utc": "2026-10-16T06:59:52.822829+00:00",
+  "recovery": {
+    "protocol": 1,
+    "requestId": null,
+    "restoredCount": 0,
+    "sessionId": "1a14382907f-a4b66e43",
+    "state": "running",
+    "type": "recovery-status"
+  },
+  "native_source": {
+    "active": true,
+    "cameraX": 1484,
+    "clipPartial": true,
+    "completed": true,
+    "entries": [
+      {
+        "acknowledged": true,
+        "columnId": 1,
+        "frameRect": {
+          "height": 1364,
+          "width": 1256,
+          "x": 0,
+          "y": 60
+        },
+        "logicalX": 652,
+        "owned": true,
+        "painted": true,
+        "velocityX": 0,
+        "velocityY": 0,
+        "visualRect": {
+          "height": 1364,
+          "width": 1256,
+          "x": -832,
+          "y": 60
+        },
+        "windowId": "b5847ff6-4949-42be-90ee-a444e6ccdd54"
+      },
+      {
+        "acknowledged": true,
+        "columnId": 2,
+        "frameRect": {
+          "height": 1364,
+          "width": 1680,
+          "x": 440,
+          "y": 60
+        },
+        "logicalX": 1924,
+        "owned": true,
+        "painted": true,
+        "velocityX": 0,
+        "velocityY": 0,
+        "visualRect": {
+          "height": 1364,
+          "width": 1680,
+          "x": 440,
+          "y": 60
+        },
+        "windowId": "e5c5bc26-0101-46c5-9c81-19fcefe7c32f"
+      },
+      {
+        "acknowledged": true,
+        "columnId": 3,
+        "frameRect": {
+          "height": 1364,
+          "width": 1256,
+          "x": 1304,
+          "y": 60
+        },
+        "logicalX": 3620,
+        "owned": true,
+        "painted": true,
+        "velocityX": 0,
+        "velocityY": 0,
+        "visualRect": {
+          "height": 1364,
+          "width": 1256,
+          "x": 2136,
+          "y": 60
+        },
+        "windowId": "4742f38e-c4a6-4e4c-9429-36464fc7f45e"
+      }
+    ],
+    "epoch": 1,
+    "layoutRect": {
+      "height": 1364,
+      "width": 2560,
+      "x": 0,
+      "y": 60
+    },
+    "maxCamera": 2968,
+    "protocol": 4,
+    "sampleSerial": 81175,
+    "scopeRevision": 1,
+    "sessionId": "1a14382907f-a4b66e43",
+    "targetOutput": "DP-1",
+    "type": "COLUMN_GEOMETRY_SOURCE",
+    "valid": true,
+    "viewport": {
+      "height": 1440,
+      "width": 2560,
+      "x": 0,
+      "y": 0
+    },
+    "workspaceId": "29e97a74-e944-460d-a829-b31a7b3c0502"
+  },
+  "desktop_visual_acceptance": "Pending",
+  "automatic_restore_ack": "BLOCKED; explicit one-time manual recovery approval used"
+}

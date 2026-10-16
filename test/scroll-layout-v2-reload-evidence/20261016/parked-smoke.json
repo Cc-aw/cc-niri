@@ -1,0 +1,34 @@
+{
+  "started": "2026-10-16 15:19:05",
+  "original_focus": "b0c65f8b-d2e1-4088-8dfb-56fe609121ad",
+  "rounds": [
+    {
+      "iteration": 1,
+      "columns": 4,
+      "parked_before": 2,
+      "exit_code": 0,
+      "stdout": "cc-niri stopped; parked windows restored.\ncc-niri started. Meta+J: down; Meta+K: up.\n",
+      "stderr": "Created symlink '/home/cc/.config/systemd/user/cc-scroll-dock-bridge.service' → '/home/cc/.config/systemd/user/cc-niri-bridge.service'.\nCreated symlink '/home/cc/.config/systemd/user/default.target.wants/cc-niri-bridge.service' → '/home/cc/.config/systemd/user/cc-niri-bridge.service'.\n",
+      "verified": {
+        "session": "1a143943a27-938160a7",
+        "native_completed": true,
+        "native_valid": true
+      }
+    },
+    {
+      "iteration": 2,
+      "columns": 4,
+      "parked_before": 2,
+      "exit_code": 0,
+      "stdout": "cc-niri stopped; parked windows restored.\ncc-niri started. Meta+J: down; Meta+K: up.\n",
+      "stderr": "Created symlink '/home/cc/.config/systemd/user/cc-scroll-dock-bridge.service' → '/home/cc/.config/systemd/user/cc-niri-bridge.service'.\nCreated symlink '/home/cc/.config/systemd/user/default.target.wants/cc-niri-bridge.service' → '/home/cc/.config/systemd/user/cc-niri-bridge.service'.\n",
+      "verified": {
+        "session": "1a143943ef5-ca819807",
+        "native_completed": true,
+        "native_valid": true
+      }
+    }
+  ],
+  "status": "PASS",
+  "temporary_windows_remaining": 0
+}
