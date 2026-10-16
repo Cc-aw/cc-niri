@@ -9,9 +9,7 @@ const PRESENTATION_NORMAL = "normal";
 const PRESENTATION_WIDE = "wide";
 const PRESENTATION_MAXIMIZED = "maximized";
 const WIDE_RATIO = 0.72;
-const COLUMN_WIDTH_THIRD = "third";
 const COLUMN_WIDTH_HALF = "half";
-const COLUMN_WIDTH_TWO_THIRDS = "twoThirds";
 const PARKING_MARGIN = 4096;
 const FLOATING_FOCUS_GUARD_MS = 1200;
 /* Park only after target geometry ACK and a conservative paint-motion grace.
@@ -953,10 +951,6 @@ function sameSizeNear(a, b) {
     return sizesNearlyEqual(a, b);
 }
 
-function orderedOutputs() {
-    return outputTopology.ordered();
-}
-
 function resolveTargetOutput() {
     return outputTopology.primary();
 }
@@ -988,12 +982,6 @@ function refreshMainScreenState() {
         ? safeRectFor(mainScreenState.targetOutput)
         : null;
     mainScreenState.innerGap = innerGap;
-}
-
-function widthForMode(mode) {
-    const safeRect = mainScreenState.safeRect;
-    if (!safeRect) return 1;
-    return computeColumnWidth(mode, safeRect.width, mainScreenState.innerGap);
 }
 
 function recomputeLogicalLayout() {
@@ -1117,18 +1105,6 @@ function parkingBaseX() {
     );
 }
 
-function applyColumnGeometry(column, target, reason) {
-    geometryCommitter.commitGeometry(column, target, reason);
-}
-
-function setColumnVisualVisibility(column, visible) {
-    parkingManager.setVisibility(column.window, visible);
-}
-
-function parkingRecoveryRect(windowState, fallbackIndex) {
-    return parkingManager.recoveryRect(windowState, fallbackIndex);
-}
-
 function releaseParkingOwnership(window, reason, ensureAccessible = false,
         fallbackIndex = 0) {
     return parkingManager.release(
@@ -1147,10 +1123,6 @@ function emergencyRestoreAllWindows(reason, requestId = null) {
 
 function beginLayoutTransaction(reason) {
     return layoutTransaction.begin(reason);
-}
-
-function validateLayoutInvariants(reason, epoch) {
-    return invariantChecker.check(reason, epoch);
 }
 
 function endLayoutTransaction(reason, epoch) {
@@ -1326,10 +1298,6 @@ function columnIndexForWindow(window) {
     return columnStore.indexOfWindow(window);
 }
 
-function resetPresentedWindowLayoutState() {
-    return presentationController.resetPresentedWindowLayoutState();
-}
-
 function clearPresentationState() {
     contextualViewport.cancelReveal();
     return presentationController.clear();
@@ -1349,10 +1317,6 @@ function beginDockScroll(column, reason) {
     if (!dockScrollController) return false;
     contextualViewport.cancelReveal();
     return dockScrollController.begin(column, reason);
-}
-
-function selectPersistentPresentation(column) {
-    return presentationController.selectPersistent(column);
 }
 
 function relayoutFocusedColumnTransition(column, reason, oldScrollOffsetX,
@@ -1424,24 +1388,6 @@ function addColumnAt(window, insertionIndex, reason) {
     debug(`[cc-scroll] ADD_WINDOW caption=${window.caption}` +
         ` column=${column.id} index=${index} width=${column.widthMode}` +
         ` reason=${reason}`);
-    return column;
-}
-
-function addInitialColumn(window) {
-    const column = addColumnAt(
-        window,
-        mainScreenState.columns.length,
-        "startup"
-    );
-    if (column) {
-        const windowState = stateFor(window);
-        adoptionController.transition(
-            window,
-            windowState,
-            ADOPTION_MANAGED,
-            "startup"
-        );
-    }
     return column;
 }
 
@@ -1665,10 +1611,6 @@ function adoptNewWindowAsColumn(window, reason, focusNew = true) {
     return true;
 }
 
-function setAdoptionPhase(window, windowState, phase, reason) {
-    adoptionController.transition(window, windowState, phase, reason);
-}
-
 function settleAdoptionGeometry(window, index, reason) {
     if (continuousLayout) {
         const column = mainScreenState.columns[index];
@@ -1845,18 +1787,6 @@ function toggleFocusWide(window) {
 function moveFocusedColumn(delta) {
     if (continuousLayout) return continuousLayout.ready() && continuousLayout.controller.moveFocused(delta);
     return reorderController.moveFocused(delta);
-}
-
-function detachColumnToFloating(window, reason) {
-    return floatingController.detach(window, reason);
-}
-
-function attachFloatingToColumns(window, reason) {
-    return floatingController.attach(window, reason);
-}
-
-function rememberFloatingWindow(window, guardFocus) {
-    floatingController.remember(window, guardFocus);
 }
 
 function toggleFloating(window) {

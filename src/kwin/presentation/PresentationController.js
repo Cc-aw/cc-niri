@@ -82,17 +82,6 @@ class PresentationController {
         this.viewport.pair();
     }
 
-    selectPersistent(column) {
-        const appState = this.getAppState();
-        const oldWindowUuid = appState.presentation.windowUuid;
-        const oldMode = appState.presentation.mode;
-        this.clear();
-        // Preference alone never selects a Wide viewport. Only a directional
-        // focus intent or an explicit Wide command may do that.
-        return oldWindowUuid !== appState.presentation.windowUuid ||
-            oldMode !== appState.presentation.mode;
-    }
-
     setMode(windowUuid, mode, reason, restoreViewport = null) {
         if (!this.isMode(mode)) return false;
         const appState = this.getAppState();

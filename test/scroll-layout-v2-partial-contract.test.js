@@ -122,7 +122,6 @@ test("P3 RuntimeBridge preserves additive schema and scopes optional focus dispa
     bridge.publishMotionPlan({ type: "PAIR_TO_WIDE" }, () => {});
     assert.equal(JSON.parse(calls.at(-1)[4]).protocol, 1);
     bridge.partialScrollCapability(() => {}); assert.equal(calls.at(-1)[3], "GetPartialScrollCapability");
-    bridge.partialPaintedState(() => {}); assert.equal(calls.at(-1)[3], "GetPartialPaintedState");
     const command = { protocol: 1, type: "focus-partial-column", commandId: "first-click",
         sessionId: bridge.sessionId(), baseGeneration: 0, workspaceId: "A", targetOutput: r.getPrimary().name,
         scopeRevision: r.controller.scopeRevision, epoch: r.state.geometryGeneration, windowUuid: "b" };

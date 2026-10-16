@@ -112,11 +112,6 @@ class RuntimeBridge {
             "GetPartialScrollCapability", callback);
     }
 
-    partialPaintedState(callback) {
-        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1",
-            "GetPartialPaintedState", callback);
-    }
-
     columnGeometryCapability(callback) {
         this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1", "GetColumnGeometryCapability", callback);
     }

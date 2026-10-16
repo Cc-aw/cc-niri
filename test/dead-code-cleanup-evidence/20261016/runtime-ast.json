@@ -1,0 +1,60 @@
+{
+  "status": "PASS",
+  "base": "9cf6503d87c60505cfd164cdabf5aebd812d8461",
+  "scope": "All retained runtime syntax identical after explicit dead declarations/state removals; comments and positions ignored",
+  "functions_removed": [
+    "orderedOutputs",
+    "widthForMode",
+    "applyColumnGeometry",
+    "setColumnVisualVisibility",
+    "parkingRecoveryRect",
+    "validateLayoutInvariants",
+    "resetPresentedWindowLayoutState",
+    "selectPersistentPresentation",
+    "addInitialColumn",
+    "setAdoptionPhase",
+    "detachColumnToFloating",
+    "attachFloatingToColumns",
+    "rememberFloatingWindow",
+    "v2DeviceRect",
+    "motionProfile",
+    "motionProfileDuration",
+    "widePairEdgeError"
+  ],
+  "variables_removed": [
+    "COLUMN_WIDTH_THIRD",
+    "COLUMN_WIDTH_TWO_THIRDS",
+    "MotionProfiles"
+  ],
+  "methods_removed": {
+    "StartupLayout": [
+      "orderWindows",
+      "restoreOffset"
+    ],
+    "RuntimeBridge": [
+      "partialPaintedState"
+    ],
+    "MotionController": [
+      "cancelAll"
+    ],
+    "PresentationController": [
+      "selectPersistent"
+    ]
+  },
+  "bundles": [
+    {
+      "file": "package/contents/code/main.js",
+      "before_bytes": 433383,
+      "after_bytes": 428958,
+      "saved_bytes": 4425,
+      "sha256": "66a0dbb953f556ee298d18ba7a4083a9eb875804ed844c6727c9b4584b5a1d4f"
+    },
+    {
+      "file": "effect/contents/code/main.js",
+      "before_bytes": 86859,
+      "after_bytes": 84187,
+      "saved_bytes": 2672,
+      "sha256": "8770db10e427a40462f03d87d9cfaea42d07c70108b31016459168f7ad00d38e"
+    }
+  ]
+}

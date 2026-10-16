@@ -178,6 +178,8 @@ function projectV2Column(column, geometry, cameraX) {
     return { visualRect, visibleRect, partiallyVisible };
 }
 
+/* cjs:start */
+// CommonJS verification helper; device mapping in production belongs to Native.
 // Round shared edges, not widths independently. Origin is output-local; logical
 // column widths/camera are never multiplied by scale in the model itself.
 function v2DeviceRect(rect, geometry) {
@@ -189,7 +191,6 @@ function v2DeviceRect(rect, geometry) {
     return { x, y, width: right - x, height: bottom - y };
 }
 
-/* cjs:start */
 module.exports = { createScrollLayoutGeometry, deriveV2Layout, computeV2ColumnWidth,
     effectiveScrollLayoutGap, clampV2Camera, centeredCamera, fittedCamera, focusV2Camera,
     projectV2Column, v2DeviceRect, v2ColumnLayoutRect };

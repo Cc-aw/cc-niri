@@ -1752,17 +1752,6 @@ function projectV2Column(column, geometry, cameraX) {
     return { visualRect, visibleRect, partiallyVisible };
 }
 
-// Round shared edges, not widths independently. Origin is output-local; logical
-// column widths/camera are never multiplied by scale in the model itself.
-function v2DeviceRect(rect, geometry) {
-    const scale = geometry.physicalScale;
-    const x = Math.round((rect.x - geometry.outputRect.x) * scale);
-    const y = Math.round((rect.y - geometry.outputRect.y) * scale);
-    const right = Math.round((rect.x + rect.width - geometry.outputRect.x) * scale);
-    const bottom = Math.round((rect.y + rect.height - geometry.outputRect.y) * scale);
-    return { x, y, width: right - x, height: bottom - y };
-}
-
 // Generated from src/kwin/layout/ViewportPolicy.js
 // JS target policy only. Painted facts are observations, never a second clock.
 function resolveV2Viewport(layout, options) {
@@ -4215,17 +4204,17 @@ class OutputTopology {
 }
 
 // Generated from src/kwin/runtime/StartupLayout.js
+// Legacy saved order for late arrivals only. WorkspaceMountController owns
+// startup membership and viewport restoration for the active workspace.
 class StartupLayout {
     constructor(options) {
         this.normalizeUuid = options.normalizeUuid;
         this.targetOutput = options.targetOutput;
         this.savedOrder = [];
-        this.anchor = null;
     }
 
     load(json) {
         this.savedOrder = [];
-        this.anchor = null;
         let snapshot;
         try {
             snapshot = JSON.parse(String(json || ""));
@@ -4242,29 +4231,7 @@ class StartupLayout {
             return false;
         }
         this.savedOrder = order;
-        const anchor = snapshot.viewportAnchor;
-        if (anchor && typeof anchor === "object") {
-            const uuid = this.normalizeUuid(anchor.uuid);
-            const delta = Number(anchor.delta);
-            if (order.includes(uuid) && Number.isFinite(delta) && delta >= 0) {
-                this.anchor = { uuid, delta };
-            }
-        }
         return true;
-    }
-
-    orderWindows(windows) {
-        const ranks = new Map(this.savedOrder.map((uuid, index) => [uuid, index]));
-        return windows.map((window, index) => ({ window, index }))
-            .sort((a, b) => {
-                const aRank = ranks.get(this.normalizeUuid(a.window.internalId));
-                const bRank = ranks.get(this.normalizeUuid(b.window.internalId));
-                if (aRank === undefined && bRank === undefined) return a.index - b.index;
-                if (aRank === undefined) return 1;
-                if (bRank === undefined) return -1;
-                return aRank - bRank;
-            })
-            .map(entry => entry.window);
     }
 
     insertionIndex(window, columns) {
@@ -4281,14 +4248,6 @@ class StartupLayout {
                 this.normalizeUuid(column.window.internalId))) lastSaved = index;
         });
         return lastSaved + 1;
-    }
-
-    restoreOffset(columns, fallbackOffset, bound) {
-        if (!this.anchor) return fallbackOffset;
-        const column = columns.find(item =>
-            this.normalizeUuid(item.window.internalId) === this.anchor.uuid);
-        if (!column) return fallbackOffset;
-        return bound(column.logicalX + this.anchor.delta);
     }
 }
 
@@ -5909,11 +5868,6 @@ class RuntimeBridge {
             "GetPartialScrollCapability", callback);
     }
 
-    partialPaintedState(callback) {
-        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1",
-            "GetPartialPaintedState", callback);
-    }
-
     columnGeometryCapability(callback) {
         this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1", "GetColumnGeometryCapability", callback);
     }
@@ -6233,17 +6187,6 @@ class PresentationController {
         appState.presentation.windowUuid = null;
         appState.presentation.mode = this.modes.normal;
         this.viewport.pair();
-    }
-
-    selectPersistent(column) {
-        const appState = this.getAppState();
-        const oldWindowUuid = appState.presentation.windowUuid;
-        const oldMode = appState.presentation.mode;
-        this.clear();
-        // Preference alone never selects a Wide viewport. Only a directional
-        // focus intent or an explicit Wide command may do that.
-        return oldWindowUuid !== appState.presentation.windowUuid ||
-            oldMode !== appState.presentation.mode;
     }
 
     setMode(windowUuid, mode, reason, restoreViewport = null) {
@@ -7173,9 +7116,7 @@ const PRESENTATION_NORMAL = "normal";
 const PRESENTATION_WIDE = "wide";
 const PRESENTATION_MAXIMIZED = "maximized";
 const WIDE_RATIO = 0.72;
-const COLUMN_WIDTH_THIRD = "third";
 const COLUMN_WIDTH_HALF = "half";
-const COLUMN_WIDTH_TWO_THIRDS = "twoThirds";
 const PARKING_MARGIN = 4096;
 const FLOATING_FOCUS_GUARD_MS = 1200;
 /* Park only after target geometry ACK and a conservative paint-motion grace.
@@ -8117,10 +8058,6 @@ function sameSizeNear(a, b) {
     return sizesNearlyEqual(a, b);
 }
 
-function orderedOutputs() {
-    return outputTopology.ordered();
-}
-
 function resolveTargetOutput() {
     return outputTopology.primary();
 }
@@ -8152,12 +8089,6 @@ function refreshMainScreenState() {
         ? safeRectFor(mainScreenState.targetOutput)
         : null;
     mainScreenState.innerGap = innerGap;
-}
-
-function widthForMode(mode) {
-    const safeRect = mainScreenState.safeRect;
-    if (!safeRect) return 1;
-    return computeColumnWidth(mode, safeRect.width, mainScreenState.innerGap);
 }
 
 function recomputeLogicalLayout() {
@@ -8281,18 +8212,6 @@ function parkingBaseX() {
     );
 }
 
-function applyColumnGeometry(column, target, reason) {
-    geometryCommitter.commitGeometry(column, target, reason);
-}
-
-function setColumnVisualVisibility(column, visible) {
-    parkingManager.setVisibility(column.window, visible);
-}
-
-function parkingRecoveryRect(windowState, fallbackIndex) {
-    return parkingManager.recoveryRect(windowState, fallbackIndex);
-}
-
 function releaseParkingOwnership(window, reason, ensureAccessible = false,
         fallbackIndex = 0) {
     return parkingManager.release(
@@ -8311,10 +8230,6 @@ function emergencyRestoreAllWindows(reason, requestId = null) {
 
 function beginLayoutTransaction(reason) {
     return layoutTransaction.begin(reason);
-}
-
-function validateLayoutInvariants(reason, epoch) {
-    return invariantChecker.check(reason, epoch);
 }
 
 function endLayoutTransaction(reason, epoch) {
@@ -8490,10 +8405,6 @@ function columnIndexForWindow(window) {
     return columnStore.indexOfWindow(window);
 }
 
-function resetPresentedWindowLayoutState() {
-    return presentationController.resetPresentedWindowLayoutState();
-}
-
 function clearPresentationState() {
     contextualViewport.cancelReveal();
     return presentationController.clear();
@@ -8513,10 +8424,6 @@ function beginDockScroll(column, reason) {
     if (!dockScrollController) return false;
     contextualViewport.cancelReveal();
     return dockScrollController.begin(column, reason);
-}
-
-function selectPersistentPresentation(column) {
-    return presentationController.selectPersistent(column);
 }
 
 function relayoutFocusedColumnTransition(column, reason, oldScrollOffsetX,
@@ -8588,24 +8495,6 @@ function addColumnAt(window, insertionIndex, reason) {
     debug(`[cc-scroll] ADD_WINDOW caption=${window.caption}` +
         ` column=${column.id} index=${index} width=${column.widthMode}` +
         ` reason=${reason}`);
-    return column;
-}
-
-function addInitialColumn(window) {
-    const column = addColumnAt(
-        window,
-        mainScreenState.columns.length,
-        "startup"
-    );
-    if (column) {
-        const windowState = stateFor(window);
-        adoptionController.transition(
-            window,
-            windowState,
-            ADOPTION_MANAGED,
-            "startup"
-        );
-    }
     return column;
 }
 
@@ -8829,10 +8718,6 @@ function adoptNewWindowAsColumn(window, reason, focusNew = true) {
     return true;
 }
 
-function setAdoptionPhase(window, windowState, phase, reason) {
-    adoptionController.transition(window, windowState, phase, reason);
-}
-
 function settleAdoptionGeometry(window, index, reason) {
     if (continuousLayout) {
         const column = mainScreenState.columns[index];
@@ -9009,18 +8894,6 @@ function toggleFocusWide(window) {
 function moveFocusedColumn(delta) {
     if (continuousLayout) return continuousLayout.ready() && continuousLayout.controller.moveFocused(delta);
     return reorderController.moveFocused(delta);
-}
-
-function detachColumnToFloating(window, reason) {
-    return floatingController.detach(window, reason);
-}
-
-function attachFloatingToColumns(window, reason) {
-    return floatingController.attach(window, reason);
-}
-
-function rememberFloatingWindow(window, guardFocus) {
-    floatingController.remember(window, guardFocus);
 }
 
 function toggleFloating(window) {

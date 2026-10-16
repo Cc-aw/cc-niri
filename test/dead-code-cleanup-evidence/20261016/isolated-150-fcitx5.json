@@ -1,0 +1,215 @@
+{
+  "status": "PASS",
+  "scope": "production Release Clip + Rust + Bridge + Ring, private virtual Mesa KWin; P0 raw injector only",
+  "scale": 1.5,
+  "ime": "fcitx5",
+  "artifacts": {
+    "build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so": "7a8039ba94be81bda84b9bdd6bbba169cde548978c7da1643d377d0ed97700db",
+    "build/bridge/cc-niri-bridge": "e970bb838b54525739a6b1e7d7721b54c3a8f4abacee2a9b48175bf70ce8b278",
+    "build/scroll-layout-v2-p0-fixture/plugins/kwin/effects/plugins/cc-niri-p0-input-fixture.so": "be0d6ef4f751c56c6e2ca2330f2e2e3609733118adf46c4de813787e1ecec990",
+    "build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so": "8a832d78835047ccffb973369d05b756b0cbbf2ec1f6d91decaab800144577ac"
+  },
+  "checks": {
+    "raw_injector_has_no_p0_projection": true,
+    "exact_build_tree_plugins_loaded": true,
+    "native_capability_explicit": true,
+    "bridge_requires_membership": true,
+    "actual_painted_camera_and_scope": true,
+    "p4_source_has_real_per_client_frames": true,
+    "p4_source_uses_actual_camera_and_pass": true,
+    "p4_source_preserves_natural_partial_visual": true,
+    "right_partial_strict_output": true,
+    "full_generated_entry_owns_live_four_client_model": true,
+    "real_entry_r_changes_active_to_two_thirds": true,
+    "actual_output_scale_preserved_in_snapshot": true,
+    "versioned_negative_anchor_published": true,
+    "real_entry_f_restores_previous_two_thirds": true,
+    "full_entry_real_fcitx5_candidate": true,
+    "full_entry_candidate_avoids_partial_focus": true,
+    "full_entry_candidate_commits_real_text": true,
+    "half_swapped_left_of_two_thirds_fits_left_edge": true,
+    "half_reorder_native_source_valid": true,
+    "half_reorder_no_secondary_leak": true,
+    "half_swapped_right_fits_right_edge": true,
+    "hl_uses_actual_client_paint_before_activation": true,
+    "meta_z_only_centers_without_wide_mutation": true,
+    "fullscreen_native_suspended": true,
+    "fullscreen_exact_width_restored": true,
+    "safe_area_maximize_separate_from_v2_full": true,
+    "dialog_never_adopted_or_reframed": true,
+    "jk_restores_signed_anchor_and_width": true,
+    "move_and_follow_preserves_versioned_width": true,
+    "stop_1_confirmed": true,
+    "v1_reads_projection_and_retains_v2_preference": true,
+    "v2_reenable_recovers_two_thirds_and_signed_view": true,
+    "root_and_active_workspace_width_metadata_identical": true,
+    "full_entry_secondary_output_stays_black": true,
+    "real_ring_still_draws_with_shared_native_frame": true,
+    "p6_real_cli_stop_succeeds_after_js_native_and_client_proof": true,
+    "p6_proof_matches_exact_live_cli_request": true,
+    "p6_cli_unloads_script_only_after_recovery": true,
+    "p6_cli_unloads_both_native_plugins_without_kwin_crash": true,
+    "p6_recovery_ack_not_in_durable_workspace_snapshot": true,
+    "recovery_preserves_accepted_size_despite_stale_odd_height": true,
+    "p6_repeat_stop_1_fresh_session_and_exact_proof": true,
+    "p6_repeat_stop_2_fresh_session_and_exact_proof": true,
+    "no_fixture_faults": true
+  },
+  "p6_cli_stop": {
+    "exit_code": 0,
+    "stdout": "cc-niri stopped; parked windows restored.\n",
+    "stderr": ""
+  },
+  "p6_recovery_proof": {
+    "protocol": 1,
+    "requestId": "stop-888318-1792137049690535176",
+    "restoredCount": 1,
+    "sessionId": "1a143b13356-37690863",
+    "state": "restored",
+    "type": "recovery-status"
+  },
+  "p6_repeat_stops": [
+    {
+      "exit_code": 0,
+      "stdout": "cc-niri stopped; parked windows restored.\n",
+      "stderr": "",
+      "proof": {
+        "protocol": 1,
+        "requestId": "stop-888457-1792137050233737093",
+        "restoredCount": 1,
+        "sessionId": "1a143b137bc-c4b04d99",
+        "state": "restored",
+        "type": "recovery-status"
+      }
+    },
+    {
+      "exit_code": 0,
+      "stdout": "cc-niri stopped; parked windows restored.\n",
+      "stderr": "",
+      "proof": {
+        "protocol": 1,
+        "requestId": "stop-888573-1792137050650414577",
+        "restoredCount": 1,
+        "sessionId": "1a143b13986-8f5ca3cb",
+        "state": "restored",
+        "type": "recovery-status"
+      }
+    }
+  ],
+  "half_reorder_source": {
+    "active": true,
+    "cameraX": 636,
+    "clipPartial": true,
+    "completed": true,
+    "entries": [
+      {
+        "acknowledged": true,
+        "columnId": 3,
+        "culled": false,
+        "frameRect": {
+          "height": 1408,
+          "width": 1256,
+          "x": 1304,
+          "y": 16
+        },
+        "hidden": true,
+        "logicalX": null,
+        "owned": false,
+        "painted": false,
+        "velocityX": 0,
+        "velocityY": 0,
+        "visualRect": null,
+        "windowId": "db998466-9fcf-44c1-a91c-be4fb19523d3"
+      },
+      {
+        "acknowledged": true,
+        "columnId": 4,
+        "culled": false,
+        "frameRect": {
+          "height": 1408,
+          "width": 1256,
+          "x": 1304,
+          "y": 16
+        },
+        "hidden": true,
+        "logicalX": null,
+        "owned": false,
+        "painted": false,
+        "velocityX": 0,
+        "velocityY": 0,
+        "visualRect": null,
+        "windowId": "8753ad6d-526d-4014-adac-6facc8e190a1"
+      },
+      {
+        "acknowledged": true,
+        "columnId": 1,
+        "culled": false,
+        "frameRect": {
+          "height": 1408,
+          "width": 1680,
+          "x": 880,
+          "y": 16
+        },
+        "hidden": false,
+        "logicalX": 1924,
+        "owned": true,
+        "painted": true,
+        "velocityX": 0,
+        "velocityY": 0,
+        "visualRect": {
+          "height": 1408,
+          "width": 1680,
+          "x": 1288,
+          "y": 16
+        },
+        "windowId": "d94bc8d7-c77e-416f-80e9-957359117498"
+      },
+      {
+        "acknowledged": true,
+        "columnId": 2,
+        "culled": false,
+        "frameRect": {
+          "height": 1408,
+          "width": 1256,
+          "x": 16,
+          "y": 16
+        },
+        "hidden": false,
+        "logicalX": 652,
+        "owned": true,
+        "painted": true,
+        "velocityX": 0,
+        "velocityY": 0,
+        "visualRect": {
+          "height": 1408,
+          "width": 1256,
+          "x": 16,
+          "y": 16
+        },
+        "windowId": "a1957398-2195-45a1-8bf9-174487fc2ae8"
+      }
+    ],
+    "epoch": 6,
+    "layoutRect": {
+      "height": 1408,
+      "width": 2560,
+      "x": 0,
+      "y": 16
+    },
+    "maxCamera": 4240,
+    "protocol": 4,
+    "sampleSerial": 185,
+    "scopeRevision": 1,
+    "sessionId": "1a143b119ee-c043a3ee",
+    "targetOutput": "Virtual-0",
+    "type": "COLUMN_GEOMETRY_SOURCE",
+    "valid": true,
+    "viewport": {
+      "height": 1440,
+      "width": 2560,
+      "x": 0,
+      "y": 0
+    },
+    "workspaceId": "7c08e667-3dd4-40ea-adbd-c95ab2d6ced4"
+  }
+}

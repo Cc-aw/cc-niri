@@ -21,12 +21,6 @@ function anchoredScaleTranslation(source, target, anchor) {
     };
 }
 
-function widePairEdgeError(wide, neighbor, side, gap) {
-    return side === "left"
-        ? wide.x - (neighbor.x + neighbor.width) - gap
-        : neighbor.x - (wide.x + wide.width) - gap;
-}
-
 function wideTimelineSample(armedAt, now, duration) {
     const total = Math.max(1, Number(duration) || 1);
     const elapsed = Math.max(0, Math.min(total, Number(now) - Number(armedAt)));
@@ -71,6 +65,13 @@ function widePairMotionSnapshot(type, wideRect, pairRect, side, gap) {
 }
 
 /* cjs:start */
+// Assertion helper for geometry verification, not a runtime animation policy.
+function widePairEdgeError(wide, neighbor, side, gap) {
+    return side === "left"
+        ? wide.x - (neighbor.x + neighbor.width) - gap
+        : neighbor.x - (wide.x + wide.width) - gap;
+}
+
 module.exports = {
     wideNeighborStart,
     anchoredScaleTranslation,

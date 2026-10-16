@@ -14,7 +14,7 @@ const mainSource = fs.readFileSync(
 assert.ok(mainSource.includes("const layoutTransaction = new LayoutTransaction"));
 assert.ok(mainSource.includes("function beginLayoutTransaction(reason)"));
 assert.ok(mainSource.includes("function endLayoutTransaction(reason, epoch)"));
-assert.ok(mainSource.includes("function validateLayoutInvariants(reason, epoch)"));
+assert.ok(mainSource.includes("audit: (reason, epoch) => stabilitySupervisor.audit(reason, epoch)"));
 
 const relayoutSource = mainSource.slice(
     mainSource.indexOf("function relayout(reason, scrollOffsets,"),

@@ -1,6 +1,6 @@
 # cc-niri × Quickshell 视觉与动画升级：模块化 Codex 实现设计
 
-> **归档状态（2026-10-01）：** 部分实现；V1 MotionProfiles 已完成（bde8a03），V2–V11 尚未完整实施。
+> **当前状态（2026-10-16）：** V1 曾新增独立 MotionProfiles 表（bde8a03），后续确认只有自检测试读取、生产动画从未消费，已在无用代码清理中移除。实际 MotionTokens、控制器与动画参数保留。下文保留原设计作为历史提案，不能据此认定当前存在 MotionProfiles 运行时层；V2–V11 尚未完整实施。
 > 文档状态与阅读顺序见 [文档索引](../README.md)。原设计正文保留作为历史依据。
 
 > **目标仓库：** `https://github.com/Cc-aw/cc-niri`  

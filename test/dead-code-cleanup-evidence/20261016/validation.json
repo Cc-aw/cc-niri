@@ -1,0 +1,60 @@
+{
+  "status": "PASS",
+  "base": "9cf6503d87c60505cfd164cdabf5aebd812d8461",
+  "scope": "Confirmed dead JS code and obsolete bundling entry only",
+  "runtime_bundle_bytes_saved": 7097,
+  "js": {
+    "status": "PASS",
+    "tests": 240,
+    "files": 117
+  },
+  "native_gate": {
+    "status": "PASS",
+    "rust": "1.99.0",
+    "compiler": "/usr/bin/g++ GNU16.2.1",
+    "parallel": 2,
+    "fmt": "PASS",
+    "clippy": "PASS --locked workspace all-targets -D warnings",
+    "rust_tests": 109,
+    "ctest": {
+      "bridge": 18,
+      "clip": 18,
+      "ring": 25
+    },
+    "boundary": "PASS",
+    "plasmoid_build": "PASS",
+    "raw_log_sha256": "9a04e8dcc8e22666b956ef4742e9c131d105522b3cc410b16008d8920763f8ca",
+    "archived_log": "native-gate.log (trailing whitespace normalized)"
+  },
+  "isolated_runtime": {
+    "status": "PASS",
+    "checks": 44,
+    "scale": 1.5,
+    "ime": "Fcitx5",
+    "safe_cli_stops": 3
+  },
+  "desktop_deployment": "NOT PERFORMED",
+  "resource_budget": "NOT MEASURED",
+  "source_sha256": {
+    "tools/build.js": "057245b1c96ce49886add157e8a3915b659f6f8da4d565a335ff390d4f5f2456",
+    "package/contents/code/main.js": "66a0dbb953f556ee298d18ba7a4083a9eb875804ed844c6727c9b4584b5a1d4f",
+    "effect/contents/code/main.js": "8770db10e427a40462f03d87d9cfaea42d07c70108b31016459168f7ad00d38e",
+    "src/kwin/runtime/RuntimeEntry.js": "d791fb3056776fb4d0b368698792065dae24af7bcc15cccfcd86a9097d5fb356",
+    "src/kwin/runtime/StartupLayout.js": "b43256aab2259063b01d567ef9df1fc60412bcc627a78f5f1a8762b71eb70e0f",
+    "src/kwin/integration/RuntimeBridge.js": "a154a1952fffda4d1cd6ed5b17093f0d13239217def3ea50749bb2b1b8aa61b4",
+    "src/kwin/presentation/PresentationController.js": "d49175a3c5e0c615973c39034fe9f468c692b7c34e1399c6c0415f811de0d26c",
+    "src/effect/MotionController.js": "0d9333c86f41810e550e2c8600d760c790646d0527c552721b685528a55c8bd9",
+    "src/effect/WideMotionGeometry.js": "16285892006e7d2ac81688283e2d8ce4d799afa05fbe7e05303c119f73add3f3",
+    "src/kwin/layout/ContinuousColumnLayout.js": "cc16cde85346112812ec7bd4acd7463c1c1224fed2a5d38b6a2913c915d8af12"
+  },
+  "removed_files": [
+    "src/effect/MotionProfiles.js",
+    "test/motion-profiles.test.js"
+  ],
+  "artifact_sha256": {
+    "build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so": "7a8039ba94be81bda84b9bdd6bbba169cde548978c7da1643d377d0ed97700db",
+    "build/bridge/cc-niri-bridge": "e970bb838b54525739a6b1e7d7721b54c3a8f4abacee2a9b48175bf70ce8b278",
+    "build/scroll-layout-v2-p0-fixture/plugins/kwin/effects/plugins/cc-niri-p0-input-fixture.so": "be0d6ef4f751c56c6e2ca2330f2e2e3609733118adf46c4de813787e1ecec990",
+    "build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so": "8a832d78835047ccffb973369d05b756b0cbbf2ec1f6d91decaab800144577ac"
+  }
+}

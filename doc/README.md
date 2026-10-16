@@ -14,6 +14,8 @@ Rust Native Core 重构 R0–R7 已完成并归档到 `done/`。Spring、Viewpor
 
 重构期间发现的 [Pair→Wide 动画中 J/K](../test/WORKSPACE_WIDE_DEPARTURE_RESULTS.md)交接缺陷已修复并由用户确认成功；双屏工作区现按主屏独立切换，帧率采样见 [输出与帧率记录](../test/WORKSPACE_OUTPUT_FRAME_RESULTS.md)。Rust 完成结论不覆盖 V3 完整 daily smoke / release gate、热插拔和长期压力等独立验收。
 
+2026-10-16 完成一轮[无调用 JS 代码清理](../test/RUST_NATIVE_R7_CLEANUP_RESULTS.md)：删除废弃转发与启动恢复逻辑、未被生产消费的 MotionProfiles 表，生产包减少7097字节；240项JS、109项Rust、完整Native门禁及私有KWin44项通过。当前仓库清理尚未部署到用户桌面。
+
 2026-10-01 用户明确指定以下两个目标，并确认先实现 ViewOffset Spring，再实现 Focus Ring；优先于 Quickshell 后续视觉升级：
 
 | 目标 | 设计与起点 |
@@ -54,7 +56,7 @@ Rust Native Core 重构 R0–R7 已完成并归档到 `done/`。Spring、Viewpor
 | [Core UX 下一阶段](todo/CC-Niri%20Core%20UX%20下一阶段实施设计.md) | P1 底部默认留白 8、P2–P3 持久 half / Full、P4 相邻移动、P5 数字直达、P6 数字移动已实现并部署；P7 Dockless Core 用户验收通过，P8 通用 Bridge 命名 / 兼容清理、完整门禁、部署与实机矩阵通过，P8 用户实机 / 日常 smoke 验收通过，见 [P3](../test/CORE_UX_P3_RESULTS.md)、[P4](../test/CORE_UX_P4_RESULTS.md)、[P5](../test/CORE_UX_P5_RESULTS.md)、[P6](../test/CORE_UX_P6_RESULTS.md)、[P7](../test/CORE_UX_P7_RESULTS.md)、[P8](../test/CORE_UX_P8_RESULTS.md) 记录。Core UX 专项验收剩余项见设计 DOD；1/3 列宽仍延期；2/3 后续在独立 Scroll Layout V2 中实现，默认关闭，尚未实机验收。 |
 | [V3 稳定版收尾](todo/cc-niri_V3_日常稳定版收尾设计.md) | 部分完成；native CI 与自动安全恢复已实现（b97594a），已有受控实机检查（8b6c887），但 [V3 实机验收](../test/V3_DAILY_ACCEPTANCE.md) 的完整交互矩阵与 release gate 仍有 Pending / Partial 项。 |
 | [Clavis Motion](todo/CC_Niri_Maximize_Clavis_Motion_实现设计.md) | 部分实现；窗口 MotionController、retarget、MotionTransaction、native clip 已有，Dock UI Motion、OSD、Spotlight 等尚未完成。后续视觉工作优先参考 Quickshell 升级设计。 |
-| [Quickshell 视觉升级](todo/cc-niri_Quickshell视觉升级_模块化实现设计.md) | 部分实现；V1 MotionProfiles 已完成（bde8a03），V2–V11 尚未完整实施。 |
+| [Quickshell 视觉升级](todo/cc-niri_Quickshell视觉升级_模块化实现设计.md) | V1 曾新增独立 MotionProfiles 表（bde8a03），2026-10-16 清理其零运行时消费者的表与测试；实际 MotionTokens / 动画控制器保留。V2–V11 尚未完整实施。 |
 | [Wide Column / Partial Viewport 旧提案](todo/cc-niri_Phase15_Wide_Column与Partial_Viewport重构设计.md) | 未按本文完整实施；当前采用 Wide Preference + Contextual Viewport。这是已被替代的候选方案，保留作参考，不作为默认下一阶段任务。 |
 
 ## 阅读顺序

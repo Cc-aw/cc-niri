@@ -159,7 +159,7 @@ const dockWrapper = mainSource.slice(
 assert.ok(dockWrapper.includes("reorderController.applyRuntimeCommand(command)"));
 const keyboardWrapper = mainSource.slice(
     mainSource.indexOf("function moveFocusedColumn"),
-    mainSource.indexOf("function detachColumnToFloating")
+    mainSource.indexOf("function toggleFloating")
 );
 assert.ok(keyboardWrapper.includes("reorderController.moveFocused(delta)"));
 

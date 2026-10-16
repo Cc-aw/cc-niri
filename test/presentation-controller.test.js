@@ -131,13 +131,12 @@ function fixture(overrides = {}) {
 {
     const { controller, appState, column } = fixture();
     column.persistentWide = true;
-    assert.equal(controller.selectPersistent(column), false);
+    controller.clear();
     assert.deepEqual(appState.presentation, { windowUuid: null, mode: "normal" });
     assert.deepEqual(appState.viewport, { mode: "pair", wideColumnId: null });
-    assert.equal(controller.selectPersistent(column), false,
-        "preference alone does not enter Wide");
+    assert.equal(column.persistentWide, true, "clearing presentation preserves the Wide preference");
     column.persistentWide = false;
-    assert.equal(controller.selectPersistent(column), false);
+    controller.clear();
     assert.deepEqual(appState.presentation, { windowUuid: null, mode: "normal" });
 }
 
@@ -246,7 +245,6 @@ for (const [name, delegation] of [
     ["wideRect", "presentationController.wideRect()"],
     ["presentationRect", "presentationController.rect()"],
     ["clearPresentationState", "presentationController.clear()"],
-    ["selectPersistentPresentation", "presentationController.selectPersistent(column)"],
     ["setPresentationMode", "presentationController.setMode(windowUuid, mode, reason)"],
 ]) {
     const start = mainSource.indexOf(`function ${name}`);

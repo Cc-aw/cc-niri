@@ -55,10 +55,9 @@ const context = vm.createContext({ continuousLayout: null,
     workspaceSnapshots: { removeWindow: () => false },
     stateFor, columnIndexForWindow: () => -1, COLUMN_WIDTH_HALF: "half", debug: () => {},
     columnStore: { insertWindow: window => { inserted += 1; return { id: inserted, window }; }, indexOf: () => 0 },
-    refreshMainScreenState: () => {}, startupLayout: { load: () => false, orderWindows: windows => windows },
+    refreshMainScreenState: () => {}, startupLayout: { load: () => false },
     workspace: { windowList: () => [foreign, sticky, normal] },
     prepareInitialColumn: () => { prepared += 1; return true; },
-    addInitialColumn: () => {},
 });
 vm.runInContext(["scrollEligible", "eligible", "addColumnAt", "initializeScrollLayout"].map(functionSource).join("\n"), context);
 assert.equal(context.addColumnAt(foreign, 0, "test"), null);

@@ -77,11 +77,6 @@ class MotionController {
         return true;
     }
 
-    cancelAll() {
-        const windows = Array.from(this.states.keys());
-        windows.forEach(window => this.cancel(window));
-    }
-
     freezeForWorkspace(window, now) {
         const state = this.states.get(window);
         if (!state || typeof freezeInTime !== "function") return false;

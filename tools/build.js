@@ -83,7 +83,6 @@ const targets = [
             "src/kwin/runtime/RuntimeLogger.js",
             "src/effect/TargetOutput.js",
             "src/effect/MotionTokens.js",
-            "src/effect/MotionProfiles.js",
             "src/effect/MotionSampler.js",
             "src/effect/MotionTransaction.js",
             "src/effect/ParkingAnimationGrabber.js",
