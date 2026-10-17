@@ -23,10 +23,6 @@ class MotionController {
         this.nextEpoch = 1;
     }
 
-    sample(window, now) {
-        return sampleMotionState(this.states.get(window) || null, now || Date.now());
-    }
-
     visualSnapshot(window, geometry, now = Date.now()) {
         const state = this.states.get(window) || null;
         const anchor = state && state.channels.scale

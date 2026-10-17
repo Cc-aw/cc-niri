@@ -61,7 +61,7 @@ try {
         assert.ok(Math.abs(sample.x-start.x)<0.5 && Math.abs(sample.opacity-start.opacity)<0.001,"reverse uses current painted sample");
         now+=220; effect.animationEnded.emit(h.neighbor,0);
         assert.equal(h.transition.wideIsolationHolds.has(h.neighbor),false,"late outgoing completion cannot re-hide pair neighbor");
-        assert.equal(h.transition.motion.sample(h.neighbor,now).opacity,1);
+        assert.equal(h.transition.motion.visualSnapshot(h.neighbor,h.neighbor.geometry,now).opacity,1);
     }
     // End-of-animation hold exists while the layout waits for real parking.
     // Return can be accepted while both frame geometries already equal pair
@@ -74,7 +74,7 @@ try {
     assert.equal(h.transition.wideIsolationHolds.has(h.neighbor),false,"authoritative exit releases hold without a geometry signal");
     now+=220;effect.animationEnded.emit(h.neighbor,0);
     assert.equal(holds,heldBefore,"exit cannot create a new permanent zero-opacity hold");
-    assert.equal(h.transition.motion.sample(h.neighbor,now).opacity,1);
+    assert.equal(h.transition.motion.visualSnapshot(h.neighbor,h.neighbor.geometry,now).opacity,1);
     // A parked neighbor keeps the established geometry-driven incoming path.
     const parked=fixture(); now+=100;
     parked.neighbor.geometry={...parked.neighborRect,x:-5000};
@@ -87,7 +87,7 @@ try {
     parked.geometry(parked.neighbor,parked.neighborRect);
     assert.equal(parked.transition.motion.states.get(parked.neighbor).type,MotionType.WIDE_TO_PAIR);
     now+=220;effect.animationEnded.emit(parked.neighbor,0);
-    assert.equal(parked.transition.motion.sample(parked.neighbor,now).opacity,1);
+    assert.equal(parked.transition.motion.visualSnapshot(parked.neighbor,parked.neighbor.geometry,now).opacity,1);
     // Even a delayed/missed plan notification must not let old completion
     // install a persistent hide after the native marker has changed to Pair.
     const delayed=fixture();
@@ -104,7 +104,7 @@ try {
         repeat.plan(MotionType.WIDE_TO_PAIR,2);repeat.geometry(repeat.target,repeat.targetRect);
         now+=220;effect.animationEnded.emit(repeat.neighbor,0);
         assert.equal(repeat.transition.wideIsolationHolds.size,0);
-        assert.equal(repeat.transition.motion.sample(repeat.neighbor,now).opacity,1);
+        assert.equal(repeat.transition.motion.visualSnapshot(repeat.neighbor,repeat.neighbor.geometry,now).opacity,1);
     }
 } finally {
     Date.now=realNow;

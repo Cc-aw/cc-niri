@@ -1,0 +1,63 @@
+{
+  "base": "d0a981e",
+  "candidates": [
+    {
+      "file": "poc/kwin-poc-restore-chatgpt.js",
+      "bytes": 426,
+      "sha256": "246d30762278ab775029f6cb29d1df4b0c9296f48c9bf35b7fc90f06cb6329d3",
+      "filename_references_outside_file": [],
+      "retirement_reason": "One-shot caption lookup and fixed restore rectangle; no persisted original state"
+    },
+    {
+      "file": "poc/kwin-poc-restore-typora.js",
+      "bytes": 438,
+      "sha256": "fc7b6eb1c7f4aaa632824cd794b5094d3663a83014e8de0925a155130120102f",
+      "filename_references_outside_file": [],
+      "retirement_reason": "One-shot historical document caption and fixed restore rectangle"
+    },
+    {
+      "file": "poc/kwin-poc-select-pseudo.js",
+      "bytes": 496,
+      "sha256": "827ffc263fc899f412060ee335ff8301a0d4cfe23db972c3d022b2f481d6b81f",
+      "filename_references_outside_file": [],
+      "retirement_reason": "One-shot fixed geometry or caption selection"
+    },
+    {
+      "file": "poc/kwin-v3-force-code-parking-poc.js",
+      "bytes": 641,
+      "sha256": "85d06d95ce7051449f787f01e3cee76a61aef38f95adbf3630252ed2cc2e2a50",
+      "filename_references_outside_file": [],
+      "retirement_reason": "One-shot forced Code parking at a historical fixed coordinate"
+    },
+    {
+      "file": "poc/kwin-v3-close-test-code.js",
+      "bytes": 321,
+      "sha256": "3ffd7c9f12cd422f178b1ee5d5fd20a2a3d7e94ebe6b39ca4baf3764d7593df2",
+      "filename_references_outside_file": [],
+      "retirement_reason": "One-shot close of a historical test Code window by caption"
+    }
+  ],
+  "status": "PASS",
+  "deleted_bytes": 2322,
+  "remaining_poc_js_syntax_checked": 31,
+  "production_bundles": "UNCHANGED from validated batch1",
+  "scope": "Retired one-shot window-title and fixed-coordinate POCs only; never executed for this cleanup",
+  "js_gate": {
+    "command": "node tools/check.js",
+    "tests": 240,
+    "files": 117,
+    "passed": 240,
+    "failed": 0,
+    "skipped": 0,
+    "duration_ms": 43958.647633,
+    "log": "/tmp/cc-niri-cleanup-batch3-js.log",
+    "log_sha256": "86d4676b54526137f2a800c6d9fa98134a3b6980179346279ca07b1c1fa9879e"
+  },
+  "desktop_deployment": "NOT PERFORMED",
+  "native_gate": "Batch2 full gate retained: Native sources unchanged by batch3",
+  "resource_budget": "NOT MEASURED",
+  "bundle_sha256": {
+    "package/contents/code/main.js": "a87ec41f6bff69f8fa168c86875a6c026767e5a6dc22c514ff2352e12b001301",
+    "effect/contents/code/main.js": "3ddfc188a1d9799ea860c1663f53a9b3abd733f8c097448f88977347a8197744"
+  }
+}

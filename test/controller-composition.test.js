@@ -9,7 +9,7 @@ const composition = new ControllerComposition(
     ["adoption", "dock"]
 );
 assert.equal(composition.get("adoption"), adoption);
-assert.deepEqual(composition.names(), ["adoption", "dock"]);
+assert.deepEqual(Object.keys(composition.controllers), ["adoption", "dock"]);
 assert.throws(() => composition.get("missing"), /unknown runtime controller/);
 assert.throws(
     () => new ControllerComposition({ adoption }, ["adoption", "dock"]),

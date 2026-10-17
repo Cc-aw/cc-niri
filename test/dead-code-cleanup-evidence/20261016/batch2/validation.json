@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "base": "d0a981e",
+  "scope": "Only three unreferenced declarations removed; retained header text identical",
+  "headers": [
+    {
+      "file": "native/focus-ring/FocusRingCoreBackend.h",
+      "removed_lines": [
+        "inline CcNiriRingFrameResult capture(const CcNiriRingFrame &f) { return cc_niri_ring_capture(&f); }\n",
+        "inline CcNiriRingFrameResult captureVisual(const CcNiriRingFrame &f,double opacity) { return cc_niri_ring_capture_visual(&f,opacity); }\n"
+      ],
+      "before_bytes": 1409,
+      "after_bytes": 1173,
+      "sha256": "b84c8403358b94a647ea37c0a29c0129a56bd135b0eb203166919f7322c748eb"
+    },
+    {
+      "file": "native/viewport-clip/RustViewportMotion.h",
+      "removed_lines": [
+        "    static constexpr auto MaxSpringTime = std::chrono::seconds(3);\n"
+      ],
+      "before_bytes": 1395,
+      "after_bytes": 1328,
+      "sha256": "06a689205f109edeafaf77f13918251e3aa859a289a2056133adb55e081b61aa"
+    }
+  ],
+  "command": "env CMAKE_BUILD_PARALLEL_LEVEL=2 node tools/check.js --native",
+  "removed_source_bytes": 303,
+  "toolchain": {
+    "rust": "1.99.0",
+    "cargo": "1.99.0",
+    "cxx": "/usr/bin/g++ GNU16.2.1",
+    "parallel": 2
+  },
+  "js": {
+    "tests": 240,
+    "passed": 240,
+    "files": 117
+  },
+  "rust": {
+    "fmt": "PASS",
+    "clippy": "PASS --locked workspace all-targets -D warnings",
+    "tests": 109
+  },
+  "ctest": {
+    "bridge": 18,
+    "viewport_clip": 18,
+    "focus_ring": 25
+  },
+  "bridge_private_dbus": "PASS",
+  "production_boundary": "PASS",
+  "plasmoid_build": "PASS",
+  "log": {
+    "path": "/tmp/cc-niri-cleanup-batch2-native.log",
+    "sha256": "5b5fca1fc081e5e83f2c6f24d51f66410bc7ebceab593f08d77c06b4a3811a9f"
+  },
+  "ffi_abi": "UNCHANGED",
+  "cmake_and_qt_conversion": "UNCHANGED",
+  "isolated_kwin": "NOT RERUN: no runtime algorithm or platform hook changes",
+  "desktop_deployment": "NOT PERFORMED",
+  "resource_budget": "NOT MEASURED",
+  "artifact_sha256": {
+    "build/bridge/cc-niri-bridge": "e970bb838b54525739a6b1e7d7721b54c3a8f4abacee2a9b48175bf70ce8b278",
+    "build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so": "178d029e3c5e26ee2fd3394c0b4b54e3baf3477f689467ccd481da6296d8047c",
+    "build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so": "75988a833c8df7941d253959ca52320bd9287215625865852d67aa208e952c9e"
+  },
+  "bundle_sha256": {
+    "package/contents/code/main.js": "a87ec41f6bff69f8fa168c86875a6c026767e5a6dc22c514ff2352e12b001301",
+    "effect/contents/code/main.js": "3ddfc188a1d9799ea860c1663f53a9b3abd733f8c097448f88977347a8197744"
+  }
+}

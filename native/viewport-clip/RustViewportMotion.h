@@ -8,7 +8,6 @@ namespace CcNiri {
 class RustViewportMotion {
 public:
     using TimePoint = std::chrono::nanoseconds;
-    static constexpr auto MaxSpringTime = std::chrono::seconds(3);
     explicit RustViewportMotion(SpringParams params = {}) noexcept;
     RustViewportMotion(const RustViewportMotion &other) noexcept;
     RustViewportMotion &operator=(const RustViewportMotion &other) noexcept;

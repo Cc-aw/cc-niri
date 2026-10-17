@@ -26,11 +26,11 @@ transactions.record("incoming", incoming);
 transactions.record("outgoing", outgoing);
 assert.deepEqual(first.incoming, [incoming]);
 assert.deepEqual(first.outgoing, [outgoing]);
-assert.equal(transactions.roleFor(incoming), "incoming");
+assert.equal(first.roleByWindow.get(incoming), "incoming");
 transactions.record("continuing", incoming);
 assert.deepEqual(first.incoming, []);
 assert.deepEqual(first.continuing, [continuing, incoming]);
-assert.equal(transactions.roleFor(incoming), "continuing");
+assert.equal(first.roleByWindow.get(incoming), "continuing");
 assert.equal(transactions.current(1080), first);
 assert.equal(transactions.current(1081), null, "stale transactions expire");
 
@@ -59,10 +59,9 @@ assert.deepEqual(replacement.incoming, [incoming]);
 assert.equal(transactions.clear(), replacement);
 assert.equal(transactions.current(2001), null);
 
-const completed = transactions.begin({ deltaX: -1260, now: 3000 });
-assert.equal(completed.direction, "right");
-assert.equal(transactions.complete(completed.id + 1), null);
-assert.equal(transactions.complete(completed.id), completed);
+const reversed = transactions.begin({ deltaX: -1260, now: 3000 });
+assert.equal(reversed.direction, "right");
+assert.equal(transactions.clear(), reversed);
 
 const effectSource = fs.readFileSync(
     path.join(__dirname, "../effect/contents/code/main.js"),

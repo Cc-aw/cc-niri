@@ -37,3 +37,45 @@ PASS：私有双输出 KWin / Native / Bridge / Ring，150% + Fcitx5场景44/44�
 最终状态见 [验证摘要](dead-code-cleanup-evidence/20261016/validation.json)；[完整Native门禁日志](dead-code-cleanup-evidence/20261016/native-gate.log)仅规范化行尾空白，原始日志SHA保留在摘要中。首次 Native 门禁在用户中断时尚未完成，确认无残留构建后复用现有构建树重跑；中断记录没有计作 PASS。
 
 本轮未部署或重新加载用户桌面，未替换已安装组件，实机目测 NOT PERFORMED。全项目 PSS、Private_Dirty、GPU、4K60与长期增长 NOT MEASURED。回滚可恢复基线中的本轮源码、打包清单和测试，再执行生成与验证；保留的运行逻辑语法树未改变，当前已安装版本不受此次仓库清理影响。
+
+## 第二轮第一批：仅测试调用的方法（2026-10-16）
+
+基线 `d0a981e`，前一轮清理已独立提交为 `34970aa`。本批删除四个没有生产消费者的方法：`ControllerComposition.names`、`MotionTransaction.roleFor` / `complete`、`MotionController.sample`。这些方法不属于 D-Bus、FFI、快捷键或配置接口；引用核查中仅测试使用，历史设计文档里的示例保留。
+
+测试改为检查实际控制器集合、事务角色迁移与现有 clear 行为；Wide 邻窗回归通过生产使用的 visualSnapshot 检查透明度，继续覆盖反向、无几何变化退出、过期完成回调和重复操作。删除仅验证未使用 complete 方法的断言，没有增加测试专用生产接口或复制动画采样实现。`ContinuousViewportController.adopt/setGeometry` 仍为隔离 fixture 构造关键场景，暂保留；RuntimeLogger.setEnabled 在 Effect 有真实消费者，保留。
+
+PASS：定向4个测试文件通过，完整 `node tools/check.js` 为240项 /117文件通过，无跳过；生成包同步与 whitespace 检查通过。首次普通沙箱运行中，P0 Native fixture 拒绝路径测试因 spawnSync Python 的 EPERM 失败；确认环境限制后扩大工具执行权限重跑同一完整门禁，通过结果取自后者，未修改或跳过失败测试。
+
+PASS：相对基线的完整生产包 AST 差分只删除以上四个方法，其余语法树一致；主脚本428958→428891字节（减少67），Effect脚本84187→83764字节（减少423），本批合计490字节，相对前一轮清理前累计减少7587字节。见 [本批AST证据](dead-code-cleanup-evidence/20261016/batch1/runtime-ast.json) 和 [本批验证摘要](dead-code-cleanup-evidence/20261016/batch1/validation.json)。完整门禁日志保留在摘要指定的临时路径，不重复归档整份输出。
+
+本批没有修改 Native、Rust、FFI、CMake、工具链或生产动画算法，因此未重复 Native 构建及私有 KWin；本批实机验收 NOT PERFORMED，资源目标 NOT MEASURED。未部署、重载或修复输入裁切崩溃。回滚以 `d0a981e` 恢复本批三个源码文件、对应测试与两个生成包即可，已安装桌面不受影响。
+
+下一批审查结论：Native Backend / protocol 别名仍有生产或测试消费者，移除需改动调用方，属于结构简化而非确认无用代码；旧 Bridge 可执行文件、D-Bus 和 systemd 名称仍承担兼容职责；POC 缺少生产引用不代表无诊断用途；测试证据体积不属于运行时代码。当前没有将这些项目纳入删除清单，待逐项证明被完整替代后再独立实施和验证。
+
+## 第二轮第二批：Native 零引用声明（2026-10-16）
+
+删除 `FocusRingCoreBackend.h` 中没有调用方的 capture / captureVisual 两个 inline 转发，以及 `RustViewportMotion.h` 中没有使用方的 MaxSpringTime 常量，共303字节源码。生产实际使用 captureGain；底层 cc_niri_ring_capture / cc_niri_ring_capture_visual 的 Rust实现、C ABI声明及其直接契约/差分测试保留。3秒完成保护继续由 Rust实现和既有测试覆盖，没有新增 C++ policy。
+
+引用审查覆盖生产、测试、工具与文档，未发现这三个声明的消费者；两个头文件与 `d0a981e` 的逐字比较确认，除了三处声明删除，其余内容完全一致。所有仍被调用的 Backend / protocol 别名、可动态调用的 Qt / D-Bus 入口和 Golden 基线均保留。
+
+PASS：`env CMAKE_BUILD_PARALLEL_LEVEL=2 node tools/check.js --native`，包括完整240项JS /117文件、固定Rust1.99.0的 fmt、clippy（locked / all-targets / -D warnings）、109项Rust测试；Bridge / Clip / Ring CTest分别18/18/25通过，私有Bridge D-Bus、Rust生产边界、Plasmoid构建通过。使用既有构建树、`/usr/bin/g++` GNU16.2.1、顺序构建且并行度2。原构建类型仍为Bridge Release、Clip / Ring / Plasmoid RelWithDebInfo，Rust Core release。
+
+没有修改 CMake、Core算法、FFI契约、Qt值转换或平台hook，不新增对应的Debug / Release / 编译器拒绝测试矩阵，也未重跑私有KWin。完整Native门禁验证了第二批Native与第一批JS的组合。见[第二批验证摘要](dead-code-cleanup-evidence/20261016/batch2/validation.json)，记录精确头文件差分、产物哈希与临时门禁日志路径及哈希；不重复归档大段构建输出。
+
+本批未部署或重载桌面，实机验收 NOT PERFORMED，资源收益 NOT MEASURED；删除未调用的inline / 常量不等于降低PSS或提升帧率。回滚恢复 `d0a981e` 的两个头文件后按原入口重建即可。本批没有处理输入裁切崩溃。
+
+## 第二轮第三批：过期一次性 POC（2026-10-16）
+
+进一步逐份阅读后，仅删除下面五个共2322字节的一次性脚本。它们绑定历史窗口标题、固定恢复/停放矩形或测试窗口关闭动作，没有通用配置或状态恢复能力；删除前对所有Git跟踪文件检查文件名引用，除自身外均为0。当前生产打包与安装入口均不加载这些文件。本次没有执行任何POC或关闭、移动用户窗口。
+
+- `poc/kwin-poc-restore-chatgpt.js`：指定标题窗口的固定矩形恢复。
+- `poc/kwin-poc-restore-typora.js`：指定历史文档标题窗口的固定矩形恢复。
+- `poc/kwin-poc-select-pseudo.js`：按固定几何或标题选择一次性伪窗口。
+- `poc/kwin-v3-force-code-parking-poc.js`：把Code窗口写到旧测试的固定停放位置。
+- `poc/kwin-v3-close-test-code.js`：按历史测试标题关闭Code窗口。
+
+通用Workspace API探针、布局/停放实验、对应历史记录及生产Recovery均保留。Git中的 `d0a981e` 仍可恢复以上五个原文件；没有用新的生产恢复逻辑替换历史脚本。
+
+PASS：余下31个POC JavaScript逐份通过 `node --check`（只解析、不执行）。生产包哈希与第一批验证值一致，第二批Native头文件哈希也一致。随后独立运行完整 `node tools/check.js`，240项 /117文件通过，无跳过；生成包与whitespace检查通过。见[第三批验证摘要](dead-code-cleanup-evidence/20261016/batch3/validation.json)，包含删除前大小/哈希、引用检查结果、逐项退役理由及门禁日志路径/哈希。
+
+第三批没有Native改动，沿用第二批完整Native门禁，不重复构建；未部署或重载桌面，实机验收 NOT PERFORMED，资源收益 NOT MEASURED。本轮已确认的删除项到此结束，不为压缩体积删除仍承担测试、兼容或诊断职责的实现。输入裁切崩溃修复仍待独立实施。

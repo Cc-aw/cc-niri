@@ -5,7 +5,7 @@ const shortcut = (r, name) => r.shortcuts.get("CCScroll" + name)();
 function check(r) {
     assert.equal(r.state.enabled, true, r.logs.join("\n"));
     assert.equal(r.evaluate("dockScrollController"), null, "Dock planner is not constructed");
-    assert.equal(r.evaluate("controllerComposition.names().includes('dockScroll')"), false);
+    assert.equal(r.evaluate("Object.hasOwn(controllerComposition.controllers, 'dockScroll')"), false);
     assert.deepEqual(Array.from(r.evaluate("invariantChecker.errors()")), []);
     assert.equal(r.logs.some(line => /FAIL_SAFE|INVARIANT.*errors=/.test(line)), false);
     assert.equal(r.deferred.some(c => c.type === "advance-dock-scroll"), false);
@@ -112,7 +112,7 @@ for (const config of [{}, { EnableDockIntegration: false }]) {
 {
     const r = fixture({ EnableDockIntegration: true }), gateway = r.evaluate("runtimeBridge");
     assert.ok(r.evaluate("dockScrollController"));
-    assert.equal(r.evaluate("controllerComposition.names().includes('dockScroll')"), true);
+    assert.equal(r.evaluate("Object.hasOwn(controllerComposition.controllers, 'dockScroll')"), true);
     assert.equal(gateway.dispatch(gateway.commandEnvelope({ type: "set-column-order", commandId: "opt-in-order",
         order: ["a1", "a0", "a2", "a3", "a4"] })), true);
     assert.deepEqual(r.ids(), ["a1", "a0", "a2", "a3", "a4"]);

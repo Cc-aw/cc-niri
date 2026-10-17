@@ -76,11 +76,6 @@ class MotionTransaction {
         return true;
     }
 
-    roleFor(window) {
-        const transaction = this.activeTransaction;
-        return transaction ? transaction.roleByWindow.get(window) || null : null;
-    }
-
     current(now = Date.now()) {
         this.expire(now);
         return this.activeTransaction;
@@ -100,11 +95,6 @@ class MotionTransaction {
         const transaction = this.activeTransaction;
         this.activeTransaction = null;
         return transaction;
-    }
-
-    complete(id) {
-        if (!this.activeTransaction || this.activeTransaction.id !== id) return null;
-        return this.clear();
     }
 }
 

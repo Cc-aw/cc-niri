@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "base": "d0a981e",
+  "scope": "Four methods with test-only consumers; no Native or production animation algorithm changes",
+  "generated_bundle_bytes_saved": 490,
+  "targeted_test_files": 4,
+  "js_gate": {
+    "command": "node tools/check.js",
+    "tests": 240,
+    "files": 117,
+    "passed": 240,
+    "failed": 0,
+    "skipped": 0,
+    "duration_ms": 44982.199372,
+    "log": "/tmp/cc-niri-cleanup-batch1-js-final.log",
+    "log_sha256": "ed97f628fd9d0d99392156d25aa6f2721a1a9dcf337026c85c2b731c2f471b72"
+  },
+  "first_sandbox_attempt": {
+    "status": "ENVIRONMENT FAILURE",
+    "cause": "spawnSync python3 EPERM in P0 fixture guard test",
+    "log": "/tmp/cc-niri-cleanup-batch1-js.log",
+    "resolution": "Same full gate rerun with expanded tool execution permissions; no skipped or modified guard tests"
+  },
+  "native_gate": "NOT RERUN: no Native/Rust/FFI/CMake/toolchain changes",
+  "isolated_kwin": "NOT RERUN: retained production AST identical",
+  "desktop_deployment": "NOT PERFORMED",
+  "live_acceptance": "NOT PERFORMED",
+  "resource_budget": "NOT MEASURED",
+  "source_sha256": {
+    "src/kwin/runtime/ControllerComposition.js": "99cced8ac6adfc82c2980cada98546cf30cc107654744b909d6f7740ab4248a9",
+    "src/effect/MotionTransaction.js": "603038dc67ac9ecc2de2c51239e670353f935ecebfd55af858f6aa59033283b4",
+    "src/effect/MotionController.js": "903cb50539b9dbe8999c2afdfce13ea9a7e3d942173ead4b392b431e17c8bc83",
+    "package/contents/code/main.js": "a87ec41f6bff69f8fa168c86875a6c026767e5a6dc22c514ff2352e12b001301",
+    "effect/contents/code/main.js": "3ddfc188a1d9799ea860c1663f53a9b3abd733f8c097448f88977347a8197744",
+    "test/controller-composition.test.js": "c7ea18b6be2d1d1ab45a0441b21afd557c1ced40f03e04f7acd7e1a2140336dd",
+    "test/dockless-runtime.test.js": "850fa2e22988766f56bac72758ee6975cf8b24ec4031b8b05a8570e14da1632a",
+    "test/motion-transaction.test.js": "f459c15687e44705b661fcf059ab12475c85ca5575908135d506f7ab1eff9143",
+    "test/wide-neighbor-race.test.js": "8d681297458d2765f5e69eb485217dd33793ef249d8d51b240f078bdb1b295ed"
+  }
+}

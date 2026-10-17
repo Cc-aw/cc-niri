@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "base": "d0a981e",
+  "removed_methods": {
+    "ControllerComposition": [
+      "names"
+    ],
+    "MotionTransaction": [
+      "roleFor",
+      "complete"
+    ],
+    "MotionController": [
+      "sample"
+    ]
+  },
+  "bundles": [
+    {
+      "file": "package/contents/code/main.js",
+      "removed": [
+        "ControllerComposition.names"
+      ],
+      "before_bytes": 428958,
+      "after_bytes": 428891,
+      "saved_bytes": 67,
+      "sha256": "a87ec41f6bff69f8fa168c86875a6c026767e5a6dc22c514ff2352e12b001301"
+    },
+    {
+      "file": "effect/contents/code/main.js",
+      "removed": [
+        "MotionTransaction.roleFor",
+        "MotionTransaction.complete",
+        "MotionController.sample"
+      ],
+      "before_bytes": 84187,
+      "after_bytes": 83764,
+      "saved_bytes": 423,
+      "sha256": "3ddfc188a1d9799ea860c1663f53a9b3abd733f8c097448f88977347a8197744"
+    }
+  ]
+}

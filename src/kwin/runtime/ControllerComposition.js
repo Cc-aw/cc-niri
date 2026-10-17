@@ -14,10 +14,6 @@ class ControllerComposition {
         if (!controller) throw new Error(`unknown runtime controller: ${name}`);
         return controller;
     }
-
-    names() {
-        return Object.keys(this.controllers);
-    }
 }
 
 /* cjs:start */
