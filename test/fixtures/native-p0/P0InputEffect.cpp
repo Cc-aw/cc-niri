@@ -20,6 +20,7 @@
 #include "wayland/display.h"
 #include "wayland_server.h"
 #include "window.h"
+#include "internalwindow.h"
 #include "workspace.h"
 #include "../../../native/common/CompositorFrameContext.h"
 #include "../../../native/common/ViewportPaintClip.h"
@@ -34,11 +35,15 @@
 #include <QSet>
 #include <QScopedValueRollback>
 #include <QSaveFile>
+#include <QBackingStore>
+#include <QPainter>
+#include <QWindow>
 #include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <vector>
 #include <linux/input-event-codes.h>
+#include <sys/prctl.h>
 #include <memory>
 
 namespace KWin {
@@ -74,6 +79,8 @@ public:
     }
     P0InputEffect() : m_filter(std::make_unique<Filter>(*this)) {
         if (!isolated()) qFatal("P0 fixture refuses a non-isolated compositor");
+        if (qEnvironmentVariableIsSet("CC_NIRI_P0_NO_CORE") && prctl(PR_SET_DUMPABLE, 0) != 0)
+            qFatal("cannot suppress core dumps for isolated crash regression");
         m_originalPointer = waylandServer()->seat()->hasPointer();
         m_originalTouch = waylandServer()->seat()->hasTouch();
         m_originalKeyboard = waylandServer()->seat()->hasKeyboard();
@@ -84,10 +91,20 @@ public:
         waylandServer()->seat()->setHasKeyboard(true);
         input()->installInputEventFilter(m_filter.get());
         connect(input(), &InputRedirection::globalPointerChanged, this, [this](const QPointF &point) { mask(point); });
+        connect(effects, &EffectsHandler::windowAdded, this, [this](EffectWindow *window) {
+            auto *internal = qobject_cast<InternalWindow *>(window->window());
+            if (internal && internal->handle() == m_internalWindow.get()) m_internalEffect = window;
+        });
+        connect(effects, &EffectsHandler::windowClosed, this, [this](EffectWindow *window) {
+            if (window == m_internalEffect) m_internalDeleted = EffectWindowDeletedRef(window);
+        });
         QDBusConnection::sessionBus().registerObject(QStringLiteral("/ccNiriP0Input"), this,
             QDBusConnection::ExportScriptableSlots);
     }
     ~P0InputEffect() override {
+        m_internalBacking.reset();
+        m_internalWindow.reset();
+        m_internalDeleted = EffectWindowDeletedRef();
         m_filter.reset();
         QDBusConnection::sessionBus().unregisterObject(QStringLiteral("/ccNiriP0Input"));
         restore();
@@ -155,6 +172,50 @@ public:
         effects->paintWindow(target, viewport, window, flags | PAINT_WINDOW_TRANSFORMED, clipped, data);
     }
 public Q_SLOTS:
+    // Retain the real closed InternalWindow exactly as a closing animation can.
+    // The backing QWindow must be destroyed, not just hidden. One bounded test
+    // object at a time; none of this is linked or installed into production.
+    Q_SCRIPTABLE bool OpenInternalWindow() {
+        if (!isolated() || !m_rawInput || m_internalWindow || m_internalEffect || ++m_internalCycles > 32) return false;
+        m_internalWindow = std::make_unique<QWindow>();
+        m_internalWindow->setFlags(Qt::ToolTip | Qt::FramelessWindowHint);
+        m_internalWindow->setTitle(QStringLiteral("CC_NIRI_P0_INTERNAL"));
+        m_internalWindow->setGeometry(800, 150, 240, 120);
+        m_internalWindow->setSurfaceType(QSurface::RasterSurface);
+        m_internalWindow->show();
+        m_internalBacking = std::make_unique<QBackingStore>(m_internalWindow.get());
+        m_internalBacking->resize(m_internalWindow->size());
+        const QRegion region(QRect(QPoint(), m_internalWindow->size()));
+        m_internalBacking->beginPaint(region);
+        QPainter painter(m_internalBacking->paintDevice());
+        painter.fillRect(region.boundingRect(), Qt::yellow);
+        painter.end();
+        m_internalBacking->endPaint();
+        m_internalBacking->flush(region);
+        return true;
+    }
+    Q_SCRIPTABLE bool CloseInternalWindow() {
+        if (!isolated() || !m_internalWindow) return false;
+        m_internalBacking.reset();
+        m_internalWindow.reset();
+        return true;
+    }
+    Q_SCRIPTABLE bool ReleaseInternalWindow() {
+        if (!isolated() || m_internalWindow) return false;
+        m_internalDeleted = EffectWindowDeletedRef();
+        return true;
+    }
+    Q_SCRIPTABLE QString InternalWindowStatus() const {
+        const auto *window = m_internalEffect.data();
+        const auto *internal = window ? qobject_cast<InternalWindow *>(window->window()) : nullptr;
+        return QString::fromUtf8(QJsonDocument(QJsonObject{
+            {QStringLiteral("effectWindow"), bool(window)},
+            {QStringLiteral("inStackingOrder"), window && effects->stackingOrder().contains(m_internalEffect)},
+            {QStringLiteral("deleted"), window && window->isDeleted()},
+            {QStringLiteral("handlePresent"), internal && internal->handle()},
+            {QStringLiteral("held"), !m_internalDeleted.isNull()},
+            {QStringLiteral("cycles"), int(m_internalCycles)}}).toJson(QJsonDocument::Compact));
+    }
     Q_SCRIPTABLE bool SetVirtualScale(double scale) {
         if (!isolated() || !m_entries.empty() || (scale != 1.0 && scale != 1.5)) return false;
         OutputConfiguration configuration;
@@ -403,6 +464,11 @@ private:
     bool onTouchUp(TouchUpEvent *event) { if (m_suppressedTouches.remove(event->id)) { ++m_consumed; return true; } return false; }
     bool onTouchCancel() { const bool pending = !m_suppressedTouches.isEmpty(); m_suppressedTouches.clear(); return pending; }
     std::unique_ptr<Filter> m_filter;
+    std::unique_ptr<QWindow> m_internalWindow;
+    std::unique_ptr<QBackingStore> m_internalBacking;
+    QPointer<EffectWindow> m_internalEffect;
+    EffectWindowDeletedRef m_internalDeleted;
+    unsigned m_internalCycles = 0;
     std::vector<Entry> m_entries;
     std::vector<Mask> m_masked;
     QSet<uint32_t> m_suppressedButtons;

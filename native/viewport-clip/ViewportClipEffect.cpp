@@ -103,6 +103,8 @@ public:
         // Showing Desktop may have independently hidden these same windows.
         // Its authority wins; only release our painting references in that case.
         const bool showing = workspace()->showingDesktop();
+        // A closed client may still be retained for painting. Clear our bit
+        // while its QObject is alive before dropping the visibility reference.
         for (const auto &entry : m_masked)
             if (entry.window && !showing) entry.window->setHiddenByShowDesktop(false);
         m_masked.clear();
@@ -120,11 +122,16 @@ public:
         if ((partial.enabled || m_owner->m_scrollClipHandoff.runtime().partialStatus().enabled)
             && partial.native_grab) return false;
         for (auto *window : effects->stackingOrder()) {
-            auto *client = window->window();
+            auto *client = inputClient(window);
             if (!client || !window->isOnCurrentDesktop() || window->isMinimized() ||
                 client->isHidden() || client->isHiddenByShowDesktop() ||
                 client->isInteractiveMove() || client->isInteractiveResize()) continue;
             const auto id = scrollWindowId(window);
+            // Closing effects can retain an InternalWindow after its QWindow
+            // is gone. Only live clients owned by the existing Rust runtime or
+            // frozen handoff may enter our extra platform hit test. KWin keeps
+            // authority over internal UI, popups and every unrelated window.
+            if (!ownsInputClip(id)) continue;
             const bool nativeHit=client->hitTest(point);
             if (!m_owner->m_scrollRuntime.inputBlocked(id, point)
                 && !m_owner->m_scrollClipHandoff.inputBlocked(id, point)
@@ -193,6 +200,14 @@ public:
     bool tabletToolAxisEvent(TabletToolAxisEvent *event) override { if (apply(event->position)) input()->tablet()->update(); return event->tool && partialEvent(10,event->tool->serialId(),event->position); }
     bool tabletToolTipEvent(TabletToolTipEvent *event) override { if (apply(event->position)) input()->tablet()->update(); return event->tool && partialEvent(event->type == TabletToolTipEvent::Press ? 9 : 11,event->tool->serialId(),event->position); }
 private:
+    static Window *inputClient(EffectWindow *window) {
+        if (!window || window->isDeleted()) return nullptr;
+        auto *client = window->window();
+        return client && !client->isDeleted() && !client->isInternal() ? client : nullptr;
+    }
+    bool ownsInputClip(const QString &id) const {
+        return !m_owner->m_scrollRuntime.role(id).isEmpty() || m_owner->m_scrollClipHandoff.owns(id);
+    }
     void inputFrame() {
         m_owner->m_scrollRuntime.partialInput(8,0,false,
             (input()->qtButtonStates() == Qt::NoButton ? 2 : 0) | (input()->touch()->touchPointCount() == 0 ? 4 : 0));
@@ -232,7 +247,8 @@ private:
             if (frozen && !m_owner->m_scrollClipHandoff.owns(hitId)) hitId.clear();
             if (hitId.isEmpty()) blocked=blocked || m_blockedNativeHit;
             if (!hitId.isEmpty()) {
-                for (auto *window : effects->stackingOrder()) if (scrollWindowId(window) == hitId) { candidate=window; break; }
+                for (auto *window : effects->stackingOrder())
+                    if (inputClient(window) && scrollWindowId(window) == hitId) { candidate=window; break; }
                 blocked=source.partialInputBlocked(hitId,candidate ? scrollGeometry(candidate) : QRectF(),point);
             }
         }
@@ -243,6 +259,7 @@ private:
         if (blocked && !authorityCandidate) {
             const auto order=effects->stackingOrder();
             for (auto it=order.crbegin();it!=order.crend();++it) {
+                if (!inputClient(*it)) continue;
                 const auto token=scrollWindowId(*it);
                 if (frozen ? m_owner->m_scrollClipHandoff.owns(token) : !m_owner->m_scrollRuntime.role(token).isEmpty()) {
                     authorityCandidate=*it;break;

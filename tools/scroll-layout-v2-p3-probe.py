@@ -57,6 +57,8 @@ def isolated(destination, scale, ime=False, scenario=None):
                     "KWIN_COMPOSE": "O2", "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
                     "QT_PLUGIN_PATH": ":".join(map(str, [CLIP_DIR, p0.PLUGIN_DIR, p0.RING_DIR])),
                     "QT_FORCE_STDERR_LOGGING": "1", "QT_LOGGING_RULES": "kwin_effects.debug=true"})
+        if scenario == "input-lifecycle":
+            env.update(KDE_DEBUG="1", CC_NIRI_P0_NO_CORE="1")
         args = ["dbus-run-session", "--", sys.executable, __file__, "--inside", "--output", str(destination.resolve()), "--scale", str(scale)]
         if ime:
             args.append("--ime")
@@ -302,6 +304,51 @@ timer.timeout.connect(() => {
             clients[e["windowId"]]["visualRect"] == dict(x=e["logicalX"]-212, y=66, width=e["pixelWidth"], height=1358)
             for e in plan["entries"])
         checks["right_partial_strict_output"] = capture("right-partial", {0:[(450,300,"#386ac4"),(1304,300,"#386ac4"),(2110,300,"#386ac4"),(2135,300,"#000000"),(2140,300,"#32a060"),(2559,300,"#32a060")]})
+        if scenario == "input-lifecycle":
+            report["internal_windows"] = []
+            for mode in ["active", "handoff"]:
+                if mode == "handoff":
+                    width = dict(protocol=1, type="PAIR_TO_WIDE", sessionId=state["sessionId"],
+                        epoch=2, issuedAt=int(time.time()*1000), viewport=plan["viewport"], entries=[
+                            dict(windowId=rows[n]["uuid"], role="target" if n == "A" else "neighbor",
+                                 oldVisualRect=start_poses[n], newVisualRect=start_poses[n]) for n in ["A", "B"]])
+                    assert bridge_call("PublishMotionPlan", width)
+                    wait(lambda: "[MOTION_PLAN_NATIVE] ARM" in (destination / "kwin.log").read_text())
+                    native("CancelScrollPlan", json.dumps(dict(sessionId=state["sessionId"], epoch=1)))
+                    status = json.loads(native("GetScrollMotionStatus"))
+                    checks["frozen_handoff_exercised"] = status["clipHandoffActive"] and not status["active"]
+                    assert checks["frozen_handoff_exercised"]
+                for cycle in range(8):
+                    # Keep native focus away from the tooltip before deleting it;
+                    # then cross its retained frame through normal pointer input.
+                    send("move", x=600, y=300)
+                    assert fixture("OpenInternalWindow")
+                    live = wait(lambda: (lambda v: v if v["effectWindow"] and v["inStackingOrder"] and v["handlePresent"] else None)(
+                        json.loads(fixture("InternalWindowStatus"))))
+                    assert fixture("CloseInternalWindow")
+                    closed = json.loads(fixture("InternalWindowStatus"))
+                    report["internal_windows"].append(dict(mode=mode, cycle=cycle, live=live, closed=closed))
+                    checks[f"{mode}_{cycle}_closed_internal_retained_without_qwindow"] = (
+                        closed["effectWindow"] and closed["inStackingOrder"] and closed["deleted"]
+                        and closed["held"] and not closed["handlePresent"])
+                    assert checks[f"{mode}_{cycle}_closed_internal_retained_without_qwindow"]
+                    for x in [810, 900, 1030, 790]:
+                        send("move", x=x, y=200)
+                    checks[f"{mode}_{cycle}_pointer_motion_survives"] = owned("org.kde.KWin", kwin)
+                    assert fixture("ReleaseInternalWindow")
+                    released = wait(lambda: (lambda v: v if not v["effectWindow"] else None)(
+                        json.loads(fixture("InternalWindowStatus"))))
+                    report["internal_windows"][-1]["released"] = released
+            native("CancelScrollPlan", json.dumps(dict(sessionId=state["sessionId"], epoch=2)))
+            checks["lifecycle_cancel_drains_handoff"] = not json.loads(native("GetScrollMotionStatus"))["clipHandoffActive"]
+            checks["lifecycle_pairs_drained"] = all(json.loads(native("GetPartialScrollCapability"))[k] == 0
+                for k in ["pendingButtons", "pendingTouches"])
+            recorder("Mark", "lifecycle-after-cancel")
+            send("move", x=1000, y=300); send("press"); send("release")
+            clicks = events("lifecycle-after-cancel", {"MouseButtonPress", "MouseButtonRelease"})
+            checks["lifecycle_cancel_restores_native_input"] = len(clicks) == 2 and all(
+                r["title"] == "CC_NIRI_P0_A" and r["x"] == 560 and r["y"] == 234 for r in clicks)
+            raise P4ScenarioComplete()
         if scenario in {"p4", "p5", "p6"}:
             scenario_spec=importlib.util.spec_from_file_location("p4scenario",ROOT / f"tools/scroll-layout-v2-{'p5' if scenario == 'p6' else scenario}-scenario.py")
             scenario_module=importlib.util.module_from_spec(scenario_spec);scenario_spec.loader.exec_module(scenario_module)
@@ -445,7 +492,15 @@ timer.timeout.connect(() => {
         report["status"] = "PASS" if all(checks.values()) else "FAIL"
     except Exception as error:
         report["error"] = repr(error)
+        if scenario == "input-lifecycle" and (destination / "kwin.log").exists() and "KCrash:" in (destination / "kwin.log").read_text():
+            report.update(status="FAIL", failureClass="compositor-crash")
+            try:
+                kwin.wait(timeout=.5)
+            except subprocess.TimeoutExpired:
+                pass
     finally:
+        if scenario == "input-lifecycle" and "kwin" in locals():
+            report["kwin_exit_code_before_cleanup"] = kwin.poll()
         for process in reversed(processes):
             if process.poll() is None:
                 process.terminate()
@@ -472,7 +527,7 @@ def main():
     parser.add_argument("--output", type=Path, default=DEST)
     parser.add_argument("--scale", type=float, choices=[1.0,1.5], default=1.0)
     parser.add_argument("--ime", action="store_true")
-    parser.add_argument("--scenario",choices=["p4", "p5", "p6"])
+    parser.add_argument("--scenario",choices=["p4", "p5", "p6", "input-lifecycle"])
     args = parser.parse_args()
     return inside(args.output, args.scale, args.ime, args.scenario) if args.inside else isolated(args.output, args.scale, args.ime, args.scenario)
 
