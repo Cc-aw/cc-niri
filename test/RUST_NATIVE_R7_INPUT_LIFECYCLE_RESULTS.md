@@ -1,6 +1,6 @@
 # R7 后续：输入裁切的内部窗口生命周期修复
 
-2026-10-17，清理基线 `7045a8a`。状态：实现完成，自动门禁和私有KWin回归 PASS；未部署，用户桌面实机验收 PENDING。对应 [2026-10-16崩溃分析](KWIN_CRASH_20261016_161144_ANALYSIS.md)。
+2026-10-17，清理基线 `7045a8a`，修复提交 `7bc1932`。状态：自动门禁和私有KWin回归 PASS；已按用户授权安全部署，启动核验 PASS，完整用户交互验收 PENDING。对应 [2026-10-16崩溃分析](KWIN_CRASH_20261016_161144_ANALYSIS.md)。
 
 ## 复现与原因
 
@@ -42,8 +42,20 @@
 
 ## 实机、资源与回滚
 
-用户桌面未部署、未卸载或重载组件，KWin未被测试工具重启或强杀。所有主动关闭、保留和输入注入均发生在有隔离检查的虚拟KWin fixture中。真实H/L / 快速反向、J/K、Pair/Wide、Ring、Ark提示层关闭、Fcitx5及安全重载验收仍 PENDING；私有Mesa输出不替代实际GPU、显示器和日常桌面验证。
+部署前验证阶段未卸载或重载用户桌面组件，KWin未被测试工具重启或强杀。所有主动关闭、保留和输入注入均发生在有隔离检查的虚拟KWin fixture中。后续授权部署与一次正常安全重载的核验见下节；真实H/L / 快速反向、J/K、Pair/Wide、Ark提示层关闭、Fcitx5及长期稳定性交互验收仍 PENDING。私有Mesa输出不替代实际GPU、显示器和日常桌面验证。
 
 PSS、Private_Dirty、GPU归因、4K60帧时间和长期增长 NOT MEASURED。生命周期用例证明的是测试窗口和其保留引用逐轮释放，不能代表全项目内存预算已验收。
 
 部署前可将本次三个源码/工具文件和原分析记录恢复到 `7045a8a`，移除新增修复记录与证据，再按既有入口重建；当前已安装组件不受仓库回滚影响。后续经明确授权部署时，使用现有save-state → stop / restore ACK → immutable install → start路径并保留安装前备份；出现异常按该备份和既有恢复流程回滚，不绕过blocked / ACK，也不强杀KWin。
+
+## 授权部署与启动核验（2026-10-17）
+
+用户明确要求“提交 部署”后提交修复为 `7bc1932`。先核对当前源码及产物与自动验证证据一致，保存实时布局；通过既有P6工具备份完整Script / Effect、Clip / Ring immutable版本、Bridge / CLI / unit、kwinrc /快捷键及布局快照。备份及冻结回滚入口为 `/tmp/cc-niri-input-fix-deploy-20261017-182829`，目录权限0700，原始窗口/配置数据不提交仓库。
+
+候选540份源码、三个二进制与构建缓存经 `verify --current --require-validated` 检查后，执行 `./install.sh --prepared-manifest .../manifest.json`，复用精确验证产物，不重新构建。安装器正常通过CLI瞬时恢复证明并stop，再执行immutable install和start，退出码0；没有人工确认例外、伪造ACK或强制卸载。
+
+PASS：Script / Effect已升级并加载，Bridge active，V2仍启用、Dock设置保留、顶部间距仍为8、Focus Ring偏好及加载正常。Script、Clip配置、Ring配置三组键值与备份完全一致；脚本包哈希与仓库生成包一致。新的Clip / Ring实际加载路径与新的immutable链接相同，文件SHA与目录名一致；安装器调整RPATH，因此另核对安装前后ELF `.text` / `.rodata` 均一致。不能只凭磁盘链接更新认定已经加载修复。
+
+PASS：新runtime session处于running，Native active/completed，真实几何来源及用观测列ID绑定的来源均valid，所有观测行均owned / painted / acknowledged，handoff已清空；pending按钮/触摸为0，Ring实际绘制已观察到。部署时间窗内未发现RESTORE_ACK_FAILED、RESTORE_BLOCKED、FAIL_SAFE、JS异常或KCrash。KWin PID部署前后均为896650，没有重启KWin、注销或关闭用户应用；没有向用户桌面注入测试点击、创建内部提示窗或强制触发崩溃。
+
+部署状态和脱敏核验见[部署证据](kwin-crash-evidence/20261017-input-lifecycle/deployment.json)。原始安装日志和只读状态在上述私有备份目录。候选在安装时已通过完整绑定校验，后续只新增验收文档，不回写冻结候选。当前仅确认部署/启动成功，完整日常交互、4K60与长期资源验收仍Pending / NOT MEASURED。需要回滚时先检查私有目录内rollback dry-run，仍须走真实恢复证明；实际回滚本次未执行。

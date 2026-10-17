@@ -1,0 +1,55 @@
+{
+  "status": "DEPLOYED_STARTUP_CHECKS_PASS",
+  "date": "2026-10-17",
+  "code_commit": "7bc1932277981d2b9c381c494e4d34bff48942a1",
+  "authorization": "User requested commit and deploy",
+  "backup_private": "/tmp/cc-niri-input-fix-deploy-20261017-182829",
+  "prepared_manifest": "/tmp/cc-niri-input-fix-deploy-20261017-182829/manifest.json",
+  "candidate_source_count": 540,
+  "immutable_rollback_ready": true,
+  "install_exit_code": 0,
+  "install_log_sha256": "a37900cb1122731fe9236a6caf4cb2a77718e6105cdc62b18155855faf28d75f",
+  "stop": "PASS normal CLI proof gate; no manual ACK exception or bypass",
+  "kwin_pid_before": 896650,
+  "kwin_pid_after": 896650,
+  "fresh_runtime_session": true,
+  "script_sha256": "a87ec41f6bff69f8fa168c86875a6c026767e5a6dc22c514ff2352e12b001301",
+  "effect_sha256": "3ddfc188a1d9799ea860c1663f53a9b3abd733f8c097448f88977347a8197744",
+  "plugins": {
+    "clip": {
+      "loaded": "/home/cc/.local/lib/cc-niri/viewport-clip/ded81284887843ef316172a673b2fba00b70bb6edfd690938157b0f7efbfb3a5/cc-niri-viewport-clip.so",
+      "canonical": "/home/cc/.local/lib/cc-niri/viewport-clip/ded81284887843ef316172a673b2fba00b70bb6edfd690938157b0f7efbfb3a5/cc-niri-viewport-clip.so",
+      "sha256": "ded81284887843ef316172a673b2fba00b70bb6edfd690938157b0f7efbfb3a5",
+      "text_build": "b6cade1b36dbcd685da810306a9c79a9153f71336fa8e336206af75ab9dd858f",
+      "text_installed": "b6cade1b36dbcd685da810306a9c79a9153f71336fa8e336206af75ab9dd858f",
+      "rodata_build": "5d058a98c002a61929a203eb346d4f72d9d182de7129406a756238de1c0ed7ee",
+      "rodata_installed": "5d058a98c002a61929a203eb346d4f72d9d182de7129406a756238de1c0ed7ee"
+    },
+    "ring": {
+      "loaded": "/home/cc/.local/lib/cc-niri/focus-ring/f643f989b4929b3d3dca8bde9204f9874c1ec346748388a25320255dd8424759/cc-niri-focus-ring.so",
+      "canonical": "/home/cc/.local/lib/cc-niri/focus-ring/f643f989b4929b3d3dca8bde9204f9874c1ec346748388a25320255dd8424759/cc-niri-focus-ring.so",
+      "sha256": "f643f989b4929b3d3dca8bde9204f9874c1ec346748388a25320255dd8424759",
+      "text_build": "2ef1a1c240a75f0feb52e4efc180bdc7320b89bcf0bc195a717d14ea00954be0",
+      "text_installed": "2ef1a1c240a75f0feb52e4efc180bdc7320b89bcf0bc195a717d14ea00954be0",
+      "rodata_build": "be0e96b6df463bfe67ddf6d034d7dab4f8abb6d242b82ec5a842467d7c7551cd",
+      "rodata_installed": "be0e96b6df463bfe67ddf6d034d7dab4f8abb6d242b82ec5a842467d7c7551cd"
+    }
+  },
+  "configuration_unchanged_groups": [
+    "Script-cc-niri-maximize",
+    "Effect-cc-niri-viewport-clip",
+    "CCNiriFocusRing"
+  ],
+  "v2_enabled": "true",
+  "top_gap": "8",
+  "recovery_state": "running",
+  "native_source_valid": true,
+  "bound_source_valid": true,
+  "native_completed": true,
+  "handoff_active": false,
+  "ring_draw_observed": true,
+  "startup_journal_error_count": 0,
+  "manual_interactive_acceptance": "PENDING",
+  "resource_budget": "NOT MEASURED",
+  "raw_private_verification_sha256": "af9da84643e73269cf5d5ce9afc9e359c5267ff5e75c3f3b42952532bcf31cfa"
+}

@@ -14,7 +14,7 @@ Rust Native Core 重构 R0–R7 已完成并归档到 `done/`。Spring、Viewpor
 
 重构期间发现的 [Pair→Wide 动画中 J/K](../test/WORKSPACE_WIDE_DEPARTURE_RESULTS.md)交接缺陷已修复并由用户确认成功；双屏工作区现按主屏独立切换，帧率采样见 [输出与帧率记录](../test/WORKSPACE_OUTPUT_FRAME_RESULTS.md)。Rust 完成结论不覆盖 V3 完整 daily smoke / release gate、热插拔和长期压力等独立验收。
 
-2026-10-16 完成一轮[无调用 JS 代码清理](../test/RUST_NATIVE_R7_CLEANUP_RESULTS.md)：删除废弃转发与启动恢复逻辑、未被生产消费的 MotionProfiles 表，生产包减少7097字节；240项JS、109项Rust、完整Native门禁及私有KWin44项通过。当前仓库清理尚未部署到用户桌面。
+2026-10-16 完成一轮[无调用 JS 代码清理](../test/RUST_NATIVE_R7_CLEANUP_RESULTS.md)：删除废弃转发与启动恢复逻辑、未被生产消费的 MotionProfiles 表，生产包减少7097字节；240项JS、109项Rust、完整Native门禁及私有KWin44项通过。本轮及后续分批清理已于2026-10-17随[输入裁切生命周期修复](../test/RUST_NATIVE_R7_INPUT_LIFECYCLE_RESULTS.md)安全部署，启动核验通过；完整实机交互与长期稳定性仍待验收。
 
 2026-10-01 用户明确指定以下两个目标，并确认先实现 ViewOffset Spring，再实现 Focus Ring；优先于 Quickshell 后续视觉升级：
 
