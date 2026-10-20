@@ -11,7 +11,7 @@ class WorkspaceSwitchController {
     }
 
     ready() {
-        return !this.stopped && !this.mount.stopped && this.appState.enabled &&
+        return !this.stopped && !this.mount.stopped && this.appState.enabled && !this.appState.sessionPaused &&
             this.appState.targetOutput && this.appState.activeWorkspaceId;
     }
 
@@ -87,7 +87,7 @@ class WorkspaceSwitchController {
     }
 
     valid(epoch) {
-        return !this.stopped && !this.mount.stopped && this.appState.enabled &&
+        return !this.stopped && !this.mount.stopped && this.appState.enabled && !this.appState.sessionPaused &&
             epoch === this.switchEpoch && this.phase !== "IDLE";
     }
 
@@ -160,6 +160,10 @@ class WorkspaceSwitchController {
     stop() {
         if (this.stopped) return;
         this.stopped = true;
+        this.pause();
+    }
+
+    pause() {
         ++this.switchEpoch;
         this.clearTimeout();
         this.phase = "IDLE";

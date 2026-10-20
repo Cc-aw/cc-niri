@@ -1,0 +1,5 @@
+Installing in /home/cc/.local. Run /home/cc/cc_niri/build/native-viewport-clip/prefix.sh to set the environment for cc-niri-viewport-clip.
+-- CC-Niri Native Core: Rust production
+-- Configuring done (1.1s)
+-- Generating done (0.2s)
+-- Build files have been written to: /home/cc/cc_niri/build/native-viewport-clip

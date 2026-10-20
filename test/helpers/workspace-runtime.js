@@ -33,6 +33,8 @@ const cancelAcks = [];
 const scrollStatusAcks = [];
 const workspaceTransitionAcks = [];
 let workspaceTransitionActive = false;
+let sessionLocked = Boolean(config.StartLocked), sessionSequence = 0;
+const sessionStateAcks = [];
 let pendingCommand = "";
 const timers = [];
 const shortcuts = new Map();
@@ -120,6 +122,13 @@ const context = vm.createContext({ workspace, QTimer: Timer, KWin: { MaximizeAre
     callDBus: (_service, _path, _interface, method, ...args) => {
         traffic.push({ service: _service, path: _path, method, payload: args[0] });
         const callback = args.at(-1);
+        if (method === "GetSessionState") {
+            const value = JSON.stringify({ protocol: 1, type: "session-state", instanceId: "native-test",
+                sequence: sessionSequence, locked: sessionLocked });
+            if (config.HoldSessionState) sessionStateAcks.push(() => callback(value));
+            else callback(value);
+            return;
+        }
         if (config.MockV2Native) {
             if (method === "GetColumnGeometryCapability") {
                 callback(JSON.stringify({ protocol: 4, type: "COLUMN_GEOMETRY", enabled: true,
@@ -131,7 +140,7 @@ const context = vm.createContext({ workspace, QTimer: Timer, KWin: { MaximizeAre
             if (method === "GetScrollMotionStatus") {
                 if (config.HoldV2Status) { scrollStatusAcks.push(callback); return; }
                 callback(JSON.stringify({ sessionId: published.at(-1)?.sessionId,
-                    epoch: v2Plan ? v2Plan.epoch : 0, active: Boolean(v2Plan && !v2Plan.cancelled), clipHandoffActive: false })); return;
+                    epoch: v2Plan ? v2Plan.epoch : -1, active: Boolean(v2Plan && !v2Plan.cancelled), clipHandoffActive: false })); return;
             }
             if (method === "GetColumnGeometryCompletion") {
                 callback(JSON.stringify(v2Painted ? { ...v2Painted, protocol: 4, type: "COLUMN_GEOMETRY_COMPLETION",
@@ -154,7 +163,7 @@ const context = vm.createContext({ workspace, QTimer: Timer, KWin: { MaximizeAre
             }
             if (method === "CancelScrollPlan") {
                 nativeCancels.push(JSON.parse(args[0]));
-                const epoch = v2Plan ? v2Plan.epoch : 0;
+                const epoch = v2Plan ? v2Plan.epoch : -1;
                 v2Plan = { epoch, cancelled: true }; v2Painted = null;
                 // Keep the last accepted epoch, exactly as the Native runtime.
                 callback();
@@ -216,6 +225,12 @@ function nativeSwitch(index, active, expectMount = true) {
         "native desktop changes issue one relayout, including empty workspaces");
 }
 return { evaluate, state, ids, nativeSwitch, desktops, desktopCreates, desktopRemoves, desktopRows, output, workspace, a, b, published, stateAcks, traffic, deferred, motionAcks, motionPlans, motionPublishWrites, nativeArms, nativeAcks, nativeCancels, cancelAcks, scrollStatusAcks, timers, shortcuts, logs,
+    sessionStateAcks,
+    sessionEvent(locked) {
+        if (sessionLocked !== locked) ++sessionSequence;
+        sessionLocked = locked;
+        evaluate('runtimeBridge.dispatch(runtimeBridge.commandEnvelope({ type: "session-state-changed", commandId: "session-test" }))');
+    },
     paintV2() {
         const p = v2Plan;
         assert.ok(p && !p.cancelled, "a Native arm is required before painting");

@@ -9,7 +9,7 @@ class ScrollPlanCommitGate {
         this.disarming = new Set(); this.idleCallbacks = [];
         this.retainedEpochs = new Set();
     }
-    abort(epoch, callback = () => {}) {
+    abort(epoch, callback = () => {}, timeoutMs = this.timeoutMs) {
         const request = { epoch, timer: null };
         this.disarming.add(request);
         const finish = confirmed => {
@@ -21,7 +21,10 @@ class ScrollPlanCommitGate {
         };
         // A disconnected endpoint must not retain historical requests forever.
         // This is the same finite ACK deadline used by visible fallback commits.
-        request.timer = this.setTimer(() => finish(false), this.timeoutMs);
+        request.timer = this.setTimer(() => {
+            if (this.warn) this.warn(`[SCROLL_PLAN] disarm deadline epoch=${epoch} timeoutMs=${timeoutMs}`);
+            finish(false);
+        }, timeoutMs);
         try { this.disarm(epoch, finish); } catch (error) {
             this.warn(`[SCROLL_PLAN] disarm unavailable ${error}`); finish(false);
         }

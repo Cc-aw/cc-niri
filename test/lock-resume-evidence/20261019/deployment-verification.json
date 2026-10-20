@@ -1,0 +1,95 @@
+{
+  "status": "PASS",
+  "at_utc": "2026-10-19T11:21:07.380641+00:00",
+  "checks": {
+    "health_running": true,
+    "same_live_session": true,
+    "unlocked": true,
+    "script_exact": true,
+    "outputs_preserved": true,
+    "secondary_first": true,
+    "clip_loaded_exact": true,
+    "ring_loaded_exact": true,
+    "native_source_valid": true,
+    "all_workspaces_width_order_preserved": true,
+    "all_workspaces_focus_preserved": true,
+    "active_workspace_matches_native_before_reload": true,
+    "active_columns_match_saved_native_workspace": true
+  },
+  "health": {
+    "protocol": 1,
+    "reason": "session-ready",
+    "sequence": 3,
+    "sessionId": "1a153e405ff-be13d523",
+    "state": "running",
+    "type": "runtime-health"
+  },
+  "session": {
+    "instanceId": "2ef9a7df-dae0-442a-b0f2-a67c143cbe73",
+    "locked": false,
+    "protocol": 1,
+    "sequence": 0,
+    "type": "session-state"
+  },
+  "source_valid": true,
+  "manifest": "/tmp/cc-niri-lock-resume-20261019-deploy/manifest.json",
+  "installed": {
+    "clip": {
+      "path": "/home/cc/.local/lib/cc-niri/viewport-clip/e846e4311a4d5a16902b9b6222132298d92217d86e8491831a1a6914f889472b/cc-niri-viewport-clip.so",
+      "sha256": "e846e4311a4d5a16902b9b6222132298d92217d86e8491831a1a6914f889472b"
+    },
+    "ring": {
+      "path": "/home/cc/.local/lib/cc-niri/focus-ring/f643f989b4929b3d3dca8bde9204f9874c1ec346748388a25320255dd8424759/cc-niri-focus-ring.so",
+      "sha256": "f643f989b4929b3d3dca8bde9204f9874c1ec346748388a25320255dd8424759"
+    },
+    "bridge": {
+      "path": "/home/cc/.local/libexec/cc-niri-bridge",
+      "sha256": "76e1da9087317b4917542919cf9adff3cc3c845641339dd4bc4481ffdba4e947"
+    }
+  },
+  "script_sha256": "d2fa7ed4a3812058be3fa8cccfa8f5eb5747c851056b6e3f54ca54a0e9ca865e",
+  "snapshot_comparison": {
+    "workspaceId": false,
+    "targetOutput": true,
+    "columns": false,
+    "focusedUuid": false,
+    "presentation": true
+  },
+  "workspace_comparison": {
+    "d22b4f66-367a-4004-b8b6-eea22f24c4f8": {
+      "columns": true,
+      "focusedUuid": true,
+      "presentation": true,
+      "viewportAnchorV2": true
+    },
+    "67cb656e-0a97-44e9-8b7d-f743faea501b": {
+      "columns": true,
+      "focusedUuid": true,
+      "presentation": true,
+      "viewportAnchorV2": true
+    },
+    "b729a9c6-35da-4a20-ae6e-c4cb14f9915c": {
+      "columns": true,
+      "focusedUuid": true,
+      "presentation": true,
+      "viewportAnchorV2": true
+    },
+    "ba093f5e-5764-446f-88e3-03d2d9a5ec3e": {
+      "columns": true,
+      "focusedUuid": true,
+      "presentation": true,
+      "viewportAnchorV2": true
+    },
+    "0c20674a-f1c0-4d3e-877a-2042b14fe355": {
+      "columns": true,
+      "focusedUuid": true,
+      "presentation": true,
+      "viewportAnchorV2": true
+    }
+  },
+  "old_snapshot_context": {
+    "modified_local": "2026-10-19T18:33:12.836835",
+    "workspaceId": "0c20674a-f1c0-4d3e-877a-2042b14fe355",
+    "explanation": "Old runtime logged departure-disarm at 18:33:13; the root snapshot remained at its earlier workspace. Verified preserved per-workspace order/width/focus and new root follows the actual native output observed before reload."
+  }
+}

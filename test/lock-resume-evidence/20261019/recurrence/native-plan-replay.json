@@ -1,0 +1,74 @@
+{
+  "scope": "Recorded plans replayed through built production Rust C ABI; reconstructed safe frames, NOT historical actual frames or KWin predicate proof",
+  "stable_frames": [
+    {
+      "epoch": 42,
+      "accepted": true,
+      "ffi_status": 0,
+      "motion_epoch": 42,
+      "active": true
+    },
+    {
+      "epoch": 43,
+      "accepted": true,
+      "ffi_status": 0,
+      "motion_epoch": 43,
+      "active": true
+    },
+    {
+      "epoch": 44,
+      "accepted": true,
+      "ffi_status": 0,
+      "motion_epoch": 44,
+      "active": true
+    }
+  ],
+  "incoming_height_plus_1": [
+    {
+      "epoch": 42,
+      "accepted": true,
+      "ffi_status": 0,
+      "motion_epoch": 42,
+      "active": true
+    },
+    {
+      "epoch": 43,
+      "accepted": false,
+      "ffi_status": 0,
+      "motion_epoch": 42,
+      "active": false,
+      "retry_same_epoch_after_correcting_frame": false
+    },
+    {
+      "epoch": 44,
+      "accepted": false,
+      "ffi_status": 0,
+      "motion_epoch": 42,
+      "active": false,
+      "retry_same_epoch_after_correcting_frame": false
+    }
+  ],
+  "incoming_x_plus_1": [
+    {
+      "epoch": 42,
+      "accepted": true,
+      "ffi_status": 0,
+      "motion_epoch": 42,
+      "active": true
+    },
+    {
+      "epoch": 43,
+      "accepted": false,
+      "ffi_status": 0,
+      "motion_epoch": 42,
+      "active": false
+    },
+    {
+      "epoch": 44,
+      "accepted": false,
+      "ffi_status": 0,
+      "motion_epoch": 42,
+      "active": false
+    }
+  ]
+}

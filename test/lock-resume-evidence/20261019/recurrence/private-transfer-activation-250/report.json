@@ -1,0 +1,6358 @@
+{
+  "started_utc": "2026-10-19T12:49:27.054137+00:00",
+  "status": "FAIL",
+  "scale": 1.0,
+  "ime": null,
+  "scope": "production Release Clip + Rust + Bridge + Ring, private virtual Mesa KWin; P0 raw injector only",
+  "artifacts": {
+    "build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so": "ac303088098db2187898709e19db11960bd3553faa0eb4b067359cc3c2d571a8",
+    "build/bridge/cc-niri-bridge": "76e1da9087317b4917542919cf9adff3cc3c845641339dd4bc4481ffdba4e947",
+    "build/scroll-layout-v2-p0-fixture/plugins/kwin/effects/plugins/cc-niri-p0-input-fixture.so": "00d9eed88605107647c8c41b306b1fbc727de56f5d86362de52aee5b3a6d605d",
+    "build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so": "75988a833c8df7941d253959ca52320bd9287215625865852d67aa208e952c9e"
+  },
+  "checks": {
+    "raw_injector_has_no_p0_projection": true,
+    "exact_build_tree_plugins_loaded": true,
+    "native_capability_explicit": true,
+    "bridge_requires_membership": true,
+    "actual_painted_camera_and_scope": true,
+    "p4_source_has_real_per_client_frames": true,
+    "p4_source_uses_actual_camera_and_pass": true,
+    "p4_source_preserves_natural_partial_visual": true,
+    "right_partial_strict_output": true,
+    "one_original_column": true,
+    "existing_window_transfer_settled": false,
+    "stop_1_confirmed": true
+  },
+  "plans": [
+    {
+      "protocol": 3,
+      "type": "PARTIAL_SCROLL",
+      "sessionId": "p3-private",
+      "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "targetOutput": "Virtual-0",
+      "epoch": 1,
+      "issuedAt": 1792414168807,
+      "scopeRevision": 1,
+      "maxCamera": 1696,
+      "clipPartial": true,
+      "retargetOnly": true,
+      "oldScrollOffsetX": 212,
+      "newScrollOffsetX": 212,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "layoutRect": {
+        "x": 0,
+        "y": 66,
+        "width": 2560,
+        "height": 1358
+      },
+      "entries": [
+        {
+          "windowId": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "columnId": 1,
+          "logicalX": 652,
+          "pixelWidth": 1680,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        },
+        {
+          "windowId": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "columnId": 2,
+          "logicalX": 2348,
+          "pixelWidth": 1256,
+          "oldPlacement": "visible",
+          "newPlacement": "visible"
+        }
+      ]
+    }
+  ],
+  "geometry": [
+    {
+      "phase": "bootstrap",
+      "kind": "p3-geometry",
+      "label": "initial-safe-client-ack",
+      "ready": true,
+      "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    }
+  ],
+  "captures": [
+    {
+      "name": "right-partial",
+      "samples": [
+        {
+          "output": 0,
+          "x": 450,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 1304,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 2110,
+          "y": 300,
+          "expected": "#386ac4",
+          "actual": "#386ac4"
+        },
+        {
+          "output": 0,
+          "x": 2135,
+          "y": 300,
+          "expected": "#000000",
+          "actual": "#000000"
+        },
+        {
+          "output": 0,
+          "x": 2140,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 0,
+          "x": 2559,
+          "y": 300,
+          "expected": "#32a060",
+          "actual": "#32a060"
+        },
+        {
+          "output": 1,
+          "expected": "#000000",
+          "actual": "#000000",
+          "scope": "entire-secondary-framebuffer"
+        }
+      ]
+    }
+  ],
+  "support": "KWin \u6280\u672f\u652f\u6301\u4fe1\u606f\uff1a\n\u8bf7\u5728\u5bfb\u6c42\u6280\u672f\u652f\u6301\u65f6 (\u4f8b\u5982 https://discuss.kde.org \u7f51\u7ad9) \u63d0\u4f9b\u4ee5\u4e0b\u4fe1\u606f\u3002\n\u8fd9\u4e9b\u4fe1\u606f\u5305\u62ec\u5173\u4e8e\u5f53\u524d\u6b63\u5728\u8fd0\u884c\u7684 Kwin \u5b9e\u4f8b\u7684\u76f8\u5173\u4fe1\u606f\u3001\n\u4f7f\u7528\u7684\u9009\u9879\u3001OpenGL \u9a71\u52a8\u7a0b\u5e8f\u3001\u6b63\u5728\u8fd0\u884c\u7684\u7279\u6548\u7b49\u3002\n\u8bf7\u4e0d\u8981\u5c06\u672c\u6bb5\u6587\u5b57\u4e0b\u65b9\u7684\u4fe1\u606f\u76f4\u63a5\u7c98\u8d34\u5230\u6280\u672f\u652f\u6301\u8ba8\u8bba\u4e32\uff0c\n\u800c\u5e94\u5c06\u5b83\u4eec\u7c98\u8d34\u5230\u5728\u7ebf\u526a\u8d34\u677f\u7f51\u7ad9 (\u4f8b\u5982 https://paste.kde.org)\u3002\n\n==========================\n\nVersion\n=======\nKWin version: 6.7.5\nQt Version: 6.11.2\nQt compile version: 6.11.2\nXCB compile version: 1.17.0\n\nOperation Mode: Wayland\n\nBuild Options\n=============\nKWIN_BUILD_DECORATIONS: yes\nKWIN_BUILD_TABBOX: yes\nKWIN_BUILD_ACTIVITIES: yes\nHAVE_X11_XCB: yes\n\nDecoration\n==========\nPlugin: org.kde.breeze\nTheme: \nPlugin recommends border size: None\nonAllDesktopsAvailable: false\nalphaChannelSupported: true\ncloseOnDoubleClickOnMenu: false\nalwaysShowExcludeFromCapture: false\ndecorationButtonsLeft: 0, 2, 12\ndecorationButtonsRight: 6, 3, 4, 5\nborderSize: 0\ngridUnit: 12\nfont: Noto Sans Arabic,12,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0\nsmallSpacing: 3\nlargeSpacing: 12\n\nLogicalOutput backend\n==============\nName: KWin::VirtualBackend\n\nCursor\n======\nthemeName: default\nthemeSize: 24\n\nOptions\n=======\nfocusPolicy: ClickToFocus\nxwaylandCrashPolicy: 1\nxwaylandMaxCrashCount: 3\nnextFocusPrefersMouse: false\nclickRaise: true\nautoRaise: false\nautoRaiseInterval: 0\ndelayFocusInterval: 0\nseparateScreenFocus: true\nplacement: 5\nactivationDesktopPolicy: SwitchToOtherDesktop\nfocusPolicyIsReasonable: true\nborderSnapZone: 10\nwindowSnapZone: 10\ncenterSnapZone: 0\nsnapOnlyWhenOverlapping: false\nedgeBarrier: 100\ncornerBarrier: 1\nrollOverDesktops: false\nperOutputVirtualDesktops: false\nfocusStealingPreventionLevel: 1\noperationTitlebarDblClick: 5000\noperationMaxButtonLeftClick: 5000\noperationMaxButtonMiddleClick: 5013\noperationMaxButtonRightClick: 5012\ncommandActiveTitlebar1: MouseRaise\ncommandActiveTitlebar2: MouseNothing\ncommandActiveTitlebar3: MouseOperationsMenu\ncommandInactiveTitlebar1: MouseActivateAndRaise\ncommandInactiveTitlebar2: MouseNothing\ncommandInactiveTitlebar3: MouseOperationsMenu\ncommandWindow1: MouseActivateRaiseOnReleaseAndPassClick\ncommandWindow2: MouseActivateAndPassClick\ncommandWindow3: MouseActivateAndPassClick\ncommandWindowWheel: MouseNothing\ncommandAll1: MouseUnrestrictedMove\ncommandAll2: MouseToggleRaiseAndLower\ncommandAll3: MouseUnrestrictedResize\nkeyCmdAllModKey: 16777250\ndoubleClickBorderToMaximize: true\ncondensedTitle: false\nelectricBorderMaximize: true\nelectricBorderTiling: true\nelectricBorderAllScreenCorner: true\nelectricBorderCornerRatio: 0.25\nborderlessMaximizedWindows: false\nkillPingTimeout: 5000\ncompositingMode: 1\nallowTearing: true\ninteractiveWindowMoveEnabled: true\npictureInPictureHomeCorner: BottomRightCorner\npictureInPictureMargin: 20\noverlayVirtualKeyboardOnWindows: false\n\nScreen Edges\n============\ndesktopSwitching: false\ndesktopSwitchingMovingClients: false\ncursorPushBackDistance: 1x1\nactionTopLeft: 0\nactionTop: 0\nactionTopRight: 0\nactionRight: 0\nactionBottomRight: 0\nactionBottom: 0\nactionBottomLeft: 0\nactionLeft: 0\n\nScreens\n=======\nNumber of Screens: 2\n\nScreen 0:\n---------\nName: Virtual-0\nEnabled: 1\nGeometry: 0,0,2560x1440\nPhysical size: -1x-1mm\nScale: 1\nRefresh Rate: 60000\nAdaptive Sync: incapable\nScreen 1:\n---------\nName: Virtual-1\nEnabled: 1\nGeometry: 2560,0,2560x1440\nPhysical size: -1x-1mm\nScale: 1\nRefresh Rate: 60000\nAdaptive Sync: incapable\n\nCompositing\n===========\nCompositing is active\nCompositing Type: OpenGL\nOpenGL vendor string: Intel\nOpenGL renderer string: Mesa Intel(R) UHD Graphics (CML GT2)\nOpenGL version string: 4.6 (Core Profile) Mesa 26.2.3\nOpenGL platform interface: EGL\nOpenGL shading language version string: 4.60\nDriver: Intel\nGPU class: Comet Lake\nOpenGL version: 4.6\nGLSL version: 4.60\nMesa version: 26.2.3\nLinux kernel version: 7.2.8\nDirect rendering: Requires strict binding: no\nVirtual Machine:  no\nOpenGL 2 Shaders are used\n\nLoaded Effects:\n---------------\nshakecursor\noutputlocator\ncolorpicker\nzoom\nscreenedge\nblur\nslidingpopups\nslidingnotifications\ndialogparent\nwindowview\ntileseditor\noverview\nhighlightwindow\nblendchanges\nstartupfeedback\nkwin4_effect_shapecorners\nsystembell\nscreentransform\nkscreen\n\nCurrently Active Effects:\n-------------------------\nblur\nkwin4_effect_shapecorners\n\nEffect Settings:\n----------------\nshakecursor:\n\noutputlocator:\n\ncolorpicker:\n\nzoom:\nzoomFactor: 1.2\nmouseTracking: 0\nfocusDelay: 350\nmoveFactor: 20\ntargetZoom: 1\n\nscreenedge:\n\nblur:\n\nslidingpopups:\nslideInDuration: 200\nslideOutDuration: 200\n\nslidingnotifications:\n\ndialogparent:\npluginId: dialogparent\nisActiveFullScreenEffect: false\n\nwindowview:\nactiveView: \ndelegate: \nanimationDuration: 300\nignoreMinimized: false\nmode: ModeCurrentDesktop\npartialActivationFactor: 0\ngestureInProgress: false\nsearchText: \nselectedIds: \n\ntileseditor:\nactiveView: \ndelegate: \nanimationDuration: 200\n\noverview:\nactiveView: \ndelegate: \nanimationDuration: 300\nignoreMinimized: false\nfilterWindows: true\norganizedGrid: true\noverviewPartialActivationFactor: 0\noverviewGestureInProgress: false\ntransitionPartialActivationFactor: 0\ntransitionGestureInProgress: false\ngridPartialActivationFactor: 0\ngridGestureInProgress: false\nsearchText: \n\nhighlightwindow:\n\nblendchanges:\n\nstartupfeedback:\ntype: 1\n\nkwin4_effect_shapecorners:\n\nsystembell:\n\nscreentransform:\n\nkscreen:\n\n\nLoaded Plugins:\n---------------\nBounceKeysPlugin\nKeyNotificationPlugin\nMouseKeysPlugin\nSlowKeysPlugin\nStickyKeysPlugin\nTouchpadShortcutsPlugin\nbuttonsrebind\neis\nkrunnerintegration\nnightlight\nscreencast\nscreenshot\n\nAvailable Plugins:\n------------------\nBounceKeysPlugin\nKeyNotificationPlugin\nMouseKeysPlugin\nSlowKeysPlugin\nStickyKeysPlugin\nTouchpadShortcutsPlugin\nbuttonsrebind\neis\ngamecontroller\nkrunnerintegration\nnightlight\nscreencast\nscreenshot\n",
+  "capability": {
+    "binaryPath": "/home/cc/cc_niri/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+    "enabled": true,
+    "inputPolicy": "two-click",
+    "pendingButtons": 0,
+    "pendingTouches": 0,
+    "protocol": 3,
+    "type": "PARTIAL_SCROLL"
+  },
+  "loaded_binary_paths": {
+    "clip": "/home/cc/cc_niri/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+    "ring": "/home/cc/cc_niri/build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so"
+  },
+  "initial_painted": {
+    "active": true,
+    "cameraX": 212,
+    "clipPartial": true,
+    "completed": true,
+    "entries": [
+      {
+        "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+        "visualRect": {
+          "height": 1358,
+          "width": 1680,
+          "x": 440,
+          "y": 66
+        }
+      },
+      {
+        "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+        "visualRect": {
+          "height": 1358,
+          "width": 1256,
+          "x": 2136,
+          "y": 66
+        }
+      }
+    ],
+    "epoch": 1,
+    "sampleSerial": 1,
+    "scopeRevision": 1,
+    "sessionId": "p3-private",
+    "targetOutput": "Virtual-0",
+    "valid": true,
+    "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9"
+  },
+  "column_geometry_source": {
+    "active": true,
+    "cameraX": 212,
+    "clipPartial": true,
+    "completed": true,
+    "entries": [
+      {
+        "acknowledged": true,
+        "columnId": 1,
+        "frameRect": {
+          "height": 1358,
+          "width": 1680,
+          "x": 440,
+          "y": 66
+        },
+        "logicalX": 652,
+        "owned": true,
+        "painted": true,
+        "velocityX": 0,
+        "velocityY": 0,
+        "visualRect": {
+          "height": 1358,
+          "width": 1680,
+          "x": 440,
+          "y": 66
+        },
+        "windowId": "d3ae03c8-6370-4c89-be9a-7dadbc459e70"
+      },
+      {
+        "acknowledged": true,
+        "columnId": 2,
+        "frameRect": {
+          "height": 1358,
+          "width": 1256,
+          "x": 1304,
+          "y": 66
+        },
+        "logicalX": 2348,
+        "owned": true,
+        "painted": true,
+        "velocityX": 0,
+        "velocityY": 0,
+        "visualRect": {
+          "height": 1358,
+          "width": 1256,
+          "x": 2136,
+          "y": 66
+        },
+        "windowId": "1e889c4b-d5de-45b4-96fc-37f44553cf47"
+      }
+    ],
+    "epoch": 1,
+    "layoutRect": {
+      "height": 1358,
+      "width": 2560,
+      "x": 0,
+      "y": 66
+    },
+    "maxCamera": 1696,
+    "protocol": 4,
+    "sampleSerial": 1,
+    "scopeRevision": 1,
+    "sessionId": "p3-private",
+    "targetOutput": "Virtual-0",
+    "type": "COLUMN_GEOMETRY_SOURCE",
+    "valid": true,
+    "viewport": {
+      "height": 1440,
+      "width": 2560,
+      "x": 0,
+      "y": 0
+    },
+    "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9"
+  },
+  "p5_runs": [
+    {
+      "phase": "bootstrap",
+      "kind": "p5-checkpoint",
+      "label": "initial",
+      "v2": true,
+      "enabled": true,
+      "epoch": 1,
+      "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "currentWorkspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "camera": 0,
+      "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "activeUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "snapshot": {
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "workspaceIndex": 0,
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+        "presentation": {
+          "windowUuid": null,
+          "mode": "normal"
+        },
+        "columns": [
+          {
+            "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "widthMode": "half",
+            "previousNonFullWidthMode": "half",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "half",
+              "previousNonFullWidthMode": "half"
+            }
+          },
+          {
+            "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+            "widthMode": "half",
+            "previousNonFullWidthMode": "half",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "half",
+              "previousNonFullWidthMode": "half"
+            }
+          },
+          {
+            "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+            "widthMode": "half",
+            "previousNonFullWidthMode": "half",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "half",
+              "previousNonFullWidthMode": "half"
+            }
+          },
+          {
+            "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+            "widthMode": "half",
+            "previousNonFullWidthMode": "half",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "half",
+              "previousNonFullWidthMode": "half"
+            }
+          }
+        ],
+        "viewportAnchor": null,
+        "viewportAnchorV2": {
+          "version": 1,
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "delta": -652,
+          "basis": {
+            "outputRect": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "workingArea": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "gap": 16,
+            "physicalScale": 1
+          }
+        },
+        "workspaces": [
+          {
+            "id": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+            "columns": [
+              {
+                "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              }
+            ],
+            "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            },
+            "viewportAnchorV2": {
+              "version": 1,
+              "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+              "delta": -652,
+              "basis": {
+                "outputRect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "workingArea": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "gap": 16,
+                "physicalScale": 1
+              }
+            },
+            "dormantViewportV1": {
+              "version": 1,
+              "mode": "pair",
+              "wideUuid": null
+            }
+          }
+        ]
+      },
+      "errors": [],
+      "columns": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "widthMode": "half",
+          "previous": "half",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 1,
+          "minimized": false,
+          "frame": {
+            "x": 652,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          }
+        },
+        {
+          "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "caption": "CC_NIRI_P0_B",
+          "widthMode": "half",
+          "previous": "half",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 1,
+          "minimized": false,
+          "frame": {
+            "x": 1304,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          }
+        },
+        {
+          "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+          "caption": "CC_NIRI_P0_C",
+          "widthMode": "half",
+          "previous": "half",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 0,
+          "minimized": true,
+          "frame": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+          "caption": "CC_NIRI_P0_D",
+          "widthMode": "half",
+          "previous": "half",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 0,
+          "minimized": true,
+          "frame": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "stopped": false,
+      "stopConfirmed": false,
+      "pending": false
+    }
+  ],
+  "p5_actions": [
+    {
+      "phase": "bootstrap",
+      "kind": "p5-checkpoint",
+      "label": "stash",
+      "v2": true,
+      "enabled": true,
+      "epoch": 2,
+      "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "currentWorkspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "camera": 0,
+      "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "activeUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "snapshot": {
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "workspaceIndex": 0,
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+        "presentation": {
+          "windowUuid": null,
+          "mode": "normal"
+        },
+        "columns": [
+          {
+            "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "widthMode": "half",
+            "previousNonFullWidthMode": "half",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "half",
+              "previousNonFullWidthMode": "half"
+            }
+          }
+        ],
+        "viewportAnchor": null,
+        "viewportAnchorV2": {
+          "version": 1,
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "delta": -652,
+          "basis": {
+            "outputRect": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "workingArea": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "gap": 16,
+            "physicalScale": 1
+          }
+        },
+        "workspaces": [
+          {
+            "id": "a24ffe5a-a151-4480-836f-531ec82c3cfe",
+            "columns": [
+              {
+                "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              }
+            ],
+            "focusedUuid": null,
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            }
+          },
+          {
+            "id": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+            "columns": [
+              {
+                "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              }
+            ],
+            "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            },
+            "viewportAnchorV2": {
+              "version": 1,
+              "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+              "delta": -652,
+              "basis": {
+                "outputRect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "workingArea": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "gap": 16,
+                "physicalScale": 1
+              }
+            },
+            "dormantViewportV1": {
+              "version": 1,
+              "mode": "pair",
+              "wideUuid": null
+            }
+          }
+        ]
+      },
+      "errors": [],
+      "columns": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "widthMode": "half",
+          "previous": "half",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 1,
+          "minimized": false,
+          "frame": {
+            "x": 652,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          }
+        }
+      ],
+      "stopped": false,
+      "stopConfirmed": false,
+      "pending": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p5-checkpoint",
+      "label": "inspect",
+      "v2": true,
+      "enabled": true,
+      "epoch": 2,
+      "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "currentWorkspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "camera": 0,
+      "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "activeUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "snapshot": {
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "workspaceIndex": 0,
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+        "presentation": {
+          "windowUuid": null,
+          "mode": "normal"
+        },
+        "columns": [
+          {
+            "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "widthMode": "half",
+            "previousNonFullWidthMode": "half",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "half",
+              "previousNonFullWidthMode": "half"
+            }
+          }
+        ],
+        "viewportAnchor": null,
+        "viewportAnchorV2": {
+          "version": 1,
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "delta": -652,
+          "basis": {
+            "outputRect": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "workingArea": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "gap": 16,
+            "physicalScale": 1
+          }
+        },
+        "workspaces": [
+          {
+            "id": "a24ffe5a-a151-4480-836f-531ec82c3cfe",
+            "columns": [
+              {
+                "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              }
+            ],
+            "focusedUuid": null,
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            }
+          },
+          {
+            "id": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+            "columns": [
+              {
+                "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              }
+            ],
+            "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            },
+            "viewportAnchorV2": {
+              "version": 1,
+              "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+              "delta": -652,
+              "basis": {
+                "outputRect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "workingArea": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "gap": 16,
+                "physicalScale": 1
+              }
+            },
+            "dormantViewportV1": {
+              "version": 1,
+              "mode": "pair",
+              "wideUuid": null
+            }
+          }
+        ]
+      },
+      "errors": [],
+      "columns": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "widthMode": "half",
+          "previous": "half",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 1,
+          "minimized": false,
+          "frame": {
+            "x": 652,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          }
+        }
+      ],
+      "stopped": false,
+      "stopConfirmed": false,
+      "pending": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p5-checkpoint",
+      "label": "cycle",
+      "v2": true,
+      "enabled": true,
+      "epoch": 3,
+      "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "currentWorkspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "camera": 212,
+      "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "activeUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "snapshot": {
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "workspaceIndex": 0,
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+        "presentation": {
+          "windowUuid": null,
+          "mode": "normal"
+        },
+        "columns": [
+          {
+            "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "widthMode": "twoThirds",
+            "previousNonFullWidthMode": "twoThirds",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "twoThirds",
+              "previousNonFullWidthMode": "twoThirds"
+            }
+          }
+        ],
+        "viewportAnchor": null,
+        "viewportAnchorV2": {
+          "version": 1,
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "delta": -440,
+          "basis": {
+            "outputRect": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "workingArea": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "gap": 16,
+            "physicalScale": 1
+          }
+        },
+        "workspaces": [
+          {
+            "id": "a24ffe5a-a151-4480-836f-531ec82c3cfe",
+            "columns": [
+              {
+                "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              }
+            ],
+            "focusedUuid": null,
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            }
+          },
+          {
+            "id": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+            "columns": [
+              {
+                "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+                "widthMode": "twoThirds",
+                "previousNonFullWidthMode": "twoThirds",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "twoThirds",
+                  "previousNonFullWidthMode": "twoThirds"
+                }
+              }
+            ],
+            "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            },
+            "viewportAnchorV2": {
+              "version": 1,
+              "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+              "delta": -440,
+              "basis": {
+                "outputRect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "workingArea": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "gap": 16,
+                "physicalScale": 1
+              }
+            },
+            "dormantViewportV1": {
+              "version": 1,
+              "mode": "pair",
+              "wideUuid": null
+            }
+          }
+        ]
+      },
+      "errors": [],
+      "columns": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "widthMode": "twoThirds",
+          "previous": "twoThirds",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 1,
+          "minimized": false,
+          "frame": {
+            "x": 440,
+            "y": 16,
+            "width": 1680,
+            "height": 1408
+          }
+        }
+      ],
+      "stopped": false,
+      "stopConfirmed": false,
+      "pending": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p5-checkpoint",
+      "label": "transfer",
+      "v2": true,
+      "enabled": true,
+      "epoch": 4,
+      "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "currentWorkspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "camera": 212,
+      "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "activeUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "snapshot": {
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "workspaceIndex": 0,
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+        "presentation": {
+          "windowUuid": null,
+          "mode": "normal"
+        },
+        "columns": [
+          {
+            "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "widthMode": "twoThirds",
+            "previousNonFullWidthMode": "twoThirds",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "twoThirds",
+              "previousNonFullWidthMode": "twoThirds"
+            }
+          }
+        ],
+        "viewportAnchor": null,
+        "viewportAnchorV2": {
+          "version": 1,
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "delta": -440,
+          "basis": {
+            "outputRect": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "workingArea": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "gap": 16,
+            "physicalScale": 1
+          }
+        },
+        "workspaces": [
+          {
+            "id": "a24ffe5a-a151-4480-836f-531ec82c3cfe",
+            "columns": [
+              {
+                "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              }
+            ],
+            "focusedUuid": null,
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            }
+          },
+          {
+            "id": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+            "columns": [
+              {
+                "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+                "widthMode": "twoThirds",
+                "previousNonFullWidthMode": "twoThirds",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "twoThirds",
+                  "previousNonFullWidthMode": "twoThirds"
+                }
+              }
+            ],
+            "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            },
+            "viewportAnchorV2": {
+              "version": 1,
+              "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+              "delta": -440,
+              "basis": {
+                "outputRect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "workingArea": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "gap": 16,
+                "physicalScale": 1
+              }
+            },
+            "dormantViewportV1": {
+              "version": 1,
+              "mode": "pair",
+              "wideUuid": null
+            }
+          }
+        ]
+      },
+      "errors": [],
+      "columns": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "widthMode": "twoThirds",
+          "previous": "twoThirds",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 1,
+          "minimized": false,
+          "frame": {
+            "x": 440,
+            "y": 16,
+            "width": 1680,
+            "height": 1408
+          }
+        }
+      ],
+      "stopped": false,
+      "stopConfirmed": false,
+      "pending": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p5-checkpoint",
+      "label": "inspect",
+      "v2": true,
+      "enabled": true,
+      "epoch": 4,
+      "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "currentWorkspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "camera": 212,
+      "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "activeUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "snapshot": {
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "workspaceIndex": 0,
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+        "presentation": {
+          "windowUuid": null,
+          "mode": "normal"
+        },
+        "columns": [
+          {
+            "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "widthMode": "twoThirds",
+            "previousNonFullWidthMode": "twoThirds",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "twoThirds",
+              "previousNonFullWidthMode": "twoThirds"
+            }
+          }
+        ],
+        "viewportAnchor": null,
+        "viewportAnchorV2": {
+          "version": 1,
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "delta": -440,
+          "basis": {
+            "outputRect": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "workingArea": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "gap": 16,
+            "physicalScale": 1
+          }
+        },
+        "workspaces": [
+          {
+            "id": "a24ffe5a-a151-4480-836f-531ec82c3cfe",
+            "columns": [
+              {
+                "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              }
+            ],
+            "focusedUuid": null,
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            }
+          },
+          {
+            "id": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+            "columns": [
+              {
+                "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+                "widthMode": "twoThirds",
+                "previousNonFullWidthMode": "twoThirds",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "twoThirds",
+                  "previousNonFullWidthMode": "twoThirds"
+                }
+              }
+            ],
+            "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            },
+            "viewportAnchorV2": {
+              "version": 1,
+              "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+              "delta": -440,
+              "basis": {
+                "outputRect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "workingArea": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "gap": 16,
+                "physicalScale": 1
+              }
+            },
+            "dormantViewportV1": {
+              "version": 1,
+              "mode": "pair",
+              "wideUuid": null
+            }
+          }
+        ]
+      },
+      "errors": [],
+      "columns": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "widthMode": "twoThirds",
+          "previous": "twoThirds",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 1,
+          "minimized": false,
+          "frame": {
+            "x": 440,
+            "y": 16,
+            "width": 1680,
+            "height": 1408
+          }
+        }
+      ],
+      "stopped": false,
+      "stopConfirmed": false,
+      "pending": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p5-checkpoint",
+      "label": "stop",
+      "v2": true,
+      "enabled": false,
+      "epoch": 4,
+      "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "currentWorkspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "camera": 212,
+      "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "activeUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "snapshot": {
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "workspaceIndex": 0,
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+        "presentation": {
+          "windowUuid": null,
+          "mode": "normal"
+        },
+        "columns": [
+          {
+            "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "widthMode": "twoThirds",
+            "previousNonFullWidthMode": "twoThirds",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "twoThirds",
+              "previousNonFullWidthMode": "twoThirds"
+            }
+          }
+        ],
+        "viewportAnchor": null,
+        "viewportAnchorV2": {
+          "version": 1,
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "delta": -440,
+          "basis": {
+            "outputRect": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "workingArea": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "gap": 16,
+            "physicalScale": 1
+          }
+        },
+        "workspaces": [
+          {
+            "id": "a24ffe5a-a151-4480-836f-531ec82c3cfe",
+            "columns": [
+              {
+                "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              }
+            ],
+            "focusedUuid": null,
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            }
+          },
+          {
+            "id": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+            "columns": [
+              {
+                "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+                "widthMode": "twoThirds",
+                "previousNonFullWidthMode": "twoThirds",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "twoThirds",
+                  "previousNonFullWidthMode": "twoThirds"
+                }
+              }
+            ],
+            "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            },
+            "viewportAnchorV2": {
+              "version": 1,
+              "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+              "delta": -440,
+              "basis": {
+                "outputRect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "workingArea": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "gap": 16,
+                "physicalScale": 1
+              }
+            },
+            "dormantViewportV1": {
+              "version": 1,
+              "mode": "pair",
+              "wideUuid": null
+            }
+          }
+        ]
+      },
+      "errors": [],
+      "columns": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "widthMode": "twoThirds",
+          "previous": "twoThirds",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 1,
+          "minimized": false,
+          "frame": {
+            "x": 440,
+            "y": 16,
+            "width": 1680,
+            "height": 1408
+          }
+        }
+      ],
+      "stopped": true,
+      "stopConfirmed": true,
+      "pending": false
+    }
+  ],
+  "transfer_records": [
+    {
+      "phase": "bootstrap",
+      "kind": "transfer-arm-before",
+      "plan": {
+        "protocol": 3,
+        "type": "PARTIAL_SCROLL",
+        "sessionId": "1a15435ba2a-fc5b7cce",
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "targetOutput": "Virtual-0",
+        "epoch": 1,
+        "issuedAt": 1792414169696,
+        "scopeRevision": 1,
+        "maxCamera": 3816,
+        "oldScrollOffsetX": 0,
+        "newScrollOffsetX": 0,
+        "retargetOnly": true,
+        "clipPartial": true,
+        "viewport": {
+          "x": 0,
+          "y": 0,
+          "width": 2560,
+          "height": 1440
+        },
+        "layoutRect": {
+          "x": 0,
+          "y": 16,
+          "width": 2560,
+          "height": 1408
+        },
+        "entries": [
+          {
+            "windowId": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "columnId": 1,
+            "logicalX": 652,
+            "pixelWidth": 1256,
+            "oldPlacement": "visible",
+            "newPlacement": "visible"
+          },
+          {
+            "windowId": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+            "columnId": 2,
+            "logicalX": 1924,
+            "pixelWidth": 1256,
+            "oldPlacement": "visible",
+            "newPlacement": "visible"
+          }
+        ],
+        "geometryBootstrap": true
+      },
+      "facts": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "frame": {
+            "x": 652,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "caption": "CC_NIRI_P0_B",
+          "frame": {
+            "x": 1304,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 0,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+          "caption": "CC_NIRI_P0_C",
+          "frame": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          },
+          "minimized": true,
+          "opacity": 0,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+          "caption": "CC_NIRI_P0_D",
+          "frame": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          },
+          "minimized": true,
+          "opacity": 0,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "transfer-arm-after",
+      "epoch": 1,
+      "result": true,
+      "facts": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "frame": {
+            "x": 652,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "caption": "CC_NIRI_P0_B",
+          "frame": {
+            "x": 1304,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 0,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+          "caption": "CC_NIRI_P0_C",
+          "frame": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          },
+          "minimized": true,
+          "opacity": 0,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+          "caption": "CC_NIRI_P0_D",
+          "frame": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          },
+          "minimized": true,
+          "opacity": 0,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "transfer-arm-before",
+      "plan": {
+        "protocol": 3,
+        "type": "PARTIAL_SCROLL",
+        "sessionId": "1a15435ba2a-fc5b7cce",
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "targetOutput": "Virtual-0",
+        "epoch": 2,
+        "issuedAt": 1792414169829,
+        "scopeRevision": 1,
+        "maxCamera": 0,
+        "oldScrollOffsetX": 0,
+        "newScrollOffsetX": 0,
+        "retargetOnly": true,
+        "clipPartial": true,
+        "viewport": {
+          "x": 0,
+          "y": 0,
+          "width": 2560,
+          "height": 1440
+        },
+        "layoutRect": {
+          "x": 0,
+          "y": 16,
+          "width": 2560,
+          "height": 1408
+        },
+        "entries": [
+          {
+            "windowId": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "columnId": 1,
+            "logicalX": 652,
+            "pixelWidth": 1256,
+            "oldPlacement": "visible",
+            "newPlacement": "visible"
+          }
+        ],
+        "geometryBootstrap": true
+      },
+      "facts": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "frame": {
+            "x": 652,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "caption": "CC_NIRI_P0_B",
+          "frame": {
+            "x": 1304,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+          "caption": "CC_NIRI_P0_C",
+          "frame": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+          "caption": "CC_NIRI_P0_D",
+          "frame": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "transfer-arm-after",
+      "epoch": 2,
+      "result": true,
+      "facts": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "frame": {
+            "x": 652,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "caption": "CC_NIRI_P0_B",
+          "frame": {
+            "x": 1304,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+          "caption": "CC_NIRI_P0_C",
+          "frame": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+          "caption": "CC_NIRI_P0_D",
+          "frame": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "transfer-arm-before",
+      "plan": {
+        "protocol": 4,
+        "type": "COLUMN_GEOMETRY",
+        "sessionId": "1a15435ba2a-fc5b7cce",
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "targetOutput": "Virtual-0",
+        "epoch": 3,
+        "issuedAt": 1792414170211,
+        "scopeRevision": 1,
+        "sourceEpoch": 2,
+        "sourceSampleSerial": 17,
+        "oldScrollOffsetX": 0,
+        "newScrollOffsetX": 212,
+        "oldMaxCamera": 0,
+        "maxCamera": 424,
+        "clipPartial": true,
+        "viewport": {
+          "x": 0,
+          "y": 0,
+          "width": 2560,
+          "height": 1440
+        },
+        "oldLayoutRect": {
+          "x": 0,
+          "y": 16,
+          "width": 2560,
+          "height": 1408
+        },
+        "layoutRect": {
+          "x": 0,
+          "y": 16,
+          "width": 2560,
+          "height": 1408
+        },
+        "entries": [
+          {
+            "windowId": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "columnId": 1,
+            "sourceKind": "painted",
+            "oldLogicalX": 652,
+            "newLogicalX": 652,
+            "oldPixelWidth": 1256,
+            "newPixelWidth": 1680,
+            "oldFrameRect": {
+              "x": 652,
+              "y": 16,
+              "width": 1256,
+              "height": 1408
+            },
+            "oldVisualRect": {
+              "x": 652,
+              "y": 16,
+              "width": 1256,
+              "height": 1408
+            },
+            "committedTargetRect": {
+              "x": 440,
+              "y": 16,
+              "width": 1680,
+              "height": 1408
+            },
+            "oldPlacement": "visible",
+            "newPlacement": "visible"
+          }
+        ]
+      },
+      "facts": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "frame": {
+            "x": 652,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "caption": "CC_NIRI_P0_B",
+          "frame": {
+            "x": 1304,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+          "caption": "CC_NIRI_P0_C",
+          "frame": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+          "caption": "CC_NIRI_P0_D",
+          "frame": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "transfer-arm-after",
+      "epoch": 3,
+      "result": true,
+      "facts": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "frame": {
+            "x": 652,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "caption": "CC_NIRI_P0_B",
+          "frame": {
+            "x": 1304,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+          "caption": "CC_NIRI_P0_C",
+          "frame": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+          "caption": "CC_NIRI_P0_D",
+          "frame": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "transfer-start",
+      "frame": {
+        "x": 1304,
+        "y": 16,
+        "width": 1256,
+        "height": 1408
+      },
+      "desktops": [
+        "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "transfer-arm-before",
+      "plan": {
+        "protocol": 3,
+        "type": "PARTIAL_SCROLL",
+        "sessionId": "1a15435ba2a-fc5b7cce",
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "targetOutput": "Virtual-0",
+        "epoch": 4,
+        "issuedAt": 1792414170715,
+        "scopeRevision": 1,
+        "maxCamera": 424,
+        "oldScrollOffsetX": 212,
+        "newScrollOffsetX": 212,
+        "retargetOnly": true,
+        "clipPartial": true,
+        "viewport": {
+          "x": 0,
+          "y": 0,
+          "width": 2560,
+          "height": 1440
+        },
+        "layoutRect": {
+          "x": 0,
+          "y": 16,
+          "width": 2560,
+          "height": 1408
+        },
+        "entries": [
+          {
+            "windowId": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "columnId": 1,
+            "logicalX": 652,
+            "pixelWidth": 1680,
+            "oldPlacement": "visible",
+            "newPlacement": "visible"
+          }
+        ],
+        "geometryBootstrap": true
+      },
+      "facts": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "frame": {
+            "x": 440,
+            "y": 16,
+            "width": 1680,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "caption": "CC_NIRI_P0_B",
+          "frame": {
+            "x": 1304,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+          "caption": "CC_NIRI_P0_C",
+          "frame": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+          "caption": "CC_NIRI_P0_D",
+          "frame": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "transfer-arm-after",
+      "epoch": 4,
+      "result": true,
+      "facts": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "frame": {
+            "x": 440,
+            "y": 16,
+            "width": 1680,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "caption": "CC_NIRI_P0_B",
+          "frame": {
+            "x": 1304,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+          "caption": "CC_NIRI_P0_C",
+          "frame": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+          "caption": "CC_NIRI_P0_D",
+          "frame": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        }
+      ]
+    }
+  ],
+  "p5_last_status": {
+    "active": false,
+    "animationProfile": "smooth60",
+    "animationProfileFallback": "",
+    "clipHandoffActive": false,
+    "clockFallbackCount": 0,
+    "clockFallbackReasons": {
+      "invalidPrediction": 0,
+      "missingPrediction": 0,
+      "regressedPrediction": 0
+    },
+    "completed": false,
+    "decorationGeometryBackend": "Rust",
+    "epoch": 4,
+    "lastRetarget": {
+      "brakeDistance": 0,
+      "brakeMs": 0,
+      "initialVelocity": 0,
+      "lower": 0,
+      "reason": "none",
+      "savedVelocity": 0,
+      "strategy": "rest",
+      "upper": 424
+    },
+    "nativeProtocolBackend": "Rust",
+    "paintClip": "viewport-with-decoration-outsets",
+    "retargetBrakedCount": 0,
+    "retargetCarriedCount": 0,
+    "retargetDegradedCount": 0,
+    "retargetDegradedReasons": {
+      "coverage": 0,
+      "invalidMath": 0,
+      "noBrakeSpace": 0
+    },
+    "retargetKeptCount": 0,
+    "scrollClockSource": "predicted-presentation",
+    "scrollContinuousFullRepaintRequests": 0,
+    "scrollOutputRepaintRequests": 23,
+    "scrollRepaintFallbackFullRequests": 0,
+    "scrollRepaintScope": "target-output-continuation",
+    "scrollRetargetPolicy": "bounded-last-painted-position-and-velocity",
+    "scrollRuntimeBackend": "Rust",
+    "scrollSpringStiffness": 600,
+    "scrollTargetOutput": "",
+    "scrollVisualCompletedCount": 1,
+    "scrollVisualSettleEnabled": false,
+    "scrollVisualSettleFallback": "awaiting-frame",
+    "scrollVisualSettleFallbackReasons": {
+      "invalidScale": 0,
+      "missingOutput": 1,
+      "unknownRefresh": 0
+    },
+    "scrollVisualSettleOutputScale": 0,
+    "scrollVisualSettlePhysicalPx": 0.25,
+    "scrollVisualSettleRefreshHz": 0,
+    "sessionId": "1a15435ba2a-fc5b7cce",
+    "targetOutput": "Virtual-0",
+    "workspaceAnimationActive": false,
+    "workspaceAnimationBackend": "RustFiniteCurve",
+    "workspaceAnimationDuration": 420,
+    "workspaceAnimationEnabled": true,
+    "workspaceDepartureVisual": "freeze-wide-until-compositor-idle",
+    "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+    "workspaceMotion": {
+      "acceleration": {
+        "x": 0,
+        "y": 0
+      },
+      "active": false,
+      "brakeDistanceCells": {
+        "x": 0,
+        "y": 0
+      },
+      "brakeXMs": 0,
+      "brakeYMs": 0,
+      "brakedC1": 0,
+      "carriedC1": 0,
+      "carriedC2": 0,
+      "durationMs": 0,
+      "epoch": 0,
+      "frameDeltaClampingEnabled": false,
+      "frameDeltaClampingRequiresSmooth60": true,
+      "gesture": false,
+      "initialAcceleration": {
+        "x": 0,
+        "y": 0
+      },
+      "initialVelocity": {
+        "x": 0,
+        "y": 0
+      },
+      "kept": 0,
+      "liveBinding": false,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "point": {
+        "x": 0,
+        "y": 0
+      },
+      "projectionCacheEnabled": false,
+      "reasons": [
+        "none",
+        "none"
+      ],
+      "reset": 0,
+      "sampleNs": 0,
+      "samplingClock": {
+        "clampedFrames": 0,
+        "enabled": false,
+        "fallbackCount": 0,
+        "fallbackReason": 0,
+        "lagMs": 0,
+        "limiting": false,
+        "logicalNs": 0,
+        "realNs": 0
+      },
+      "savedAcceleration": {
+        "x": 0,
+        "y": 0
+      },
+      "savedVelocity": {
+        "x": 0,
+        "y": 0
+      },
+      "startNs": 0,
+      "strategies": [
+        "rest",
+        "rest"
+      ],
+      "target": {
+        "x": 0,
+        "y": 0
+      },
+      "velocity": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "workspaceRemovalGate": "compositor-idle",
+    "workspaceRetargetPolicy": "bounded-last-painted-quintic-derivatives"
+  },
+  "p5_last_source": {
+    "valid": false
+  },
+  "scroll_capture": {
+    "active": true,
+    "association": "output-only-no-paint-to-present-join",
+    "captureId": 1,
+    "clockDomain": "steady-clock-monotonic-relative-ms",
+    "continuousRepaintFallbackFullRequests": 0,
+    "continuousRepaintFullRequests": 0,
+    "durationMs": 10000,
+    "lifecycle": [
+      {
+        "atMs": 101.929382,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": -1,
+        "initialVelocity": 0,
+        "kind": 2,
+        "output": 0,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 5,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 133.95958,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": -1,
+        "initialVelocity": 0,
+        "kind": 2,
+        "output": 0,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 6,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 135.69144,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": 0,
+        "initialVelocity": 0,
+        "kind": 1,
+        "output": 0,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 6,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 165.763018,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": 1,
+        "initialVelocity": 0,
+        "kind": 0,
+        "output": 1,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 8,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 252.558118,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": 1,
+        "initialVelocity": 0,
+        "kind": 1,
+        "output": 1,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 8,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 267.475104,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": -1,
+        "initialVelocity": 0,
+        "kind": 2,
+        "output": 0,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 10,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 267.582279,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": -1,
+        "initialVelocity": 0,
+        "kind": 2,
+        "output": 0,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 11,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 268.642338,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": 1,
+        "initialVelocity": 0,
+        "kind": 1,
+        "output": 0,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 11,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 272.320181,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": 2,
+        "initialVelocity": 0,
+        "kind": 0,
+        "output": 1,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 13,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 648.62265,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": 2,
+        "initialVelocity": 0,
+        "kind": 2,
+        "output": 1,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 13,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 651.025181,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": 3,
+        "initialVelocity": 0,
+        "kind": 0,
+        "output": 1,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 14,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 1133.63689,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": 3,
+        "initialVelocity": 0,
+        "kind": 1,
+        "output": 1,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 14,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 1152.343381,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": -1,
+        "initialVelocity": 0,
+        "kind": 2,
+        "output": 0,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 16,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 1153.16194,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": -1,
+        "initialVelocity": 0,
+        "kind": 2,
+        "output": 0,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 17,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 1154.344878,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": 3,
+        "initialVelocity": 0,
+        "kind": 1,
+        "output": 0,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 17,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 1157.79311,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": 4,
+        "initialVelocity": 0,
+        "kind": 0,
+        "output": 1,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 19,
+        "savedVelocity": 0
+      },
+      {
+        "atMs": 2261.394578,
+        "brakeDistance": 0,
+        "brakeMs": 0,
+        "epoch": 4,
+        "initialVelocity": 0,
+        "kind": 1,
+        "output": 1,
+        "retargetReason": 0,
+        "retargetStrategy": 0,
+        "revision": 19,
+        "savedVelocity": 0
+      }
+    ],
+    "outputs": [
+      {
+        "fullRepaintRequests": 10,
+        "name": "Virtual-0",
+        "refreshHz": 60,
+        "removed": false,
+        "scale": 1,
+        "targetRepaintRequests": 23,
+        "token": 1
+      },
+      {
+        "fullRepaintRequests": 10,
+        "name": "Virtual-1",
+        "refreshHz": 60,
+        "removed": false,
+        "scale": 1,
+        "targetRepaintRequests": 0,
+        "token": 2
+      }
+    ],
+    "paintedFrames": [
+      {
+        "epoch": 1,
+        "eventMs": -716.969495,
+        "fallback": 0,
+        "frame": 12,
+        "initialVelocity": 0,
+        "initialX": 212,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 100.685135,
+        "predictedMs": 102.556698,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 4,
+        "sampleMs": 102.556698,
+        "scale": 1,
+        "startMs": -716.969495,
+        "target": 212,
+        "v": 0,
+        "x": 212
+      },
+      {
+        "epoch": 1,
+        "eventMs": 165.698211,
+        "fallback": 0,
+        "frame": 13,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 183.876359,
+        "predictedMs": 185.890028,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 8,
+        "sampleMs": 185.890028,
+        "scale": 1,
+        "startMs": 165.698211,
+        "target": 0,
+        "v": 0,
+        "x": 0
+      },
+      {
+        "epoch": 1,
+        "eventMs": 165.698211,
+        "fallback": 0,
+        "frame": 14,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 205.100968,
+        "predictedMs": 219.22336,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 8,
+        "sampleMs": 219.22336,
+        "scale": 1,
+        "startMs": 165.698211,
+        "target": 0,
+        "v": 0,
+        "x": 0
+      },
+      {
+        "epoch": 1,
+        "eventMs": 165.698211,
+        "fallback": 0,
+        "frame": 15,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 219.572205,
+        "predictedMs": 235.890026,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 8,
+        "sampleMs": 235.890026,
+        "scale": 1,
+        "startMs": 165.698211,
+        "target": 0,
+        "v": 0,
+        "x": 0
+      },
+      {
+        "epoch": 1,
+        "eventMs": 165.698211,
+        "fallback": 0,
+        "frame": 16,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 236.004796,
+        "predictedMs": 252.556692,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 8,
+        "sampleMs": 252.556692,
+        "scale": 1,
+        "startMs": 165.698211,
+        "target": 0,
+        "v": 0,
+        "x": 0
+      },
+      {
+        "epoch": 2,
+        "eventMs": 272.252735,
+        "fallback": 0,
+        "frame": 17,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 286.092465,
+        "predictedMs": 302.55669,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 13,
+        "sampleMs": 302.55669,
+        "scale": 1,
+        "startMs": 272.252735,
+        "target": 0,
+        "v": 0,
+        "x": 0
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 18,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 651.626102,
+        "predictedMs": 652.556676,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 652.556676,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 198.85353734607565,
+        "x": 0.16392464343263669
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 19,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 661.270863,
+        "predictedMs": 669.223342,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 669.223342,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 1486.5453299639805,
+        "x": 15.877560246331711
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 20,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 684.506526,
+        "predictedMs": 685.890008,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 685.890008,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 1888.6629383291563,
+        "x": 44.856946286544456
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 21,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 694.830084,
+        "predictedMs": 702.556674,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 702.556674,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 1854.1989508918416,
+        "x": 76.44366625015132
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 22,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 702.95243,
+        "predictedMs": 719.22334,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 719.22334,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 1630.6477901412795,
+        "x": 105.63400759560194
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 23,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 719.916112,
+        "predictedMs": 735.890006,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 735.890006,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 1348.6402990590625,
+        "x": 130.48567513278078
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 24,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 736.430035,
+        "predictedMs": 752.556672,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 752.556672,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 1072.479913169221,
+        "x": 150.62766737859212
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 25,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 753.057836,
+        "predictedMs": 769.223338,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 769.223338,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 829.9303761566069,
+        "x": 166.4251410817853
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 26,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 768.704477,
+        "predictedMs": 785.890004,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 785.890004,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 629.4864633207362,
+        "x": 178.52759300328066
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 27,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 774.697783,
+        "predictedMs": 802.55667,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 802.55667,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 470.17211537706135,
+        "x": 187.6372209380794
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 28,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 786.784282,
+        "predictedMs": 819.223336,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 819.223336,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 346.93503832744796,
+        "x": 194.40062357395527
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 29,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 802.539659,
+        "predictedMs": 835.890002,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 835.890002,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 253.48895874253094,
+        "x": 199.36718082534364
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 30,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 819.378793,
+        "predictedMs": 852.556668,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 852.556668,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 183.70847366433767,
+        "x": 202.9815813903638
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 31,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 836.418278,
+        "predictedMs": 869.223334,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 869.223334,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 132.22746896480677,
+        "x": 205.59228213583222
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 32,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 853.035578,
+        "predictedMs": 885.89,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 885.89,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 94.61830079258901,
+        "x": 207.46605857995036
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 33,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 869.29815,
+        "predictedMs": 902.556666,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 902.556666,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 67.36555278569992,
+        "x": 208.80361275882203
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 34,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 886.950288,
+        "predictedMs": 919.223332,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 919.223332,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 47.751948788550386,
+        "x": 209.7538948922368
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 35,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 902.817336,
+        "predictedMs": 935.889998,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 935.889998,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 33.71825796988782,
+        "x": 210.42624754170498
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 36,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 919.489609,
+        "predictedMs": 952.556664,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 952.556664,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 23.727444800109232,
+        "x": 210.9002229657277
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 37,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 936.397874,
+        "predictedMs": 969.22333,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 969.22333,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 16.645957881580912,
+        "x": 211.23326910307435
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 38,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 952.470642,
+        "predictedMs": 985.889996,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 985.889996,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 11.645930939153235,
+        "x": 211.46661001924147
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 39,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 969.338811,
+        "predictedMs": 1002.556662,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 1002.556662,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 8.12761421059216,
+        "x": 211.6296676795492
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 40,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": false,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 986.324005,
+        "predictedMs": 1019.223328,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 1019.223328,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 5.659462033173721,
+        "x": 211.74334223632408
+      },
+      {
+        "epoch": 3,
+        "eventMs": 650.929806,
+        "fallback": 0,
+        "frame": 41,
+        "initialVelocity": 0,
+        "initialX": 0,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 1003.144229,
+        "predictedMs": 1035.889994,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 14,
+        "sampleMs": 1035.889994,
+        "scale": 1,
+        "startMs": 650.929806,
+        "target": 212,
+        "v": 0,
+        "x": 212
+      },
+      {
+        "epoch": 4,
+        "eventMs": 1157.735855,
+        "fallback": 0,
+        "frame": 42,
+        "initialVelocity": 0,
+        "initialX": 212,
+        "numericalCompleted": true,
+        "output": 1,
+        "ownershipActive": true,
+        "paintMs": 1172.02016,
+        "predictedMs": 1185.889988,
+        "profile": "smooth60",
+        "refreshHz": 60,
+        "revision": 19,
+        "sampleMs": 1185.889988,
+        "scale": 1,
+        "startMs": 1157.735855,
+        "target": 212,
+        "v": 0,
+        "x": 212
+      }
+    ],
+    "positionUnit": "logical-px",
+    "presentations": [
+      {
+        "atMs": 102.556698,
+        "output": 1
+      },
+      {
+        "atMs": 135.89003,
+        "output": 1
+      },
+      {
+        "atMs": 152.556696,
+        "output": 2
+      },
+      {
+        "atMs": 152.556696,
+        "output": 1
+      },
+      {
+        "atMs": 169.223362,
+        "output": 1
+      },
+      {
+        "atMs": 185.890028,
+        "output": 2
+      },
+      {
+        "atMs": 202.556694,
+        "output": 1
+      },
+      {
+        "atMs": 219.22336,
+        "output": 1
+      },
+      {
+        "atMs": 235.890026,
+        "output": 1
+      },
+      {
+        "atMs": 252.556692,
+        "output": 1
+      },
+      {
+        "atMs": 269.223358,
+        "output": 2
+      },
+      {
+        "atMs": 269.223358,
+        "output": 1
+      },
+      {
+        "atMs": 285.890024,
+        "output": 1
+      },
+      {
+        "atMs": 285.890024,
+        "output": 2
+      },
+      {
+        "atMs": 302.55669,
+        "output": 1
+      },
+      {
+        "atMs": 302.55669,
+        "output": 2
+      },
+      {
+        "atMs": 652.556676,
+        "output": 1
+      },
+      {
+        "atMs": 652.556676,
+        "output": 2
+      },
+      {
+        "atMs": 669.223342,
+        "output": 1
+      },
+      {
+        "atMs": 669.223342,
+        "output": 2
+      },
+      {
+        "atMs": 685.890008,
+        "output": 1
+      },
+      {
+        "atMs": 702.556674,
+        "output": 2
+      },
+      {
+        "atMs": 702.556674,
+        "output": 1
+      },
+      {
+        "atMs": 719.22334,
+        "output": 2
+      },
+      {
+        "atMs": 719.22334,
+        "output": 1
+      },
+      {
+        "atMs": 735.890006,
+        "output": 1
+      },
+      {
+        "atMs": 735.890006,
+        "output": 2
+      },
+      {
+        "atMs": 752.556672,
+        "output": 1
+      },
+      {
+        "atMs": 752.556672,
+        "output": 2
+      },
+      {
+        "atMs": 769.223338,
+        "output": 1
+      },
+      {
+        "atMs": 769.223338,
+        "output": 2
+      },
+      {
+        "atMs": 769.223338,
+        "output": 1
+      },
+      {
+        "atMs": 785.890004,
+        "output": 2
+      },
+      {
+        "atMs": 785.890004,
+        "output": 1
+      },
+      {
+        "atMs": 802.55667,
+        "output": 1
+      },
+      {
+        "atMs": 802.55667,
+        "output": 2
+      },
+      {
+        "atMs": 819.223336,
+        "output": 1
+      },
+      {
+        "atMs": 819.223336,
+        "output": 2
+      },
+      {
+        "atMs": 835.890002,
+        "output": 1
+      },
+      {
+        "atMs": 835.890002,
+        "output": 2
+      },
+      {
+        "atMs": 852.556668,
+        "output": 1
+      },
+      {
+        "atMs": 852.556668,
+        "output": 2
+      },
+      {
+        "atMs": 869.223334,
+        "output": 1
+      },
+      {
+        "atMs": 869.223334,
+        "output": 2
+      },
+      {
+        "atMs": 885.89,
+        "output": 1
+      },
+      {
+        "atMs": 885.89,
+        "output": 2
+      },
+      {
+        "atMs": 902.556666,
+        "output": 1
+      },
+      {
+        "atMs": 902.556666,
+        "output": 2
+      },
+      {
+        "atMs": 919.223332,
+        "output": 2
+      },
+      {
+        "atMs": 919.223332,
+        "output": 1
+      },
+      {
+        "atMs": 935.889998,
+        "output": 2
+      },
+      {
+        "atMs": 935.889998,
+        "output": 1
+      },
+      {
+        "atMs": 952.556664,
+        "output": 1
+      },
+      {
+        "atMs": 952.556664,
+        "output": 2
+      },
+      {
+        "atMs": 969.22333,
+        "output": 1
+      },
+      {
+        "atMs": 969.22333,
+        "output": 2
+      },
+      {
+        "atMs": 985.889996,
+        "output": 2
+      },
+      {
+        "atMs": 985.889996,
+        "output": 1
+      },
+      {
+        "atMs": 1002.556662,
+        "output": 2
+      },
+      {
+        "atMs": 1002.556662,
+        "output": 1
+      },
+      {
+        "atMs": 1019.223328,
+        "output": 1
+      },
+      {
+        "atMs": 1135.88999,
+        "output": 1
+      },
+      {
+        "atMs": 1135.88999,
+        "output": 2
+      },
+      {
+        "atMs": 1169.223322,
+        "output": 2
+      },
+      {
+        "atMs": 1169.223322,
+        "output": 1
+      },
+      {
+        "atMs": 1185.889988,
+        "output": 1
+      },
+      {
+        "atMs": 1185.889988,
+        "output": 2
+      },
+      {
+        "atMs": 2269.223278,
+        "output": 1
+      },
+      {
+        "atMs": 2269.223278,
+        "output": 2
+      }
+    ],
+    "repaintFullRequests": 10,
+    "repaintOutputRequests": 23,
+    "repaintScope": "ViewportClipEffect-full-events-and-profile-dependent-continuation-excludes-workspace-adapter",
+    "truncated": false,
+    "velocityUnit": "logical-px-per-second",
+    "version": 1
+  },
+  "records": [
+    {
+      "phase": "bootstrap",
+      "kind": "private-shortcut-service",
+      "stub": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_D",
+      "event": "Resize",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 840.0,
+      "y": 679.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 840.0,
+          "y": 679.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 628.0,
+      "y": 679.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 628.0,
+          "y": 679.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 574.66796875,
+      "y": 649.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 574.66796875,
+          "y": 649.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_C",
+      "event": "Leave",
+      "spontaneous": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Enter",
+      "spontaneous": false,
+      "x": 840.0,
+      "y": 654.0,
+      "button": 0,
+      "points": [
+        {
+          "id": 0,
+          "x": 840.0,
+          "y": 654.0
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p3-geometry",
+      "label": "initial-safe-client-ack",
+      "ready": true,
+      "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "rows": [
+        {
+          "title": "CC_NIRI_P0_A",
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 440,
+            "y": 66,
+            "width": 1680,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_B",
+          "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "output": "Virtual-0",
+          "minimized": false,
+          "rect": {
+            "x": 1304,
+            "y": 66,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_C",
+          "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "title": "CC_NIRI_P0_D",
+          "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+          "output": "Virtual-0",
+          "minimized": true,
+          "rect": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "focus": "CC_NIRI_P0_A"
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p5-target",
+      "intent": {
+        "kind": "scroll-layout-v2-intent",
+        "sessionId": "1a15435ba2a-fc5b7cce",
+        "requiredCapability": "v2-column-geometry",
+        "epoch": 1,
+        "scopeRevision": 1,
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+        "cameraTargetX": 0,
+        "maxCamera": 3816,
+        "geometry": {
+          "outputRect": {
+            "x": 0,
+            "y": 0,
+            "width": 2560,
+            "height": 1440
+          },
+          "workingArea": {
+            "x": 0,
+            "y": 0,
+            "width": 2560,
+            "height": 1440
+          },
+          "gap": 16,
+          "topGap": 16,
+          "physicalScale": 1,
+          "diagnostics": []
+        },
+        "entries": [
+          {
+            "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "columnId": 1,
+            "widthMode": "half",
+            "logicalX": 652,
+            "pixelWidth": 1256,
+            "visualRect": {
+              "x": 652,
+              "y": 16,
+              "width": 1256,
+              "height": 1408
+            },
+            "visibleRect": {
+              "x": 652,
+              "y": 16,
+              "width": 1256,
+              "height": 1408
+            },
+            "partiallyVisible": false
+          },
+          {
+            "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+            "columnId": 2,
+            "widthMode": "half",
+            "logicalX": 1924,
+            "pixelWidth": 1256,
+            "visualRect": {
+              "x": 1924,
+              "y": 16,
+              "width": 1256,
+              "height": 1408
+            },
+            "visibleRect": {
+              "x": 1924,
+              "y": 16,
+              "width": 636,
+              "height": 1408
+            },
+            "partiallyVisible": true
+          },
+          {
+            "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+            "columnId": 3,
+            "widthMode": "half",
+            "logicalX": 3196,
+            "pixelWidth": 1256,
+            "visualRect": {
+              "x": 3196,
+              "y": 16,
+              "width": 1256,
+              "height": 1408
+            },
+            "visibleRect": null,
+            "partiallyVisible": false
+          },
+          {
+            "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+            "columnId": 4,
+            "widthMode": "half",
+            "logicalX": 4468,
+            "pixelWidth": 1256,
+            "visualRect": {
+              "x": 4468,
+              "y": 16,
+              "width": 1256,
+              "height": 1408
+            },
+            "visibleRect": null,
+            "partiallyVisible": false
+          }
+        ],
+        "source": null,
+        "continuity": "unavailable",
+        "reason": "workspace-mount"
+      }
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Resize",
+      "spontaneous": true
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_B",
+      "event": "Resize",
+      "spontaneous": true
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "transfer-arm-before",
+      "plan": {
+        "protocol": 3,
+        "type": "PARTIAL_SCROLL",
+        "sessionId": "1a15435ba2a-fc5b7cce",
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "targetOutput": "Virtual-0",
+        "epoch": 1,
+        "issuedAt": 1792414169696,
+        "scopeRevision": 1,
+        "maxCamera": 3816,
+        "oldScrollOffsetX": 0,
+        "newScrollOffsetX": 0,
+        "retargetOnly": true,
+        "clipPartial": true,
+        "viewport": {
+          "x": 0,
+          "y": 0,
+          "width": 2560,
+          "height": 1440
+        },
+        "layoutRect": {
+          "x": 0,
+          "y": 16,
+          "width": 2560,
+          "height": 1408
+        },
+        "entries": [
+          {
+            "windowId": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "columnId": 1,
+            "logicalX": 652,
+            "pixelWidth": 1256,
+            "oldPlacement": "visible",
+            "newPlacement": "visible"
+          },
+          {
+            "windowId": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+            "columnId": 2,
+            "logicalX": 1924,
+            "pixelWidth": 1256,
+            "oldPlacement": "visible",
+            "newPlacement": "visible"
+          }
+        ],
+        "geometryBootstrap": true
+      },
+      "facts": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "frame": {
+            "x": 652,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "caption": "CC_NIRI_P0_B",
+          "frame": {
+            "x": 1304,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 0,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+          "caption": "CC_NIRI_P0_C",
+          "frame": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          },
+          "minimized": true,
+          "opacity": 0,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+          "caption": "CC_NIRI_P0_D",
+          "frame": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          },
+          "minimized": true,
+          "opacity": 0,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "transfer-arm-after",
+      "epoch": 1,
+      "result": true,
+      "facts": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "frame": {
+            "x": 652,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "caption": "CC_NIRI_P0_B",
+          "frame": {
+            "x": 1304,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 0,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+          "caption": "CC_NIRI_P0_C",
+          "frame": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          },
+          "minimized": true,
+          "opacity": 0,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+          "caption": "CC_NIRI_P0_D",
+          "frame": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          },
+          "minimized": true,
+          "opacity": 0,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p5-checkpoint",
+      "label": "initial",
+      "v2": true,
+      "enabled": true,
+      "epoch": 1,
+      "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "currentWorkspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "camera": 0,
+      "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "activeUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "snapshot": {
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "workspaceIndex": 0,
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+        "presentation": {
+          "windowUuid": null,
+          "mode": "normal"
+        },
+        "columns": [
+          {
+            "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "widthMode": "half",
+            "previousNonFullWidthMode": "half",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "half",
+              "previousNonFullWidthMode": "half"
+            }
+          },
+          {
+            "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+            "widthMode": "half",
+            "previousNonFullWidthMode": "half",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "half",
+              "previousNonFullWidthMode": "half"
+            }
+          },
+          {
+            "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+            "widthMode": "half",
+            "previousNonFullWidthMode": "half",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "half",
+              "previousNonFullWidthMode": "half"
+            }
+          },
+          {
+            "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+            "widthMode": "half",
+            "previousNonFullWidthMode": "half",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "half",
+              "previousNonFullWidthMode": "half"
+            }
+          }
+        ],
+        "viewportAnchor": null,
+        "viewportAnchorV2": {
+          "version": 1,
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "delta": -652,
+          "basis": {
+            "outputRect": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "workingArea": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "gap": 16,
+            "physicalScale": 1
+          }
+        },
+        "workspaces": [
+          {
+            "id": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+            "columns": [
+              {
+                "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              }
+            ],
+            "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            },
+            "viewportAnchorV2": {
+              "version": 1,
+              "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+              "delta": -652,
+              "basis": {
+                "outputRect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "workingArea": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "gap": 16,
+                "physicalScale": 1
+              }
+            },
+            "dormantViewportV1": {
+              "version": 1,
+              "mode": "pair",
+              "wideUuid": null
+            }
+          }
+        ]
+      },
+      "errors": [],
+      "columns": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "widthMode": "half",
+          "previous": "half",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 1,
+          "minimized": false,
+          "frame": {
+            "x": 652,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          }
+        },
+        {
+          "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "caption": "CC_NIRI_P0_B",
+          "widthMode": "half",
+          "previous": "half",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 1,
+          "minimized": false,
+          "frame": {
+            "x": 1304,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          }
+        },
+        {
+          "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+          "caption": "CC_NIRI_P0_C",
+          "widthMode": "half",
+          "previous": "half",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 0,
+          "minimized": true,
+          "frame": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          }
+        },
+        {
+          "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+          "caption": "CC_NIRI_P0_D",
+          "widthMode": "half",
+          "previous": "half",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 0,
+          "minimized": true,
+          "frame": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          }
+        }
+      ],
+      "stopped": false,
+      "stopConfirmed": false,
+      "pending": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p5-target",
+      "intent": {
+        "kind": "scroll-layout-v2-intent",
+        "sessionId": "1a15435ba2a-fc5b7cce",
+        "requiredCapability": "v2-scroll",
+        "epoch": 2,
+        "scopeRevision": 1,
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+        "cameraTargetX": 0,
+        "maxCamera": 0,
+        "geometry": {
+          "outputRect": {
+            "x": 0,
+            "y": 0,
+            "width": 2560,
+            "height": 1440
+          },
+          "workingArea": {
+            "x": 0,
+            "y": 0,
+            "width": 2560,
+            "height": 1440
+          },
+          "gap": 16,
+          "topGap": 16,
+          "physicalScale": 1,
+          "diagnostics": []
+        },
+        "entries": [
+          {
+            "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "columnId": 1,
+            "widthMode": "half",
+            "logicalX": 652,
+            "pixelWidth": 1256,
+            "visualRect": {
+              "x": 652,
+              "y": 16,
+              "width": 1256,
+              "height": 1408
+            },
+            "visibleRect": {
+              "x": 652,
+              "y": 16,
+              "width": 1256,
+              "height": 1408
+            },
+            "partiallyVisible": false
+          }
+        ],
+        "source": null,
+        "continuity": "unavailable",
+        "reason": "membership:1e889c4b-d5de-45b4-96fc-37f44553cf47"
+      }
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p5-checkpoint",
+      "label": "stash",
+      "v2": true,
+      "enabled": true,
+      "epoch": 2,
+      "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "currentWorkspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "camera": 0,
+      "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "activeUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "snapshot": {
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "workspaceIndex": 0,
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+        "presentation": {
+          "windowUuid": null,
+          "mode": "normal"
+        },
+        "columns": [
+          {
+            "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "widthMode": "half",
+            "previousNonFullWidthMode": "half",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "half",
+              "previousNonFullWidthMode": "half"
+            }
+          }
+        ],
+        "viewportAnchor": null,
+        "viewportAnchorV2": {
+          "version": 1,
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "delta": -652,
+          "basis": {
+            "outputRect": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "workingArea": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "gap": 16,
+            "physicalScale": 1
+          }
+        },
+        "workspaces": [
+          {
+            "id": "a24ffe5a-a151-4480-836f-531ec82c3cfe",
+            "columns": [
+              {
+                "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              }
+            ],
+            "focusedUuid": null,
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            }
+          },
+          {
+            "id": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+            "columns": [
+              {
+                "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              }
+            ],
+            "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            },
+            "viewportAnchorV2": {
+              "version": 1,
+              "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+              "delta": -652,
+              "basis": {
+                "outputRect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "workingArea": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "gap": 16,
+                "physicalScale": 1
+              }
+            },
+            "dormantViewportV1": {
+              "version": 1,
+              "mode": "pair",
+              "wideUuid": null
+            }
+          }
+        ]
+      },
+      "errors": [],
+      "columns": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "widthMode": "half",
+          "previous": "half",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 1,
+          "minimized": false,
+          "frame": {
+            "x": 652,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          }
+        }
+      ],
+      "stopped": false,
+      "stopConfirmed": false,
+      "pending": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "transfer-arm-before",
+      "plan": {
+        "protocol": 3,
+        "type": "PARTIAL_SCROLL",
+        "sessionId": "1a15435ba2a-fc5b7cce",
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "targetOutput": "Virtual-0",
+        "epoch": 2,
+        "issuedAt": 1792414169829,
+        "scopeRevision": 1,
+        "maxCamera": 0,
+        "oldScrollOffsetX": 0,
+        "newScrollOffsetX": 0,
+        "retargetOnly": true,
+        "clipPartial": true,
+        "viewport": {
+          "x": 0,
+          "y": 0,
+          "width": 2560,
+          "height": 1440
+        },
+        "layoutRect": {
+          "x": 0,
+          "y": 16,
+          "width": 2560,
+          "height": 1408
+        },
+        "entries": [
+          {
+            "windowId": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "columnId": 1,
+            "logicalX": 652,
+            "pixelWidth": 1256,
+            "oldPlacement": "visible",
+            "newPlacement": "visible"
+          }
+        ],
+        "geometryBootstrap": true
+      },
+      "facts": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "frame": {
+            "x": 652,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "caption": "CC_NIRI_P0_B",
+          "frame": {
+            "x": 1304,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+          "caption": "CC_NIRI_P0_C",
+          "frame": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+          "caption": "CC_NIRI_P0_D",
+          "frame": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "transfer-arm-after",
+      "epoch": 2,
+      "result": true,
+      "facts": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "frame": {
+            "x": 652,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "caption": "CC_NIRI_P0_B",
+          "frame": {
+            "x": 1304,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+          "caption": "CC_NIRI_P0_C",
+          "frame": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+          "caption": "CC_NIRI_P0_D",
+          "frame": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p5-checkpoint",
+      "label": "inspect",
+      "v2": true,
+      "enabled": true,
+      "epoch": 2,
+      "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "currentWorkspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "camera": 0,
+      "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "activeUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "snapshot": {
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "workspaceIndex": 0,
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+        "presentation": {
+          "windowUuid": null,
+          "mode": "normal"
+        },
+        "columns": [
+          {
+            "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "widthMode": "half",
+            "previousNonFullWidthMode": "half",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "half",
+              "previousNonFullWidthMode": "half"
+            }
+          }
+        ],
+        "viewportAnchor": null,
+        "viewportAnchorV2": {
+          "version": 1,
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "delta": -652,
+          "basis": {
+            "outputRect": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "workingArea": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "gap": 16,
+            "physicalScale": 1
+          }
+        },
+        "workspaces": [
+          {
+            "id": "a24ffe5a-a151-4480-836f-531ec82c3cfe",
+            "columns": [
+              {
+                "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              }
+            ],
+            "focusedUuid": null,
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            }
+          },
+          {
+            "id": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+            "columns": [
+              {
+                "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              }
+            ],
+            "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            },
+            "viewportAnchorV2": {
+              "version": 1,
+              "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+              "delta": -652,
+              "basis": {
+                "outputRect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "workingArea": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "gap": 16,
+                "physicalScale": 1
+              }
+            },
+            "dormantViewportV1": {
+              "version": 1,
+              "mode": "pair",
+              "wideUuid": null
+            }
+          }
+        ]
+      },
+      "errors": [],
+      "columns": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "widthMode": "half",
+          "previous": "half",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 1,
+          "minimized": false,
+          "frame": {
+            "x": 652,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          }
+        }
+      ],
+      "stopped": false,
+      "stopConfirmed": false,
+      "pending": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p5-target",
+      "intent": {
+        "kind": "scroll-layout-v2-intent",
+        "sessionId": "1a15435ba2a-fc5b7cce",
+        "requiredCapability": "v2-column-geometry",
+        "epoch": 3,
+        "scopeRevision": 1,
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+        "cameraTargetX": 212,
+        "maxCamera": 424,
+        "geometry": {
+          "outputRect": {
+            "x": 0,
+            "y": 0,
+            "width": 2560,
+            "height": 1440
+          },
+          "workingArea": {
+            "x": 0,
+            "y": 0,
+            "width": 2560,
+            "height": 1440
+          },
+          "gap": 16,
+          "topGap": 16,
+          "physicalScale": 1,
+          "diagnostics": []
+        },
+        "entries": [
+          {
+            "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "columnId": 1,
+            "widthMode": "twoThirds",
+            "logicalX": 652,
+            "pixelWidth": 1680,
+            "visualRect": {
+              "x": 440,
+              "y": 16,
+              "width": 1680,
+              "height": 1408
+            },
+            "visibleRect": {
+              "x": 440,
+              "y": 16,
+              "width": 1680,
+              "height": 1408
+            },
+            "partiallyVisible": false
+          }
+        ],
+        "source": {
+          "epoch": 2,
+          "sampleSerial": 17,
+          "cameraX": 0,
+          "geometry": {
+            "outputRect": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "workingArea": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "gap": 16,
+            "topGap": 16,
+            "physicalScale": 1,
+            "diagnostics": []
+          },
+          "entries": [
+            {
+              "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+              "visualRect": {
+                "x": 652,
+                "y": 16,
+                "width": 1256,
+                "height": 1408
+              }
+            }
+          ]
+        },
+        "continuity": "observed",
+        "reason": "cycle-column-width"
+      }
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "transfer-arm-before",
+      "plan": {
+        "protocol": 4,
+        "type": "COLUMN_GEOMETRY",
+        "sessionId": "1a15435ba2a-fc5b7cce",
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "targetOutput": "Virtual-0",
+        "epoch": 3,
+        "issuedAt": 1792414170211,
+        "scopeRevision": 1,
+        "sourceEpoch": 2,
+        "sourceSampleSerial": 17,
+        "oldScrollOffsetX": 0,
+        "newScrollOffsetX": 212,
+        "oldMaxCamera": 0,
+        "maxCamera": 424,
+        "clipPartial": true,
+        "viewport": {
+          "x": 0,
+          "y": 0,
+          "width": 2560,
+          "height": 1440
+        },
+        "oldLayoutRect": {
+          "x": 0,
+          "y": 16,
+          "width": 2560,
+          "height": 1408
+        },
+        "layoutRect": {
+          "x": 0,
+          "y": 16,
+          "width": 2560,
+          "height": 1408
+        },
+        "entries": [
+          {
+            "windowId": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "columnId": 1,
+            "sourceKind": "painted",
+            "oldLogicalX": 652,
+            "newLogicalX": 652,
+            "oldPixelWidth": 1256,
+            "newPixelWidth": 1680,
+            "oldFrameRect": {
+              "x": 652,
+              "y": 16,
+              "width": 1256,
+              "height": 1408
+            },
+            "oldVisualRect": {
+              "x": 652,
+              "y": 16,
+              "width": 1256,
+              "height": 1408
+            },
+            "committedTargetRect": {
+              "x": 440,
+              "y": 16,
+              "width": 1680,
+              "height": 1408
+            },
+            "oldPlacement": "visible",
+            "newPlacement": "visible"
+          }
+        ]
+      },
+      "facts": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "frame": {
+            "x": 652,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "caption": "CC_NIRI_P0_B",
+          "frame": {
+            "x": 1304,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+          "caption": "CC_NIRI_P0_C",
+          "frame": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+          "caption": "CC_NIRI_P0_D",
+          "frame": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "transfer-arm-after",
+      "epoch": 3,
+      "result": true,
+      "facts": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "frame": {
+            "x": 652,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "caption": "CC_NIRI_P0_B",
+          "frame": {
+            "x": 1304,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+          "caption": "CC_NIRI_P0_C",
+          "frame": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+          "caption": "CC_NIRI_P0_D",
+          "frame": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "client-event",
+      "title": "CC_NIRI_P0_A",
+      "event": "Resize",
+      "spontaneous": true
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p5-checkpoint",
+      "label": "cycle",
+      "v2": true,
+      "enabled": true,
+      "epoch": 3,
+      "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "currentWorkspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "camera": 212,
+      "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "activeUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "snapshot": {
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "workspaceIndex": 0,
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+        "presentation": {
+          "windowUuid": null,
+          "mode": "normal"
+        },
+        "columns": [
+          {
+            "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "widthMode": "twoThirds",
+            "previousNonFullWidthMode": "twoThirds",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "twoThirds",
+              "previousNonFullWidthMode": "twoThirds"
+            }
+          }
+        ],
+        "viewportAnchor": null,
+        "viewportAnchorV2": {
+          "version": 1,
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "delta": -440,
+          "basis": {
+            "outputRect": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "workingArea": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "gap": 16,
+            "physicalScale": 1
+          }
+        },
+        "workspaces": [
+          {
+            "id": "a24ffe5a-a151-4480-836f-531ec82c3cfe",
+            "columns": [
+              {
+                "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              }
+            ],
+            "focusedUuid": null,
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            }
+          },
+          {
+            "id": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+            "columns": [
+              {
+                "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+                "widthMode": "twoThirds",
+                "previousNonFullWidthMode": "twoThirds",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "twoThirds",
+                  "previousNonFullWidthMode": "twoThirds"
+                }
+              }
+            ],
+            "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            },
+            "viewportAnchorV2": {
+              "version": 1,
+              "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+              "delta": -440,
+              "basis": {
+                "outputRect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "workingArea": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "gap": 16,
+                "physicalScale": 1
+              }
+            },
+            "dormantViewportV1": {
+              "version": 1,
+              "mode": "pair",
+              "wideUuid": null
+            }
+          }
+        ]
+      },
+      "errors": [],
+      "columns": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "widthMode": "twoThirds",
+          "previous": "twoThirds",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 1,
+          "minimized": false,
+          "frame": {
+            "x": 440,
+            "y": 16,
+            "width": 1680,
+            "height": 1408
+          }
+        }
+      ],
+      "stopped": false,
+      "stopConfirmed": false,
+      "pending": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "transfer-start",
+      "frame": {
+        "x": 1304,
+        "y": 16,
+        "width": 1256,
+        "height": 1408
+      },
+      "desktops": [
+        "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p5-target",
+      "intent": {
+        "kind": "scroll-layout-v2-intent",
+        "sessionId": "1a15435ba2a-fc5b7cce",
+        "requiredCapability": "v2-scroll",
+        "epoch": 4,
+        "scopeRevision": 1,
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+        "cameraTargetX": 212,
+        "maxCamera": 424,
+        "geometry": {
+          "outputRect": {
+            "x": 0,
+            "y": 0,
+            "width": 2560,
+            "height": 1440
+          },
+          "workingArea": {
+            "x": 0,
+            "y": 0,
+            "width": 2560,
+            "height": 1440
+          },
+          "gap": 16,
+          "topGap": 16,
+          "physicalScale": 1,
+          "diagnostics": []
+        },
+        "entries": [
+          {
+            "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "columnId": 1,
+            "widthMode": "twoThirds",
+            "logicalX": 652,
+            "pixelWidth": 1680,
+            "visualRect": {
+              "x": 440,
+              "y": 16,
+              "width": 1680,
+              "height": 1408
+            },
+            "visibleRect": {
+              "x": 440,
+              "y": 16,
+              "width": 1680,
+              "height": 1408
+            },
+            "partiallyVisible": false
+          }
+        ],
+        "source": null,
+        "continuity": "unavailable",
+        "reason": "membership:1e889c4b-d5de-45b4-96fc-37f44553cf47"
+      }
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "transfer-arm-before",
+      "plan": {
+        "protocol": 3,
+        "type": "PARTIAL_SCROLL",
+        "sessionId": "1a15435ba2a-fc5b7cce",
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "targetOutput": "Virtual-0",
+        "epoch": 4,
+        "issuedAt": 1792414170715,
+        "scopeRevision": 1,
+        "maxCamera": 424,
+        "oldScrollOffsetX": 212,
+        "newScrollOffsetX": 212,
+        "retargetOnly": true,
+        "clipPartial": true,
+        "viewport": {
+          "x": 0,
+          "y": 0,
+          "width": 2560,
+          "height": 1440
+        },
+        "layoutRect": {
+          "x": 0,
+          "y": 16,
+          "width": 2560,
+          "height": 1408
+        },
+        "entries": [
+          {
+            "windowId": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "columnId": 1,
+            "logicalX": 652,
+            "pixelWidth": 1680,
+            "oldPlacement": "visible",
+            "newPlacement": "visible"
+          }
+        ],
+        "geometryBootstrap": true
+      },
+      "facts": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "frame": {
+            "x": 440,
+            "y": 16,
+            "width": 1680,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "caption": "CC_NIRI_P0_B",
+          "frame": {
+            "x": 1304,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+          "caption": "CC_NIRI_P0_C",
+          "frame": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+          "caption": "CC_NIRI_P0_D",
+          "frame": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "transfer-arm-after",
+      "epoch": 4,
+      "result": true,
+      "facts": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "frame": {
+            "x": 440,
+            "y": 16,
+            "width": 1680,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "1e889c4b-d5de-45b4-96fc-37f44553cf47",
+          "caption": "CC_NIRI_P0_B",
+          "frame": {
+            "x": 1304,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "minimized": false,
+          "opacity": 1,
+          "desktops": [
+            "2a774c18-7e40-4b51-8f2e-998537be26e9"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+          "caption": "CC_NIRI_P0_C",
+          "frame": {
+            "x": 705.3333333333334,
+            "y": 71,
+            "width": 1256,
+            "height": 1358
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        },
+        {
+          "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+          "caption": "CC_NIRI_P0_D",
+          "frame": {
+            "x": 652,
+            "y": 18,
+            "width": 1256,
+            "height": 1404
+          },
+          "minimized": true,
+          "opacity": 1,
+          "desktops": [
+            "a24ffe5a-a151-4480-836f-531ec82c3cfe"
+          ],
+          "output": "Virtual-0"
+        }
+      ]
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p5-checkpoint",
+      "label": "transfer",
+      "v2": true,
+      "enabled": true,
+      "epoch": 4,
+      "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "currentWorkspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "camera": 212,
+      "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "activeUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "snapshot": {
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "workspaceIndex": 0,
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+        "presentation": {
+          "windowUuid": null,
+          "mode": "normal"
+        },
+        "columns": [
+          {
+            "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "widthMode": "twoThirds",
+            "previousNonFullWidthMode": "twoThirds",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "twoThirds",
+              "previousNonFullWidthMode": "twoThirds"
+            }
+          }
+        ],
+        "viewportAnchor": null,
+        "viewportAnchorV2": {
+          "version": 1,
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "delta": -440,
+          "basis": {
+            "outputRect": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "workingArea": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "gap": 16,
+            "physicalScale": 1
+          }
+        },
+        "workspaces": [
+          {
+            "id": "a24ffe5a-a151-4480-836f-531ec82c3cfe",
+            "columns": [
+              {
+                "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              }
+            ],
+            "focusedUuid": null,
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            }
+          },
+          {
+            "id": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+            "columns": [
+              {
+                "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+                "widthMode": "twoThirds",
+                "previousNonFullWidthMode": "twoThirds",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "twoThirds",
+                  "previousNonFullWidthMode": "twoThirds"
+                }
+              }
+            ],
+            "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            },
+            "viewportAnchorV2": {
+              "version": 1,
+              "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+              "delta": -440,
+              "basis": {
+                "outputRect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "workingArea": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "gap": 16,
+                "physicalScale": 1
+              }
+            },
+            "dormantViewportV1": {
+              "version": 1,
+              "mode": "pair",
+              "wideUuid": null
+            }
+          }
+        ]
+      },
+      "errors": [],
+      "columns": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "widthMode": "twoThirds",
+          "previous": "twoThirds",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 1,
+          "minimized": false,
+          "frame": {
+            "x": 440,
+            "y": 16,
+            "width": 1680,
+            "height": 1408
+          }
+        }
+      ],
+      "stopped": false,
+      "stopConfirmed": false,
+      "pending": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p5-checkpoint",
+      "label": "inspect",
+      "v2": true,
+      "enabled": true,
+      "epoch": 4,
+      "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "currentWorkspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "camera": 212,
+      "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "activeUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "snapshot": {
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "workspaceIndex": 0,
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+        "presentation": {
+          "windowUuid": null,
+          "mode": "normal"
+        },
+        "columns": [
+          {
+            "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "widthMode": "twoThirds",
+            "previousNonFullWidthMode": "twoThirds",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "twoThirds",
+              "previousNonFullWidthMode": "twoThirds"
+            }
+          }
+        ],
+        "viewportAnchor": null,
+        "viewportAnchorV2": {
+          "version": 1,
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "delta": -440,
+          "basis": {
+            "outputRect": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "workingArea": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "gap": 16,
+            "physicalScale": 1
+          }
+        },
+        "workspaces": [
+          {
+            "id": "a24ffe5a-a151-4480-836f-531ec82c3cfe",
+            "columns": [
+              {
+                "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              }
+            ],
+            "focusedUuid": null,
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            }
+          },
+          {
+            "id": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+            "columns": [
+              {
+                "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+                "widthMode": "twoThirds",
+                "previousNonFullWidthMode": "twoThirds",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "twoThirds",
+                  "previousNonFullWidthMode": "twoThirds"
+                }
+              }
+            ],
+            "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            },
+            "viewportAnchorV2": {
+              "version": 1,
+              "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+              "delta": -440,
+              "basis": {
+                "outputRect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "workingArea": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "gap": 16,
+                "physicalScale": 1
+              }
+            },
+            "dormantViewportV1": {
+              "version": 1,
+              "mode": "pair",
+              "wideUuid": null
+            }
+          }
+        ]
+      },
+      "errors": [],
+      "columns": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "widthMode": "twoThirds",
+          "previous": "twoThirds",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 1,
+          "minimized": false,
+          "frame": {
+            "x": 440,
+            "y": 16,
+            "width": 1680,
+            "height": 1408
+          }
+        }
+      ],
+      "stopped": false,
+      "stopConfirmed": false,
+      "pending": false
+    },
+    {
+      "phase": "bootstrap",
+      "kind": "p5-checkpoint",
+      "label": "stop",
+      "v2": true,
+      "enabled": false,
+      "epoch": 4,
+      "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "currentWorkspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+      "camera": 212,
+      "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "activeUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+      "snapshot": {
+        "workspaceId": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+        "workspaceIndex": 0,
+        "targetOutput": "Virtual-0",
+        "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+        "presentation": {
+          "windowUuid": null,
+          "mode": "normal"
+        },
+        "columns": [
+          {
+            "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "widthMode": "twoThirds",
+            "previousNonFullWidthMode": "twoThirds",
+            "persistentWide": false,
+            "widthV2": {
+              "version": 1,
+              "widthMode": "twoThirds",
+              "previousNonFullWidthMode": "twoThirds"
+            }
+          }
+        ],
+        "viewportAnchor": null,
+        "viewportAnchorV2": {
+          "version": 1,
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "delta": -440,
+          "basis": {
+            "outputRect": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "workingArea": {
+              "x": 0,
+              "y": 0,
+              "width": 2560,
+              "height": 1440
+            },
+            "gap": 16,
+            "physicalScale": 1
+          }
+        },
+        "workspaces": [
+          {
+            "id": "a24ffe5a-a151-4480-836f-531ec82c3cfe",
+            "columns": [
+              {
+                "uuid": "e8f553d6-e7bf-4e8b-9ef0-f37042e2c63a",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              },
+              {
+                "uuid": "845310b3-990c-402e-b42b-d883a6cd3a76",
+                "widthMode": "half",
+                "previousNonFullWidthMode": "half",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "half",
+                  "previousNonFullWidthMode": "half"
+                }
+              }
+            ],
+            "focusedUuid": null,
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            }
+          },
+          {
+            "id": "2a774c18-7e40-4b51-8f2e-998537be26e9",
+            "columns": [
+              {
+                "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+                "widthMode": "twoThirds",
+                "previousNonFullWidthMode": "twoThirds",
+                "persistentWide": false,
+                "widthV2": {
+                  "version": 1,
+                  "widthMode": "twoThirds",
+                  "previousNonFullWidthMode": "twoThirds"
+                }
+              }
+            ],
+            "focusedUuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+            "viewportAnchor": null,
+            "viewport": {
+              "mode": "pair",
+              "wideUuid": null
+            },
+            "presentation": {
+              "mode": "normal",
+              "windowUuid": null
+            },
+            "viewportAnchorV2": {
+              "version": 1,
+              "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+              "delta": -440,
+              "basis": {
+                "outputRect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "workingArea": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 2560,
+                  "height": 1440
+                },
+                "gap": 16,
+                "physicalScale": 1
+              }
+            },
+            "dormantViewportV1": {
+              "version": 1,
+              "mode": "pair",
+              "wideUuid": null
+            }
+          }
+        ]
+      },
+      "errors": [],
+      "columns": [
+        {
+          "uuid": "d3ae03c8-6370-4c89-be9a-7dadbc459e70",
+          "caption": "CC_NIRI_P0_A",
+          "widthMode": "twoThirds",
+          "previous": "twoThirds",
+          "persistentWide": false,
+          "fullScreen": false,
+          "opacity": 1,
+          "minimized": false,
+          "frame": {
+            "x": 440,
+            "y": 16,
+            "width": 1680,
+            "height": 1408
+          }
+        }
+      ],
+      "stopped": true,
+      "stopConfirmed": true,
+      "pending": false
+    }
+  ],
+  "ended_utc": "2026-10-19T12:49:32.074607+00:00"
+}

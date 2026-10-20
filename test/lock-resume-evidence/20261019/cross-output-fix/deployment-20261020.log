@@ -1,0 +1,28 @@
+{
+  "status": "PASS",
+  "scope": "candidate/backup integrity",
+  "deployed": false
+}
+cc-niri stopped; parked windows restored.
+-- Install configuration: "RelWithDebInfo"
+-- Installing: /tmp/cc-niri-native-install-ycsthpj3/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-viewport-clip.so
+-- Set non-toolchain portion of runtime path of "/tmp/cc-niri-native-install-ycsthpj3/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-viewport-clip.so" to "/home/cc/.local/lib64"
+Native cc-niri-viewport-clip canonical version: /home/cc/.local/lib/cc-niri/viewport-clip/e846e4311a4d5a16902b9b6222132298d92217d86e8491831a1a6914f889472b/cc-niri-viewport-clip.so
+-- Install configuration: "RelWithDebInfo"
+-- Installing: /tmp/cc-niri-native-install-3b8sv933/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-focus-ring.so
+-- Set non-toolchain portion of runtime path of "/tmp/cc-niri-native-install-3b8sv933/home/cc/.local/lib64/qt6/plugins/kwin/effects/plugins/cc-niri-focus-ring.so" to "/home/cc/.local/lib64"
+Native cc-niri-focus-ring canonical version: /home/cc/.local/lib/cc-niri/focus-ring/f643f989b4929b3d3dca8bde9204f9874c1ec346748388a25320255dd8424759/cc-niri-focus-ring.so
+-- Install configuration: "Release"
+-- Up-to-date: /home/cc/.local/libexec/cc-niri-bridge
+-- Up-to-date: /home/cc/.local/libexec/cc-scroll-dock-bridge
+kbuildsycoca6 running...
+Created symlink '/home/cc/.config/systemd/user/cc-scroll-dock-bridge.service' → '/home/cc/.config/systemd/user/cc-niri-bridge.service'.
+Created symlink '/home/cc/.config/systemd/user/default.target.wants/cc-niri-bridge.service' → '/home/cc/.config/systemd/user/cc-niri-bridge.service'.
+Upgrading package from file: /home/cc/cc_niri/package
+Successfully upgraded /home/cc/.local/share/kwin/scripts/cc-niri-maximize/
+Upgrading package from file: /home/cc/cc_niri/effect
+Successfully upgraded /home/cc/.local/share/kwin/effects/cc-niri-maximize-scroll-transition/
+cc-niri started. Meta+J: down; Meta+K: up.
+Terminal control: cc-niri start | stop | restart | status
+Installed and enabled cc-niri-maximize, cc-niri-maximize-scroll-transition, cc-niri-viewport-clip, and bridge.
+Core installation complete; existing Dock packages and settings are preserved.

@@ -33,6 +33,9 @@ class Recovery {
         if (this.retiring || this.waiting) return 0;
         this.status = { state: "pending", requestId, restoredCount: 0 };
         this.onStatus(this.status);
+        // Only an explicit new recovery request may retry an unconfirmed
+        // Native retirement. No geometry is written until that proof succeeds.
+        if (this.blocked && !this.retired && requestId !== null) this.blocked = false;
         if (this.blocked) {
             if (this.retired && this.retryable) {
                 const live = new Map(this.getWindows().map(window => [this.getWindowId(window), window]));

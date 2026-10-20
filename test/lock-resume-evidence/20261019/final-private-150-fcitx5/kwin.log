@@ -1,0 +1,119 @@
+kwin_scene_opengl: eglInitialize failed
+kwin_scene_opengl: Error during eglInitialize  "EGL_NOT_INITIALIZED"
+kwin_scene_opengl: eglInitialize failed
+kwin_scene_opengl: Error during eglInitialize  "EGL_NOT_INITIALIZED"
+Accepting client connections on sockets: QList("cc-niri-p0")
+kwin_screencast: Failed to connect PipeWire context
+ShapeCorners: loading shaders...
+ShapeCorners: shaders loaded.
+ShapeCorners: Writing Breeze config
+I2026-10-19 18:01:42.078368 instance.cpp:669] Starting fcitx5 5.1.23
+I2026-10-19 18:01:42.102926 instance.cpp:1448] Override Enabled Addons: {classic}
+I2026-10-19 18:01:42.102981 instance.cpp:1449] Override Disabled Addons: {notifications, clipboard, cloudpinyin}
+I2026-10-19 18:01:42.217673 addonmanager.cpp:208] Loaded addon imselector
+I2026-10-19 18:01:42.219015 addonmanager.cpp:208] Loaded addon unicode
+I2026-10-19 18:01:42.227990 addonmanager.cpp:208] Loaded addon quickphrase
+I2026-10-19 18:01:42.236990 addonmanager.cpp:208] Loaded addon xcb
+I2026-10-19 18:01:42.241727 addonmanager.cpp:208] Loaded addon wayland
+I2026-10-19 18:01:42.243639 addonmanager.cpp:208] Loaded addon waylandim
+I2026-10-19 18:01:42.246209 keyboard.cpp:229] Attempting to load keyboard from: ["/usr/share/xkeyboard-config-2"] Rule: evdev
+I2026-10-19 18:01:42.262269 addonmanager.cpp:208] Loaded addon keyboard
+I2026-10-19 18:01:42.267085 addonmanager.cpp:208] Loaded addon pinyinhelper
+I2026-10-19 18:01:42.270046 addonmanager.cpp:208] Loaded addon luaaddonloader
+I2026-10-19 18:01:42.272441 addonmanager.cpp:208] Loaded addon dbus
+I2026-10-19 18:01:42.276863 addonmanager.cpp:208] Loaded addon ibusfrontend
+I2026-10-19 18:01:42.279026 addonmanager.cpp:208] Loaded addon imeapi
+I2026-10-19 18:01:42.282068 addonmanager.cpp:208] Loaded addon dbusfrontend
+I2026-10-19 18:01:42.283929 addonmanager.cpp:208] Loaded addon fcitx4frontend
+I2026-10-19 18:01:42.287805 addonmanager.cpp:208] Loaded addon xim
+I2026-10-19 18:01:42.351493 inputmethodmanager.cpp:213] Found 749 input method(s) in addon keyboard
+I2026-10-19 18:01:42.352362 addonmanager.cpp:208] Loaded addon kimpanel
+I2026-10-19 18:01:42.353286 addonmanager.cpp:208] Loaded addon virtualkeyboard
+I2026-10-19 18:01:42.399835 classicui.cpp:110] Created classicui for wayland display:
+I2026-10-19 18:01:42.399906 addonmanager.cpp:208] Loaded addon classicui
+I2026-10-19 18:01:42.401429 addonmanager.cpp:208] Loaded addon notificationitem
+I2026-10-19 18:01:42.408883 dbusmodule.cpp:844] Service name change: org.fcitx.Fcitx5  :1.14
+I2026-10-19 18:01:42.409025 kimpanel.cpp:138] Kimpanel new owner:
+I2026-10-19 18:01:42.409068 virtualkeyboard.cpp:230] VirtualKeyboard new owner:
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] READY scrollRuntimeBackend= "Rust"
+cc.niri.focus.ring: [FOCUS_RING] READY isolated post-window border coreBackend= Rust
+I2026-10-19 18:01:42.758128 portalsettingmonitor.cpp:97] A new portal show up, start a new query.
+I2026-10-19 18:01:42.758225 portalsettingmonitor.cpp:97] A new portal show up, start a new query.
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"14f9c710-2cd0-4429-8149-427a14f96ff6\"},{\"columnId\":2,\"logicalX\":2348,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"6229afbe-1ecc-41a8-abad-b8c6bafa1ead\"}],\"epoch\":1,\"issuedAt\":1792404103347,\"layoutRect\":{\"height\":1358,\"width\":2560,\"x\":0,\"y\":66},\"maxCamera\":1696,\"newScrollOffsetX\":212,\"oldScrollOffsetX\":212,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":1,\"sessionId\":\"p3-private\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"fd800f16-a48a-4df8-875f-4fdb29804477\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+I2026-10-19 18:01:43.516779 addonmanager.cpp:208] Loaded addon punctuation
+E2026-10-19 18:01:43.554775 pinyin.cpp:937] Failed to load pinyin history: io fail: iostream error
+I2026-10-19 18:01:43.562535 addonmanager.cpp:208] Loaded addon pinyin
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-19724jkz/p5-entry-1.js:9593:9 Variable "app" is used before its declaration at 9642:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-19724jkz/p5-entry-1.js:9604:47 Variable "app" is used before its declaration at 9642:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-19724jkz/p5-entry-1.js:9492:42 Variable "app" is used before its declaration at 9642:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-19724jkz/p5-entry-1.js:9542:9 Variable "app" is used before its declaration at 9642:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-19724jkz/p5-entry-1.js:7461:28 Variable "geometryCommitter" is used before its declaration at 7504:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-19724jkz/p5-entry-1.js:7546:9 Variable "scrollPlanCommitGate" is used before its declaration at 7573:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-19724jkz/p5-entry-1.js:7556:17 Variable "scrollPlanCommitGate" is used before its declaration at 7573:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-19724jkz/p5-entry-1.js:7558:21 Variable "scrollPlanCommitGate" is used before its declaration at 7573:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-19724jkz/p5-entry-1.js:7581:27 Variable "deferredScrollParking" is used before its declaration at 7593:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-19724jkz/p5-entry-1.js:7582:28 Variable "deferredScrollParking" is used before its declaration at 7593:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-19724jkz/p5-entry-1.js:8108:17 Variable "app" is used before its declaration at 9642:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-19724jkz/p5-entry-1.js:8109:55 Variable "app" is used before its declaration at 9642:7.
+js: [cc-niri-maximize] [runtime] configured secondary output HDMI-A-1 not found; using rightmost non-primary output
+js: [cc-niri-maximize] [runtime] loaded primary=Virtual-0 secondary=Virtual-1 primaryOuter=50/24/8/24 secondaryOuter=24/24/24/24
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "14f9c710-2cd0-4429-8149-427a14f96ff6"
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_A reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_B reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_C reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_D reason=workspace-mount
+js: [cc-niri-maximize] [runtime] MOUNT id=fd800f16-a48a-4df8-875f-4fdb29804477 columns=4 reason=script-start-workspace
+js: [cc-niri-maximize] [stability] BEGIN epoch=1 reason=workspace-mount
+js: [cc-niri-maximize] [stability] END epoch=1 reason=workspace-mount
+js: [cc-niri-maximize] [bridge] PUBLISH reason=script-start generation=1 columns=4 accepted=true
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-mount generation=2 columns=4 accepted=true
+js: [cc-niri-maximize] [runtime] [SCROLL_PLAN] disarm epoch-mismatch requestEpoch=0 returnedEpoch=-1 active=false handoff=false elapsedMs=1
+js: [cc-niri-maximize] [runtime] [SCROLL_PLAN] disarm epoch-mismatch requestEpoch=1 returnedEpoch=-1 active=false handoff=false elapsedMs=1
+js: [cc-niri-maximize] [runtime] geometry failure reason=bootstrap-disarm cancelled=false
+js: [cc-niri-maximize] [runtime] blocked reason=bootstrap-disarm
+ShapeCorners: Skipped writing Breeze config because the last change was 9 seconds ago.
+=========================
+Fcitx 5.1.23 -- Get Signal No.: 15
+Date: try "date -d @1792404111" if you are using GNU date ***
+ProcessID: 237889
+/usr/bin/fcitx5(+0xd8c7) [0x5570af39f8c7]
+/lib64/libc.so.6(+0x19fb0) [0x7f737cc20fb0]
+/lib64/libc.so.6(+0x7b352) [0x7f737cc82352]
+/lib64/libc.so.6(+0x6f54c) [0x7f737cc7654c]
+/lib64/libc.so.6(+0x6f594) [0x7f737cc76594]
+/lib64/libc.so.6(epoll_wait+0x25) [0x7f737ccfd895]
+/lib64/libsystemd.so.0(sd_event_wait+0x1d4) [0x7f737d1546a4]
+/lib64/libsystemd.so.0(sd_event_run+0x20b) [0x7f737d155adb]
+/lib64/libsystemd.so.0(sd_event_loop+0x8f) [0x7f737d155c6f]
+/lib64/libFcitx5Utils.so.2(_ZN5fcitx9EventLoop4execEv+0x2b) [0x7f737d36ff5b]
+/lib64/libFcitx5Core.so.7(_ZN5fcitx8Instance4execEv+0x5b) [0x7f737d438e9b]
+/usr/bin/fcitx5(+0xb854) [0x5570af39d854]
+/lib64/libc.so.6(+0x3681) [0x7f737cc0a681]
+/lib64/libc.so.6(__libc_start_main+0x88) [0x7f737cc0a798]
+/usr/bin/fcitx5(+0xcc15) [0x5570af39ec15]
+I2026-10-19 18:01:51.997514 waylandmodule.cpp:405] Connection removed
+I2026-10-19 18:01:51.998031 instance.cpp:1498] Save before exiting...
+I2026-10-19 18:01:51.999727 addonmanager.cpp:312] Unloading addon pinyin
+I2026-10-19 18:01:52.002097 addonmanager.cpp:312] Unloading addon punctuation
+I2026-10-19 18:01:52.002251 addonmanager.cpp:312] Unloading addon notificationitem
+I2026-10-19 18:01:52.002310 addonmanager.cpp:312] Unloading addon classicui
+I2026-10-19 18:01:52.002953 addonmanager.cpp:312] Unloading addon virtualkeyboard
+I2026-10-19 18:01:52.002999 addonmanager.cpp:312] Unloading addon kimpanel
+I2026-10-19 18:01:52.003026 addonmanager.cpp:312] Unloading addon xim
+I2026-10-19 18:01:52.003047 addonmanager.cpp:312] Unloading addon fcitx4frontend
+I2026-10-19 18:01:52.003117 addonmanager.cpp:312] Unloading addon dbusfrontend
+I2026-10-19 18:01:52.003173 addonmanager.cpp:312] Unloading addon imeapi
+I2026-10-19 18:01:52.003284 addonmanager.cpp:312] Unloading addon ibusfrontend
+I2026-10-19 18:01:52.003517 addonmanager.cpp:312] Unloading addon dbus
+I2026-10-19 18:01:52.003600 addonmanager.cpp:312] Unloading addon luaaddonloader
+I2026-10-19 18:01:52.003629 addonmanager.cpp:312] Unloading addon pinyinhelper
+I2026-10-19 18:01:52.003656 addonmanager.cpp:312] Unloading addon keyboard
+I2026-10-19 18:01:52.003957 addonmanager.cpp:312] Unloading addon waylandim
+I2026-10-19 18:01:52.004011 addonmanager.cpp:312] Unloading addon wayland
+I2026-10-19 18:01:52.004045 addonmanager.cpp:312] Unloading addon xcb
+I2026-10-19 18:01:52.004071 addonmanager.cpp:312] Unloading addon quickphrase
+I2026-10-19 18:01:52.004335 addonmanager.cpp:312] Unloading addon unicode
+I2026-10-19 18:01:52.004361 addonmanager.cpp:312] Unloading addon imselector
+kwin_scene_opengl: Could not delete render time query because no context is current
+kwin_scene_opengl: Could not delete render time query because no context is current

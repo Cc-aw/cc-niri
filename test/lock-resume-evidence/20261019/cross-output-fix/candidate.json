@@ -1,0 +1,25 @@
+{
+  "status": "DEPLOYED",
+  "manifest": "/tmp/cc-niri-output-drag-20261020-deploy/manifest.json",
+  "integrity": "PASS",
+  "rollback": "DRY_RUN only; /tmp/cc-niri-output-drag-20261020-deploy/rollback.sh",
+  "checks": {
+    "js": "261/261, 119 files",
+    "private_drag_100": "17/17",
+    "private_drag_150": "17/17",
+    "private_p6_100": "49/49"
+  },
+  "script_sha256": "dceba6dd5df7415ebbdec2e941b84f94d0776222d67266a2f6a9f6890b161647",
+  "deployment": "PASS",
+  "approval_review": {
+    "action": "install.sh --prepared-manifest (real desktop install, stop and reload)",
+    "reason": "User authorized repair; automatic approval review requires explicit approval for this new candidate deployment and reload.",
+    "command_executed": false,
+    "resolution": "Explicit authorization received on 2026-10-20; subsequent install approved and completed"
+  },
+  "real_drag_acceptance": "PENDING",
+  "resource_budget": "NOT MEASURED",
+  "deployment_date": "2026-10-20",
+  "verification": "deployment-verification-20261020.json",
+  "explicit_authorization": "User replied: 现在部署并安全重载"
+}

@@ -7,6 +7,7 @@ import sys
 import tempfile
 import time
 import dbus
+import dbus.lowlevel
 
 binary = str(Path(sys.argv[1]).resolve())
 with tempfile.TemporaryDirectory(prefix="cc-niri-recovery-") as directory:
@@ -32,11 +33,31 @@ with tempfile.TemporaryDirectory(prefix="cc-niri-recovery-") as directory:
         start()
         state = dict(protocol=2,sessionId="live",generation=1,workspaceId="A",targetOutput="eDP-1",columns=[],workspaces=[dict(id="A",columns=[])])
         proof = dict(protocol=1,type="recovery-status",sessionId="live",requestId=None,state="running",restoredCount=0)
+        health = dict(protocol=1,type="runtime-health",sessionId="live",state="running",reason="session-ready",sequence=1)
         assert not call("ReportRecoveryStatus",proof)
+        assert not call("ReportRuntimeHealth",health)
         assert call("PublishState",state)
+        assert call("ReportRuntimeHealth",health)
+        assert json.loads(str(call("GetRuntimeHealth"))) == health
+        assert not call("ReportRuntimeHealth",health), "health sequence cannot regress or repeat"
+        for bad in [dict(health,sessionId="old",sequence=2),dict(health,state="restored",sequence=2),dict(health,reason=1,sequence=2),dict(health,sequence=2.5)]:
+            assert not call("ReportRuntimeHealth",bad)
         assert call("ReportRecoveryStatus",proof)
         assert json.loads(str(call("GetRecoveryStatus"))) == proof
         cache = Path(directory,"cc-niri/workspaces.json"); durable = cache.read_bytes()
+        # Native state changes only wake JS; forged commands cannot claim that
+        # unlock or cancellation was proven. One coalescing slot is bounded.
+        bus.request_name("org.kde.KWin")
+        for sequence in range(20):
+            message=dbus.lowlevel.SignalMessage("/ccNiriViewportMotion","org.cc.NiriViewportMotion1","SessionStateChanged")
+            message.append(json.dumps(dict(protocol=1,type="session-state",instanceId="private",sequence=sequence,locked=bool(sequence%2))),signature="s")
+            bus.send_message(message)
+        time.sleep(.1)
+        wake=json.loads(str(call("TakePendingCommand")))
+        assert wake["type"]=="session-state-changed" and wake["sessionId"]=="live"
+        assert str(call("TakePendingCommand"))=="", "session wake is coalesced rather than historical"
+        assert not call("RequestCommand",wake), "public commands do not inject Native session facts"
+        assert call("ReportRuntimeHealth",dict(health,state="locked",reason="session-event",sequence=2))
         command = dict(protocol=1,type="emergency-restore",sessionId="live",baseGeneration=1,commandId="fresh")
         assert call("RequestCommand",command)
         assert str(call("GetRecoveryStatus")) == ""
@@ -50,8 +71,10 @@ with tempfile.TemporaryDirectory(prefix="cc-niri-recovery-") as directory:
         assert cache.read_bytes() == durable, "ACK proof must never be persisted"
         state["sessionId"]="new"; state["generation"]=0
         assert call("PublishState",state); assert str(call("GetRecoveryStatus")) == ""
+        assert str(call("GetRuntimeHealth")) == ""
         assert not call("ReportRecoveryStatus",pending)
         stop(); start(); assert str(call("GetRecoveryStatus")) == ""
+        assert str(call("GetRuntimeHealth")) == ""
         assert not call("ReportRecoveryStatus",dict(proof,sessionId="new")), "cached disk state is not live authority"
         print("PASS transient recovery DBus proof, pending/terminal ordering, stale token/session rejection and no disk ACK")
     finally:

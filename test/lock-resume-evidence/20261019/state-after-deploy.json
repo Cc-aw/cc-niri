@@ -1,0 +1,289 @@
+{
+  "columns": [
+    {
+      "persistentWide": false,
+      "previousNonFullWidthMode": "twoThirds",
+      "uuid": "28e2ce0b-d412-4620-b92f-41a33ffcaf02",
+      "widthMode": "twoThirds",
+      "widthV2": {
+        "previousNonFullWidthMode": "twoThirds",
+        "version": 1,
+        "widthMode": "twoThirds"
+      }
+    }
+  ],
+  "focusedUuid": "28e2ce0b-d412-4620-b92f-41a33ffcaf02",
+  "generation": 3,
+  "presentation": {
+    "mode": "normal",
+    "windowUuid": null
+  },
+  "protocol": 2,
+  "sessionId": "1a153e405ff-be13d523",
+  "targetOutput": "DP-1",
+  "viewportAnchor": null,
+  "viewportAnchorV2": {
+    "basis": {
+      "gap": 16,
+      "outputRect": {
+        "height": 1440,
+        "width": 2560,
+        "x": 0,
+        "y": 0
+      },
+      "physicalScale": 1.5,
+      "workingArea": {
+        "height": 1388,
+        "width": 2560,
+        "x": 0,
+        "y": 52
+      }
+    },
+    "delta": -440,
+    "uuid": "28e2ce0b-d412-4620-b92f-41a33ffcaf02",
+    "version": 1
+  },
+  "workspaceId": "ba093f5e-5764-446f-88e3-03d2d9a5ec3e",
+  "workspaceIndex": 1,
+  "workspaces": [
+    {
+      "columns": [],
+      "dormantViewportV1": {
+        "mode": "pair",
+        "version": 1,
+        "wideUuid": null
+      },
+      "focusedUuid": null,
+      "id": "d22b4f66-367a-4004-b8b6-eea22f24c4f8",
+      "presentation": {
+        "mode": "normal",
+        "windowUuid": null
+      },
+      "viewport": {
+        "mode": "pair",
+        "wideUuid": null
+      },
+      "viewportAnchor": null,
+      "viewportAnchorV2": null
+    },
+    {
+      "columns": [
+        {
+          "persistentWide": false,
+          "previousNonFullWidthMode": "twoThirds",
+          "uuid": "42f52011-ee7f-4174-ac1d-4d8440a49220",
+          "widthMode": "twoThirds",
+          "widthV2": {
+            "previousNonFullWidthMode": "twoThirds",
+            "version": 1,
+            "widthMode": "twoThirds"
+          }
+        }
+      ],
+      "dormantViewportV1": {
+        "mode": "pair",
+        "version": 1,
+        "wideUuid": null
+      },
+      "focusedUuid": "42f52011-ee7f-4174-ac1d-4d8440a49220",
+      "id": "67cb656e-0a97-44e9-8b7d-f743faea501b",
+      "presentation": {
+        "mode": "normal",
+        "windowUuid": null
+      },
+      "viewport": {
+        "mode": "pair",
+        "wideUuid": null
+      },
+      "viewportAnchor": null,
+      "viewportAnchorV2": {
+        "basis": {
+          "gap": 16,
+          "outputRect": {
+            "height": 1440,
+            "width": 2560,
+            "x": 0,
+            "y": 0
+          },
+          "physicalScale": 1.5,
+          "workingArea": {
+            "height": 1388,
+            "width": 2560,
+            "x": 0,
+            "y": 52
+          }
+        },
+        "delta": -440,
+        "uuid": "42f52011-ee7f-4174-ac1d-4d8440a49220",
+        "version": 1
+      }
+    },
+    {
+      "columns": [
+        {
+          "persistentWide": false,
+          "previousNonFullWidthMode": "twoThirds",
+          "uuid": "828813c4-5959-413e-9adf-1b9a6da01582",
+          "widthMode": "twoThirds",
+          "widthV2": {
+            "previousNonFullWidthMode": "twoThirds",
+            "version": 1,
+            "widthMode": "twoThirds"
+          }
+        },
+        {
+          "persistentWide": false,
+          "previousNonFullWidthMode": "half",
+          "uuid": "c0c08baa-d4bd-4126-9fc4-8950cff7d306",
+          "widthMode": "half",
+          "widthV2": {
+            "previousNonFullWidthMode": "half",
+            "version": 1,
+            "widthMode": "half"
+          }
+        }
+      ],
+      "dormantViewportV1": {
+        "mode": "pair",
+        "version": 1,
+        "wideUuid": null
+      },
+      "focusedUuid": "828813c4-5959-413e-9adf-1b9a6da01582",
+      "id": "b729a9c6-35da-4a20-ae6e-c4cb14f9915c",
+      "presentation": {
+        "mode": "normal",
+        "windowUuid": null
+      },
+      "viewport": {
+        "mode": "pair",
+        "wideUuid": null
+      },
+      "viewportAnchor": null,
+      "viewportAnchorV2": {
+        "basis": {
+          "gap": 16,
+          "outputRect": {
+            "height": 1440,
+            "width": 2560,
+            "x": 0,
+            "y": 0
+          },
+          "physicalScale": 1.5,
+          "workingArea": {
+            "height": 1388,
+            "width": 2560,
+            "x": 0,
+            "y": 52
+          }
+        },
+        "delta": -440,
+        "uuid": "828813c4-5959-413e-9adf-1b9a6da01582",
+        "version": 1
+      }
+    },
+    {
+      "columns": [
+        {
+          "persistentWide": false,
+          "previousNonFullWidthMode": "twoThirds",
+          "uuid": "4be33934-d335-4882-9709-d9fed6d237e9",
+          "widthMode": "twoThirds",
+          "widthV2": {
+            "previousNonFullWidthMode": "twoThirds",
+            "version": 1,
+            "widthMode": "twoThirds"
+          }
+        }
+      ],
+      "dormantViewportV1": {
+        "mode": "pair",
+        "version": 1,
+        "wideUuid": null
+      },
+      "focusedUuid": "4be33934-d335-4882-9709-d9fed6d237e9",
+      "id": "0c20674a-f1c0-4d3e-877a-2042b14fe355",
+      "presentation": {
+        "mode": "normal",
+        "windowUuid": null
+      },
+      "viewport": {
+        "mode": "pair",
+        "wideUuid": null
+      },
+      "viewportAnchor": null,
+      "viewportAnchorV2": {
+        "basis": {
+          "gap": 16,
+          "outputRect": {
+            "height": 1440,
+            "width": 2560,
+            "x": 0,
+            "y": 0
+          },
+          "physicalScale": 1.5,
+          "workingArea": {
+            "height": 1388,
+            "width": 2560,
+            "x": 0,
+            "y": 52
+          }
+        },
+        "delta": -440,
+        "uuid": "4be33934-d335-4882-9709-d9fed6d237e9",
+        "version": 1
+      }
+    },
+    {
+      "columns": [
+        {
+          "persistentWide": false,
+          "previousNonFullWidthMode": "twoThirds",
+          "uuid": "28e2ce0b-d412-4620-b92f-41a33ffcaf02",
+          "widthMode": "twoThirds",
+          "widthV2": {
+            "previousNonFullWidthMode": "twoThirds",
+            "version": 1,
+            "widthMode": "twoThirds"
+          }
+        }
+      ],
+      "dormantViewportV1": {
+        "mode": "pair",
+        "version": 1,
+        "wideUuid": null
+      },
+      "focusedUuid": "28e2ce0b-d412-4620-b92f-41a33ffcaf02",
+      "id": "ba093f5e-5764-446f-88e3-03d2d9a5ec3e",
+      "presentation": {
+        "mode": "normal",
+        "windowUuid": null
+      },
+      "viewport": {
+        "mode": "pair",
+        "wideUuid": null
+      },
+      "viewportAnchor": null,
+      "viewportAnchorV2": {
+        "basis": {
+          "gap": 16,
+          "outputRect": {
+            "height": 1440,
+            "width": 2560,
+            "x": 0,
+            "y": 0
+          },
+          "physicalScale": 1.5,
+          "workingArea": {
+            "height": 1388,
+            "width": 2560,
+            "x": 0,
+            "y": 52
+          }
+        },
+        "delta": -440,
+        "uuid": "28e2ce0b-d412-4620-b92f-41a33ffcaf02",
+        "version": 1
+      }
+    }
+  ]
+}

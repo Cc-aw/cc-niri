@@ -151,6 +151,14 @@ CCNiriBridge::CCNiriBridge(QObject *parent, const QString &statePath)
         ? QStandardPaths::writableLocation(QStandardPaths::GenericStateLocation) + QStringLiteral("/cc-niri/workspaces.json")
         : statePath)
 {
+    m_sessionWakeTimer.setInterval(100);
+    connect(&m_sessionWakeTimer, &QTimer::timeout, this, [this]() {
+        if (m_sessionWake.isEmpty() || ++m_sessionWakeAttempts > 3) { m_sessionWakeTimer.stop(); return; }
+        wakeKWinCommandPump();
+    });
+    QDBusConnection::sessionBus().connect(QStringLiteral("org.kde.KWin"),
+        QStringLiteral("/ccNiriViewportMotion"), QStringLiteral("org.cc.NiriViewportMotion1"),
+        QStringLiteral("SessionStateChanged"), this, SLOT(onSessionStateChanged(QString)));
     QDBusConnection::sessionBus().connect(QStringLiteral("org.kde.KWin"),
         QStringLiteral("/ccNiriViewportMotion"), QStringLiteral("org.cc.NiriViewportMotion1"),
         QStringLiteral("PartialFocusRequested"), this, SLOT(onPartialFocusRequested(QString)));
@@ -202,6 +210,9 @@ bool CCNiriBridge::PublishState(const QString &json)
         m_lastMotionToken.clear();
         m_lastMotionTarget.clear();
         m_recoveryStatus.clear();
+        m_runtimeHealth.clear();
+        m_sessionWake.clear();
+        m_sessionWakeTimer.stop();
         m_restoreRequestId.clear();
     }
     m_sessionId = sessionId;
@@ -380,6 +391,51 @@ bool CCNiriBridge::EnsureVerticalDesktopLayout(int expectedCount)
 QString CCNiriBridge::GetRecoveryStatus() const
 {
     return m_recoveryStatus;
+}
+
+QString CCNiriBridge::GetRuntimeHealth() const { return m_runtimeHealth; }
+
+bool CCNiriBridge::ReportRuntimeHealth(const QString &json)
+{
+    if (json.toUtf8().size() > 4096 || m_sessionId.isEmpty()) return false;
+    const auto document = QJsonDocument::fromJson(json.toUtf8());
+    if (!document.isObject()) return false;
+    const auto value = document.object();
+    const auto sequence = value.value(QStringLiteral("sequence"));
+    if (value.value(QStringLiteral("protocol")) != QJsonValue(1)
+        || value.value(QStringLiteral("type")) != QJsonValue(QStringLiteral("runtime-health"))
+        || value.value(QStringLiteral("sessionId")) != QJsonValue(m_sessionId)
+        || !sequence.isDouble() || !cc_niri_json_integer_valid(sequence.toDouble()).value || sequence.toInteger(-1) < 0
+        || !value.value(QStringLiteral("reason")).isString() || value.value(QStringLiteral("reason")).toString().size() > 256
+        || !QStringList{QStringLiteral("checking"), QStringLiteral("running"), QStringLiteral("locked"),
+            QStringLiteral("resuming"), QStringLiteral("blocked"), QStringLiteral("stopped")}
+                .contains(value.value(QStringLiteral("state")).toString())) return false;
+    const auto previous = QJsonDocument::fromJson(m_runtimeHealth.toUtf8()).object();
+    if (!previous.isEmpty() && sequence.toInteger() <= previous.value(QStringLiteral("sequence")).toInteger()) return false;
+    m_runtimeHealth = QString::fromUtf8(document.toJson(QJsonDocument::Compact));
+    return true;
+}
+
+void CCNiriBridge::onSessionStateChanged(const QString &json)
+{
+    if (m_sessionId.isEmpty() || json.toUtf8().size() > 4096) return;
+    const auto value = QJsonDocument::fromJson(json.toUtf8()).object();
+    if (value.value(QStringLiteral("type")) != QJsonValue(QStringLiteral("session-state"))) return;
+    // One coalescing wake slot, independent of the bounded user command queue.
+    // The payload is never treated as proof: JS queries the Native endpoint.
+    m_sessionWake = QString::fromUtf8(QJsonDocument(QJsonObject{
+        {QStringLiteral("protocol"), 1}, {QStringLiteral("type"), QStringLiteral("session-state-changed")},
+        {QStringLiteral("sessionId"), m_sessionId}, {QStringLiteral("baseGeneration"), m_generation},
+        {QStringLiteral("commandId"), QStringLiteral("session/%1/%2").arg(m_sessionId).arg(++m_sessionWakeSequence)}})
+        .toJson(QJsonDocument::Compact));
+    wakeKWinCommandPump();
+    // Unlock can precede global shortcut availability. Bounded transport
+    // wakeups drain the same single slot; no idle polling or new service.
+    m_sessionWakeTimer.stop();
+    if (value.value(QStringLiteral("locked")) == QJsonValue(false)) {
+        m_sessionWakeAttempts = 0;
+        m_sessionWakeTimer.start();
+    }
 }
 
 bool CCNiriBridge::ReportRecoveryStatus(const QString &json)
@@ -608,9 +664,13 @@ bool CCNiriBridge::RequestEmergencyRestore()
 
 QString CCNiriBridge::TakePendingCommand()
 {
-    if (m_pendingCommands.isEmpty()) return {};
-    const QString command = m_pendingCommands.dequeue();
-    if (!m_pendingCommands.isEmpty()) {
+    if (m_pendingCommands.isEmpty() && m_sessionWake.isEmpty()) return {};
+    const bool restoreFirst = !m_pendingCommands.isEmpty() &&
+        QJsonDocument::fromJson(m_pendingCommands.head().toUtf8()).object().value(QStringLiteral("type")) == QJsonValue(QStringLiteral("emergency-restore"));
+    QString command;
+    if (!m_sessionWake.isEmpty() && !restoreFirst) { command = m_sessionWake; m_sessionWake.clear(); m_sessionWakeTimer.stop(); }
+    else command = m_pendingCommands.dequeue();
+    if (!m_pendingCommands.isEmpty() || !m_sessionWake.isEmpty()) {
         QTimer::singleShot(0, this, wakeKWinCommandPump);
     }
     return command;

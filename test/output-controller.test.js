@@ -162,6 +162,14 @@ for (const stateFlags of [
     assert.equal(controller.onOutputChanged(window), false);
     assert.deepEqual(calls, []);
 }
+for (const flag of ["move", "resize"]) {
+    const window = makeWindow(primary);
+    window[flag] = true;
+    const { controller, calls } = fixture({ options: { profileForOutput: () => ({ inner: 8 }) } });
+    assert.equal(controller.onOutputChanged(window), false,
+        "native interaction facts guard output adoption before Script receives the start signal");
+    assert.deepEqual(calls, []);
+}
 {
     const window = makeWindow(secondary);
     window.fullScreen = true;

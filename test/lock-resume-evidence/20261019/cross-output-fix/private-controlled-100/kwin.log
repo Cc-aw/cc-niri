@@ -1,0 +1,89 @@
+kwin_scene_opengl: eglInitialize failed
+kwin_scene_opengl: Error during eglInitialize  "EGL_NOT_INITIALIZED"
+kwin_scene_opengl: eglInitialize failed
+kwin_scene_opengl: Error during eglInitialize  "EGL_NOT_INITIALIZED"
+Accepting client connections on sockets: QList("cc-niri-p0")
+kwin_screencast: Failed to connect PipeWire context
+ShapeCorners: loading shaders...
+ShapeCorners: shaders loaded.
+ShapeCorners: Writing Breeze config
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] READY scrollRuntimeBackend= "Rust"
+cc.niri.focus.ring: [FOCUS_RING] READY isolated post-window border coreBackend= Rust
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"7adcf3ae-212d-4eac-8bdb-9a4439224c4d\"},{\"columnId\":2,\"logicalX\":2348,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"6c03a399-522f-49b4-b678-101c13fc667a\"}],\"epoch\":1,\"issuedAt\":1792415068608,\"layoutRect\":{\"height\":1358,\"width\":2560,\"x\":0,\"y\":66},\"maxCamera\":1696,\"newScrollOffsetX\":212,\"oldScrollOffsetX\":212,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":1,\"sessionId\":\"p3-private\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"90137733-097f-429e-a0a9-d676d769e14b\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-6_w9q8fx/p5-entry-1.js:9625:9 Variable "app" is used before its declaration at 9674:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-6_w9q8fx/p5-entry-1.js:9636:47 Variable "app" is used before its declaration at 9674:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-6_w9q8fx/p5-entry-1.js:9526:42 Variable "app" is used before its declaration at 9674:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-6_w9q8fx/p5-entry-1.js:9574:9 Variable "app" is used before its declaration at 9674:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-6_w9q8fx/p5-entry-1.js:7466:28 Variable "geometryCommitter" is used before its declaration at 7509:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-6_w9q8fx/p5-entry-1.js:7551:9 Variable "scrollPlanCommitGate" is used before its declaration at 7578:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-6_w9q8fx/p5-entry-1.js:7561:17 Variable "scrollPlanCommitGate" is used before its declaration at 7578:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-6_w9q8fx/p5-entry-1.js:7563:21 Variable "scrollPlanCommitGate" is used before its declaration at 7578:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-6_w9q8fx/p5-entry-1.js:7586:27 Variable "deferredScrollParking" is used before its declaration at 7598:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-6_w9q8fx/p5-entry-1.js:7587:28 Variable "deferredScrollParking" is used before its declaration at 7598:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-6_w9q8fx/p5-entry-1.js:8113:17 Variable "app" is used before its declaration at 9674:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-6_w9q8fx/p5-entry-1.js:8114:55 Variable "app" is used before its declaration at 9674:7.
+js: [cc-niri-maximize] [runtime] configured secondary output HDMI-A-1 not found; using rightmost non-primary output
+js: [cc-niri-maximize] [runtime] loaded primary=Virtual-0 secondary=Virtual-1 primaryOuter=50/24/8/24 secondaryOuter=24/24/24/24
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "7adcf3ae-212d-4eac-8bdb-9a4439224c4d"
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_A reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_B reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_C reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_D reason=workspace-mount
+js: [cc-niri-maximize] [runtime] MOUNT id=90137733-097f-429e-a0a9-d676d769e14b columns=4 reason=script-start-workspace
+js: [cc-niri-maximize] [stability] BEGIN epoch=1 reason=workspace-mount
+js: [cc-niri-maximize] [stability] END epoch=1 reason=workspace-mount
+js: [cc-niri-maximize] [bridge] PUBLISH reason=script-start generation=1 columns=4 accepted=true
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-mount generation=2 columns=4 accepted=true
+js: [cc-niri-maximize] [layout] LAYOUT reason=workspace-mount column=1 physicalX=652 width=1256 actual=440,66 1680x1358
+js: [cc-niri-maximize] [layout] LAYOUT reason=workspace-mount column=2 physicalX=1304 width=1256 actual=1304,66 1256x1358
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"7adcf3ae-212d-4eac-8bdb-9a4439224c4d\"},{\"columnId\":2,\"logicalX\":1924,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"6c03a399-522f-49b4-b678-101c13fc667a\"}],\"epoch\":1,\"geometryBootstrap\":true,\"issuedAt\":1792415069544,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":3816,\"newScrollOffsetX\":0,\"oldScrollOffsetX\":0,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":1,\"sessionId\":\"1a154437549-cd7c8b26\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"90137733-097f-429e-a0a9-d676d769e14b\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_B reason=window-desktops-changed
+js: [cc-niri-maximize] [stability] RELEASE_PARKING caption=CC_NIRI_P0_C accessible=true reason=window-desktops-changed
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_C reason=window-desktops-changed
+js: [cc-niri-maximize] [stability] RELEASE_PARKING caption=CC_NIRI_P0_D accessible=true reason=window-desktops-changed
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_D reason=window-desktops-changed
+js: [cc-niri-maximize] [stability] BEGIN epoch=2 reason=membership:6c03a399-522f-49b4-b678-101c13fc667a
+js: [cc-niri-maximize] [stability] END epoch=2 reason=membership:6c03a399-522f-49b4-b678-101c13fc667a
+js: [cc-niri-maximize] [bridge] PUBLISH reason=window-desktops-changed generation=6 columns=3 accepted=false
+js: [cc-niri-maximize] [bridge] PUBLISH reason=window-desktops-changed generation=6 columns=2 accepted=false
+js: [cc-niri-maximize] [bridge] PUBLISH reason=window-desktops-changed generation=6 columns=1 accepted=true
+js: [cc-niri-maximize] [bridge] PUBLISH reason=membership:6c03a399-522f-49b4-b678-101c13fc667a generation=6 columns=1 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"7adcf3ae-212d-4eac-8bdb-9a4439224c4d\"}],\"epoch\":2,\"geometryBootstrap\":true,\"issuedAt\":1792415069697,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":0,\"newScrollOffsetX\":0,\"oldScrollOffsetX\":0,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":1,\"sessionId\":\"1a154437549-cd7c8b26\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"90137733-097f-429e-a0a9-d676d769e14b\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 1 incoming= 0 outgoing= 0
+js: [cc-niri-maximize] [stability] BEGIN epoch=3 reason=cycle-column-width
+js: [cc-niri-maximize] [stability] END epoch=3 reason=cycle-column-width
+js: [cc-niri-maximize] [bridge] PUBLISH reason=cycle-column-width generation=7 columns=1 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"committedTargetRect\":{\"height\":1408,\"width\":1680,\"x\":440,\"y\":16},\"newLogicalX\":652,\"newPixelWidth\":1680,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":652,\"y\":16},\"oldLogicalX\":652,\"oldPixelWidth\":1256,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1256,\"x\":652,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"7adcf3ae-212d-4eac-8bdb-9a4439224c4d\"}],\"epoch\":3,\"issuedAt\":1792415070076,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":424,\"newScrollOffsetX\":212,\"oldLayoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"oldMaxCamera\":0,\"oldScrollOffsetX\":0,\"protocol\":4,\"scopeRevision\":1,\"sessionId\":\"1a154437549-cd7c8b26\",\"sourceEpoch\":2,\"sourceSampleSerial\":18,\"targetOutput\":\"Virtual-0\",\"type\":\"COLUMN_GEOMETRY\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"90137733-097f-429e-a0a9-d676d769e14b\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 1 incoming= 0 outgoing= 0
+js: [cc-niri-maximize] [layout] LAYOUT reason=cycle-column-width column=1 physicalX=440 width=1680 actual=652,16 1256x1408
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->waiting-eligible caption=CC_NIRI_P0_B reason=window-desktops-changed
+js: [cc-niri-maximize] [adoption] PHASE waiting-eligible->waiting-primary caption=CC_NIRI_P0_B reason=window-desktops-changed
+js: [cc-niri-maximize] [stability] BEGIN epoch=4 reason=membership:6c03a399-522f-49b4-b678-101c13fc667a
+js: [cc-niri-maximize] [stability] END epoch=4 reason=membership:6c03a399-522f-49b4-b678-101c13fc667a
+js: [cc-niri-maximize] [bridge] PUBLISH reason=window-desktops-changed generation=9 columns=1 accepted=true
+js: [cc-niri-maximize] [bridge] PUBLISH reason=membership:6c03a399-522f-49b4-b678-101c13fc667a generation=9 columns=1 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"7adcf3ae-212d-4eac-8bdb-9a4439224c4d\"}],\"epoch\":4,\"geometryBootstrap\":true,\"issuedAt\":1792415070576,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":424,\"newScrollOffsetX\":212,\"oldScrollOffsetX\":212,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":1,\"sessionId\":\"1a154437549-cd7c8b26\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"90137733-097f-429e-a0a9-d676d769e14b\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 1 incoming= 0 outgoing= 0
+cc.niri.focus.ring: [FOCUS_RING] FOCUS ""
+js: [cc-niri-maximize] [adoption] PHASE waiting-primary->adopting caption=CC_NIRI_P0_B reason=output-entered-primary
+js: [cc-niri-maximize] [adoption] PHASE adopting->settling caption=CC_NIRI_P0_B reason=output-entered-primary
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "7adcf3ae-212d-4eac-8bdb-9a4439224c4d"
+js: [cc-niri-maximize] [layout] ADD_WINDOW caption=CC_NIRI_P0_B column=5 index=1 width=half reason=output-entered-primary
+js: [cc-niri-maximize] [layout] ADOPT_NEW index=1 focused=true caption=CC_NIRI_P0_B
+js: [cc-niri-maximize] [adoption] PHASE settling->managed caption=CC_NIRI_P0_B reason=output-entered-primary-inactive-after-adopt
+js: [cc-niri-maximize] [stability] BEGIN epoch=5 reason=workspace-mount
+js: [cc-niri-maximize] [stability] END epoch=5 reason=workspace-mount
+js: [cc-niri-maximize] [bridge] PUBLISH reason=output-entered-primary generation=11 columns=2 accepted=true
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-mount generation=11 columns=2 accepted=true
+cc.niri.focus.ring: [FOCUS_RING] FOCUS ""
+js: [cc-niri-maximize] [layout] LAYOUT reason=workspace-mount column=1 physicalX=0 width=1680 actual=0,16 1680x1408
+js: [cc-niri-maximize] [layout] LAYOUT reason=workspace-mount column=5 physicalX=1288 width=1256 actual=1288,16 1256x1408
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"7adcf3ae-212d-4eac-8bdb-9a4439224c4d\"},{\"columnId\":5,\"logicalX\":2348,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"6c03a399-522f-49b4-b678-101c13fc667a\"}],\"epoch\":5,\"geometryBootstrap\":true,\"issuedAt\":1792415071353,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":1696,\"newScrollOffsetX\":1060,\"oldScrollOffsetX\":1060,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":1,\"sessionId\":\"1a154437549-cd7c8b26\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"90137733-097f-429e-a0a9-d676d769e14b\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "6c03a399-522f-49b4-b678-101c13fc667a"
+js: [cc-niri-maximize] [recovery] EMERGENCY_RESTORE count=0 reason=runtime-stop
+ShapeCorners: Skipped writing Breeze config because the last change was 8 seconds ago.
+kwin_scene_opengl: Could not delete render time query because no context is current
+kwin_scene_opengl: Could not delete render time query because no context is current

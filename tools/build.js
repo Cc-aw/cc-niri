@@ -47,6 +47,7 @@ const targets = [
             "src/kwin/layout/DeferredScrollParking.js",
             "src/kwin/runtime/RuntimeConfig.js",
             "src/kwin/runtime/ContinuousLayoutRuntime.js",
+            "src/kwin/runtime/SessionPauseController.js",
             "src/kwin/runtime/RuntimeLogger.js",
             "src/kwin/runtime/OutputTopology.js",
             "src/kwin/runtime/StartupLayout.js",

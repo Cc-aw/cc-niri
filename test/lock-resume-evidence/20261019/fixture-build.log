@@ -1,0 +1,6 @@
+[  0%] Built target cc-niri-p0-input-fixture_autogen_timestamp_deps
+[ 25%] Automatic MOC for target cc-niri-p0-input-fixture
+[ 25%] Built target cc-niri-p0-input-fixture_autogen
+[ 50%] Building CXX object CMakeFiles/cc-niri-p0-input-fixture.dir/P0InputEffect.cpp.o
+[ 75%] Linking CXX shared module plugins/kwin/effects/plugins/cc-niri-p0-input-fixture.so
+[100%] Built target cc-niri-p0-input-fixture

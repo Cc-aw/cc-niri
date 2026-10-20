@@ -50,6 +50,7 @@ public Q_SLOTS:
     Q_SCRIPTABLE bool ArmScrollPlan(const QString &json);
     Q_SCRIPTABLE void CancelScrollPlan(const QString &json);
     Q_SCRIPTABLE QString GetScrollMotionStatus() const;
+    Q_SCRIPTABLE QString GetSessionState() const;
     Q_SCRIPTABLE bool WorkspaceTransitionActive() const;
     Q_SCRIPTABLE QString GetViewportHitTest(double x, double y) const;
     Q_SCRIPTABLE QString GetPartialScrollCapability() const;
@@ -64,12 +65,16 @@ public Q_SLOTS:
     Q_SCRIPTABLE QString GetScrollFrameCapture() const;
 
 Q_SIGNALS:
+    Q_SCRIPTABLE void SessionStateChanged(const QString &json);
     Q_SCRIPTABLE void PartialScrollFrameReady(const QString &json);
     Q_SCRIPTABLE void ColumnGeometryCompleted(const QString &json);
     Q_SCRIPTABLE void PartialFocusRequested(const QString &json);
     Q_SCRIPTABLE void PartialNativeInteraction(const QString &json);
 
 private:
+    QString m_sessionInstance;
+    quint64 m_sessionSequence = 0;
+    bool m_sessionLocked = false;
     friend class WorkspaceSlideAdapter;
     friend class ViewportInputClip;
     std::unique_ptr<ViewportInputClip> m_inputClip;

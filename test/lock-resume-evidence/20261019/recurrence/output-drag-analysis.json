@@ -1,0 +1,149 @@
+{
+  "trigger": "User confirmed: existing window dragged directly from secondary output to primary using mouse; NOT a confirmed virtual-desktop membership change",
+  "production_changes": false,
+  "host_desktop_changes": false,
+  "mechanism": "CONFIRMED in controlled private KWin test",
+  "historical_native_rejection_predicate": "INCONCLUSIVE: historical frame facts absent",
+  "injected_condition": "Bounded 12ms delay before each of first two two-column bootstrap Native arm calls during real Wayland system move; actual input and Native results, no forced rejection",
+  "runs": [
+    {
+      "evidence": "private-output-drag-100",
+      "scale": 1.0,
+      "original_probe_status": "FAIL",
+      "health": {
+        "protocol": 1,
+        "reason": "session-ready",
+        "sequence": 3,
+        "sessionId": "1a15439b4bc-e5139b17",
+        "state": "running",
+        "type": "runtime-health"
+      },
+      "rejected_epochs": [],
+      "recovery_reasons": [],
+      "limitation": "Meta+mouse path did not adopt incoming client; no stop."
+    },
+    {
+      "evidence": "private-output-system-drag-100",
+      "scale": 1.0,
+      "original_probe_status": "PASS",
+      "health": {
+        "protocol": 1,
+        "reason": "session-ready",
+        "sequence": 3,
+        "sessionId": "1a1543a6189-c869ddf",
+        "state": "running",
+        "type": "runtime-health"
+      },
+      "rejected_epochs": [],
+      "recovery_reasons": [],
+      "limitation": "Initial probe checked column count but not pending bootstrap; its PASS does not prove layout settled."
+    },
+    {
+      "evidence": "private-output-fast-drag-150",
+      "scale": 1.5,
+      "original_probe_status": "PASS",
+      "health": {
+        "protocol": 1,
+        "reason": "session-ready",
+        "sequence": 3,
+        "sessionId": "1a1543b1793-96f28d58",
+        "state": "running",
+        "type": "runtime-health"
+      },
+      "rejected_epochs": [],
+      "recovery_reasons": [
+        "bootstrap-deadline"
+      ]
+    },
+    {
+      "evidence": "private-output-matching-height-drag-100",
+      "scale": 1.0,
+      "original_probe_status": "PASS",
+      "health": {
+        "protocol": 1,
+        "reason": "session-ready",
+        "sequence": 3,
+        "sessionId": "1a1543b88e8-be11b412",
+        "state": "running",
+        "type": "runtime-health"
+      },
+      "rejected_epochs": [],
+      "recovery_reasons": [
+        "bootstrap-deadline"
+      ]
+    },
+    {
+      "evidence": "private-output-drag-delayed-arm-100",
+      "scale": 1.0,
+      "original_probe_status": "FAIL",
+      "health": {
+        "protocol": 1,
+        "reason": "runtime-stop",
+        "sequence": 6,
+        "sessionId": "1a1543c2f83-94a68a0e",
+        "state": "stopped",
+        "type": "runtime-health"
+      },
+      "rejected_epochs": [
+        7,
+        8
+      ],
+      "recovery_reasons": [
+        "bootstrap-arm",
+        "bootstrap-arm"
+      ]
+    },
+    {
+      "evidence": "private-output-drag-facts-100",
+      "scale": 1.0,
+      "original_probe_status": "FAIL",
+      "health": {
+        "protocol": 1,
+        "reason": "runtime-stop",
+        "sequence": 6,
+        "sessionId": "1a1543cc43f-b9eb337e",
+        "state": "stopped",
+        "type": "runtime-health"
+      },
+      "rejected_epochs": [
+        7,
+        8
+      ],
+      "recovery_reasons": [
+        "bootstrap-arm",
+        "bootstrap-arm"
+      ],
+      "dispatch_facts": [
+        {
+          "epoch": 7,
+          "expected_x": 1288,
+          "actual_frame": {
+            "x": 1800,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "native_moving": true,
+          "script_moving": false,
+          "output": "Virtual-0",
+          "workspace_unchanged": true
+        },
+        {
+          "epoch": 8,
+          "expected_x": 1288,
+          "actual_frame": {
+            "x": 1600,
+            "y": 16,
+            "width": 1256,
+            "height": 1408
+          },
+          "native_moving": true,
+          "script_moving": false,
+          "output": "Virtual-0",
+          "workspace_unchanged": true
+        }
+      ]
+    }
+  ],
+  "conclusion": "Secondary normal window remains script interactiveMoveResize=false while native move=true. Output/adoption can start bootstrap before drag finishes; subsequent real pointer movement changes x from expected1288 to1800/1600; actual Native rejects both new epochs7/8; confirmed cancel then global Recovery stops runtime with bootstrap-arm. Repeat controlled reproduction succeeded twice. No-delay variants hit bootstrap-deadline then recovered after release, showing timing dependence."
+}

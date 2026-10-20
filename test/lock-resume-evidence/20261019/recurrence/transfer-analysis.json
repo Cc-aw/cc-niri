@@ -1,0 +1,76 @@
+{
+  "scope": "Private Virtual/Mesa KWin, build-tree production plugins and generated runtime; test-only stash/transfer commands. No production code edits or host desktop changes.",
+  "native_plan_replay": "PASS: recorded epochs 42/43/44 accepted with reconstructed safe frames; +1px incoming height or x rejected; failed epoch cannot be reused",
+  "historical_actual_frames": "NOT RECORDED; Native predicate remains INCONCLUSIVE",
+  "cases": [
+    {
+      "evidence": "private-transfer-100",
+      "delay_ms": 0,
+      "scale": 1.0,
+      "probe_status": "FAIL",
+      "valid_for_comparison": true,
+      "columns_after": 1,
+      "enabled_after": true,
+      "native_arm_rejections": 0,
+      "recovery": []
+    },
+    {
+      "evidence": "private-transfer-delayed-100",
+      "delay_ms": 0,
+      "scale": 1.0,
+      "probe_status": "FAIL",
+      "valid_for_comparison": false,
+      "columns_after": 1,
+      "enabled_after": true,
+      "native_arm_rejections": 0,
+      "recovery": [],
+      "fixture_limitation": "Requested outer TRANSFER_DELAY was not forwarded through the isolated environment allowlist; ran the same immediate activation instead."
+    },
+    {
+      "evidence": "private-transfer-activation-250",
+      "delay_ms": 250,
+      "scale": 1.0,
+      "probe_status": "FAIL",
+      "valid_for_comparison": false,
+      "columns_after": 1,
+      "enabled_after": true,
+      "native_arm_rejections": 0,
+      "recovery": [],
+      "fixture_limitation": "Delayed timer handle was not retained and execution was not recorded; excluded from timing comparison."
+    },
+    {
+      "evidence": "private-transfer-retained-timer",
+      "delay_ms": 250,
+      "scale": 1.0,
+      "probe_status": "PASS",
+      "valid_for_comparison": true,
+      "columns_after": 2,
+      "enabled_after": true,
+      "native_arm_rejections": 0,
+      "recovery": []
+    },
+    {
+      "evidence": "private-transfer-activation-1",
+      "delay_ms": 1,
+      "scale": 1.0,
+      "probe_status": "FAIL",
+      "valid_for_comparison": true,
+      "columns_after": 1,
+      "enabled_after": true,
+      "native_arm_rejections": 0,
+      "recovery": []
+    },
+    {
+      "evidence": "private-transfer-activation-20-150",
+      "delay_ms": 20,
+      "scale": 1.5,
+      "probe_status": "PASS",
+      "valid_for_comparison": true,
+      "columns_after": 2,
+      "enabled_after": true,
+      "native_arm_rejections": 0,
+      "recovery": []
+    }
+  ],
+  "conclusion": "No spontaneous bootstrap-arm rejection reproduced. Delayed transfer completed at 100%/250ms and 150%/20ms; immediate and 1ms activation left incoming client outside columns, with no Native rejection or global stop. A separate membership/activation ordering issue is observed, not an explanation of historical stop."
+}

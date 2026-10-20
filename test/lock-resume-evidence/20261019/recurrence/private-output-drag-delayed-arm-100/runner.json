@@ -1,0 +1,18 @@
+{
+  "command": [
+    "dbus-run-session",
+    "--",
+    "/usr/bin/python",
+    "/tmp/cc-niri-transfer-probe.py",
+    "--inside",
+    "--output",
+    "/home/cc/cc_niri/test/lock-resume-evidence/20261019/recurrence/private-output-drag-delayed-arm-100",
+    "--scale",
+    "1.0",
+    "--scenario",
+    "p5"
+  ],
+  "exit_code": 1,
+  "stdout": "{\"status\": \"FAIL\", \"passed\": 11, \"total\": 12, \"evidence\": \"/home/cc/cc_niri/test/lock-resume-evidence/20261019/recurrence/private-output-drag-delayed-arm-100\"}\n",
+  "stderr": ""
+}

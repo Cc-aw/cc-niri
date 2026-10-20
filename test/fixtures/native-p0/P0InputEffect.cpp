@@ -172,6 +172,14 @@ public:
         effects->paintWindow(target, viewport, window, flags | PAINT_WINDOW_TRANSFORMED, clipped, data);
     }
 public Q_SLOTS:
+    // Synthetic KWin lifecycle events on the disposable Virtual compositor.
+    // This does not implement or bypass a real screen locker.
+    Q_SCRIPTABLE bool ObserveSessionLockForTest(bool locked) {
+        if (!isolated()) return false;
+        if (locked) Q_EMIT effects->screenAboutToLock();
+        Q_EMIT effects->screenLockingChanged(locked);
+        return true;
+    }
     // Retain the real closed InternalWindow exactly as a closing animation can.
     // The backing QWindow must be destroyed, not just hidden. One bounded test
     // object at a time; none of this is linked or installed into production.

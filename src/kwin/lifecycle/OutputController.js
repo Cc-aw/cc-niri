@@ -26,7 +26,7 @@ class OutputController {
 
     onOutputChanged(window) {
         const state = this.stateFor(window);
-        if (state.internalChange || state.interactiveMoveResize || window.fullScreen) {
+        if (state.internalChange || state.interactiveMoveResize || window.move || window.resize || window.fullScreen) {
             return false;
         }
 

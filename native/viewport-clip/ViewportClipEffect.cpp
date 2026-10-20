@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "ViewportClipEffect.h"
+#include <QUuid>
 #include "../common/CompositorFrameContext.h"
 #include "../common/ViewportPaintClip.h"
 #include "../common/NativeProtocolDto.h"
@@ -301,6 +302,16 @@ CcNiriViewportClipEffect::CcNiriViewportClipEffect()
         QStringLiteral("/ccNiriViewportMotion"), this, QDBusConnection::ExportScriptableSlots | QDBusConnection::ExportScriptableSignals);
     if (!m_scrollEndpointRegistered) qCWarning(CC_NIRI_VIEWPORT_CLIP) << "scroll arm endpoint unavailable";
     connect(effects, &EffectsHandler::screenRemoved, this, [this](LogicalOutput *) { clearScrollState(); });
+    m_sessionInstance = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    m_sessionLocked = effects->isScreenLocked();
+    const auto observeLock = [this](bool locked) {
+        if (m_sessionLocked == locked) return;
+        m_sessionLocked = locked;
+        ++m_sessionSequence;
+        Q_EMIT SessionStateChanged(GetSessionState());
+    };
+    connect(effects, &EffectsHandler::screenAboutToLock, this, [observeLock]() { observeLock(true); });
+    connect(effects, &EffectsHandler::screenLockingChanged, this, observeLock);
     for (auto *output : effects->screens()) observeWorkspaceFrames(output);
     connect(effects, &EffectsHandler::screenAdded, this, &CcNiriViewportClipEffect::observeWorkspaceFrames);
     connect(effects, &EffectsHandler::screenRemoved, this, [this](LogicalOutput *output) {
@@ -579,6 +590,7 @@ bool CcNiriViewportClipEffect::resolveScrollPlan(const QJsonObject &plan) const
 
 bool CcNiriViewportClipEffect::ArmScrollPlan(const QString &json)
 {
+    if (m_sessionLocked || effects->isScreenLocked()) return false;
     if (json.toUtf8().size() > CcNiri::MaxMotionPlanBytes) return false;
     const auto document = QJsonDocument::fromJson(json.toUtf8());
     if (!document.isObject() || !resolveScrollPlan(document.object())) return false;
@@ -981,6 +993,15 @@ QString CcNiriViewportClipEffect::GetScrollMotionStatus() const
         {QStringLiteral("brakeMs"), retarget.brake_ms}, {QStringLiteral("brakeDistance"), retarget.brake_distance},
         {QStringLiteral("lower"), retarget.lower}, {QStringLiteral("upper"), retarget.upper}});
     return QString::fromUtf8(QJsonDocument(status).toJson(QJsonDocument::Compact));
+}
+
+QString CcNiriViewportClipEffect::GetSessionState() const
+{
+    // Platform facts only. JS retains all layout / recovery decisions.
+    return QString::fromUtf8(QJsonDocument(QJsonObject{
+        {QStringLiteral("protocol"), 1}, {QStringLiteral("type"), QStringLiteral("session-state")},
+        {QStringLiteral("instanceId"), m_sessionInstance}, {QStringLiteral("sequence"), qint64(m_sessionSequence)},
+        {QStringLiteral("locked"), m_sessionLocked || effects->isScreenLocked()}}).toJson(QJsonDocument::Compact));
 }
 
 void CcNiriViewportClipEffect::CancelScrollPlan(const QString &json)

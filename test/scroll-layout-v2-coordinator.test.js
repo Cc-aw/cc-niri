@@ -112,3 +112,16 @@ test("unknown cancel quarantines all further writes and safe stop reports false 
     let stopped=null;f.coordinator.stop(ok=>stopped=ok);assert.equal(stopped,false);
     assert.equal(f.timers.size,0);assert.equal(f.a.closed.size(),0);assert.equal(f.b.frameGeometryChanged.size(),0);
 });
+
+test("failed suspend retains its release obligation across cleared intent and stop retries",()=>{
+    const f=fixture(); f.r.width.cycle();
+    const epoch=f.coordinator.intent.epoch, calls=[];
+    f.bridge.disarmColumnGeometry=(e,cb)=>{calls.push(e);cb(false);};
+    let result;
+    f.coordinator.suspend(ok=>{result=ok;});
+    assert.equal(result,false);assert.equal(f.coordinator.intent,null);assert.equal(f.coordinator.releaseEpoch,epoch);
+    f.coordinator.stop(ok=>{result=ok;});assert.equal(result,false);
+    f.bridge.disarmColumnGeometry=(e,cb)=>{calls.push(e);cb(true);};
+    f.coordinator.stop(ok=>{result=ok;});assert.equal(result,true);
+    assert.deepEqual(calls,[epoch,epoch,epoch]);assert.equal(f.coordinator.releaseEpoch,null);
+});

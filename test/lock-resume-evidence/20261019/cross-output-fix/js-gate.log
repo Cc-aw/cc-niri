@@ -1,0 +1,734 @@
+
+== generated runtime bundles ==
+
+== production module regression suite ==
+TAP version 13
+# Subtest: test/always-center-single-column-runtime.test.js
+ok 1 - test/always-center-single-column-runtime.test.js
+  ---
+  duration_ms: 695.415229
+  type: 'test'
+  ...
+# Subtest: test/always-center-single-column-transition.test.js
+ok 2 - test/always-center-single-column-transition.test.js
+  ---
+  duration_ms: 1022.512448
+  type: 'test'
+  ...
+# Subtest: test/always-center-single-column.test.js
+ok 3 - test/always-center-single-column.test.js
+  ---
+  duration_ms: 289.897119
+  type: 'test'
+  ...
+# Subtest: test/animation-capture-analysis.test.js
+ok 4 - test/animation-capture-analysis.test.js
+  ---
+  duration_ms: 533.841055
+  type: 'test'
+  ...
+# Subtest: test/column-width-runtime.test.js
+ok 5 - test/column-width-runtime.test.js
+  ---
+  duration_ms: 1199.057286
+  type: 'test'
+  ...
+# Subtest: test/contextual-viewport-owner.test.js
+ok 6 - test/contextual-viewport-owner.test.js
+  ---
+  duration_ms: 286.648246
+  type: 'test'
+  ...
+# Subtest: test/contextual-viewport.test.js
+ok 7 - test/contextual-viewport.test.js
+  ---
+  duration_ms: 303.937907
+  type: 'test'
+  ...
+# Subtest: test/contextual-wide-coordinator.test.js
+ok 8 - test/contextual-wide-coordinator.test.js
+  ---
+  duration_ms: 288.712284
+  type: 'test'
+  ...
+# Subtest: test/controller-composition.test.js
+ok 9 - test/controller-composition.test.js
+  ---
+  duration_ms: 292.899936
+  type: 'test'
+  ...
+# Subtest: test/cross-output-drag.test.js
+ok 10 - test/cross-output-drag.test.js
+  ---
+  duration_ms: 1021.698076
+  type: 'test'
+  ...
+# Subtest: test/deferred-scroll-parking.test.js
+ok 11 - test/deferred-scroll-parking.test.js
+  ---
+  duration_ms: 303.355832
+  type: 'test'
+  ...
+# Subtest: test/dock-fork-modules.test.js
+ok 12 - test/dock-fork-modules.test.js
+  ---
+  duration_ms: 290.649893
+  type: 'test'
+  ...
+# Subtest: test/dock-scroll-controller.test.js
+ok 13 - test/dock-scroll-controller.test.js
+  ---
+  duration_ms: 322.99448
+  type: 'test'
+  ...
+# Subtest: test/dock-state-protocol.test.js
+ok 14 - test/dock-state-protocol.test.js
+  ---
+  duration_ms: 303.679629
+  type: 'test'
+  ...
+# Subtest: test/dock-stepwise-scroll.test.js
+ok 15 - test/dock-stepwise-scroll.test.js
+  ---
+  duration_ms: 320.805579
+  type: 'test'
+  ...
+# Subtest: test/dock-sync-schema.test.js
+ok 16 - test/dock-sync-schema.test.js
+  ---
+  duration_ms: 302.491077
+  type: 'test'
+  ...
+# Subtest: test/dockless-install.test.js
+ok 17 - test/dockless-install.test.js
+  ---
+  duration_ms: 36643.601336
+  type: 'test'
+  ...
+# Subtest: test/dockless-runtime.test.js
+ok 18 - test/dockless-runtime.test.js
+  ---
+  duration_ms: 927.301585
+  type: 'test'
+  ...
+# Subtest: test/dynamic-workspace-runtime.test.js
+ok 19 - test/dynamic-workspace-runtime.test.js
+  ---
+  duration_ms: 520.239323
+  type: 'test'
+  ...
+# Subtest: test/dynamic-workspace.test.js
+ok 20 - test/dynamic-workspace.test.js
+  ---
+  duration_ms: 388.498891
+  type: 'test'
+  ...
+# Subtest: test/effect-output-target.test.js
+ok 21 - test/effect-output-target.test.js
+  ---
+  duration_ms: 313.284932
+  type: 'test'
+  ...
+# Subtest: test/floating-phase10.test.js
+ok 22 - test/floating-phase10.test.js
+  ---
+  duration_ms: 382.275801
+  type: 'test'
+  ...
+# Subtest: test/focus-ring-controller.test.js
+ok 23 - test/focus-ring-controller.test.js
+  ---
+  duration_ms: 380.862395
+  type: 'test'
+  ...
+# Subtest: test/focus-ring-runtime.test.js
+ok 24 - test/focus-ring-runtime.test.js
+  ---
+  duration_ms: 466.598285
+  type: 'test'
+  ...
+# Subtest: test/focused-feedback.test.js
+ok 25 - test/focused-feedback.test.js
+  ---
+  duration_ms: 371.001541
+  type: 'test'
+  ...
+# Subtest: test/full-column-runtime.test.js
+ok 26 - test/full-column-runtime.test.js
+  ---
+  duration_ms: 803.147222
+  type: 'test'
+  ...
+# Subtest: test/full-column.test.js
+ok 27 - test/full-column.test.js
+  ---
+  duration_ms: 461.915808
+  type: 'test'
+  ...
+# Subtest: test/full-half-partial.test.js
+ok 28 - test/full-half-partial.test.js
+  ---
+  duration_ms: 718.895756
+  type: 'test'
+  ...
+# Subtest: test/full-width-animation.test.js
+ok 29 - test/full-width-animation.test.js
+  ---
+  duration_ms: 1132.687101
+  type: 'test'
+  ...
+# Subtest: test/fullscreen-controller.test.js
+ok 30 - test/fullscreen-controller.test.js
+  ---
+  duration_ms: 429.416725
+  type: 'test'
+  ...
+# Subtest: test/generated-package.test.js
+ok 31 - test/generated-package.test.js
+  ---
+  duration_ms: 679.349344
+  type: 'test'
+  ...
+# Subtest: test/geometry-v2.test.js
+ok 32 - test/geometry-v2.test.js
+  ---
+  duration_ms: 342.157555
+  type: 'test'
+  ...
+# Subtest: test/layout-plan.test.js
+ok 33 - test/layout-plan.test.js
+  ---
+  duration_ms: 371.800255
+  type: 'test'
+  ...
+# Subtest: test/memory-resource-lifecycle.test.js
+ok 34 - test/memory-resource-lifecycle.test.js
+  ---
+  duration_ms: 1103.029022
+  type: 'test'
+  ...
+# Subtest: test/model-stores.test.js
+ok 35 - test/model-stores.test.js
+  ---
+  duration_ms: 358.099634
+  type: 'test'
+  ...
+# Subtest: test/motion-classifier.test.js
+ok 36 - test/motion-classifier.test.js
+  ---
+  duration_ms: 364.405096
+  type: 'test'
+  ...
+# Subtest: test/motion-controller.test.js
+ok 37 - test/motion-controller.test.js
+  ---
+  duration_ms: 328.268012
+  type: 'test'
+  ...
+# Subtest: test/motion-plan-commit-gate.test.js
+ok 38 - test/motion-plan-commit-gate.test.js
+  ---
+  duration_ms: 306.087474
+  type: 'test'
+  ...
+# Subtest: test/motion-retarget.test.js
+ok 39 - test/motion-retarget.test.js
+  ---
+  duration_ms: 301.27779
+  type: 'test'
+  ...
+# Subtest: test/motion-sampler.test.js
+ok 40 - test/motion-sampler.test.js
+  ---
+  duration_ms: 303.270201
+  type: 'test'
+  ...
+# Subtest: test/motion-tokens.test.js
+ok 41 - test/motion-tokens.test.js
+  ---
+  duration_ms: 339.999156
+  type: 'test'
+  ...
+# Subtest: test/motion-transaction.test.js
+ok 42 - test/motion-transaction.test.js
+  ---
+  duration_ms: 307.918714
+  type: 'test'
+  ...
+# Subtest: test/native-clip-install.test.js
+ok 43 - test/native-clip-install.test.js
+  ---
+  duration_ms: 1432.905639
+  type: 'test'
+  ...
+# Subtest: test/native-incoming-commit.test.js
+ok 44 - test/native-incoming-commit.test.js
+  ---
+  duration_ms: 311.27067
+  type: 'test'
+  ...
+# Subtest: test/native-scroll-ownership.test.js
+ok 45 - test/native-scroll-ownership.test.js
+  ---
+  duration_ms: 321.642349
+  type: 'test'
+  ...
+# Subtest: test/native-viewport-clip.test.js
+ok 46 - test/native-viewport-clip.test.js
+  ---
+  duration_ms: 318.647533
+  type: 'test'
+  ...
+# Subtest: test/output-controller.test.js
+ok 47 - test/output-controller.test.js
+  ---
+  duration_ms: 330.592411
+  type: 'test'
+  ...
+# Subtest: test/parking-animation-grabber.test.js
+ok 48 - test/parking-animation-grabber.test.js
+  ---
+  duration_ms: 318.222474
+  type: 'test'
+  ...
+# Subtest: test/presentation-controller.test.js
+ok 49 - test/presentation-controller.test.js
+  ---
+  duration_ms: 322.348347
+  type: 'test'
+  ...
+# Subtest: test/presentation-phase9_5.test.js
+ok 50 - test/presentation-phase9_5.test.js
+  ---
+  duration_ms: 304.910909
+  type: 'test'
+  ...
+# Subtest: test/reorder-controller.test.js
+ok 51 - test/reorder-controller.test.js
+  ---
+  duration_ms: 324.363517
+  type: 'test'
+  ...
+# Subtest: test/runtime-bridge.test.js
+ok 52 - test/runtime-bridge.test.js
+  ---
+  duration_ms: 302.84982
+  type: 'test'
+  ...
+# Subtest: test/runtime-config-output.test.js
+ok 53 - test/runtime-config-output.test.js
+  ---
+  duration_ms: 320.429277
+  type: 'test'
+  ...
+# Subtest: test/runtime-control.test.js
+ok 54 - test/runtime-control.test.js
+  ---
+  duration_ms: 64913.218095
+  type: 'test'
+  ...
+# Subtest: test/runtime-entry.test.js
+ok 55 - test/runtime-entry.test.js
+  ---
+  duration_ms: 331.991671
+  type: 'test'
+  ...
+# Subtest: test/runtime-lifecycle.test.js
+ok 56 - test/runtime-lifecycle.test.js
+  ---
+  duration_ms: 305.55152
+  type: 'test'
+  ...
+# Subtest: test/runtime-logger.test.js
+ok 57 - test/runtime-logger.test.js
+  ---
+  duration_ms: 304.302809
+  type: 'test'
+  ...
+# Subtest: test/runtime-timer.test.js
+ok 58 - test/runtime-timer.test.js
+  ---
+  duration_ms: 316.261875
+  type: 'test'
+  ...
+# Subtest: test/scroll-layout-v2-column-geometry.test.js
+ok 59 - test/scroll-layout-v2-column-geometry.test.js
+  ---
+  duration_ms: 681.52272
+  type: 'test'
+  ...
+# Subtest: test/scroll-layout-v2-coordinator.test.js
+ok 60 - test/scroll-layout-v2-coordinator.test.js
+  ---
+  duration_ms: 558.163556
+  type: 'test'
+  ...
+# Subtest: test/scroll-layout-v2-geometry.test.js
+ok 61 - test/scroll-layout-v2-geometry.test.js
+  ---
+  duration_ms: 493.679554
+  type: 'test'
+  ...
+# Subtest: test/scroll-layout-v2-p0-feasibility.test.js
+ok 62 - test/scroll-layout-v2-p0-feasibility.test.js
+  ---
+  duration_ms: 456.979988
+  type: 'test'
+  ...
+# Subtest: test/scroll-layout-v2-p0-native-fixture.test.js
+not ok 63 - test/scroll-layout-v2-p0-native-fixture.test.js
+  ---
+  duration_ms: 1172.723016
+  type: 'test'
+  location: '/home/cc/cc_niri/test/scroll-layout-v2-p0-native-fixture.test.js:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: test/scroll-layout-v2-p6-preparation.test.js
+ok 64 - test/scroll-layout-v2-p6-preparation.test.js
+  ---
+  duration_ms: 1044.825543
+  type: 'test'
+  ...
+# Subtest: test/scroll-layout-v2-partial-contract.test.js
+ok 65 - test/scroll-layout-v2-partial-contract.test.js
+  ---
+  duration_ms: 569.591034
+  type: 'test'
+  ...
+# Subtest: test/scroll-layout-v2-persistence.test.js
+ok 66 - test/scroll-layout-v2-persistence.test.js
+  ---
+  duration_ms: 658.651799
+  type: 'test'
+  ...
+# Subtest: test/scroll-layout-v2-recovery-proof.test.js
+ok 67 - test/scroll-layout-v2-recovery-proof.test.js
+  ---
+  duration_ms: 804.072526
+  type: 'test'
+  ...
+# Subtest: test/scroll-layout-v2-runtime.test.js
+ok 68 - test/scroll-layout-v2-runtime.test.js
+  ---
+  duration_ms: 806.978564
+  type: 'test'
+  ...
+# Subtest: test/scroll-layout-v2-width-cycle.test.js
+ok 69 - test/scroll-layout-v2-width-cycle.test.js
+  ---
+  duration_ms: 569.159878
+  type: 'test'
+  ...
+# Subtest: test/scroll-layout-v2-workspace.test.js
+ok 70 - test/scroll-layout-v2-workspace.test.js
+  ---
+  duration_ms: 1801.317239
+  type: 'test'
+  ...
+# Subtest: test/scroll-layout-v3.test.js
+ok 71 - test/scroll-layout-v3.test.js
+  ---
+  duration_ms: 303.048783
+  type: 'test'
+  ...
+# Subtest: test/scroll-motion-plan.test.js
+ok 72 - test/scroll-motion-plan.test.js
+  ---
+  duration_ms: 496.451134
+  type: 'test'
+  ...
+# Subtest: test/scroll-native-continuing.test.js
+ok 73 - test/scroll-native-continuing.test.js
+  ---
+  duration_ms: 316.010161
+  type: 'test'
+  ...
+# Subtest: test/scroll-outgoing-runtime.test.js
+ok 74 - test/scroll-outgoing-runtime.test.js
+  ---
+  duration_ms: 582.198502
+  type: 'test'
+  ...
+# Subtest: test/scroll-plan-commit-gate.test.js
+ok 75 - test/scroll-plan-commit-gate.test.js
+  ---
+  duration_ms: 475.092789
+  type: 'test'
+  ...
+# Subtest: test/scroll-retarget-runtime.test.js
+ok 76 - test/scroll-retarget-runtime.test.js
+  ---
+  duration_ms: 636.728913
+  type: 'test'
+  ...
+# Subtest: test/scroll-reverse-runtime.test.js
+ok 77 - test/scroll-reverse-runtime.test.js
+  ---
+  duration_ms: 784.065176
+  type: 'test'
+  ...
+# Subtest: test/scroll-transition-v3.test.js
+ok 78 - test/scroll-transition-v3.test.js
+  ---
+  duration_ms: 326.781317
+  type: 'test'
+  ...
+# Subtest: test/secondary-safe-layout.test.js
+ok 79 - test/secondary-safe-layout.test.js
+  ---
+  duration_ms: 540.867601
+  type: 'test'
+  ...
+# Subtest: test/session-pause.test.js
+ok 80 - test/session-pause.test.js
+  ---
+  duration_ms: 765.948575
+  type: 'test'
+  ...
+# Subtest: test/stability-adoption-state-machine.test.js
+ok 81 - test/stability-adoption-state-machine.test.js
+  ---
+  duration_ms: 315.335989
+  type: 'test'
+  ...
+# Subtest: test/stability-parking-recovery.test.js
+ok 82 - test/stability-parking-recovery.test.js
+  ---
+  duration_ms: 303.324986
+  type: 'test'
+  ...
+# Subtest: test/stability-supervisor.test.js
+ok 83 - test/stability-supervisor.test.js
+  ---
+  duration_ms: 295.504532
+  type: 'test'
+  ...
+# Subtest: test/stability-transactions.test.js
+ok 84 - test/stability-transactions.test.js
+  ---
+  duration_ms: 337.726133
+  type: 'test'
+  ...
+# Subtest: test/startup-layout.test.js
+ok 85 - test/startup-layout.test.js
+  ---
+  duration_ms: 300.793375
+  type: 'test'
+  ...
+# Subtest: test/viewport-clip-controller.test.js
+ok 86 - test/viewport-clip-controller.test.js
+  ---
+  duration_ms: 288.785235
+  type: 'test'
+  ...
+# Subtest: test/virtual-desktop-topology.test.js
+ok 87 - test/virtual-desktop-topology.test.js
+  ---
+  duration_ms: 292.01168
+  type: 'test'
+  ...
+# Subtest: test/wide-deferred-transition.test.js
+ok 88 - test/wide-deferred-transition.test.js
+  ---
+  duration_ms: 300.721394
+  type: 'test'
+  ...
+# Subtest: test/wide-exit-geometry-ack.test.js
+ok 89 - test/wide-exit-geometry-ack.test.js
+  ---
+  duration_ms: 307.827959
+  type: 'test'
+  ...
+# Subtest: test/wide-neighbor-race.test.js
+ok 90 - test/wide-neighbor-race.test.js
+  ---
+  duration_ms: 357.942752
+  type: 'test'
+  ...
+# Subtest: test/wide-offscreen-navigation.test.js
+ok 91 - test/wide-offscreen-navigation.test.js
+  ---
+  duration_ms: 412.555683
+  type: 'test'
+  ...
+# Subtest: test/wide-return-transition.test.js
+ok 92 - test/wide-return-transition.test.js
+  ---
+  duration_ms: 316.094671
+  type: 'test'
+  ...
+# Subtest: test/wide-transition-controller.test.js
+ok 93 - test/wide-transition-controller.test.js
+  ---
+  duration_ms: 301.240083
+  type: 'test'
+  ...
+# Subtest: test/window-policy-lifecycle.test.js
+ok 94 - test/window-policy-lifecycle.test.js
+  ---
+  duration_ms: 312.783561
+  type: 'test'
+  ...
+# Subtest: test/window-policy.test.js
+ok 95 - test/window-policy.test.js
+  ---
+  duration_ms: 297.360438
+  type: 'test'
+  ...
+# Subtest: test/workspace-adoption.test.js
+ok 96 - test/workspace-adoption.test.js
+  ---
+  duration_ms: 310.383948
+  type: 'test'
+  ...
+# Subtest: test/workspace-animation-cli.test.js
+ok 97 - test/workspace-animation-cli.test.js
+  ---
+  duration_ms: 86165.399347
+  type: 'test'
+  ...
+# Subtest: test/workspace-api-probe.test.js
+ok 98 - test/workspace-api-probe.test.js
+  ---
+  duration_ms: 323.110418
+  type: 'test'
+  ...
+# Subtest: test/workspace-capture-analysis.test.js
+ok 99 - test/workspace-capture-analysis.test.js
+  ---
+  duration_ms: 700.051887
+  type: 'test'
+  ...
+# Subtest: test/workspace-direct-move-runtime.test.js
+ok 100 - test/workspace-direct-move-runtime.test.js
+  ---
+  duration_ms: 1338.365094
+  type: 'test'
+  ...
+# Subtest: test/workspace-direct-runtime.test.js
+ok 101 - test/workspace-direct-runtime.test.js
+  ---
+  duration_ms: 971.269393
+  type: 'test'
+  ...
+# Subtest: test/workspace-effect-runtime.test.js
+ok 102 - test/workspace-effect-runtime.test.js
+  ---
+  duration_ms: 267.89945
+  type: 'test'
+  ...
+# Subtest: test/workspace-invariants.test.js
+ok 103 - test/workspace-invariants.test.js
+  ---
+  duration_ms: 309.085456
+  type: 'test'
+  ...
+# Subtest: test/workspace-membership.test.js
+ok 104 - test/workspace-membership.test.js
+  ---
+  duration_ms: 283.727683
+  type: 'test'
+  ...
+# Subtest: test/workspace-mode-cli.test.js
+ok 105 - test/workspace-mode-cli.test.js
+  ---
+  duration_ms: 4671.905237
+  type: 'test'
+  ...
+# Subtest: test/workspace-mount-controller.test.js
+ok 106 - test/workspace-mount-controller.test.js
+  ---
+  duration_ms: 352.21321
+  type: 'test'
+  ...
+# Subtest: test/workspace-move-runtime.test.js
+ok 107 - test/workspace-move-runtime.test.js
+  ---
+  duration_ms: 1317.666311
+  type: 'test'
+  ...
+# Subtest: test/workspace-persistence.test.js
+ok 108 - test/workspace-persistence.test.js
+  ---
+  duration_ms: 298.179075
+  type: 'test'
+  ...
+# Subtest: test/workspace-recycle-runtime.test.js
+ok 109 - test/workspace-recycle-runtime.test.js
+  ---
+  duration_ms: 613.464105
+  type: 'test'
+  ...
+# Subtest: test/workspace-recycle.test.js
+ok 110 - test/workspace-recycle.test.js
+  ---
+  duration_ms: 296.084991
+  type: 'test'
+  ...
+# Subtest: test/workspace-reload.test.js
+ok 111 - test/workspace-reload.test.js
+  ---
+  duration_ms: 430.104643
+  type: 'test'
+  ...
+# Subtest: test/workspace-runtime-guards.test.js
+ok 112 - test/workspace-runtime-guards.test.js
+  ---
+  duration_ms: 308.762034
+  type: 'test'
+  ...
+# Subtest: test/workspace-runtime-integration.test.js
+ok 113 - test/workspace-runtime-integration.test.js
+  ---
+  duration_ms: 525.318519
+  type: 'test'
+  ...
+# Subtest: test/workspace-snapshot-store.test.js
+ok 114 - test/workspace-snapshot-store.test.js
+  ---
+  duration_ms: 314.926724
+  type: 'test'
+  ...
+# Subtest: test/workspace-switch-controller.test.js
+ok 115 - test/workspace-switch-controller.test.js
+  ---
+  duration_ms: 308.738011
+  type: 'test'
+  ...
+# Subtest: test/workspace-transfer-runtime.test.js
+ok 116 - test/workspace-transfer-runtime.test.js
+  ---
+  duration_ms: 574.751559
+  type: 'test'
+  ...
+# Subtest: test/workspace-wide-departure.test.js
+ok 117 - test/workspace-wide-departure.test.js
+  ---
+  duration_ms: 815.591151
+  type: 'test'
+  ...
+# Subtest: test/workspace-wide-pose.test.js
+ok 118 - test/workspace-wide-pose.test.js
+  ---
+  duration_ms: 293.978014
+  type: 'test'
+  ...
+# Subtest: test/workspace-wide-restore.test.js
+ok 119 - test/workspace-wide-restore.test.js
+  ---
+  duration_ms: 579.476216
+  type: 'test'
+  ...
+1..119
+# tests 119
+# suites 0
+# pass 118
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 89415.822888

@@ -28,6 +28,9 @@ class RuntimeLifecycle {
         this.startupTimer = null;
         this.startupPending = false;
         this.startupGeneration = 0;
+        this.mayInitialize = options.mayInitialize || (() => true);
+        this.startupSnapshot = "";
+        this.completeStartup = null;
     }
 
     connect(signal, handler, owner = null) {
@@ -74,7 +77,11 @@ class RuntimeLifecycle {
         const complete = snapshot => {
             if (!this.started || !this.startupPending ||
                     generation !== this.startupGeneration) return;
+            if (snapshot) this.startupSnapshot = snapshot;
+            if (!this.mayInitialize()) return;
+            snapshot = this.startupSnapshot;
             this.startupPending = false;
+            this.completeStartup = null; this.startupSnapshot = "";
             if (this.startupTimer && this.clearTimer) {
                 this.clearTimer(this.startupTimer);
                 this.startupTimer = null;
@@ -83,6 +90,7 @@ class RuntimeLifecycle {
             this.markInitialized(true);
             this.commitInitialState();
         };
+        this.completeStartup = complete;
         if (this.setTimer) {
             this.startupTimer = this.setTimer(
                 () => complete(""), this.startupTimeoutMs);
@@ -93,6 +101,12 @@ class RuntimeLifecycle {
             complete("");
         }
         return true;
+    }
+
+    resumeInitialization() {
+        if (!this.started || !this.startupPending || !this.completeStartup) return false;
+        this.completeStartup("");
+        return !this.startupPending;
     }
 
     stop() {
@@ -109,6 +123,7 @@ class RuntimeLifecycle {
         this.connections = [];
         this.startupGeneration += 1;
         this.startupPending = false;
+        this.completeStartup = null; this.startupSnapshot = "";
         if (this.startupTimer && this.clearTimer) {
             this.clearTimer(this.startupTimer);
             this.startupTimer = null;

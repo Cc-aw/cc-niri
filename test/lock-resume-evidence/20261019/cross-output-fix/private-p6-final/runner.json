@@ -1,0 +1,18 @@
+{
+  "command": [
+    "dbus-run-session",
+    "--",
+    "/usr/bin/python",
+    "/home/cc/cc_niri/tools/scroll-layout-v2-p3-probe.py",
+    "--inside",
+    "--output",
+    "/home/cc/cc_niri/test/lock-resume-evidence/20261019/cross-output-fix/private-p6-final",
+    "--scale",
+    "1.0",
+    "--scenario",
+    "p6"
+  ],
+  "exit_code": 0,
+  "stdout": "{\"status\": \"PASS\", \"passed\": 49, \"total\": 49, \"evidence\": \"/home/cc/cc_niri/test/lock-resume-evidence/20261019/cross-output-fix/private-p6-final\"}\n",
+  "stderr": ""
+}

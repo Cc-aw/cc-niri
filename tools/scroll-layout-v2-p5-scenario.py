@@ -142,6 +142,22 @@ def run(e):
     checks["full_entry_secondary_output_stays_black"] = e["capture"]("p-five-final", {})
     ring = json.loads(call("/ccNiriFocusRing", "org.cc.NiriFocusRing1.GetFocusRingStatus")); report["p5_ring"] = ring
     checks["real_ring_still_draws_with_shared_native_frame"] = ring["drawCount"] > 0 and ring["sharedFrameSamples"] > 0
+    session_before = json.loads(bridge("GetState"))
+    for cycle in range(3):
+        assert e["fixture"]("ObserveSessionLockForTest", "true")
+        wait(lambda: json.loads(bridge("GetRuntimeHealth")).get("state") == "locked")
+        facts = json.loads(native("GetSessionState"))
+        assert facts["locked"] is True
+        wait(lambda: not json.loads(native("GetScrollMotionStatus"))["active"])
+        assert e["fixture"]("ObserveSessionLockForTest", "false")
+        wait(lambda: json.loads(bridge("GetRuntimeHealth")).get("state") == "running")
+        wait(lambda: json.loads(native("GetColumnGeometrySource")).get("valid"))
+        resumed = action("inspect")
+        checks[f"synthetic_lock_cycle_{cycle}_resumes_current_session"] = resumed["enabled"] and not resumed["pending"] and not resumed["errors"]
+        restored = json.loads(bridge("GetState"))
+        checks[f"synthetic_lock_cycle_{cycle}_preserves_width_order_workspace"] = all(
+            restored[key] == session_before[key] for key in ["columns", "workspaceId", "targetOutput"])
+    report["session_lifecycle_scope"] = "Synthetic KWin lock signals on private Virtual outputs; real screen lock acceptance remains Pending"
     if e.get("scenario") == "p6":
         action("recovery-probe")
         report["scroll_capture"] = json.loads(native("GetScrollFrameCapture"))

@@ -1,0 +1,6 @@
+{
+  "status": "PREPARED_NOT_DEPLOYED",
+  "manifest": "/tmp/cc-niri-lock-resume-20261019-stage/manifest.json",
+  "source_files": 544,
+  "rollback_ready": true
+}

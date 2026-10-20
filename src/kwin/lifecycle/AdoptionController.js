@@ -117,6 +117,10 @@ class AdoptionController {
         if (windowState.adoptionPhase === this.phases.floating ||
                 windowState.adoptionPhase === this.phases.policyFloating ||
                 windowState.adoptionPhase === this.phases.ignored) return false;
+        if (windowState.interactiveMoveResize || window.move || window.resize) {
+            this.transition(window, windowState, this.phases.waitingNormal, reason);
+            return false;
+        }
         if (windowState.adoptionPhase === this.phases.settling &&
                 this.indexOfWindow(window) >= 0) {
             return this.settle(window, windowState, reason);

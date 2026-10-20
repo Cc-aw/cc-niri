@@ -25,6 +25,7 @@ class ColumnGeometryCoordinator {
         this.recovering = false;
         const publishState = options.prepare;
         this.preparedEpoch = null;
+        this.releaseEpoch = null;
         this.prepare = (intent, done) => {
             if (this.preparedEpoch === intent.epoch) { done(true); return; }
             publishState(intent, accepted => {
@@ -320,22 +321,32 @@ class ColumnGeometryCoordinator {
         this.recover(intent, proof);
     }
     releaseForWorkspace() {
+        if (this.intent) this.releaseEpoch = Math.max(this.releaseEpoch ?? 0, this.intent.epoch);
         this.serial++; this.cancelLease(); this.gate.releaseForWorkspace();
         this.geometry = null; this.observed = null; this.intent = null;
     }
-    suspend(done = () => {}) {
+    pause() {
         // Retire callbacks before waiting; no static host write until Native has
         // confirmed both motion and retained handoff ownership are gone.
         const epoch = this.intent && this.intent.epoch;
+        if (epoch !== null && epoch !== undefined) this.releaseEpoch = Math.max(this.releaseEpoch ?? 0, epoch);
         this.serial++; this.cancelLease(); this.gate.supersede();
         this.intent = null; this.geometry = null; this.observed = null;
         this.lastCompletion = null; this.preparedEpoch = null;
-        if (epoch === null || epoch === undefined) { done(true); return; }
+    }
+    suspend(done = () => {}, timeoutMs = this.gate.timeoutMs) {
+        this.pause();
+        if (this.releaseEpoch === null) { done(true); return; }
         this.gate.activeEpoch = null;
-        this.gate.abort(epoch, confirmed => done(confirmed === true));
+        const releasing = this.releaseEpoch;
+        this.gate.abort(releasing, confirmed => {
+            if (confirmed === true && this.releaseEpoch === releasing) this.releaseEpoch = null;
+            done(confirmed === true);
+        }, timeoutMs);
     }
     stop(done = () => {}) {
         const epoch = this.intent && this.intent.epoch;
+        if (epoch !== null && epoch !== undefined) this.releaseEpoch = Math.max(this.releaseEpoch ?? 0, epoch);
         this.serial++; this.cancelLease(); this.gate.supersede(); this.stopped = true;
         if (this.bridge.handlers["scroll-frame-ready"] === this.wakeHandler) {
             delete this.bridge.handlers["scroll-frame-ready"];
@@ -343,9 +354,13 @@ class ColumnGeometryCoordinator {
         }
         this.intent = null; this.geometry = null; this.observed = null;
         this.lastCompletion = null; this.preparedEpoch = null;
-        if (epoch === null || epoch === undefined) { done(true); return; }
+        if (this.releaseEpoch === null) { done(true); return; }
         this.gate.activeEpoch=null;
-        this.gate.abort(epoch, confirmed => done(confirmed === true));
+        const releasing = this.releaseEpoch;
+        this.gate.abort(releasing, confirmed => {
+            if (confirmed === true && this.releaseEpoch === releasing) this.releaseEpoch = null;
+            done(confirmed === true);
+        });
     }
 }
 

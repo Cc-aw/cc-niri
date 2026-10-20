@@ -1,0 +1,72 @@
+{
+  "restart": "PASS",
+  "failure_chain": "CONFIRMED",
+  "native_rejection_predicate": "INCONCLUSIVE",
+  "direct_reason": "bootstrap-arm",
+  "cancelled": true,
+  "observed_membership_change": "one-column-to-two-columns",
+  "health_before": {
+    "protocol": 1,
+    "reason": "runtime-stop",
+    "sequence": 6,
+    "sessionId": "1a153e405ff-be13d523",
+    "state": "stopped",
+    "type": "runtime-health"
+  },
+  "session_before": {
+    "instanceId": "2ef9a7df-dae0-442a-b0f2-a67c143cbe73",
+    "locked": false,
+    "protocol": 1,
+    "sequence": 0,
+    "type": "session-state"
+  },
+  "model_failure_chain": {
+    "scope": "Deterministic failure-handling model; injected Native rejection, not proof of the real Native rejection predicate",
+    "enabled": false,
+    "phase": "stopped",
+    "reason": "runtime-stop",
+    "recovery": "restored",
+    "arms": [
+      {
+        "epoch": 1,
+        "type": "PARTIAL_SCROLL",
+        "entries": 1,
+        "bootstrap": true
+      },
+      {
+        "epoch": 2,
+        "type": "PARTIAL_SCROLL",
+        "entries": 2,
+        "bootstrap": true
+      },
+      {
+        "epoch": 3,
+        "type": "PARTIAL_SCROLL",
+        "entries": 2,
+        "bootstrap": true
+      }
+    ],
+    "logs": [
+      "[cc-niri-maximize] [runtime] geometry failure reason=bootstrap-arm cancelled=true",
+      "[cc-niri-maximize] [runtime] blocked reason=bootstrap-arm",
+      "[cc-niri-maximize] [stability] RELEASE_PARKING caption=a0 accessible=true reason=v2-geometry-failure",
+      "[cc-niri-maximize] [recovery] EMERGENCY_RESTORE count=1 reason=v2-geometry-failure"
+    ]
+  },
+  "production_changes_this_recurrence": false,
+  "user_confirmed_trigger": "existing window dragged directly from secondary screen to primary",
+  "movement_entry": "mouse cross-output interactive move",
+  "actual_transfer_reproduced": true,
+  "historical_stop_reproduced": false,
+  "stable_transfer_private_100": "PASS",
+  "stable_transfer_private_150": "PASS",
+  "native_plan_replay": "PASS with reconstructed frames; historical actual facts unknown",
+  "early_activation_result": "incoming window not retained as a column; runtime stayed enabled; separate issue",
+  "new_evidence": "transfer-analysis.json",
+  "virtual_desktop_membership_change": "NOT CONFIRMED; earlier workspace interpretation superseded",
+  "actual_output_drag_reproduced": true,
+  "controlled_stop_reproduced": true,
+  "controlled_failure_reason": "bootstrap-arm",
+  "controlled_timing": "12ms bounded pre-arm delay; real Native rejection",
+  "new_primary_evidence": "output-drag-analysis.json"
+}

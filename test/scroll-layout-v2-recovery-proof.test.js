@@ -61,6 +61,15 @@ test("unconfirmed Native cancel reports blocked and never writes restoration geo
     recovery.restoreAll("retry","retry-token");assert.deepEqual(status,["pending","blocked","pending","blocked"]);
     assert.equal(recovery.obligations.size,0);
 });
+test("a fresh explicit request retries Native retirement before any restoration write", () => {
+    let confirmed=false, attempts=0, writes=0;
+    const recovery=new Recovery({appState:{columns:[]},windowStates:[],parking:{},indexOfWindow:()=>-1,
+        retire: done=>{attempts++;done(confirmed);},beforeRestore:()=>{writes++;},warn:()=>{}});
+    recovery.restoreAll("first","first");assert.equal(recovery.status.state,"blocked");assert.equal(writes,0);
+    confirmed=true;recovery.restoreAll("retry","second");
+    assert.equal(attempts,2);assert.equal(writes,1);assert.equal(recovery.status.state,"restored");
+    assert.equal(recovery.status.requestId,"second");
+});
 test("full generated V2 entry emits only transient proof after delayed real recovery frames", () => {
     const r=createRuntime({ScrollLayoutV2Enabled:true,MockV2Native:true,PrimaryWindowCount:5});r.paintV2();
     const parked=r.a[4]; parked.frameGeometry={...parked.frameGeometry,x:-6000}; r.holdGeometry(parked);

@@ -1,0 +1,7 @@
+Script loaded: true; enabled at login: true
+cc-niri-maximize-scroll-transition: (true,)
+cc-niri-viewport-clip: (true,)
+Focus Ring preference: true
+Focus Ring loaded: (true,)
+Bridge: active
+Layout health: running (session-ready)

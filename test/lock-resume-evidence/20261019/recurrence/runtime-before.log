@@ -1,0 +1,5 @@
+2026-10-19T20:04:52.118223+08:00 Cc kwin_wayland[2119]: [cc-niri-maximize] [runtime] blocked reason=bootstrap-arm
+2026-10-19T20:04:52.116360+08:00 Cc kwin_wayland[2119]: [cc-niri-maximize] [runtime] geometry failure reason=bootstrap-arm cancelled=true
+2026-10-19T18:33:13.191963+08:00 Cc kwin_wayland[2119]: [cc-niri-maximize] [runtime] disabled reason=departure-disarm cancelled=false
+2026-10-19T16:08:48.186153+08:00 Cc kwin_wayland[2119]: [cc-niri-maximize] [runtime] disabled reason=departure-disarm cancelled=false
+2026-10-19T09:49:13.624366+08:00 Cc kwin_wayland[2119]: [cc-niri-maximize] [runtime] disabled reason=departure-disarm cancelled=false

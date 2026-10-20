@@ -15,6 +15,7 @@ class ContinuousLayoutRuntime {
         this.stopped = false;
         this.actions = new Map();
         this.anchor = null;
+        this.exclusiveSequence = 0;
         this.controller = new ContinuousViewportController({
             state: this.state, columnStore: this.columnStore, transaction: this.transaction,
             enabled: true, sessionId: this.bridge.sessionId(), dockEnabled: options.dockEnabled,
@@ -22,12 +23,12 @@ class ContinuousLayoutRuntime {
             getUuid: this.getUuid, canJoin: (window, scope) => this.canJoin(window, scope),
             getPainted: () => this.coordinator.getPainted(),
             onTarget: intent => {
-                if (!this.blocked && !this.stopped) this.coordinator.submit(intent);
+                if (!this.blocked && !this.stopped && !this.state.sessionPaused) this.coordinator.submit(intent);
             },
         });
         this.coordinator = new ColumnGeometryCoordinator({
             bridge: this.bridge, currentEpoch: () => this.transaction.currentEpoch(),
-            isScope: intent => this.controller.ready() && !this.blocked && !this.stopped &&
+            isScope: intent => this.controller.ready() && !this.blocked && !this.stopped && !this.state.sessionPaused &&
                 !this.presentationSuspended() && intent.scopeRevision === this.controller.scopeRevision &&
                 intent.workspaceId === this.state.activeWorkspaceId &&
                 intent.targetOutput === this.state.targetOutput.name,
@@ -54,7 +55,7 @@ class ContinuousLayoutRuntime {
         return this.state.presentation.mode === "maximized" || this.state.columns.some(c => c.window.fullScreen);
     }
 
-    ready() { return !this.blocked && !this.stopped && !this.presentationSuspended() && this.controller.ready(); }
+    ready() { return !this.blocked && !this.stopped && !this.state.sessionPaused && !this.presentationSuspended() && this.controller.ready(); }
 
     restoreView(anchor, preserve) { this.anchor = preserve ? anchor : null; }
 
@@ -68,7 +69,7 @@ class ContinuousLayoutRuntime {
     }
 
     sync(reason = "v2-layout") {
-        if (this.blocked || this.stopped || !this.state.enabled || this.state.workspaceSwitching ||
+        if (this.blocked || this.stopped || this.state.sessionPaused || !this.state.enabled || this.state.workspaceSwitching ||
                 !this.state.activeWorkspaceId || this.presentationSuspended()) return false;
         const geometry = this.getGeometry();
         if (!geometry) { this.fail("missing-working-area", false); return false; }
@@ -88,16 +89,17 @@ class ContinuousLayoutRuntime {
     }
 
     exclusive(key, action) {
-        if (this.stopped) return false;
+        if (this.stopped || this.state.sessionPaused) return false;
         if (this.inExclusive) return action();
         // Coalesce repeated signals from one live window, bounded by membership.
         if (this.actions.size >= 512 && !this.actions.has(key)) { this.fail("departure-overflow", false); return false; }
         this.actions.set(key, action);
         if (this.blocked) return true;
         this.blocked = true;
+        const sequence = ++this.exclusiveSequence;
         this.coordinator.suspend(confirmed => {
-            if (this.stopped) return;
-            if (!confirmed) { this.actions.clear(); this.fail("departure-disarm", false); return; }
+            if (this.stopped || sequence !== this.exclusiveSequence) return;
+            if (!confirmed) { this.actions.clear(); this.fail(`departure-disarm event=${key}`, false); return; }
             this.inExclusive = true;
             try {
                 const actions = Array.from(this.actions.values()); this.actions.clear();
@@ -109,6 +111,21 @@ class ContinuousLayoutRuntime {
         return true;
     }
 
+    pauseSession() {
+        ++this.exclusiveSequence;
+        this.blocked = true; this.actions.clear(); this.anchor = null;
+        // Cancel leases immediately, even if the session query or wake is late.
+        this.coordinator.pause();
+    }
+
+    resumeSession() {
+        if (this.stopped || !this.state.enabled || this.coordinator.releaseEpoch !== null) return false;
+        this.coordinator.quarantined = false;
+        this.coordinator.recovering = false;
+        this.blocked = false;
+        return true;
+    }
+
     releaseForWorkspace() {
         this.coordinator.releaseForWorkspace();
         this.controller.geometry = null; this.controller.lastTarget = null;
@@ -116,8 +133,9 @@ class ContinuousLayoutRuntime {
     }
 
     stop(done) {
-        if (this.stopped) { done(this.stopConfirmed === true); return; }
+        if (this.stopped && this.stopConfirmed === true) { done(true); return; }
         this.stopped = true; this.blocked = true; this.actions.clear(); this.anchor = null;
+        ++this.exclusiveSequence;
         delete this.bridge.handlers["focus-partial-column"];
         this.coordinator.stop(confirmed => {
             this.stopConfirmed = confirmed;

@@ -1,0 +1,33 @@
+{
+  "scope": "Deterministic failure-handling model; injected Native rejection, not proof of the real Native rejection predicate",
+  "enabled": false,
+  "phase": "stopped",
+  "reason": "runtime-stop",
+  "recovery": "restored",
+  "arms": [
+    {
+      "epoch": 1,
+      "type": "PARTIAL_SCROLL",
+      "entries": 1,
+      "bootstrap": true
+    },
+    {
+      "epoch": 2,
+      "type": "PARTIAL_SCROLL",
+      "entries": 2,
+      "bootstrap": true
+    },
+    {
+      "epoch": 3,
+      "type": "PARTIAL_SCROLL",
+      "entries": 2,
+      "bootstrap": true
+    }
+  ],
+  "logs": [
+    "[cc-niri-maximize] [runtime] geometry failure reason=bootstrap-arm cancelled=true",
+    "[cc-niri-maximize] [runtime] blocked reason=bootstrap-arm",
+    "[cc-niri-maximize] [stability] RELEASE_PARKING caption=a0 accessible=true reason=v2-geometry-failure",
+    "[cc-niri-maximize] [recovery] EMERGENCY_RESTORE count=1 reason=v2-geometry-failure"
+  ]
+}

@@ -1,0 +1,455 @@
+kwin_scene_opengl: eglInitialize failed
+kwin_scene_opengl: Error during eglInitialize  "EGL_NOT_INITIALIZED"
+kwin_scene_opengl: eglInitialize failed
+kwin_scene_opengl: Error during eglInitialize  "EGL_NOT_INITIALIZED"
+Accepting client connections on sockets: QList("cc-niri-p0")
+kwin_screencast: Failed to connect PipeWire context
+ShapeCorners: loading shaders...
+ShapeCorners: shaders loaded.
+ShapeCorners: Writing Breeze config
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] READY scrollRuntimeBackend= "Rust"
+cc.niri.focus.ring: [FOCUS_RING] READY isolated post-window border coreBackend= Rust
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"},{\"columnId\":2,\"logicalX\":2348,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"}],\"epoch\":1,\"issuedAt\":1792404203756,\"layoutRect\":{\"height\":1358,\"width\":2560,\"x\":0,\"y\":66},\"maxCamera\":1696,\"newScrollOffsetX\":212,\"oldScrollOffsetX\":212,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":1,\"sessionId\":\"p3-private\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"ffd31865-052f-4bb6-aeda-d861cff6c722\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-1.js:9594:9 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-1.js:9605:47 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-1.js:9493:42 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-1.js:9543:9 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-1.js:7462:28 Variable "geometryCommitter" is used before its declaration at 7505:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-1.js:7547:9 Variable "scrollPlanCommitGate" is used before its declaration at 7574:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-1.js:7557:17 Variable "scrollPlanCommitGate" is used before its declaration at 7574:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-1.js:7559:21 Variable "scrollPlanCommitGate" is used before its declaration at 7574:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-1.js:7582:27 Variable "deferredScrollParking" is used before its declaration at 7594:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-1.js:7583:28 Variable "deferredScrollParking" is used before its declaration at 7594:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-1.js:8109:17 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-1.js:8110:55 Variable "app" is used before its declaration at 9643:7.
+js: [cc-niri-maximize] [runtime] configured secondary output HDMI-A-1 not found; using rightmost non-primary output
+js: [cc-niri-maximize] [runtime] loaded primary=Virtual-0 secondary=Virtual-1 primaryOuter=50/24/8/24 secondaryOuter=24/24/24/24
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "34657e60-9335-42d6-94ac-792527a156d8"
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_A reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_B reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_C reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_D reason=workspace-mount
+js: [cc-niri-maximize] [runtime] MOUNT id=ffd31865-052f-4bb6-aeda-d861cff6c722 columns=4 reason=script-start-workspace
+js: [cc-niri-maximize] [stability] BEGIN epoch=1 reason=workspace-mount
+js: [cc-niri-maximize] [stability] END epoch=1 reason=workspace-mount
+js: [cc-niri-maximize] [bridge] PUBLISH reason=script-start generation=1 columns=4 accepted=true
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-mount generation=2 columns=4 accepted=true
+js: [cc-niri-maximize] [layout] LAYOUT reason=workspace-mount column=1 physicalX=652 width=1256 actual=440,66 1680x1358
+js: [cc-niri-maximize] [layout] LAYOUT reason=workspace-mount column=2 physicalX=1304 width=1256 actual=1304,66 1256x1358
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"},{\"columnId\":2,\"logicalX\":1924,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"}],\"epoch\":1,\"geometryBootstrap\":true,\"issuedAt\":1792404204563,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":3816,\"newScrollOffsetX\":0,\"oldScrollOffsetX\":0,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":1,\"sessionId\":\"1a1539dabfa-23136f1a\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"ffd31865-052f-4bb6-aeda-d861cff6c722\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+js: [cc-niri-maximize] [stability] BEGIN epoch=2 reason=cycle-column-width
+js: [cc-niri-maximize] [stability] END epoch=2 reason=cycle-column-width
+js: [cc-niri-maximize] [bridge] PUBLISH reason=cycle-column-width generation=3 columns=4 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"committedTargetRect\":{\"height\":1408,\"width\":1680,\"x\":440,\"y\":16},\"newLogicalX\":652,\"newPixelWidth\":1680,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":652,\"y\":16},\"oldLogicalX\":652,\"oldPixelWidth\":1256,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1256,\"x\":652,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"},{\"columnId\":2,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":2348,\"newPixelWidth\":1256,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"oldLogicalX\":1924,\"oldPixelWidth\":1256,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1256,\"x\":1924,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"},{\"columnId\":3,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":3620,\"newPixelWidth\":1256,\"newPlacement\":\"parked\",\"oldFrameRect\":{\"height\":1358,\"width\":1256,\"x\":705.3333333333334,\"y\":71},\"oldLogicalX\":null,\"oldPixelWidth\":1256,\"oldPlacement\":\"parked\",\"oldVisualRect\":null,\"sourceKind\":\"parked\",\"windowId\":\"3cfb7be9-5b9a-4451-8dbc-867ecada2484\"},{\"columnId\":4,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":4892,\"newPixelWidth\":1256,\"newPlacement\":\"parked\",\"oldFrameRect\":{\"height\":1404,\"width\":1256,\"x\":652,\"y\":18},\"oldLogicalX\":null,\"oldPixelWidth\":1256,\"oldPlacement\":\"parked\",\"oldVisualRect\":null,\"sourceKind\":\"parked\",\"windowId\":\"49db908f-1251-481d-8d03-592dcfcb7e1a\"}],\"epoch\":2,\"issuedAt\":1792404204676,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":4240,\"newScrollOffsetX\":212,\"oldLayoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"oldMaxCamera\":3816,\"oldScrollOffsetX\":0,\"protocol\":4,\"scopeRevision\":1,\"sessionId\":\"1a1539dabfa-23136f1a\",\"sourceEpoch\":1,\"sourceSampleSerial\":15,\"targetOutput\":\"Virtual-0\",\"type\":\"COLUMN_GEOMETRY\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"ffd31865-052f-4bb6-aeda-d861cff6c722\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 2
+js: [cc-niri-maximize] [layout] LAYOUT reason=cycle-column-width column=1 physicalX=440 width=1680 actual=652,16 1256x1408
+js: [cc-niri-maximize] [layout] LAYOUT reason=cycle-column-width column=3 physicalX=1304 width=1256 actual=705.3333333333334,71 1256x1358
+js: [cc-niri-maximize] [layout] LAYOUT reason=cycle-column-width column=4 physicalX=1304 width=1256 actual=652,18 1256x1404
+js: [cc-niri-maximize] [stability] BEGIN epoch=3 reason=toggle-column-full
+js: [cc-niri-maximize] [stability] END epoch=3 reason=toggle-column-full
+js: [cc-niri-maximize] [bridge] PUBLISH reason=toggle-column-full generation=4 columns=4 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"committedTargetRect\":{\"height\":1408,\"width\":2528,\"x\":16,\"y\":16},\"newLogicalX\":652,\"newPixelWidth\":2528,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1680,\"x\":440,\"y\":16},\"oldLogicalX\":652,\"oldPixelWidth\":1680,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1680,\"x\":440,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"},{\"columnId\":2,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":3196,\"newPixelWidth\":1256,\"newPlacement\":\"parked\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"oldLogicalX\":2348,\"oldPixelWidth\":1256,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1256,\"x\":2136,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"},{\"columnId\":3,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":4468,\"newPixelWidth\":1256,\"newPlacement\":\"parked\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"oldLogicalX\":null,\"oldPixelWidth\":1256,\"oldPlacement\":\"parked\",\"oldVisualRect\":null,\"sourceKind\":\"parked\",\"windowId\":\"3cfb7be9-5b9a-4451-8dbc-867ecada2484\"},{\"columnId\":4,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":5740,\"newPixelWidth\":1256,\"newPlacement\":\"parked\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"oldLogicalX\":null,\"oldPixelWidth\":1256,\"oldPlacement\":\"parked\",\"oldVisualRect\":null,\"sourceKind\":\"parked\",\"windowId\":\"49db908f-1251-481d-8d03-592dcfcb7e1a\"}],\"epoch\":3,\"issuedAt\":1792404205108,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":5088,\"newScrollOffsetX\":636,\"oldLayoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"oldMaxCamera\":4240,\"oldScrollOffsetX\":212,\"protocol\":4,\"scopeRevision\":1,\"sessionId\":\"1a1539dabfa-23136f1a\",\"sourceEpoch\":2,\"sourceSampleSerial\":40,\"targetOutput\":\"Virtual-0\",\"type\":\"COLUMN_GEOMETRY\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"ffd31865-052f-4bb6-aeda-d861cff6c722\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 1 incoming= 0 outgoing= 3
+js: [cc-niri-maximize] [layout] LAYOUT reason=toggle-column-full column=1 physicalX=16 width=2528 actual=440,16 1680x1408
+js: [cc-niri-maximize] [stability] BEGIN epoch=4 reason=toggle-column-full
+js: [cc-niri-maximize] [stability] END epoch=4 reason=toggle-column-full
+js: [cc-niri-maximize] [bridge] PUBLISH reason=toggle-column-full generation=5 columns=4 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"committedTargetRect\":{\"height\":1408,\"width\":1680,\"x\":440,\"y\":16},\"newLogicalX\":652,\"newPixelWidth\":1680,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":2528,\"x\":16,\"y\":16},\"oldLogicalX\":652,\"oldPixelWidth\":2528,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":2528,\"x\":16,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"},{\"columnId\":2,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":2348,\"newPixelWidth\":1256,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"oldLogicalX\":null,\"oldPixelWidth\":1256,\"oldPlacement\":\"parked\",\"oldVisualRect\":null,\"sourceKind\":\"parked\",\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"},{\"columnId\":3,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":3620,\"newPixelWidth\":1256,\"newPlacement\":\"parked\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"oldLogicalX\":null,\"oldPixelWidth\":1256,\"oldPlacement\":\"parked\",\"oldVisualRect\":null,\"sourceKind\":\"parked\",\"windowId\":\"3cfb7be9-5b9a-4451-8dbc-867ecada2484\"},{\"columnId\":4,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":4892,\"newPixelWidth\":1256,\"newPlacement\":\"parked\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"oldLogicalX\":null,\"oldPixelWidth\":1256,\"oldPlacement\":\"parked\",\"oldVisualRect\":null,\"sourceKind\":\"parked\",\"windowId\":\"49db908f-1251-481d-8d03-592dcfcb7e1a\"}],\"epoch\":4,\"issuedAt\":1792404205570,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":4240,\"newScrollOffsetX\":212,\"oldLayoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"oldMaxCamera\":5088,\"oldScrollOffsetX\":636,\"protocol\":4,\"scopeRevision\":1,\"sessionId\":\"1a1539dabfa-23136f1a\",\"sourceEpoch\":3,\"sourceSampleSerial\":67,\"targetOutput\":\"Virtual-0\",\"type\":\"COLUMN_GEOMETRY\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"ffd31865-052f-4bb6-aeda-d861cff6c722\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 1 incoming= 1 outgoing= 2
+js: [cc-niri-maximize] [layout] LAYOUT reason=toggle-column-full column=1 physicalX=440 width=1680 actual=16,16 2528x1408
+js: [cc-niri-maximize] [stability] BEGIN epoch=5 reason=focus-directional
+js: [cc-niri-maximize] [stability] END epoch=5 reason=focus-directional
+js: [cc-niri-maximize] [bridge] PUBLISH reason=focus-directional generation=6 columns=4 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"committedTargetRect\":{\"height\":1408,\"width\":1680,\"x\":0,\"y\":16},\"newLogicalX\":652,\"newPixelWidth\":1680,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1680,\"x\":440,\"y\":16},\"oldLogicalX\":652,\"oldPixelWidth\":1680,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1680,\"x\":440,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"},{\"columnId\":2,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1288,\"y\":16},\"newLogicalX\":2348,\"newPixelWidth\":1256,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"oldLogicalX\":2348,\"oldPixelWidth\":1256,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1256,\"x\":2136,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"},{\"columnId\":3,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":3620,\"newPixelWidth\":1256,\"newPlacement\":\"parked\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"oldLogicalX\":null,\"oldPixelWidth\":1256,\"oldPlacement\":\"parked\",\"oldVisualRect\":null,\"sourceKind\":\"parked\",\"windowId\":\"3cfb7be9-5b9a-4451-8dbc-867ecada2484\"},{\"columnId\":4,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":4892,\"newPixelWidth\":1256,\"newPlacement\":\"parked\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"oldLogicalX\":null,\"oldPixelWidth\":1256,\"oldPlacement\":\"parked\",\"oldVisualRect\":null,\"sourceKind\":\"parked\",\"windowId\":\"49db908f-1251-481d-8d03-592dcfcb7e1a\"}],\"epoch\":5,\"issuedAt\":1792404206009,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":4240,\"newScrollOffsetX\":1060,\"oldLayoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"oldMaxCamera\":4240,\"oldScrollOffsetX\":212,\"protocol\":4,\"scopeRevision\":1,\"sessionId\":\"1a1539dabfa-23136f1a\",\"sourceEpoch\":4,\"sourceSampleSerial\":92,\"targetOutput\":\"Virtual-0\",\"type\":\"COLUMN_GEOMETRY\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"ffd31865-052f-4bb6-aeda-d861cff6c722\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 2
+js: [cc-niri-maximize] [layout] LAYOUT reason=focus-directional column=1 physicalX=0 width=1680 actual=0,16 1680x1408
+js: [cc-niri-maximize] [layout] LAYOUT reason=focus-directional column=2 physicalX=1288 width=1256 actual=1288,16 1256x1408
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "3468ef2f-4da9-41c8-a3a3-ab65e17aab12"
+js: [cc-niri-maximize] [stability] BEGIN epoch=6 reason=column-moved
+js: [cc-niri-maximize] [stability] END epoch=6 reason=column-moved
+js: [cc-niri-maximize] [bridge] PUBLISH reason=column-moved generation=7 columns=4 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":2,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":16,\"y\":16},\"newLogicalX\":652,\"newPixelWidth\":1256,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1288,\"y\":16},\"oldLogicalX\":2348,\"oldPixelWidth\":1256,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1256,\"x\":1288,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"},{\"columnId\":1,\"committedTargetRect\":{\"height\":1408,\"width\":1680,\"x\":880,\"y\":16},\"newLogicalX\":1924,\"newPixelWidth\":1680,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1680,\"x\":0,\"y\":16},\"oldLogicalX\":652,\"oldPixelWidth\":1680,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1680,\"x\":-408,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"},{\"columnId\":3,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":3620,\"newPixelWidth\":1256,\"newPlacement\":\"parked\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"oldLogicalX\":null,\"oldPixelWidth\":1256,\"oldPlacement\":\"parked\",\"oldVisualRect\":null,\"sourceKind\":\"parked\",\"windowId\":\"3cfb7be9-5b9a-4451-8dbc-867ecada2484\"},{\"columnId\":4,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":4892,\"newPixelWidth\":1256,\"newPlacement\":\"parked\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"oldLogicalX\":null,\"oldPixelWidth\":1256,\"oldPlacement\":\"parked\",\"oldVisualRect\":null,\"sourceKind\":\"parked\",\"windowId\":\"49db908f-1251-481d-8d03-592dcfcb7e1a\"}],\"epoch\":6,\"issuedAt\":1792404206487,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":4240,\"newScrollOffsetX\":636,\"oldLayoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"oldMaxCamera\":4240,\"oldScrollOffsetX\":1060,\"protocol\":4,\"scopeRevision\":1,\"sessionId\":\"1a1539dabfa-23136f1a\",\"sourceEpoch\":5,\"sourceSampleSerial\":121,\"targetOutput\":\"Virtual-0\",\"type\":\"COLUMN_GEOMETRY\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"ffd31865-052f-4bb6-aeda-d861cff6c722\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 2
+js: [cc-niri-maximize] [layout] LAYOUT reason=column-moved column=2 physicalX=16 width=1256 actual=16,16 1256x1408
+js: [cc-niri-maximize] [layout] LAYOUT reason=column-moved column=1 physicalX=880 width=1680 actual=880,16 1680x1408
+js: [cc-niri-maximize] [stability] BEGIN epoch=7 reason=column-moved
+js: [cc-niri-maximize] [stability] END epoch=7 reason=column-moved
+js: [cc-niri-maximize] [bridge] PUBLISH reason=column-moved generation=8 columns=4 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"committedTargetRect\":{\"height\":1408,\"width\":1680,\"x\":0,\"y\":16},\"newLogicalX\":652,\"newPixelWidth\":1680,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1680,\"x\":880,\"y\":16},\"oldLogicalX\":1924,\"oldPixelWidth\":1680,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1680,\"x\":1288,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"},{\"columnId\":2,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1288,\"y\":16},\"newLogicalX\":2348,\"newPixelWidth\":1256,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":16,\"y\":16},\"oldLogicalX\":652,\"oldPixelWidth\":1256,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1256,\"x\":16,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"},{\"columnId\":3,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":3620,\"newPixelWidth\":1256,\"newPlacement\":\"parked\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"oldLogicalX\":null,\"oldPixelWidth\":1256,\"oldPlacement\":\"parked\",\"oldVisualRect\":null,\"sourceKind\":\"parked\",\"windowId\":\"3cfb7be9-5b9a-4451-8dbc-867ecada2484\"},{\"columnId\":4,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":4892,\"newPixelWidth\":1256,\"newPlacement\":\"parked\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"oldLogicalX\":null,\"oldPixelWidth\":1256,\"oldPlacement\":\"parked\",\"oldVisualRect\":null,\"sourceKind\":\"parked\",\"windowId\":\"49db908f-1251-481d-8d03-592dcfcb7e1a\"}],\"epoch\":7,\"issuedAt\":1792404207533,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":4240,\"newScrollOffsetX\":1060,\"oldLayoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"oldMaxCamera\":4240,\"oldScrollOffsetX\":636,\"protocol\":4,\"scopeRevision\":1,\"sessionId\":\"1a1539dabfa-23136f1a\",\"sourceEpoch\":6,\"sourceSampleSerial\":152,\"targetOutput\":\"Virtual-0\",\"type\":\"COLUMN_GEOMETRY\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"ffd31865-052f-4bb6-aeda-d861cff6c722\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 2
+js: [cc-niri-maximize] [layout] LAYOUT reason=column-moved column=1 physicalX=0 width=1680 actual=0,16 1680x1408
+js: [cc-niri-maximize] [layout] LAYOUT reason=column-moved column=2 physicalX=1288 width=1256 actual=1288,16 1256x1408
+js: [cc-niri-maximize] [stability] BEGIN epoch=8 reason=focus-directional
+js: [cc-niri-maximize] [stability] END epoch=8 reason=focus-directional
+js: [cc-niri-maximize] [bridge] PUBLISH reason=focus-directional generation=9 columns=4 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"committedTargetRect\":{\"height\":1408,\"width\":1680,\"x\":440,\"y\":16},\"newLogicalX\":652,\"newPixelWidth\":1680,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1680,\"x\":0,\"y\":16},\"oldLogicalX\":652,\"oldPixelWidth\":1680,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1680,\"x\":-408,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"},{\"columnId\":2,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":2348,\"newPixelWidth\":1256,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1288,\"y\":16},\"oldLogicalX\":2348,\"oldPixelWidth\":1256,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1256,\"x\":1288,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"},{\"columnId\":3,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":3620,\"newPixelWidth\":1256,\"newPlacement\":\"parked\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"oldLogicalX\":null,\"oldPixelWidth\":1256,\"oldPlacement\":\"parked\",\"oldVisualRect\":null,\"sourceKind\":\"parked\",\"windowId\":\"3cfb7be9-5b9a-4451-8dbc-867ecada2484\"},{\"columnId\":4,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":4892,\"newPixelWidth\":1256,\"newPlacement\":\"parked\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"oldLogicalX\":null,\"oldPixelWidth\":1256,\"oldPlacement\":\"parked\",\"oldVisualRect\":null,\"sourceKind\":\"parked\",\"windowId\":\"49db908f-1251-481d-8d03-592dcfcb7e1a\"}],\"epoch\":8,\"issuedAt\":1792404208034,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":4240,\"newScrollOffsetX\":212,\"oldLayoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"oldMaxCamera\":4240,\"oldScrollOffsetX\":1060,\"protocol\":4,\"scopeRevision\":1,\"sessionId\":\"1a1539dabfa-23136f1a\",\"sourceEpoch\":7,\"sourceSampleSerial\":182,\"targetOutput\":\"Virtual-0\",\"type\":\"COLUMN_GEOMETRY\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"ffd31865-052f-4bb6-aeda-d861cff6c722\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 2
+js: [cc-niri-maximize] [layout] LAYOUT reason=focus-directional column=1 physicalX=440 width=1680 actual=440,16 1680x1408
+js: [cc-niri-maximize] [layout] LAYOUT reason=focus-directional column=2 physicalX=1304 width=1256 actual=1304,16 1256x1408
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "34657e60-9335-42d6-94ac-792527a156d8"
+js: [cc-niri-maximize] [stability] BEGIN epoch=9 reason=center-focused-column
+js: [cc-niri-maximize] [stability] END epoch=9 reason=center-focused-column
+js: [cc-niri-maximize] [bridge] PUBLISH reason=center-focused-column generation=10 columns=4 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"committedTargetRect\":{\"height\":1408,\"width\":1680,\"x\":440,\"y\":16},\"newLogicalX\":652,\"newPixelWidth\":1680,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1680,\"x\":440,\"y\":16},\"oldLogicalX\":652,\"oldPixelWidth\":1680,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1680,\"x\":440,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"},{\"columnId\":2,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":2348,\"newPixelWidth\":1256,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"oldLogicalX\":2348,\"oldPixelWidth\":1256,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1256,\"x\":2136,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"},{\"columnId\":3,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":3620,\"newPixelWidth\":1256,\"newPlacement\":\"parked\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"oldLogicalX\":null,\"oldPixelWidth\":1256,\"oldPlacement\":\"parked\",\"oldVisualRect\":null,\"sourceKind\":\"parked\",\"windowId\":\"3cfb7be9-5b9a-4451-8dbc-867ecada2484\"},{\"columnId\":4,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"newLogicalX\":4892,\"newPixelWidth\":1256,\"newPlacement\":\"parked\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1304,\"y\":16},\"oldLogicalX\":null,\"oldPixelWidth\":1256,\"oldPlacement\":\"parked\",\"oldVisualRect\":null,\"sourceKind\":\"parked\",\"windowId\":\"49db908f-1251-481d-8d03-592dcfcb7e1a\"}],\"epoch\":9,\"issuedAt\":1792404208523,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":4240,\"newScrollOffsetX\":212,\"oldLayoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"oldMaxCamera\":4240,\"oldScrollOffsetX\":212,\"protocol\":4,\"scopeRevision\":1,\"sessionId\":\"1a1539dabfa-23136f1a\",\"sourceEpoch\":8,\"sourceSampleSerial\":211,\"targetOutput\":\"Virtual-0\",\"type\":\"COLUMN_GEOMETRY\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"ffd31865-052f-4bb6-aeda-d861cff6c722\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 2
+js: [cc-niri-maximize] [stability] RELEASE_PARKING caption=CC_NIRI_P0_C accessible=true reason=v2-fullscreen
+js: [cc-niri-maximize] [stability] RELEASE_PARKING caption=CC_NIRI_P0_D accessible=true reason=v2-fullscreen
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "34657e60-9335-42d6-94ac-792527a156d8"
+js: [cc-niri-maximize] [stability] BEGIN epoch=10 reason=fullscreen:34657e60-9335-42d6-94ac-792527a156d8
+js: [cc-niri-maximize] [stability] END epoch=10 reason=fullscreen:34657e60-9335-42d6-94ac-792527a156d8
+js: [cc-niri-maximize] [bridge] PUBLISH reason=fullscreen:34657e60-9335-42d6-94ac-792527a156d8 generation=11 columns=4 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"},{\"columnId\":2,\"logicalX\":2348,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"}],\"epoch\":10,\"geometryBootstrap\":true,\"issuedAt\":1792404208726,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":4240,\"newScrollOffsetX\":212,\"oldScrollOffsetX\":212,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":1,\"sessionId\":\"1a1539dabfa-23136f1a\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"ffd31865-052f-4bb6-aeda-d861cff6c722\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+js: [cc-niri-maximize] [runtime] APPLY CC_NIRI_P0_A reason=p5-private-maximize mode=maximize geometry=440,16 1680x1408 expected=24,50 2512x1382 restore=<none>
+js: [cc-niri-maximize] [bridge] PUBLISH reason=p5-private-maximize generation=12 columns=4 accepted=true
+js: [cc-niri-maximize] [stability] BEGIN epoch=11 reason=v2-presentation
+js: [cc-niri-maximize] [stability] END epoch=11 reason=v2-presentation
+js: [cc-niri-maximize] [bridge] PUBLISH reason=p5-private-normal generation=14 columns=4 accepted=true
+js: [cc-niri-maximize] [bridge] PUBLISH reason=v2-presentation generation=14 columns=4 accepted=true
+js: [cc-niri-maximize] [layout] LAYOUT reason=v2-presentation column=1 physicalX=440 width=1680 actual=24,50 2512x1382
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"},{\"columnId\":2,\"logicalX\":2348,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"}],\"epoch\":11,\"geometryBootstrap\":true,\"issuedAt\":1792404208927,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":4240,\"newScrollOffsetX\":212,\"oldScrollOffsetX\":212,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":1,\"sessionId\":\"1a1539dabfa-23136f1a\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"ffd31865-052f-4bb6-aeda-d861cff6c722\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+cc.niri.focus.ring: [FOCUS_RING] FOCUS ""
+js: [cc-niri-maximize] [adoption] PHASE untracked->policy-floating caption=CC_NIRI_P0_DIALOG reason=window-added
+js: [cc-niri-maximize] [runtime] policy-floating reason=modal caption=CC_NIRI_P0_DIALOG
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-window-added generation=15 columns=4 accepted=true
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "34657e60-9335-42d6-94ac-792527a156d8"
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-window-closed generation=16 columns=4 accepted=true
+cc.niri.viewport.clip: [WORKSPACE_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [WORKSPACE_CLIP_NATIVE] CLEAR
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_A reason=workspace-unmount
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_B reason=workspace-unmount
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_C reason=workspace-unmount
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_D reason=workspace-unmount
+js: [cc-niri-maximize] [runtime] MOUNT id=6fa39388-5a46-42b9-88e1-9529fa784c29 columns=0 reason=workspace-switch
+js: [cc-niri-maximize] [stability] BEGIN epoch=12 reason=workspace-mount
+js: [cc-niri-maximize] [stability] END epoch=12 reason=workspace-mount
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-mount generation=17 columns=0 accepted=true
+cc.niri.viewport.clip: [WORKSPACE_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [WORKSPACE_CLIP_NATIVE] CLEAR
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->managed caption=CC_NIRI_P0_A reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->managed caption=CC_NIRI_P0_B reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->managed caption=CC_NIRI_P0_C reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->managed caption=CC_NIRI_P0_D reason=workspace-mount
+js: [cc-niri-maximize] [runtime] MOUNT id=ffd31865-052f-4bb6-aeda-d861cff6c722 columns=4 reason=workspace-switch
+js: [cc-niri-maximize] [stability] BEGIN epoch=13 reason=workspace-mount
+js: [cc-niri-maximize] [stability] END epoch=13 reason=workspace-mount
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-mount generation=18 columns=4 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":5,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"},{\"columnId\":6,\"logicalX\":2348,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"}],\"epoch\":13,\"geometryBootstrap\":true,\"issuedAt\":1792404209404,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":4240,\"newScrollOffsetX\":212,\"oldScrollOffsetX\":212,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":3,\"sessionId\":\"1a1539dabfa-23136f1a\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"ffd31865-052f-4bb6-aeda-d861cff6c722\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_A reason=window-desktops-changed
+cc.niri.viewport.clip: [WORKSPACE_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [WORKSPACE_CLIP_NATIVE] CLEAR
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_B reason=workspace-unmount
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_C reason=workspace-unmount
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_D reason=workspace-unmount
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->managed caption=CC_NIRI_P0_A reason=workspace-mount
+js: [cc-niri-maximize] [runtime] MOUNT id=6fa39388-5a46-42b9-88e1-9529fa784c29 columns=1 reason=workspace-switch
+js: [cc-niri-maximize] [runtime] MOVE uuid=34657e60-9335-42d6-94ac-792527a156d8 source=ffd31865-052f-4bb6-aeda-d861cff6c722 target=6fa39388-5a46-42b9-88e1-9529fa784c29 mounted=6fa39388-5a46-42b9-88e1-9529fa784c29
+js: [cc-niri-maximize] [stability] BEGIN epoch=14 reason=workspace-mount
+js: [cc-niri-maximize] [stability] END epoch=14 reason=workspace-mount
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-mount generation=19 columns=1 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":9,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"}],\"epoch\":14,\"geometryBootstrap\":true,\"issuedAt\":1792404209487,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":424,\"newScrollOffsetX\":212,\"oldScrollOffsetX\":212,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":3,\"sessionId\":\"1a1539dabfa-23136f1a\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"6fa39388-5a46-42b9-88e1-9529fa784c29\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 1 incoming= 0 outgoing= 0
+js: [cc-niri-maximize] [stability] RELEASE_PARKING caption=CC_NIRI_P0_C accessible=true reason=runtime-stop
+js: [cc-niri-maximize] [stability] RELEASE_PARKING caption=CC_NIRI_P0_D accessible=true reason=runtime-stop
+js: [cc-niri-maximize] [recovery] EMERGENCY_RESTORE count=2 reason=runtime-stop
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-19.js:9594:9 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-19.js:9605:47 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-19.js:9493:42 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-19.js:9543:9 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-19.js:7462:28 Variable "geometryCommitter" is used before its declaration at 7505:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-19.js:7547:9 Variable "scrollPlanCommitGate" is used before its declaration at 7574:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-19.js:7557:17 Variable "scrollPlanCommitGate" is used before its declaration at 7574:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-19.js:7559:21 Variable "scrollPlanCommitGate" is used before its declaration at 7574:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-19.js:7582:27 Variable "deferredScrollParking" is used before its declaration at 7594:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-19.js:7583:28 Variable "deferredScrollParking" is used before its declaration at 7594:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-19.js:8109:17 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-19.js:8110:55 Variable "app" is used before its declaration at 9643:7.
+js: [cc-niri-maximize] [runtime] configured secondary output HDMI-A-1 not found; using rightmost non-primary output
+js: [cc-niri-maximize] [runtime] loaded primary=Virtual-0 secondary=Virtual-1 primaryOuter=50/24/8/24 secondaryOuter=24/24/24/24
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_A reason=workspace-mount
+js: [cc-niri-maximize] [stability] BEGIN epoch=1 reason=workspace-mount
+js: [cc-niri-maximize] [layout] LAYOUT reason=workspace-mount column=1 physicalX=24 width=1252 actual=440,16 1680x1408
+js: [cc-niri-maximize] [layout] PROJECT column=1 logicalX=0 oldProjectedX=<none> projectedX=24 kind=visible output=Virtual-0
+js: [cc-niri-maximize] [stability] END epoch=1 reason=workspace-mount
+js: [cc-niri-maximize] [runtime] MOUNT id=6fa39388-5a46-42b9-88e1-9529fa784c29 columns=1 reason=script-start-workspace
+js: [cc-niri-maximize] [adoption] PHASE untracked->waiting-workspace caption=CC_NIRI_P0_B reason=workspace-window-added
+js: [cc-niri-maximize] [adoption] PHASE untracked->waiting-workspace caption=CC_NIRI_P0_C reason=workspace-window-added
+js: [cc-niri-maximize] [adoption] PHASE untracked->waiting-workspace caption=CC_NIRI_P0_D reason=workspace-window-added
+js: [cc-niri-maximize] [bridge] PUBLISH reason=script-start generation=1 columns=1 accepted=true
+js: [cc-niri-maximize] [recovery] EMERGENCY_RESTORE count=0 reason=runtime-stop
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-21.js:9594:9 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-21.js:9605:47 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-21.js:9493:42 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-21.js:9543:9 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-21.js:7462:28 Variable "geometryCommitter" is used before its declaration at 7505:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-21.js:7547:9 Variable "scrollPlanCommitGate" is used before its declaration at 7574:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-21.js:7557:17 Variable "scrollPlanCommitGate" is used before its declaration at 7574:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-21.js:7559:21 Variable "scrollPlanCommitGate" is used before its declaration at 7574:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-21.js:7582:27 Variable "deferredScrollParking" is used before its declaration at 7594:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-21.js:7583:28 Variable "deferredScrollParking" is used before its declaration at 7594:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-21.js:8109:17 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-21.js:8110:55 Variable "app" is used before its declaration at 9643:7.
+js: [cc-niri-maximize] [runtime] configured secondary output HDMI-A-1 not found; using rightmost non-primary output
+js: [cc-niri-maximize] [runtime] loaded primary=Virtual-0 secondary=Virtual-1 primaryOuter=50/24/8/24 secondaryOuter=24/24/24/24
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "34657e60-9335-42d6-94ac-792527a156d8"
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_A reason=workspace-mount
+js: [cc-niri-maximize] [runtime] MOUNT id=6fa39388-5a46-42b9-88e1-9529fa784c29 columns=1 reason=script-start-workspace
+js: [cc-niri-maximize] [stability] BEGIN epoch=1 reason=workspace-mount
+js: [cc-niri-maximize] [stability] END epoch=1 reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE untracked->waiting-workspace caption=CC_NIRI_P0_B reason=workspace-window-added
+js: [cc-niri-maximize] [adoption] PHASE untracked->waiting-workspace caption=CC_NIRI_P0_C reason=workspace-window-added
+js: [cc-niri-maximize] [adoption] PHASE untracked->waiting-workspace caption=CC_NIRI_P0_D reason=workspace-window-added
+js: [cc-niri-maximize] [bridge] PUBLISH reason=script-start generation=1 columns=1 accepted=true
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-mount generation=2 columns=1 accepted=true
+js: [cc-niri-maximize] [layout] LAYOUT reason=workspace-mount column=1 physicalX=440 width=1680 actual=24,50 1252x1382
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"}],\"epoch\":1,\"geometryBootstrap\":true,\"issuedAt\":1792404209959,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":424,\"newScrollOffsetX\":212,\"oldScrollOffsetX\":212,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":1,\"sessionId\":\"1a1539dc10e-428b2655\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"6fa39388-5a46-42b9-88e1-9529fa784c29\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 1 incoming= 0 outgoing= 0
+cc.niri.viewport.clip: [WORKSPACE_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [WORKSPACE_CLIP_NATIVE] CLEAR
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_A reason=workspace-unmount
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->managed caption=CC_NIRI_P0_B reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->managed caption=CC_NIRI_P0_C reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->managed caption=CC_NIRI_P0_D reason=workspace-mount
+js: [cc-niri-maximize] [runtime] MOUNT id=ffd31865-052f-4bb6-aeda-d861cff6c722 columns=3 reason=workspace-switch
+js: [cc-niri-maximize] [stability] BEGIN epoch=2 reason=workspace-mount
+js: [cc-niri-maximize] [stability] END epoch=2 reason=workspace-mount
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-mount generation=3 columns=3 accepted=true
+js: [cc-niri-maximize] [layout] LAYOUT reason=workspace-mount column=2 physicalX=440 width=1256 actual=440,16 1256x1408
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":2,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"},{\"columnId\":3,\"logicalX\":1924,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"3cfb7be9-5b9a-4451-8dbc-867ecada2484\"}],\"epoch\":2,\"geometryBootstrap\":true,\"issuedAt\":1792404210070,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":2544,\"newScrollOffsetX\":212,\"oldScrollOffsetX\":212,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":2,\"sessionId\":\"1a1539dc10e-428b2655\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"ffd31865-052f-4bb6-aeda-d861cff6c722\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_B reason=window-desktops-changed
+cc.niri.viewport.clip: [WORKSPACE_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [WORKSPACE_CLIP_NATIVE] CLEAR
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_C reason=workspace-unmount
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_D reason=workspace-unmount
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->managed caption=CC_NIRI_P0_A reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->managed caption=CC_NIRI_P0_B reason=workspace-mount
+js: [cc-niri-maximize] [runtime] MOUNT id=6fa39388-5a46-42b9-88e1-9529fa784c29 columns=2 reason=workspace-switch
+js: [cc-niri-maximize] [runtime] MOVE uuid=3468ef2f-4da9-41c8-a3a3-ab65e17aab12 source=ffd31865-052f-4bb6-aeda-d861cff6c722 target=6fa39388-5a46-42b9-88e1-9529fa784c29 mounted=6fa39388-5a46-42b9-88e1-9529fa784c29
+js: [cc-niri-maximize] [stability] BEGIN epoch=3 reason=workspace-mount
+js: [cc-niri-maximize] [stability] END epoch=3 reason=workspace-mount
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-mount generation=4 columns=2 accepted=true
+js: [cc-niri-maximize] [layout] LAYOUT reason=workspace-mount column=5 physicalX=0 width=1680 actual=0,16 1680x1408
+js: [cc-niri-maximize] [layout] LAYOUT reason=workspace-mount column=6 physicalX=1288 width=1256 actual=1288,16 1256x1408
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":5,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"},{\"columnId\":6,\"logicalX\":2348,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"}],\"epoch\":3,\"geometryBootstrap\":true,\"issuedAt\":1792404210152,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":1696,\"newScrollOffsetX\":1060,\"oldScrollOffsetX\":1060,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":2,\"sessionId\":\"1a1539dc10e-428b2655\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"6fa39388-5a46-42b9-88e1-9529fa784c29\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+js: [cc-niri-maximize] [stability] BEGIN epoch=4 reason=column-moved
+js: [cc-niri-maximize] [stability] END epoch=4 reason=column-moved
+js: [cc-niri-maximize] [bridge] PUBLISH reason=column-moved generation=5 columns=2 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":6,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":16,\"y\":16},\"newLogicalX\":652,\"newPixelWidth\":1256,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":1288,\"y\":16},\"oldLogicalX\":2348,\"oldPixelWidth\":1256,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1256,\"x\":1288,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"},{\"columnId\":5,\"committedTargetRect\":{\"height\":1408,\"width\":1680,\"x\":880,\"y\":16},\"newLogicalX\":1924,\"newPixelWidth\":1680,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1680,\"x\":0,\"y\":16},\"oldLogicalX\":652,\"oldPixelWidth\":1680,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1680,\"x\":-408,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"}],\"epoch\":4,\"issuedAt\":1792404210226,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":1696,\"newScrollOffsetX\":636,\"oldLayoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"oldMaxCamera\":1696,\"oldScrollOffsetX\":1060,\"protocol\":4,\"scopeRevision\":2,\"sessionId\":\"1a1539dc10e-428b2655\",\"sourceEpoch\":3,\"sourceSampleSerial\":260,\"targetOutput\":\"Virtual-0\",\"type\":\"COLUMN_GEOMETRY\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"6fa39388-5a46-42b9-88e1-9529fa784c29\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+js: [cc-niri-maximize] [layout] LAYOUT reason=column-moved column=6 physicalX=16 width=1256 actual=16,16 1256x1408
+js: [cc-niri-maximize] [layout] LAYOUT reason=column-moved column=5 physicalX=880 width=1680 actual=880,16 1680x1408
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "3468ef2f-4da9-41c8-a3a3-ab65e17aab12"
+js: [cc-niri-maximize] [stability] BEGIN epoch=5 reason=focus-directional
+js: [cc-niri-maximize] [stability] END epoch=5 reason=focus-directional
+js: [cc-niri-maximize] [bridge] PUBLISH reason=focus-directional generation=6 columns=2 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":6,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":0,\"y\":16},\"newLogicalX\":652,\"newPixelWidth\":1256,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":16,\"y\":16},\"oldLogicalX\":652,\"oldPixelWidth\":1256,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1256,\"x\":16,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"},{\"columnId\":5,\"committedTargetRect\":{\"height\":1408,\"width\":1680,\"x\":440,\"y\":16},\"newLogicalX\":1924,\"newPixelWidth\":1680,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1680,\"x\":880,\"y\":16},\"oldLogicalX\":1924,\"oldPixelWidth\":1680,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1680,\"x\":1288,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"}],\"epoch\":5,\"issuedAt\":1792404210709,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":1696,\"newScrollOffsetX\":1484,\"oldLayoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"oldMaxCamera\":1696,\"oldScrollOffsetX\":636,\"protocol\":4,\"scopeRevision\":2,\"sessionId\":\"1a1539dc10e-428b2655\",\"sourceEpoch\":4,\"sourceSampleSerial\":290,\"targetOutput\":\"Virtual-0\",\"type\":\"COLUMN_GEOMETRY\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"6fa39388-5a46-42b9-88e1-9529fa784c29\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+js: [cc-niri-maximize] [layout] LAYOUT reason=focus-directional column=6 physicalX=0 width=1256 actual=0,16 1256x1408
+js: [cc-niri-maximize] [layout] LAYOUT reason=focus-directional column=5 physicalX=440 width=1680 actual=440,16 1680x1408
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "34657e60-9335-42d6-94ac-792527a156d8"
+cc.niri.viewport.clip: [WORKSPACE_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [WORKSPACE_CLIP_NATIVE] CLEAR
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_B reason=workspace-unmount
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_A reason=workspace-unmount
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->managed caption=CC_NIRI_P0_C reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->managed caption=CC_NIRI_P0_D reason=workspace-mount
+js: [cc-niri-maximize] [runtime] MOUNT id=ffd31865-052f-4bb6-aeda-d861cff6c722 columns=2 reason=workspace-switch
+js: [cc-niri-maximize] [stability] BEGIN epoch=6 reason=workspace-mount
+js: [cc-niri-maximize] [stability] END epoch=6 reason=workspace-mount
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-mount generation=7 columns=2 accepted=true
+js: [cc-niri-maximize] [layout] LAYOUT reason=workspace-mount column=7 physicalX=440 width=1256 actual=440,16 1256x1408
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":7,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"3cfb7be9-5b9a-4451-8dbc-867ecada2484\"},{\"columnId\":8,\"logicalX\":1924,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"49db908f-1251-481d-8d03-592dcfcb7e1a\"}],\"epoch\":6,\"geometryBootstrap\":true,\"issuedAt\":1792404211203,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":1272,\"newScrollOffsetX\":212,\"oldScrollOffsetX\":212,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":3,\"sessionId\":\"1a1539dc10e-428b2655\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"ffd31865-052f-4bb6-aeda-d861cff6c722\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+cc.niri.viewport.clip: [WORKSPACE_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [WORKSPACE_CLIP_NATIVE] CLEAR
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_C reason=workspace-unmount
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_D reason=workspace-unmount
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->managed caption=CC_NIRI_P0_B reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->managed caption=CC_NIRI_P0_A reason=workspace-mount
+js: [cc-niri-maximize] [runtime] MOUNT id=6fa39388-5a46-42b9-88e1-9529fa784c29 columns=2 reason=workspace-switch
+js: [cc-niri-maximize] [stability] BEGIN epoch=7 reason=workspace-mount
+js: [cc-niri-maximize] [stability] END epoch=7 reason=workspace-mount
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-mount generation=8 columns=2 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":9,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"},{\"columnId\":10,\"logicalX\":1924,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"}],\"epoch\":7,\"geometryBootstrap\":true,\"issuedAt\":1792404211290,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":1696,\"newScrollOffsetX\":1484,\"oldScrollOffsetX\":1484,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":4,\"sessionId\":\"1a1539dc10e-428b2655\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"6fa39388-5a46-42b9-88e1-9529fa784c29\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+js: [cc-niri-maximize] [stability] BEGIN epoch=8 reason=focus-directional
+js: [cc-niri-maximize] [stability] END epoch=8 reason=focus-directional
+js: [cc-niri-maximize] [bridge] PUBLISH reason=focus-directional generation=9 columns=2 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":9,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":16,\"y\":16},\"newLogicalX\":652,\"newPixelWidth\":1256,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":0,\"y\":16},\"oldLogicalX\":652,\"oldPixelWidth\":1256,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1256,\"x\":-832,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"},{\"columnId\":10,\"committedTargetRect\":{\"height\":1408,\"width\":1680,\"x\":880,\"y\":16},\"newLogicalX\":1924,\"newPixelWidth\":1680,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1680,\"x\":440,\"y\":16},\"oldLogicalX\":1924,\"oldPixelWidth\":1680,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1680,\"x\":440,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"}],\"epoch\":8,\"issuedAt\":1792404211334,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":1696,\"newScrollOffsetX\":636,\"oldLayoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"oldMaxCamera\":1696,\"oldScrollOffsetX\":1484,\"protocol\":4,\"scopeRevision\":4,\"sessionId\":\"1a1539dc10e-428b2655\",\"sourceEpoch\":7,\"sourceSampleSerial\":325,\"targetOutput\":\"Virtual-0\",\"type\":\"COLUMN_GEOMETRY\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"6fa39388-5a46-42b9-88e1-9529fa784c29\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+js: [cc-niri-maximize] [layout] LAYOUT reason=focus-directional column=9 physicalX=16 width=1256 actual=16,16 1256x1408
+js: [cc-niri-maximize] [layout] LAYOUT reason=focus-directional column=10 physicalX=880 width=1680 actual=880,16 1680x1408
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "34657e60-9335-42d6-94ac-792527a156d8"
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "3468ef2f-4da9-41c8-a3a3-ab65e17aab12"
+js: [cc-niri-maximize] [stability] BEGIN epoch=9 reason=focus-directional
+js: [cc-niri-maximize] [stability] END epoch=9 reason=focus-directional
+js: [cc-niri-maximize] [bridge] PUBLISH reason=focus-directional generation=10 columns=2 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":9,\"committedTargetRect\":{\"height\":1408,\"width\":1256,\"x\":0,\"y\":16},\"newLogicalX\":652,\"newPixelWidth\":1256,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1256,\"x\":16,\"y\":16},\"oldLogicalX\":652,\"oldPixelWidth\":1256,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1256,\"x\":16,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"},{\"columnId\":10,\"committedTargetRect\":{\"height\":1408,\"width\":1680,\"x\":440,\"y\":16},\"newLogicalX\":1924,\"newPixelWidth\":1680,\"newPlacement\":\"visible\",\"oldFrameRect\":{\"height\":1408,\"width\":1680,\"x\":880,\"y\":16},\"oldLogicalX\":1924,\"oldPixelWidth\":1680,\"oldPlacement\":\"visible\",\"oldVisualRect\":{\"height\":1408,\"width\":1680,\"x\":1288,\"y\":16},\"sourceKind\":\"painted\",\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"}],\"epoch\":9,\"issuedAt\":1792404211833,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":1696,\"newScrollOffsetX\":1484,\"oldLayoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"oldMaxCamera\":1696,\"oldScrollOffsetX\":636,\"protocol\":4,\"scopeRevision\":4,\"sessionId\":\"1a1539dc10e-428b2655\",\"sourceEpoch\":8,\"sourceSampleSerial\":354,\"targetOutput\":\"Virtual-0\",\"type\":\"COLUMN_GEOMETRY\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"6fa39388-5a46-42b9-88e1-9529fa784c29\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+js: [cc-niri-maximize] [layout] LAYOUT reason=focus-directional column=9 physicalX=0 width=1256 actual=0,16 1256x1408
+js: [cc-niri-maximize] [layout] LAYOUT reason=focus-directional column=10 physicalX=440 width=1680 actual=440,16 1680x1408
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "34657e60-9335-42d6-94ac-792527a156d8"
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "34657e60-9335-42d6-94ac-792527a156d8"
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "34657e60-9335-42d6-94ac-792527a156d8"
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_B reason=workspace-unmount
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_A reason=workspace-unmount
+cc.niri.focus.ring: [FOCUS_RING] FOCUS ""
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->managed caption=CC_NIRI_P0_B reason=workspace-mount
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "34657e60-9335-42d6-94ac-792527a156d8"
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->managed caption=CC_NIRI_P0_A reason=workspace-mount
+js: [cc-niri-maximize] [runtime] MOUNT id=6fa39388-5a46-42b9-88e1-9529fa784c29 columns=2 reason=session-resume
+js: [cc-niri-maximize] [stability] BEGIN epoch=10 reason=workspace-mount
+js: [cc-niri-maximize] [stability] END epoch=10 reason=workspace-mount
+js: [cc-niri-maximize] [stability] BEGIN epoch=11 reason=workspace-window-added
+js: [cc-niri-maximize] [stability] END epoch=11 reason=workspace-window-added
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-mount generation=14 columns=2 accepted=true
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-window-added generation=14 columns=2 accepted=true
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-window-added generation=14 columns=2 accepted=true
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-window-added generation=14 columns=2 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":11,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"},{\"columnId\":12,\"logicalX\":1924,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"}],\"epoch\":11,\"geometryBootstrap\":true,\"issuedAt\":1792404212907,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":1696,\"newScrollOffsetX\":1484,\"oldScrollOffsetX\":1484,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":5,\"sessionId\":\"1a1539dc10e-428b2655\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"6fa39388-5a46-42b9-88e1-9529fa784c29\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "34657e60-9335-42d6-94ac-792527a156d8"
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "34657e60-9335-42d6-94ac-792527a156d8"
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_B reason=workspace-unmount
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_A reason=workspace-unmount
+cc.niri.focus.ring: [FOCUS_RING] FOCUS ""
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->managed caption=CC_NIRI_P0_B reason=workspace-mount
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "34657e60-9335-42d6-94ac-792527a156d8"
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->managed caption=CC_NIRI_P0_A reason=workspace-mount
+js: [cc-niri-maximize] [runtime] MOUNT id=6fa39388-5a46-42b9-88e1-9529fa784c29 columns=2 reason=session-resume
+js: [cc-niri-maximize] [stability] BEGIN epoch=12 reason=workspace-mount
+js: [cc-niri-maximize] [stability] END epoch=12 reason=workspace-mount
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-mount generation=17 columns=2 accepted=true
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-window-added generation=17 columns=2 accepted=true
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-window-added generation=17 columns=2 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":13,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"},{\"columnId\":14,\"logicalX\":1924,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"}],\"epoch\":12,\"geometryBootstrap\":true,\"issuedAt\":1792404213068,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":1696,\"newScrollOffsetX\":1484,\"oldScrollOffsetX\":1484,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":6,\"sessionId\":\"1a1539dc10e-428b2655\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"6fa39388-5a46-42b9-88e1-9529fa784c29\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "34657e60-9335-42d6-94ac-792527a156d8"
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "34657e60-9335-42d6-94ac-792527a156d8"
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_B reason=workspace-unmount
+js: [cc-niri-maximize] [adoption] PHASE managed->waiting-workspace caption=CC_NIRI_P0_A reason=workspace-unmount
+cc.niri.focus.ring: [FOCUS_RING] FOCUS ""
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->managed caption=CC_NIRI_P0_B reason=workspace-mount
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "34657e60-9335-42d6-94ac-792527a156d8"
+js: [cc-niri-maximize] [adoption] PHASE waiting-workspace->managed caption=CC_NIRI_P0_A reason=workspace-mount
+js: [cc-niri-maximize] [runtime] MOUNT id=6fa39388-5a46-42b9-88e1-9529fa784c29 columns=2 reason=session-resume
+js: [cc-niri-maximize] [stability] BEGIN epoch=13 reason=workspace-mount
+js: [cc-niri-maximize] [stability] END epoch=13 reason=workspace-mount
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-mount generation=20 columns=2 accepted=true
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-window-added generation=20 columns=2 accepted=true
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-window-added generation=20 columns=2 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":15,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"},{\"columnId\":16,\"logicalX\":1924,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"}],\"epoch\":13,\"geometryBootstrap\":true,\"issuedAt\":1792404213244,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":1696,\"newScrollOffsetX\":1484,\"oldScrollOffsetX\":1484,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":7,\"sessionId\":\"1a1539dc10e-428b2655\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"6fa39388-5a46-42b9-88e1-9529fa784c29\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+js: [cc-niri-maximize] [stability] RELEASE_PARKING caption=CC_NIRI_P0_C accessible=true reason=bridge-unload
+js: [cc-niri-maximize] [stability] RELEASE_PARKING caption=CC_NIRI_P0_D accessible=true reason=bridge-unload
+js: [cc-niri-maximize] [recovery] EMERGENCY_RESTORE count=2 reason=bridge-unload
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] READY scrollRuntimeBackend= "Rust"
+cc.niri.focus.ring: [FOCUS_RING] READY isolated post-window border coreBackend= Rust
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-33.js:9594:9 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-33.js:9605:47 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-33.js:9493:42 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-33.js:9543:9 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-33.js:7462:28 Variable "geometryCommitter" is used before its declaration at 7505:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-33.js:7547:9 Variable "scrollPlanCommitGate" is used before its declaration at 7574:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-33.js:7557:17 Variable "scrollPlanCommitGate" is used before its declaration at 7574:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-33.js:7559:21 Variable "scrollPlanCommitGate" is used before its declaration at 7574:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-33.js:7582:27 Variable "deferredScrollParking" is used before its declaration at 7594:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-33.js:7583:28 Variable "deferredScrollParking" is used before its declaration at 7594:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-33.js:8109:17 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-33.js:8110:55 Variable "app" is used before its declaration at 9643:7.
+js: [cc-niri-maximize] [runtime] configured secondary output HDMI-A-1 not found; using rightmost non-primary output
+js: [cc-niri-maximize] [runtime] loaded primary=Virtual-0 secondary=Virtual-1 primaryOuter=50/24/8/24 secondaryOuter=24/24/24/24
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_B reason=workspace-mount
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "34657e60-9335-42d6-94ac-792527a156d8"
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_A reason=workspace-mount
+js: [cc-niri-maximize] [runtime] MOUNT id=6fa39388-5a46-42b9-88e1-9529fa784c29 columns=2 reason=script-start-workspace
+js: [cc-niri-maximize] [stability] BEGIN epoch=1 reason=workspace-mount
+js: [cc-niri-maximize] [stability] END epoch=1 reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE untracked->waiting-workspace caption=CC_NIRI_P0_C reason=workspace-window-added
+js: [cc-niri-maximize] [adoption] PHASE untracked->waiting-workspace caption=CC_NIRI_P0_D reason=workspace-window-added
+js: [cc-niri-maximize] [bridge] PUBLISH reason=script-start generation=1 columns=2 accepted=true
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-mount generation=2 columns=2 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"},{\"columnId\":2,\"logicalX\":1924,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"}],\"epoch\":1,\"geometryBootstrap\":true,\"issuedAt\":1792404214114,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":1696,\"newScrollOffsetX\":1484,\"oldScrollOffsetX\":1484,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":1,\"sessionId\":\"1a1539dd14a-834741f5\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"6fa39388-5a46-42b9-88e1-9529fa784c29\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+js: [cc-niri-maximize] [stability] RELEASE_PARKING caption=CC_NIRI_P0_C accessible=true reason=bridge-unload
+js: [cc-niri-maximize] [recovery] EMERGENCY_RESTORE count=1 reason=bridge-unload
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] READY scrollRuntimeBackend= "Rust"
+cc.niri.focus.ring: [FOCUS_RING] READY isolated post-window border coreBackend= Rust
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-35.js:9594:9 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-35.js:9605:47 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-35.js:9493:42 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-35.js:9543:9 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-35.js:7462:28 Variable "geometryCommitter" is used before its declaration at 7505:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-35.js:7547:9 Variable "scrollPlanCommitGate" is used before its declaration at 7574:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-35.js:7557:17 Variable "scrollPlanCommitGate" is used before its declaration at 7574:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-35.js:7559:21 Variable "scrollPlanCommitGate" is used before its declaration at 7574:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-35.js:7582:27 Variable "deferredScrollParking" is used before its declaration at 7594:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-35.js:7583:28 Variable "deferredScrollParking" is used before its declaration at 7594:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-35.js:8109:17 Variable "app" is used before its declaration at 9643:7.
+qt.qml.usedbeforedeclared: file:///tmp/cc-niri-p0-3xyrxxxy/p5-entry-35.js:8110:55 Variable "app" is used before its declaration at 9643:7.
+js: [cc-niri-maximize] [runtime] configured secondary output HDMI-A-1 not found; using rightmost non-primary output
+js: [cc-niri-maximize] [runtime] loaded primary=Virtual-0 secondary=Virtual-1 primaryOuter=50/24/8/24 secondaryOuter=24/24/24/24
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_B reason=workspace-mount
+cc.niri.focus.ring: [FOCUS_RING] FOCUS "34657e60-9335-42d6-94ac-792527a156d8"
+js: [cc-niri-maximize] [adoption] PHASE untracked->managed caption=CC_NIRI_P0_A reason=workspace-mount
+js: [cc-niri-maximize] [runtime] MOUNT id=6fa39388-5a46-42b9-88e1-9529fa784c29 columns=2 reason=script-start-workspace
+js: [cc-niri-maximize] [stability] BEGIN epoch=1 reason=workspace-mount
+js: [cc-niri-maximize] [stability] END epoch=1 reason=workspace-mount
+js: [cc-niri-maximize] [adoption] PHASE untracked->waiting-workspace caption=CC_NIRI_P0_C reason=workspace-window-added
+js: [cc-niri-maximize] [adoption] PHASE untracked->waiting-workspace caption=CC_NIRI_P0_D reason=workspace-window-added
+js: [cc-niri-maximize] [bridge] PUBLISH reason=script-start generation=1 columns=2 accepted=true
+js: [cc-niri-maximize] [bridge] PUBLISH reason=workspace-mount generation=2 columns=2 accepted=true
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] OBSERVE "{\"clipPartial\":true,\"entries\":[{\"columnId\":1,\"logicalX\":652,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1256,\"windowId\":\"3468ef2f-4da9-41c8-a3a3-ab65e17aab12\"},{\"columnId\":2,\"logicalX\":1924,\"newPlacement\":\"visible\",\"oldPlacement\":\"visible\",\"pixelWidth\":1680,\"windowId\":\"34657e60-9335-42d6-94ac-792527a156d8\"}],\"epoch\":1,\"geometryBootstrap\":true,\"issuedAt\":1792404214871,\"layoutRect\":{\"height\":1408,\"width\":2560,\"x\":0,\"y\":16},\"maxCamera\":1696,\"newScrollOffsetX\":1484,\"oldScrollOffsetX\":1484,\"protocol\":3,\"retargetOnly\":true,\"scopeRevision\":1,\"sessionId\":\"1a1539dd428-6948f4eb\",\"targetOutput\":\"Virtual-0\",\"type\":\"PARTIAL_SCROLL\",\"viewport\":{\"height\":1440,\"width\":2560,\"x\":0,\"y\":0},\"workspaceId\":\"6fa39388-5a46-42b9-88e1-9529fa784c29\"}"
+cc.niri.viewport.clip: [SCROLL_PLAN_NATIVE] ARM continuing= 2 incoming= 0 outgoing= 0
+js: [cc-niri-maximize] [stability] RELEASE_PARKING caption=CC_NIRI_P0_C accessible=true reason=bridge-unload
+js: [cc-niri-maximize] [recovery] EMERGENCY_RESTORE count=1 reason=bridge-unload
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] CLEAR
+ShapeCorners: Writing Breeze config
+kwin_scene_opengl: Could not delete render time query because no context is current

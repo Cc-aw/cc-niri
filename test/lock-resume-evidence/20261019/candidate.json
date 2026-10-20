@@ -1,0 +1,9 @@
+{
+  "status": "DEPLOYED",
+  "manifest": "/tmp/cc-niri-lock-resume-20261019-deploy/manifest.json",
+  "integrity": "PASS",
+  "rollback": "DRY_RUN",
+  "deployment": "PASS",
+  "real_lock_acceptance": "PENDING",
+  "resource_budget": "NOT MEASURED"
+}

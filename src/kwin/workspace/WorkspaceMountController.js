@@ -19,7 +19,7 @@ class WorkspaceMountController {
     }
 
     canUseActiveWorkspace() {
-        return Boolean(!this.stopped && this.appState.enabled &&
+        return Boolean(!this.stopped && this.appState.enabled && !this.appState.sessionPaused &&
             !this.appState.workspaceSwitching && this.appState.activeWorkspaceId &&
             this.currentId() === this.appState.activeWorkspaceId);
     }
@@ -176,7 +176,7 @@ class WorkspaceMountController {
     mount(desktop, reason = "workspace-switch", commit = true, prepared = false, focusedUuid = null) {
         const state = this.appState;
         const id = this.topology.id(desktop);
-        if (this.stopped || (state.workspaceSwitching && !prepared) || !state.enabled || !state.targetOutput || !id) return false;
+        if (this.stopped || state.sessionPaused || (state.workspaceSwitching && !prepared) || !state.enabled || !state.targetOutput || !id) return false;
         state.workspaceSwitching = true;
         try {
             if (!prepared) this.cancelPending(reason);

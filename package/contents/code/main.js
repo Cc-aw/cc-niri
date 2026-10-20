@@ -584,7 +584,7 @@ class WorkspaceMountController {
     }
 
     canUseActiveWorkspace() {
-        return Boolean(!this.stopped && this.appState.enabled &&
+        return Boolean(!this.stopped && this.appState.enabled && !this.appState.sessionPaused &&
             !this.appState.workspaceSwitching && this.appState.activeWorkspaceId &&
             this.currentId() === this.appState.activeWorkspaceId);
     }
@@ -741,7 +741,7 @@ class WorkspaceMountController {
     mount(desktop, reason = "workspace-switch", commit = true, prepared = false, focusedUuid = null) {
         const state = this.appState;
         const id = this.topology.id(desktop);
-        if (this.stopped || (state.workspaceSwitching && !prepared) || !state.enabled || !state.targetOutput || !id) return false;
+        if (this.stopped || state.sessionPaused || (state.workspaceSwitching && !prepared) || !state.enabled || !state.targetOutput || !id) return false;
         state.workspaceSwitching = true;
         try {
             if (!prepared) this.cancelPending(reason);
@@ -826,7 +826,7 @@ class WorkspaceSwitchController {
     }
 
     ready() {
-        return !this.stopped && !this.mount.stopped && this.appState.enabled &&
+        return !this.stopped && !this.mount.stopped && this.appState.enabled && !this.appState.sessionPaused &&
             this.appState.targetOutput && this.appState.activeWorkspaceId;
     }
 
@@ -902,7 +902,7 @@ class WorkspaceSwitchController {
     }
 
     valid(epoch) {
-        return !this.stopped && !this.mount.stopped && this.appState.enabled &&
+        return !this.stopped && !this.mount.stopped && this.appState.enabled && !this.appState.sessionPaused &&
             epoch === this.switchEpoch && this.phase !== "IDLE";
     }
 
@@ -975,6 +975,10 @@ class WorkspaceSwitchController {
     stop() {
         if (this.stopped) return;
         this.stopped = true;
+        this.pause();
+    }
+
+    pause() {
         ++this.switchEpoch;
         this.clearTimeout();
         this.phase = "IDLE";
@@ -2424,7 +2428,7 @@ class ScrollPlanCommitGate {
         this.disarming = new Set(); this.idleCallbacks = [];
         this.retainedEpochs = new Set();
     }
-    abort(epoch, callback = () => {}) {
+    abort(epoch, callback = () => {}, timeoutMs = this.timeoutMs) {
         const request = { epoch, timer: null };
         this.disarming.add(request);
         const finish = confirmed => {
@@ -2436,7 +2440,10 @@ class ScrollPlanCommitGate {
         };
         // A disconnected endpoint must not retain historical requests forever.
         // This is the same finite ACK deadline used by visible fallback commits.
-        request.timer = this.setTimer(() => finish(false), this.timeoutMs);
+        request.timer = this.setTimer(() => {
+            if (this.warn) this.warn(`[SCROLL_PLAN] disarm deadline epoch=${epoch} timeoutMs=${timeoutMs}`);
+            finish(false);
+        }, timeoutMs);
         try { this.disarm(epoch, finish); } catch (error) {
             this.warn(`[SCROLL_PLAN] disarm unavailable ${error}`); finish(false);
         }
@@ -3281,6 +3288,7 @@ class ColumnGeometryCoordinator {
         this.recovering = false;
         const publishState = options.prepare;
         this.preparedEpoch = null;
+        this.releaseEpoch = null;
         this.prepare = (intent, done) => {
             if (this.preparedEpoch === intent.epoch) { done(true); return; }
             publishState(intent, accepted => {
@@ -3576,22 +3584,32 @@ class ColumnGeometryCoordinator {
         this.recover(intent, proof);
     }
     releaseForWorkspace() {
+        if (this.intent) this.releaseEpoch = Math.max(this.releaseEpoch ?? 0, this.intent.epoch);
         this.serial++; this.cancelLease(); this.gate.releaseForWorkspace();
         this.geometry = null; this.observed = null; this.intent = null;
     }
-    suspend(done = () => {}) {
+    pause() {
         // Retire callbacks before waiting; no static host write until Native has
         // confirmed both motion and retained handoff ownership are gone.
         const epoch = this.intent && this.intent.epoch;
+        if (epoch !== null && epoch !== undefined) this.releaseEpoch = Math.max(this.releaseEpoch ?? 0, epoch);
         this.serial++; this.cancelLease(); this.gate.supersede();
         this.intent = null; this.geometry = null; this.observed = null;
         this.lastCompletion = null; this.preparedEpoch = null;
-        if (epoch === null || epoch === undefined) { done(true); return; }
+    }
+    suspend(done = () => {}, timeoutMs = this.gate.timeoutMs) {
+        this.pause();
+        if (this.releaseEpoch === null) { done(true); return; }
         this.gate.activeEpoch = null;
-        this.gate.abort(epoch, confirmed => done(confirmed === true));
+        const releasing = this.releaseEpoch;
+        this.gate.abort(releasing, confirmed => {
+            if (confirmed === true && this.releaseEpoch === releasing) this.releaseEpoch = null;
+            done(confirmed === true);
+        }, timeoutMs);
     }
     stop(done = () => {}) {
         const epoch = this.intent && this.intent.epoch;
+        if (epoch !== null && epoch !== undefined) this.releaseEpoch = Math.max(this.releaseEpoch ?? 0, epoch);
         this.serial++; this.cancelLease(); this.gate.supersede(); this.stopped = true;
         if (this.bridge.handlers["scroll-frame-ready"] === this.wakeHandler) {
             delete this.bridge.handlers["scroll-frame-ready"];
@@ -3599,9 +3617,13 @@ class ColumnGeometryCoordinator {
         }
         this.intent = null; this.geometry = null; this.observed = null;
         this.lastCompletion = null; this.preparedEpoch = null;
-        if (epoch === null || epoch === undefined) { done(true); return; }
+        if (this.releaseEpoch === null) { done(true); return; }
         this.gate.activeEpoch=null;
-        this.gate.abort(epoch, confirmed => done(confirmed === true));
+        const releasing = this.releaseEpoch;
+        this.gate.abort(releasing, confirmed => {
+            if (confirmed === true && this.releaseEpoch === releasing) this.releaseEpoch = null;
+            done(confirmed === true);
+        });
     }
 }
 
@@ -3912,6 +3934,7 @@ class ContinuousLayoutRuntime {
         this.stopped = false;
         this.actions = new Map();
         this.anchor = null;
+        this.exclusiveSequence = 0;
         this.controller = new ContinuousViewportController({
             state: this.state, columnStore: this.columnStore, transaction: this.transaction,
             enabled: true, sessionId: this.bridge.sessionId(), dockEnabled: options.dockEnabled,
@@ -3919,12 +3942,12 @@ class ContinuousLayoutRuntime {
             getUuid: this.getUuid, canJoin: (window, scope) => this.canJoin(window, scope),
             getPainted: () => this.coordinator.getPainted(),
             onTarget: intent => {
-                if (!this.blocked && !this.stopped) this.coordinator.submit(intent);
+                if (!this.blocked && !this.stopped && !this.state.sessionPaused) this.coordinator.submit(intent);
             },
         });
         this.coordinator = new ColumnGeometryCoordinator({
             bridge: this.bridge, currentEpoch: () => this.transaction.currentEpoch(),
-            isScope: intent => this.controller.ready() && !this.blocked && !this.stopped &&
+            isScope: intent => this.controller.ready() && !this.blocked && !this.stopped && !this.state.sessionPaused &&
                 !this.presentationSuspended() && intent.scopeRevision === this.controller.scopeRevision &&
                 intent.workspaceId === this.state.activeWorkspaceId &&
                 intent.targetOutput === this.state.targetOutput.name,
@@ -3951,7 +3974,7 @@ class ContinuousLayoutRuntime {
         return this.state.presentation.mode === "maximized" || this.state.columns.some(c => c.window.fullScreen);
     }
 
-    ready() { return !this.blocked && !this.stopped && !this.presentationSuspended() && this.controller.ready(); }
+    ready() { return !this.blocked && !this.stopped && !this.state.sessionPaused && !this.presentationSuspended() && this.controller.ready(); }
 
     restoreView(anchor, preserve) { this.anchor = preserve ? anchor : null; }
 
@@ -3965,7 +3988,7 @@ class ContinuousLayoutRuntime {
     }
 
     sync(reason = "v2-layout") {
-        if (this.blocked || this.stopped || !this.state.enabled || this.state.workspaceSwitching ||
+        if (this.blocked || this.stopped || this.state.sessionPaused || !this.state.enabled || this.state.workspaceSwitching ||
                 !this.state.activeWorkspaceId || this.presentationSuspended()) return false;
         const geometry = this.getGeometry();
         if (!geometry) { this.fail("missing-working-area", false); return false; }
@@ -3985,16 +4008,17 @@ class ContinuousLayoutRuntime {
     }
 
     exclusive(key, action) {
-        if (this.stopped) return false;
+        if (this.stopped || this.state.sessionPaused) return false;
         if (this.inExclusive) return action();
         // Coalesce repeated signals from one live window, bounded by membership.
         if (this.actions.size >= 512 && !this.actions.has(key)) { this.fail("departure-overflow", false); return false; }
         this.actions.set(key, action);
         if (this.blocked) return true;
         this.blocked = true;
+        const sequence = ++this.exclusiveSequence;
         this.coordinator.suspend(confirmed => {
-            if (this.stopped) return;
-            if (!confirmed) { this.actions.clear(); this.fail("departure-disarm", false); return; }
+            if (this.stopped || sequence !== this.exclusiveSequence) return;
+            if (!confirmed) { this.actions.clear(); this.fail(`departure-disarm event=${key}`, false); return; }
             this.inExclusive = true;
             try {
                 const actions = Array.from(this.actions.values()); this.actions.clear();
@@ -4006,6 +4030,21 @@ class ContinuousLayoutRuntime {
         return true;
     }
 
+    pauseSession() {
+        ++this.exclusiveSequence;
+        this.blocked = true; this.actions.clear(); this.anchor = null;
+        // Cancel leases immediately, even if the session query or wake is late.
+        this.coordinator.pause();
+    }
+
+    resumeSession() {
+        if (this.stopped || !this.state.enabled || this.coordinator.releaseEpoch !== null) return false;
+        this.coordinator.quarantined = false;
+        this.coordinator.recovering = false;
+        this.blocked = false;
+        return true;
+    }
+
     releaseForWorkspace() {
         this.coordinator.releaseForWorkspace();
         this.controller.geometry = null; this.controller.lastTarget = null;
@@ -4013,14 +4052,139 @@ class ContinuousLayoutRuntime {
     }
 
     stop(done) {
-        if (this.stopped) { done(this.stopConfirmed === true); return; }
+        if (this.stopped && this.stopConfirmed === true) { done(true); return; }
         this.stopped = true; this.blocked = true; this.actions.clear(); this.anchor = null;
+        ++this.exclusiveSequence;
         delete this.bridge.handlers["focus-partial-column"];
         this.coordinator.stop(confirmed => {
             this.stopConfirmed = confirmed;
             this.controller.geometry = null; this.controller.lastTarget = null; this.controller.lastSample = null;
             done(confirmed);
         });
+    }
+}
+
+// Generated from src/kwin/runtime/SessionPauseController.js
+// Session facts are observed by Native. This JS owner sequences layout pause /
+// release / reconciliation; it never samples presentation or polls while idle.
+class SessionPauseController {
+    constructor(options) {
+        Object.assign(this, options);
+        this.phase = "checking";
+        this.reason = "startup";
+        this.sequence = 0;
+        this.token = 0;
+        this.timer = null;
+        this.reading = false;
+        this.queuedReason = null;
+        this.native = null;
+        this.paused = true;
+        this.stopped = false;
+        this.terminal = false;
+        this.faultReason = null;
+        this.sawLock = false;
+        this.deadlineMs = options.deadlineMs || 500;
+    }
+
+    report(state, reason) {
+        this.phase = state; this.reason = String(reason).slice(0, 256);
+        this.publish();
+    }
+    publish() { this.health({ state: this.phase, reason: this.reason, sequence: ++this.sequence }); }
+    clear() { if (this.timer) this.clearTimer(this.timer); this.timer = null; }
+    pause() {
+        if (this.paused) return;
+        this.paused = true;
+        this.onPause();
+    }
+    block(reason) {
+        this.clear(); this.pause(); this.report("blocked", reason);
+        this.warn(`[cc-session] blocked reason=${reason}`);
+    }
+    query(token, done) {
+        this.clear();
+        let live = true;
+        const finish = raw => {
+            if (!live || token !== this.token || this.stopped) return;
+            live = false; this.reading = false; this.clear();
+            if (this.queuedReason !== null) {
+                const reason = this.queuedReason; this.queuedReason = null;
+                this.refresh(reason); return;
+            }
+            let facts;
+            try { facts = typeof raw === "string" ? JSON.parse(raw) : raw; } catch (_error) { facts = null; }
+            if (!facts || facts.protocol !== 1 || facts.type !== "session-state" ||
+                    typeof facts.locked !== "boolean" || typeof facts.instanceId !== "string" ||
+                    !facts.instanceId || facts.instanceId.length > 64 ||
+                    !Number.isSafeInteger(facts.sequence) || facts.sequence < 0) {
+                this.block(raw === null ? "session-query-deadline" : "invalid-session-state"); return;
+            }
+            if (this.native && facts.instanceId !== this.native.instanceId) {
+                this.terminal = true; this.block("native-instance-replaced"); return;
+            }
+            if (this.native && facts.sequence < this.native.sequence) { this.block("session-sequence-regressed"); return; }
+            // A coalesced unlock wake can be the first delivered event after
+            // global shortcuts were disabled. A higher sequence proves a cycle.
+            if (facts.locked || (this.native && facts.sequence > this.native.sequence)) this.sawLock = true;
+            this.native = facts;
+            done(facts);
+        };
+        this.reading = true;
+        this.timer = this.setTimer(() => finish(null), this.deadlineMs);
+        try { this.readState(finish); } catch (_error) { finish(null); }
+    }
+    refresh(reason = "session-event") {
+        if (this.stopped || this.terminal) return false;
+        if (this.reading) { this.queuedReason = reason; return true; }
+        const token = ++this.token;
+        this.query(token, facts => {
+            if (facts.locked) {
+                this.pause(); this.report("locked", reason);
+                this.release(() => {}, this.deadlineMs);
+                return;
+            }
+            if (this.faultReason && !this.sawLock) {
+                this.terminal = true;
+                this.block(this.faultReason); this.onFault(this.faultReason, this.faultCancelled);
+                return;
+            }
+            if (this.phase === "running" && !this.sawLock) return;
+            this.pause(); this.report("resuming", reason);
+            this.attempt(token, 1);
+        });
+        return true;
+    }
+    attempt(token, count) {
+        this.release(confirmed => {
+            if (token !== this.token || this.stopped) return;
+            if (!confirmed) {
+                if (count >= 3) { this.block("release-unconfirmed"); return; }
+                this.timer = this.setTimer(() => {
+                    this.timer = null;
+                    if (token === this.token && !this.stopped) this.attempt(token, count + 1);
+                }, 0);
+                return;
+            }
+            this.query(token, facts => {
+                if (facts.locked) { this.report("locked", "relocked-during-resume"); return; }
+                this.paused = false; this.sawLock = false; this.faultReason = null;
+                this.report("running", "session-ready");
+                if (this.onResume() === false) this.block("layout-resume-rejected");
+            });
+        }, this.deadlineMs);
+    }
+    fault(reason, cancelled) {
+        if (this.stopped || this.terminal) return;
+        this.faultReason = String(reason).slice(0, 256);
+        this.faultCancelled = cancelled;
+        this.pause(); this.report("checking", this.faultReason);
+        this.refresh("fault-session-check");
+    }
+    stop() {
+        if (this.stopped) return;
+        this.stopped = true; ++this.token; this.clear(); this.pause();
+        this.queuedReason = null;
+        this.report("stopped", "runtime-stop");
     }
 }
 
@@ -4280,6 +4444,9 @@ class RuntimeLifecycle {
         this.startupTimer = null;
         this.startupPending = false;
         this.startupGeneration = 0;
+        this.mayInitialize = options.mayInitialize || (() => true);
+        this.startupSnapshot = "";
+        this.completeStartup = null;
     }
 
     connect(signal, handler, owner = null) {
@@ -4326,7 +4493,11 @@ class RuntimeLifecycle {
         const complete = snapshot => {
             if (!this.started || !this.startupPending ||
                     generation !== this.startupGeneration) return;
+            if (snapshot) this.startupSnapshot = snapshot;
+            if (!this.mayInitialize()) return;
+            snapshot = this.startupSnapshot;
             this.startupPending = false;
+            this.completeStartup = null; this.startupSnapshot = "";
             if (this.startupTimer && this.clearTimer) {
                 this.clearTimer(this.startupTimer);
                 this.startupTimer = null;
@@ -4335,6 +4506,7 @@ class RuntimeLifecycle {
             this.markInitialized(true);
             this.commitInitialState();
         };
+        this.completeStartup = complete;
         if (this.setTimer) {
             this.startupTimer = this.setTimer(
                 () => complete(""), this.startupTimeoutMs);
@@ -4345,6 +4517,12 @@ class RuntimeLifecycle {
             complete("");
         }
         return true;
+    }
+
+    resumeInitialization() {
+        if (!this.started || !this.startupPending || !this.completeStartup) return false;
+        this.completeStartup("");
+        return !this.startupPending;
     }
 
     stop() {
@@ -4361,6 +4539,7 @@ class RuntimeLifecycle {
         this.connections = [];
         this.startupGeneration += 1;
         this.startupPending = false;
+        this.completeStartup = null; this.startupSnapshot = "";
         if (this.startupTimer && this.clearTimer) {
             this.clearTimer(this.startupTimer);
             this.startupTimer = null;
@@ -5046,6 +5225,9 @@ class Recovery {
         if (this.retiring || this.waiting) return 0;
         this.status = { state: "pending", requestId, restoredCount: 0 };
         this.onStatus(this.status);
+        // Only an explicit new recovery request may retry an unconfirmed
+        // Native retirement. No geometry is written until that proof succeeds.
+        if (this.blocked && !this.retired && requestId !== null) this.blocked = false;
         if (this.blocked) {
             if (this.retired && this.retryable) {
                 const live = new Map(this.getWindows().map(window => [this.getWindowId(window), window]));
@@ -5295,6 +5477,10 @@ class AdoptionController {
         if (windowState.adoptionPhase === this.phases.floating ||
                 windowState.adoptionPhase === this.phases.policyFloating ||
                 windowState.adoptionPhase === this.phases.ignored) return false;
+        if (windowState.interactiveMoveResize || window.move || window.resize) {
+            this.transition(window, windowState, this.phases.waitingNormal, reason);
+            return false;
+        }
         if (windowState.adoptionPhase === this.phases.settling &&
                 this.indexOfWindow(window) >= 0) {
             return this.settle(window, windowState, reason);
@@ -5619,7 +5805,7 @@ class OutputController {
 
     onOutputChanged(window) {
         const state = this.stateFor(window);
-        if (state.internalChange || state.interactiveMoveResize || window.fullScreen) {
+        if (state.internalChange || state.interactiveMoveResize || window.move || window.resize || window.fullScreen) {
             return false;
         }
 
@@ -5859,6 +6045,15 @@ class RuntimeBridge {
             "GetScrollMotionStatus", callback);
     }
 
+    sessionState(callback) {
+        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1", "GetSessionState", callback);
+    }
+
+    reportRuntimeHealth(status) {
+        this.invoke(this.service, this.path, this.interfaceName, "ReportRuntimeHealth",
+            JSON.stringify(Object.assign({}, status, { protocol: 1, type: "runtime-health", sessionId: this.sessionIdValue })), () => {});
+    }
+
     partialScrollCapability(callback) {
         this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1",
             "GetPartialScrollCapability", callback);
@@ -5874,10 +6069,18 @@ class RuntimeBridge {
         this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1", "GetColumnGeometryCompletion", callback);
     }
     disarmColumnGeometry(epoch, callback) {
+        const started = Date.now();
         this.disarmScrollPlan(epoch, () => this.scrollMotionStatus(raw => {
-            let proof;try {proof=typeof raw === "string" ? JSON.parse(raw) : raw;} catch (_error) {callback(false);return;}
-            callback(Boolean(proof && proof.active===false && proof.clipHandoffActive!==true &&
-                proof.sessionId===this.sessionIdValue && Number.isSafeInteger(proof.epoch) && proof.epoch<=epoch));
+            let proof;try {proof=typeof raw === "string" ? JSON.parse(raw) : raw;} catch (_error) {proof=null;}
+            const reason = !proof || typeof proof !== "object" ? "invalid-status" :
+                proof.sessionId !== this.sessionIdValue ? "session-mismatch" :
+                // Native uses -1 for a cold, inactive motion after a new context.
+                !Number.isSafeInteger(proof.epoch) || proof.epoch < -1 || proof.epoch > epoch ? "epoch-mismatch" :
+                proof.active !== false ? "motion-active" : proof.clipHandoffActive === true ? "handoff-active" : "confirmed";
+            if (reason !== "confirmed") this.warn(`[SCROLL_PLAN] disarm ${reason} requestEpoch=${epoch}` +
+                ` returnedEpoch=${proof && proof.epoch} active=${proof && proof.active}` +
+                ` handoff=${proof && proof.clipHandoffActive} elapsedMs=${Date.now() - started}`);
+            callback(reason === "confirmed");
         }));
     }
 
@@ -7156,6 +7359,7 @@ const mainScreenState = {
 const contextualViewport = new ContextualViewport(mainScreenState);
 let focusRingController;
 let continuousLayout;
+let sessionPause;
 const runtimeConfig = loadRuntimeConfig(readConfig);
 const columnStore = new ColumnStore(mainScreenState, () => {
     if (focusRingController) focusRingController.membershipChanged();
@@ -7427,6 +7631,7 @@ const recovery = new Recovery({
     waitForRestored: runtimeConfig.scrollLayoutV2Enabled ? (rows, done) => recoveryCompletion.wait(rows, done) : null,
     onStatus: runtimeConfig.scrollLayoutV2Enabled ? status => runtimeBridge.reportRecoveryStatus(status) : null,
     retire: runtimeConfig.scrollLayoutV2Enabled ? done => {
+        if (sessionPause) sessionPause.stop();
         mainScreenState.enabled = false;
         continuousLayout.stop(done);
     } : null,
@@ -7805,7 +8010,7 @@ workspaceMoveController = new WorkspaceMoveController({
 });
 dynamicWorkspaceController = new DynamicWorkspaceController({
     enabled: runtimeConfig.dynamicTrailingWorkspace,
-    isReady: () => scrollLayoutInitialized && mainScreenState.enabled &&
+    isReady: () => scrollLayoutInitialized && mainScreenState.enabled && !mainScreenState.sessionPaused &&
         !mainScreenState.workspaceSwitching && !workspaceTransferController.isProcessing() &&
         (!workspaceRecycleController || workspaceRecycleController.pendingId === null),
     getTargetOutput: () => resolveTargetOutput(),
@@ -7879,13 +8084,48 @@ if (runtimeConfig.scrollLayoutV2Enabled) {
         setVisibility: (window, visible) => parkingManager.setVisibility(window, visible),
         activate: window => { stateFor(window).scrollUserMinimized = false; workspace.activeWindow = window; },
         fail: (reason, cancelled) => {
-            warn(`[cc-v2] disabled reason=${reason} cancelled=${cancelled}`);
-            mainScreenState.enabled = false;
-            if (cancelled === true) emergencyRestoreAllWindows("v2-geometry-failure");
+            warn(`[cc-v2] geometry failure reason=${reason} cancelled=${cancelled}`);
+            sessionPause.fault(reason, cancelled);
         },
         onSettled: () => focusRingController.publish(),
         setTimer: setRuntimeTimer, clearTimer: clearRuntimeTimer, now: () => Date.now(), warn,
     });
+    mainScreenState.sessionPaused = true;
+    sessionPause = new SessionPauseController({
+        readState: done => runtimeBridge.sessionState(done),
+        release: (done, deadline) => continuousLayout.coordinator.suspend(done, deadline),
+        onPause: () => {
+            workspaceMountController.capture();
+            mainScreenState.sessionPaused = true;
+            workspaceSwitchController.pause();
+            continuousLayout.pauseSession();
+        },
+        onResume: () => {
+            if (!mainScreenState.enabled || continuousLayout.stopped) return false;
+            mainScreenState.sessionPaused = false;
+            if (!continuousLayout.resumeSession()) { mainScreenState.sessionPaused = true; return false; }
+            if (app.lifecycle.resumeInitialization()) return;
+            connectedManagedOutputs.forEach(output => app.lifecycle.disconnectOwner(output));
+            connectedManagedOutputs = new Set();
+            refreshMainScreenState();
+            connectManagedGeometry();
+            workspaceMountController.mount(virtualDesktopTopology.current(mainScreenState.targetOutput), "session-resume");
+            workspace.windowList().forEach(window => {
+                if (workspaceMembership.ownerId(window) !== mainScreenState.activeWorkspaceId)
+                    workspaceTransferController.onWindowAdded(window);
+            });
+            dynamicWorkspaceController.request(); workspaceRecycleController.request();
+            focusRingController.publish();
+        },
+        onFault: (_reason, cancelled) => {
+            mainScreenState.enabled = false;
+            if (cancelled === true) emergencyRestoreAllWindows("v2-geometry-failure");
+        },
+        health: status => runtimeBridge.reportRuntimeHealth(status),
+        setTimer: setRuntimeTimer, clearTimer: clearRuntimeTimer, warn,
+    });
+    runtimeBridge.handlers["session-state-changed"] = () => sessionPause.refresh();
+    runtimeBridge.generationAgnosticTypes.add("session-state-changed");
 }
 
 function v2Geometry() {
@@ -7898,6 +8138,11 @@ function v2Departure(window, reason, action) {
     return continuousLayout.exclusive(`${reason}:${normalizeWindowUuid(window.internalId)}`, () => {
         if (workspace.windowList().includes(window)) action();
     });
+}
+
+function v2OwnsWindow(window) {
+    return columnStore.indexOfWindow(window) >= 0 || parkingManager.owns(window) ||
+        Boolean(workspaceSnapshots.workspaceForWindow(normalizeWindowUuid(window.internalId)));
 }
 
 const controllerComposition = new ControllerComposition(Object.assign({
@@ -8026,6 +8271,7 @@ function handleDockReorderCommand(command) {
 }
 
 function runWorkspaceAction(action) {
+    if (sessionPause && mainScreenState.sessionPaused) { sessionPause.refresh("shortcut"); return false; }
     if (!workspaceMountController || !workspaceMountController.canUseActiveWorkspace()) return false;
     return action();
 }
@@ -8656,6 +8902,7 @@ function initializeScrollLayout(previousState) {
 }
 
 function adoptNewWindowAsColumn(window, reason, focusNew = true) {
+    if (mainScreenState.sessionPaused) return false;
     if (!scrollLayoutInitialized || !window) return false;
     refreshMainScreenState();
     if (!mainScreenState.enabled || !mainScreenState.targetOutput ||
@@ -8760,6 +9007,10 @@ function beginWindowAdoption(window, origin) {
 }
 
 function onWindowActivatedForScrollLayout(window) {
+    if (sessionPause) {
+        sessionPause.refresh("activation");
+        if (mainScreenState.sessionPaused) return;
+    }
     if (!window || !workspaceMountController.canUseActiveWorkspace()) return;
     if (layoutTransaction.isActive()) {
         debug(`[cc-stability] SUPPRESS activation epoch=${layoutTransaction.currentEpoch()}` +
@@ -9189,6 +9440,8 @@ function onMaximizedChanged(window) {
 
 function onOutputChanged(window) {
     if (window.dock) return onPanelGeometryChanged(window);
+    if (stateFor(window).interactiveMoveResize || window.move || window.resize) return false;
+    if (continuousLayout && !v2OwnsWindow(window) && !windowPolicy.canJoinColumn(window)) return false;
     if (continuousLayout && !continuousLayout.inExclusive) return v2Departure(window, "output", () => onOutputChanged(window));
     if (!windowPolicy.canJoinColumn(window)) {
         adoptionController.onPolicyChanged(window, "output-policy-changed");
@@ -9209,13 +9462,43 @@ function onFullScreenChanged(window) {
 }
 
 function onInteractiveMoveResizeStarted(window) {
-    if (continuousLayout && !continuousLayout.inExclusive) return v2Departure(window, "interactive", () => onInteractiveMoveResizeStarted(window));
+    if (continuousLayout && !v2OwnsWindow(window) && !windowPolicy.canJoinColumn(window)) return false;
     const state = stateFor(window);
-    if (floatingController.onInteractiveMoveResize(window)) return;
-    if (state.internalChange || !isLayoutMode(state.layoutMode)) return;
+    // Record the gesture before any asynchronous Native cancellation. Secondary
+    // normal windows have neither a Column nor a maximize/tile layout mode.
     state.interactiveMoveResize = true;
-    clearLayoutState(state);
-    debug(`CLEAR ${window.caption} reason=interactive-move-resize`);
+    const begin = () => {
+        const moving = state.interactiveMoveResize;
+        if (floatingController.onInteractiveMoveResize(window)) {
+            // The gesture may have finished while waiting for the cancel ACK.
+            state.interactiveMoveResize = typeof window.move === "boolean" || typeof window.resize === "boolean"
+                ? Boolean(window.move || window.resize) : moving;
+            return;
+        }
+        if (state.internalChange || !isLayoutMode(state.layoutMode)) return;
+        clearLayoutState(state);
+        debug(`CLEAR ${window.caption} reason=interactive-move-resize`);
+    };
+    if (continuousLayout && v2OwnsWindow(window) && !continuousLayout.inExclusive)
+        return v2Departure(window, "interactive", begin);
+    return begin();
+}
+
+function onInteractiveMoveResizeFinished(window) {
+    if (!states.has(window)) return;
+    const state = stateFor(window);
+    state.interactiveMoveResize = false;
+    if (!mainScreenState.enabled || mainScreenState.sessionPaused ||
+            !windowPolicy.canJoinColumn(window)) return;
+    const reconcile = () => {
+        // A later gesture can start before this cancellation is acknowledged.
+        if (state.interactiveMoveResize || window.move || window.resize || state.floating) return;
+        onOutputChanged(window);
+        adoptionController.begin(window, "interactive-move-resize-finished");
+    };
+    if (continuousLayout && !continuousLayout.inExclusive)
+        return v2Departure(window, "interactive-finished", reconcile);
+    return reconcile();
 }
 
 function onWindowPolicyChanged(window, reason) {
@@ -9249,6 +9532,8 @@ function setupWindow(window) {
     });
     if (window.desktopsChanged) connect(window.desktopsChanged, () => {
         if (window.dock) return onPanelGeometryChanged(window);
+        if (mainScreenState.sessionPaused) return;
+        if (continuousLayout && !v2OwnsWindow(window) && !windowPolicy.canJoinColumn(window)) return;
         if (continuousLayout) v2Departure(window, "membership", () => workspaceTransferController.onMembershipChanged(window));
         else workspaceTransferController.onMembershipChanged(window);
         dynamicWorkspaceController.request();
@@ -9279,9 +9564,7 @@ function setupWindow(window) {
         });
     }
     connect(window.interactiveMoveResizeStarted, () => onInteractiveMoveResizeStarted(window));
-    connect(window.interactiveMoveResizeFinished, () => {
-        stateFor(window).interactiveMoveResize = false;
-    });
+    connect(window.interactiveMoveResizeFinished, () => onInteractiveMoveResizeFinished(window));
     connect(window.closed, () => {
         app.lifecycle.disconnectOwner(window);
         recovery.forgetWindow(window);
@@ -9314,6 +9597,7 @@ function setupWindow(window) {
 }
 
 function reapplyManagedLayouts(reason) {
+    if (mainScreenState.sessionPaused) return;
     states.forEach((state, window) => {
         if (!state.internalChange && !state.interactiveMoveResize && eligible(window) &&
                 !state.managedByScrollLayout && onManagedOutput(window)) {
@@ -9389,6 +9673,7 @@ const app = new CCNiri({
         setupWindow,
         onWindowAdded: window => {
             setupWindow(window);
+            if (mainScreenState.sessionPaused) return;
             adoptionController.onWindowAdded(window);
             workspaceTransferController.onWindowAdded(window);
             onPanelGeometryChanged(window);
@@ -9416,6 +9701,7 @@ const app = new CCNiri({
         },
         connectManagedGeometry,
         initializeScrollLayout,
+        mayInitialize: () => !mainScreenState.sessionPaused,
         readPreviousState: callback => runtimeBridge.readPreviousState(callback),
         setTimer: setRuntimeTimer,
         clearTimer: clearRuntimeTimer,
@@ -9429,7 +9715,10 @@ const app = new CCNiri({
         registerShortcut,
         shortcuts,
         commitInitialState: () => commitRuntimeState("script-start", accepted => {
-            if (accepted && continuousLayout) runtimeBridge.reportRecoveryStatus(recovery.status);
+            if (accepted && continuousLayout) {
+                runtimeBridge.reportRecoveryStatus(recovery.status);
+                sessionPause.publish();
+            }
         }),
     },
     onStarted: () => {
@@ -9443,7 +9732,11 @@ const app = new CCNiri({
                 `${runtimeConfig.secondary.bottom}/${runtimeConfig.secondary.left}`
         );
     },
-    onStopping: () => emergencyRestoreAllWindows("runtime-stop"),
+    onStopping: () => {
+        if (sessionPause) sessionPause.stop();
+        emergencyRestoreAllWindows("runtime-stop");
+    },
 });
 
 app.start();
+if (sessionPause) sessionPause.refresh("startup");

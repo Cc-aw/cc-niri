@@ -1,0 +1,55 @@
+{
+  "status": "REVIEW",
+  "at_utc": "2026-10-19T11:21:07.380641+00:00",
+  "checks": {
+    "health_running": true,
+    "same_live_session": true,
+    "unlocked": true,
+    "script_exact": true,
+    "outputs_preserved": true,
+    "secondary_first": true,
+    "clip_loaded_exact": true,
+    "ring_loaded_exact": true,
+    "native_source_valid": true,
+    "layout_snapshot_preserved": false
+  },
+  "health": {
+    "protocol": 1,
+    "reason": "session-ready",
+    "sequence": 3,
+    "sessionId": "1a153e405ff-be13d523",
+    "state": "running",
+    "type": "runtime-health"
+  },
+  "session": {
+    "instanceId": "2ef9a7df-dae0-442a-b0f2-a67c143cbe73",
+    "locked": false,
+    "protocol": 1,
+    "sequence": 0,
+    "type": "session-state"
+  },
+  "source_valid": true,
+  "manifest": "/tmp/cc-niri-lock-resume-20261019-deploy/manifest.json",
+  "installed": {
+    "clip": {
+      "path": "/home/cc/.local/lib/cc-niri/viewport-clip/e846e4311a4d5a16902b9b6222132298d92217d86e8491831a1a6914f889472b/cc-niri-viewport-clip.so",
+      "sha256": "e846e4311a4d5a16902b9b6222132298d92217d86e8491831a1a6914f889472b"
+    },
+    "ring": {
+      "path": "/home/cc/.local/lib/cc-niri/focus-ring/f643f989b4929b3d3dca8bde9204f9874c1ec346748388a25320255dd8424759/cc-niri-focus-ring.so",
+      "sha256": "f643f989b4929b3d3dca8bde9204f9874c1ec346748388a25320255dd8424759"
+    },
+    "bridge": {
+      "path": "/home/cc/.local/libexec/cc-niri-bridge",
+      "sha256": "76e1da9087317b4917542919cf9adff3cc3c845641339dd4bc4481ffdba4e947"
+    }
+  },
+  "script_sha256": "d2fa7ed4a3812058be3fa8cccfa8f5eb5747c851056b6e3f54ca54a0e9ca865e",
+  "snapshot_comparison": {
+    "workspaceId": false,
+    "targetOutput": true,
+    "columns": false,
+    "focusedUuid": false,
+    "presentation": true
+  }
+}

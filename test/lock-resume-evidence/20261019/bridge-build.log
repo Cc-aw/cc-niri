@@ -1,0 +1,57 @@
+[  2%] Building Rust Native Core (release)
+[  2%] Built target cc-niri-workspace-recycle-qobject-tests_qmlimportscan
+[  4%] Built target cc-niri-workspace-qobject-tests_qmlimportscan
+[  5%] Built target cc-niri-kwin-syntax-tests_qmlimportscan
+    Finished `release` profile [optimized] target(s) in 0.02s
+[  5%] Built target cc-niri-rust-build
+[  5%] Built target cc-niri-workspace-recycle-qobject-tests_autogen_timestamp_deps
+[ 14%] Built target cc-niri-golden-reference
+[ 14%] Built target cc-niri-workspace-qobject-tests_autogen_timestamp_deps
+[ 14%] Built target cc-niri-kwin-syntax-tests_autogen_timestamp_deps
+[ 23%] Built target cc-niri-native-adapters
+[ 25%] Automatic MOC for target cc-niri-workspace-recycle-qobject-tests
+[ 26%] Automatic MOC for target cc-niri-workspace-qobject-tests
+[ 26%] Built target cc-niri-workspace-recycle-qobject-tests_autogen
+[ 27%] Automatic MOC for target cc-niri-kwin-syntax-tests
+[ 27%] Built target cc-niri-workspace-qobject-tests_autogen
+[ 27%] Built target cc-niri-bridge-tests_autogen_timestamp_deps
+[ 27%] Built target cc-niri-kwin-syntax-tests_autogen
+[ 30%] Built target cc-niri-workspace-motion-differential
+[ 33%] Built target cc-niri-ring-differential
+[ 36%] Built target cc-niri-spring-differential
+[ 39%] Built target cc-niri-motion-differential
+[ 42%] Built target cc-niri-protocol-differential
+[ 45%] Built target cc-niri-scroll-differential
+[ 48%] Built target cc-niri-rust-animation-frame-tests
+[ 51%] Built target cc-niri-rust-focus-fade-tests
+[ 54%] Built target cc-niri-rust-motion-tests
+[ 57%] Built target cc-niri-rust-scroll-tests
+[ 60%] Built target cc-niri-rust-core-smoke-tests
+[ 63%] Built target cc-niri-rust-ring-context-tests
+[ 63%] Built target cc-niri-bridge_autogen_timestamp_deps
+[ 63%] Built target cc-scroll-motion-plan-tests_autogen_timestamp_deps
+[ 72%] Built target cc-niri-workspace-qobject-tests
+[ 72%] Built target cc-niri-workspace-recycle-qobject-tests
+[ 73%] Automatic MOC for target cc-niri-bridge-tests
+[ 77%] Built target cc-niri-kwin-syntax-tests
+[ 79%] Automatic MOC for target cc-niri-bridge
+[ 79%] Built target cc-niri-bridge-tests_autogen
+[ 79%] Built target cc-niri-bridge_autogen
+[ 80%] Automatic MOC for target cc-scroll-motion-plan-tests
+[ 82%] Building CXX object CMakeFiles/cc-niri-bridge-tests.dir/cc-niri-bridge-tests_autogen/mocs_compilation.cpp.o
+[ 82%] Built target cc-scroll-motion-plan-tests_autogen
+[ 83%] Building CXX object CMakeFiles/cc-niri-bridge.dir/cc-niri-bridge_autogen/mocs_compilation.cpp.o
+[ 85%] Building CXX object CMakeFiles/cc-niri-bridge-tests.dir/src/CCNiriBridge.cpp.o
+[ 86%] Building CXX object CMakeFiles/cc-niri-bridge.dir/src/CCNiriBridge.cpp.o
+[ 88%] Building CXX object CMakeFiles/cc-niri-bridge-tests.dir/tests/CCNiriBridgeTest.cpp.o
+[ 89%] Building CXX object CMakeFiles/cc-niri-bridge.dir/src/LegacyScrollDockAdaptor.cpp.o
+[ 91%] Building CXX object CMakeFiles/cc-niri-bridge.dir/src/main.cpp.o
+[ 92%] Linking CXX executable cc-niri-bridge-tests
+[ 92%] Built target cc-niri-bridge-tests
+[ 94%] Building CXX object CMakeFiles/cc-scroll-motion-plan-tests.dir/cc-scroll-motion-plan-tests_autogen/mocs_compilation.cpp.o
+[ 95%] Linking CXX executable cc-niri-bridge
+[ 95%] Built target cc-niri-bridge
+[ 97%] Building CXX object CMakeFiles/cc-scroll-motion-plan-tests.dir/src/CCNiriBridge.cpp.o
+[ 98%] Building CXX object CMakeFiles/cc-scroll-motion-plan-tests.dir/tests/ScrollMotionPlanTest.cpp.o
+[100%] Linking CXX executable cc-scroll-motion-plan-tests
+[100%] Built target cc-scroll-motion-plan-tests

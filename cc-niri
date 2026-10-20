@@ -291,6 +291,15 @@ status_niri() {
     done
     ring_status
     echo "Bridge: $(systemctl --user is-active "$SERVICE" || true)"
+    reply="$(gdbus call --session --timeout 2 --dest org.cc.CCNiriBridge --object-path /CCNiriBridge --method org.cc.CCNiriBridge1.GetRuntimeHealth 2>/dev/null || true)"
+    printf '%s' "$reply" | python3 -c '
+import ast,json,sys
+try:
+    value=json.loads(ast.literal_eval(sys.stdin.read())[0])
+    print("Layout health: " + value["state"] + " (" + value.get("reason", "") + ")")
+except (ValueError,TypeError,KeyError,IndexError,SyntaxError):
+    print("Layout health: unknown (runtime health unavailable)")
+'
 }
 
 case "${1:-help}" in

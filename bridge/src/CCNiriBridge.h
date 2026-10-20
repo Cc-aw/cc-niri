@@ -4,6 +4,7 @@
 #include <QQueue>
 #include <QSet>
 #include <QString>
+#include <QTimer>
 #include "../../src/protocol/ViewportScrollPlan.h"
 
 class CCNiriBridge final : public QObject
@@ -22,6 +23,8 @@ public Q_SLOTS:
     bool ReportMotionParked(const QString &json);
     QString GetState() const;
     QString GetRecoveryStatus() const;
+    QString GetRuntimeHealth() const;
+    bool ReportRuntimeHealth(const QString &json);
     bool ReportRecoveryStatus(const QString &json);
     bool EnsureVerticalDesktopLayout(int expectedCount);
     bool RequestReorder(const QString &json);
@@ -36,6 +39,7 @@ Q_SIGNALS:
     void MotionParked(const QString &json);
 
 private Q_SLOTS:
+    void onSessionStateChanged(const QString &json);
     void onPartialFocusRequested(const QString &json);
     void onScrollFrameReady(const QString &json);
 
@@ -52,6 +56,11 @@ private:
     QString m_lastState;
     QString m_sessionId;
     QString m_recoveryStatus;
+    QString m_runtimeHealth;
+    QString m_sessionWake;
+    quint64 m_sessionWakeSequence = 0;
+    QTimer m_sessionWakeTimer;
+    int m_sessionWakeAttempts = 0;
     QString m_restoreRequestId;
     QString m_lastMotionToken;
     QString m_lastMotionTarget;

@@ -53,6 +53,7 @@ const mainScreenState = {
 const contextualViewport = new ContextualViewport(mainScreenState);
 let focusRingController;
 let continuousLayout;
+let sessionPause;
 const runtimeConfig = loadRuntimeConfig(readConfig);
 const columnStore = new ColumnStore(mainScreenState, () => {
     if (focusRingController) focusRingController.membershipChanged();
@@ -324,6 +325,7 @@ const recovery = new Recovery({
     waitForRestored: runtimeConfig.scrollLayoutV2Enabled ? (rows, done) => recoveryCompletion.wait(rows, done) : null,
     onStatus: runtimeConfig.scrollLayoutV2Enabled ? status => runtimeBridge.reportRecoveryStatus(status) : null,
     retire: runtimeConfig.scrollLayoutV2Enabled ? done => {
+        if (sessionPause) sessionPause.stop();
         mainScreenState.enabled = false;
         continuousLayout.stop(done);
     } : null,
@@ -702,7 +704,7 @@ workspaceMoveController = new WorkspaceMoveController({
 });
 dynamicWorkspaceController = new DynamicWorkspaceController({
     enabled: runtimeConfig.dynamicTrailingWorkspace,
-    isReady: () => scrollLayoutInitialized && mainScreenState.enabled &&
+    isReady: () => scrollLayoutInitialized && mainScreenState.enabled && !mainScreenState.sessionPaused &&
         !mainScreenState.workspaceSwitching && !workspaceTransferController.isProcessing() &&
         (!workspaceRecycleController || workspaceRecycleController.pendingId === null),
     getTargetOutput: () => resolveTargetOutput(),
@@ -776,13 +778,48 @@ if (runtimeConfig.scrollLayoutV2Enabled) {
         setVisibility: (window, visible) => parkingManager.setVisibility(window, visible),
         activate: window => { stateFor(window).scrollUserMinimized = false; workspace.activeWindow = window; },
         fail: (reason, cancelled) => {
-            warn(`[cc-v2] disabled reason=${reason} cancelled=${cancelled}`);
-            mainScreenState.enabled = false;
-            if (cancelled === true) emergencyRestoreAllWindows("v2-geometry-failure");
+            warn(`[cc-v2] geometry failure reason=${reason} cancelled=${cancelled}`);
+            sessionPause.fault(reason, cancelled);
         },
         onSettled: () => focusRingController.publish(),
         setTimer: setRuntimeTimer, clearTimer: clearRuntimeTimer, now: () => Date.now(), warn,
     });
+    mainScreenState.sessionPaused = true;
+    sessionPause = new SessionPauseController({
+        readState: done => runtimeBridge.sessionState(done),
+        release: (done, deadline) => continuousLayout.coordinator.suspend(done, deadline),
+        onPause: () => {
+            workspaceMountController.capture();
+            mainScreenState.sessionPaused = true;
+            workspaceSwitchController.pause();
+            continuousLayout.pauseSession();
+        },
+        onResume: () => {
+            if (!mainScreenState.enabled || continuousLayout.stopped) return false;
+            mainScreenState.sessionPaused = false;
+            if (!continuousLayout.resumeSession()) { mainScreenState.sessionPaused = true; return false; }
+            if (app.lifecycle.resumeInitialization()) return;
+            connectedManagedOutputs.forEach(output => app.lifecycle.disconnectOwner(output));
+            connectedManagedOutputs = new Set();
+            refreshMainScreenState();
+            connectManagedGeometry();
+            workspaceMountController.mount(virtualDesktopTopology.current(mainScreenState.targetOutput), "session-resume");
+            workspace.windowList().forEach(window => {
+                if (workspaceMembership.ownerId(window) !== mainScreenState.activeWorkspaceId)
+                    workspaceTransferController.onWindowAdded(window);
+            });
+            dynamicWorkspaceController.request(); workspaceRecycleController.request();
+            focusRingController.publish();
+        },
+        onFault: (_reason, cancelled) => {
+            mainScreenState.enabled = false;
+            if (cancelled === true) emergencyRestoreAllWindows("v2-geometry-failure");
+        },
+        health: status => runtimeBridge.reportRuntimeHealth(status),
+        setTimer: setRuntimeTimer, clearTimer: clearRuntimeTimer, warn,
+    });
+    runtimeBridge.handlers["session-state-changed"] = () => sessionPause.refresh();
+    runtimeBridge.generationAgnosticTypes.add("session-state-changed");
 }
 
 function v2Geometry() {
@@ -795,6 +832,11 @@ function v2Departure(window, reason, action) {
     return continuousLayout.exclusive(`${reason}:${normalizeWindowUuid(window.internalId)}`, () => {
         if (workspace.windowList().includes(window)) action();
     });
+}
+
+function v2OwnsWindow(window) {
+    return columnStore.indexOfWindow(window) >= 0 || parkingManager.owns(window) ||
+        Boolean(workspaceSnapshots.workspaceForWindow(normalizeWindowUuid(window.internalId)));
 }
 
 const controllerComposition = new ControllerComposition(Object.assign({
@@ -923,6 +965,7 @@ function handleDockReorderCommand(command) {
 }
 
 function runWorkspaceAction(action) {
+    if (sessionPause && mainScreenState.sessionPaused) { sessionPause.refresh("shortcut"); return false; }
     if (!workspaceMountController || !workspaceMountController.canUseActiveWorkspace()) return false;
     return action();
 }
@@ -1553,6 +1596,7 @@ function initializeScrollLayout(previousState) {
 }
 
 function adoptNewWindowAsColumn(window, reason, focusNew = true) {
+    if (mainScreenState.sessionPaused) return false;
     if (!scrollLayoutInitialized || !window) return false;
     refreshMainScreenState();
     if (!mainScreenState.enabled || !mainScreenState.targetOutput ||
@@ -1657,6 +1701,10 @@ function beginWindowAdoption(window, origin) {
 }
 
 function onWindowActivatedForScrollLayout(window) {
+    if (sessionPause) {
+        sessionPause.refresh("activation");
+        if (mainScreenState.sessionPaused) return;
+    }
     if (!window || !workspaceMountController.canUseActiveWorkspace()) return;
     if (layoutTransaction.isActive()) {
         debug(`[cc-stability] SUPPRESS activation epoch=${layoutTransaction.currentEpoch()}` +
@@ -2086,6 +2134,8 @@ function onMaximizedChanged(window) {
 
 function onOutputChanged(window) {
     if (window.dock) return onPanelGeometryChanged(window);
+    if (stateFor(window).interactiveMoveResize || window.move || window.resize) return false;
+    if (continuousLayout && !v2OwnsWindow(window) && !windowPolicy.canJoinColumn(window)) return false;
     if (continuousLayout && !continuousLayout.inExclusive) return v2Departure(window, "output", () => onOutputChanged(window));
     if (!windowPolicy.canJoinColumn(window)) {
         adoptionController.onPolicyChanged(window, "output-policy-changed");
@@ -2106,13 +2156,43 @@ function onFullScreenChanged(window) {
 }
 
 function onInteractiveMoveResizeStarted(window) {
-    if (continuousLayout && !continuousLayout.inExclusive) return v2Departure(window, "interactive", () => onInteractiveMoveResizeStarted(window));
+    if (continuousLayout && !v2OwnsWindow(window) && !windowPolicy.canJoinColumn(window)) return false;
     const state = stateFor(window);
-    if (floatingController.onInteractiveMoveResize(window)) return;
-    if (state.internalChange || !isLayoutMode(state.layoutMode)) return;
+    // Record the gesture before any asynchronous Native cancellation. Secondary
+    // normal windows have neither a Column nor a maximize/tile layout mode.
     state.interactiveMoveResize = true;
-    clearLayoutState(state);
-    debug(`CLEAR ${window.caption} reason=interactive-move-resize`);
+    const begin = () => {
+        const moving = state.interactiveMoveResize;
+        if (floatingController.onInteractiveMoveResize(window)) {
+            // The gesture may have finished while waiting for the cancel ACK.
+            state.interactiveMoveResize = typeof window.move === "boolean" || typeof window.resize === "boolean"
+                ? Boolean(window.move || window.resize) : moving;
+            return;
+        }
+        if (state.internalChange || !isLayoutMode(state.layoutMode)) return;
+        clearLayoutState(state);
+        debug(`CLEAR ${window.caption} reason=interactive-move-resize`);
+    };
+    if (continuousLayout && v2OwnsWindow(window) && !continuousLayout.inExclusive)
+        return v2Departure(window, "interactive", begin);
+    return begin();
+}
+
+function onInteractiveMoveResizeFinished(window) {
+    if (!states.has(window)) return;
+    const state = stateFor(window);
+    state.interactiveMoveResize = false;
+    if (!mainScreenState.enabled || mainScreenState.sessionPaused ||
+            !windowPolicy.canJoinColumn(window)) return;
+    const reconcile = () => {
+        // A later gesture can start before this cancellation is acknowledged.
+        if (state.interactiveMoveResize || window.move || window.resize || state.floating) return;
+        onOutputChanged(window);
+        adoptionController.begin(window, "interactive-move-resize-finished");
+    };
+    if (continuousLayout && !continuousLayout.inExclusive)
+        return v2Departure(window, "interactive-finished", reconcile);
+    return reconcile();
 }
 
 function onWindowPolicyChanged(window, reason) {
@@ -2146,6 +2226,8 @@ function setupWindow(window) {
     });
     if (window.desktopsChanged) connect(window.desktopsChanged, () => {
         if (window.dock) return onPanelGeometryChanged(window);
+        if (mainScreenState.sessionPaused) return;
+        if (continuousLayout && !v2OwnsWindow(window) && !windowPolicy.canJoinColumn(window)) return;
         if (continuousLayout) v2Departure(window, "membership", () => workspaceTransferController.onMembershipChanged(window));
         else workspaceTransferController.onMembershipChanged(window);
         dynamicWorkspaceController.request();
@@ -2176,9 +2258,7 @@ function setupWindow(window) {
         });
     }
     connect(window.interactiveMoveResizeStarted, () => onInteractiveMoveResizeStarted(window));
-    connect(window.interactiveMoveResizeFinished, () => {
-        stateFor(window).interactiveMoveResize = false;
-    });
+    connect(window.interactiveMoveResizeFinished, () => onInteractiveMoveResizeFinished(window));
     connect(window.closed, () => {
         app.lifecycle.disconnectOwner(window);
         recovery.forgetWindow(window);
@@ -2211,6 +2291,7 @@ function setupWindow(window) {
 }
 
 function reapplyManagedLayouts(reason) {
+    if (mainScreenState.sessionPaused) return;
     states.forEach((state, window) => {
         if (!state.internalChange && !state.interactiveMoveResize && eligible(window) &&
                 !state.managedByScrollLayout && onManagedOutput(window)) {
@@ -2286,6 +2367,7 @@ const app = new CCNiri({
         setupWindow,
         onWindowAdded: window => {
             setupWindow(window);
+            if (mainScreenState.sessionPaused) return;
             adoptionController.onWindowAdded(window);
             workspaceTransferController.onWindowAdded(window);
             onPanelGeometryChanged(window);
@@ -2313,6 +2395,7 @@ const app = new CCNiri({
         },
         connectManagedGeometry,
         initializeScrollLayout,
+        mayInitialize: () => !mainScreenState.sessionPaused,
         readPreviousState: callback => runtimeBridge.readPreviousState(callback),
         setTimer: setRuntimeTimer,
         clearTimer: clearRuntimeTimer,
@@ -2326,7 +2409,10 @@ const app = new CCNiri({
         registerShortcut,
         shortcuts,
         commitInitialState: () => commitRuntimeState("script-start", accepted => {
-            if (accepted && continuousLayout) runtimeBridge.reportRecoveryStatus(recovery.status);
+            if (accepted && continuousLayout) {
+                runtimeBridge.reportRecoveryStatus(recovery.status);
+                sessionPause.publish();
+            }
         }),
     },
     onStarted: () => {
@@ -2340,7 +2426,11 @@ const app = new CCNiri({
                 `${runtimeConfig.secondary.bottom}/${runtimeConfig.secondary.left}`
         );
     },
-    onStopping: () => emergencyRestoreAllWindows("runtime-stop"),
+    onStopping: () => {
+        if (sessionPause) sessionPause.stop();
+        emergencyRestoreAllWindows("runtime-stop");
+    },
 });
 
 app.start();
+if (sessionPause) sessionPause.refresh("startup");

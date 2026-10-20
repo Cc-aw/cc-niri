@@ -1,0 +1,18 @@
+{
+  "command": [
+    "dbus-run-session",
+    "--",
+    "/usr/bin/python",
+    "/home/cc/cc_niri/test/lock-resume-evidence/20261019/recurrence/output-drag-probe/runner.py",
+    "--inside",
+    "--output",
+    "/home/cc/cc_niri/test/lock-resume-evidence/20261019/cross-output-fix/private-controlled-100",
+    "--scale",
+    "1.0",
+    "--scenario",
+    "p5"
+  ],
+  "exit_code": 0,
+  "stdout": "{\"status\": \"PASS\", \"passed\": 14, \"total\": 14, \"evidence\": \"/home/cc/cc_niri/test/lock-resume-evidence/20261019/cross-output-fix/private-controlled-100\"}\n",
+  "stderr": ""
+}

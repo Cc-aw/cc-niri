@@ -1,0 +1,15 @@
+{
+  "outputs": [
+    {
+      "name": "DP-1",
+      "desktopId": "ba093f5e-5764-446f-88e3-03d2d9a5ec3e",
+      "desktopNumber": 2
+    },
+    {
+      "name": "HDMI-A-1",
+      "desktopId": "67cb656e-0a97-44e9-8b7d-f743faea501b",
+      "desktopNumber": 1
+    }
+  ],
+  "first": "67cb656e-0a97-44e9-8b7d-f743faea501b"
+}

@@ -1,0 +1,95 @@
+{
+  "status": "PASS",
+  "deployment_date": "2026-10-20",
+  "checks": {
+    "health_running": true,
+    "new_js_session": true,
+    "native_source_valid": true,
+    "unlocked": true,
+    "outputs_desktops_preserved": true,
+    "installed_script_matches_candidate": true,
+    "saved_workspaces_preserved": true,
+    "cc-niri-viewport-clip_loaded": true,
+    "cc-niri-focus-ring_loaded": true,
+    "cc-niri-maximize-scroll-transition_loaded": true,
+    "script_loaded": true
+  },
+  "health": {
+    "protocol": 1,
+    "reason": "session-ready",
+    "sequence": 3,
+    "sessionId": "1a156c3b7d3-20702cc8",
+    "state": "running",
+    "type": "runtime-health"
+  },
+  "session": {
+    "instanceId": "fdf5f3a4-872d-4b70-980a-4610c0f0f822",
+    "locked": false,
+    "protocol": 1,
+    "sequence": 0,
+    "type": "session-state"
+  },
+  "desktop_before": {
+    "outputs": [
+      {
+        "name": "DP-1",
+        "desktopId": "b729a9c6-35da-4a20-ae6e-c4cb14f9915c"
+      },
+      {
+        "name": "HDMI-A-1",
+        "desktopId": "67cb656e-0a97-44e9-8b7d-f743faea501b"
+      }
+    ],
+    "interactive": false
+  },
+  "desktop_after": {
+    "outputs": [
+      {
+        "name": "DP-1",
+        "desktopId": "b729a9c6-35da-4a20-ae6e-c4cb14f9915c"
+      },
+      {
+        "name": "HDMI-A-1",
+        "desktopId": "67cb656e-0a97-44e9-8b7d-f743faea501b"
+      }
+    ],
+    "interactive": false
+  },
+  "workspace_comparison": {
+    "d22b4f66-367a-4004-b8b6-eea22f24c4f8": {
+      "columns": true,
+      "focusedUuid": true,
+      "presentation": true,
+      "viewportAnchorV2": true
+    },
+    "67cb656e-0a97-44e9-8b7d-f743faea501b": {
+      "columns": true,
+      "focusedUuid": true,
+      "presentation": true,
+      "viewportAnchorV2": true
+    },
+    "ba093f5e-5764-446f-88e3-03d2d9a5ec3e": {
+      "columns": true,
+      "focusedUuid": true,
+      "presentation": true,
+      "viewportAnchorV2": true
+    },
+    "0c20674a-f1c0-4d3e-877a-2042b14fe355": {
+      "columns": true,
+      "focusedUuid": true,
+      "presentation": true,
+      "viewportAnchorV2": true
+    },
+    "b729a9c6-35da-4a20-ae6e-c4cb14f9915c": {
+      "columns": true,
+      "focusedUuid": true,
+      "presentation": true,
+      "viewportAnchorV2": true
+    }
+  },
+  "installed_script_sha256": "dceba6dd5df7415ebbdec2e941b84f94d0776222d67266a2f6a9f6890b161647",
+  "manifest": "/tmp/cc-niri-output-drag-20261020-deploy/manifest.json",
+  "rollback": "/tmp/cc-niri-output-drag-20261020-deploy/rollback.sh (dry-run only)",
+  "real_cross_output_drag_acceptance": "PENDING",
+  "resource_budget": "NOT MEASURED"
+}

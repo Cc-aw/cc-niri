@@ -107,6 +107,15 @@ class RuntimeBridge {
             "GetScrollMotionStatus", callback);
     }
 
+    sessionState(callback) {
+        this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1", "GetSessionState", callback);
+    }
+
+    reportRuntimeHealth(status) {
+        this.invoke(this.service, this.path, this.interfaceName, "ReportRuntimeHealth",
+            JSON.stringify(Object.assign({}, status, { protocol: 1, type: "runtime-health", sessionId: this.sessionIdValue })), () => {});
+    }
+
     partialScrollCapability(callback) {
         this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1",
             "GetPartialScrollCapability", callback);
@@ -122,10 +131,18 @@ class RuntimeBridge {
         this.invoke("org.kde.KWin", "/ccNiriViewportMotion", "org.cc.NiriViewportMotion1", "GetColumnGeometryCompletion", callback);
     }
     disarmColumnGeometry(epoch, callback) {
+        const started = Date.now();
         this.disarmScrollPlan(epoch, () => this.scrollMotionStatus(raw => {
-            let proof;try {proof=typeof raw === "string" ? JSON.parse(raw) : raw;} catch (_error) {callback(false);return;}
-            callback(Boolean(proof && proof.active===false && proof.clipHandoffActive!==true &&
-                proof.sessionId===this.sessionIdValue && Number.isSafeInteger(proof.epoch) && proof.epoch<=epoch));
+            let proof;try {proof=typeof raw === "string" ? JSON.parse(raw) : raw;} catch (_error) {proof=null;}
+            const reason = !proof || typeof proof !== "object" ? "invalid-status" :
+                proof.sessionId !== this.sessionIdValue ? "session-mismatch" :
+                // Native uses -1 for a cold, inactive motion after a new context.
+                !Number.isSafeInteger(proof.epoch) || proof.epoch < -1 || proof.epoch > epoch ? "epoch-mismatch" :
+                proof.active !== false ? "motion-active" : proof.clipHandoffActive === true ? "handoff-active" : "confirmed";
+            if (reason !== "confirmed") this.warn(`[SCROLL_PLAN] disarm ${reason} requestEpoch=${epoch}` +
+                ` returnedEpoch=${proof && proof.epoch} active=${proof && proof.active}` +
+                ` handoff=${proof && proof.clipHandoffActive} elapsedMs=${Date.now() - started}`);
+            callback(reason === "confirmed");
         }));
     }
 
