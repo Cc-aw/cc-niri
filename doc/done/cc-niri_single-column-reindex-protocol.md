@@ -1,5 +1,7 @@
 # 单列重排连续过渡：协议与回滚设计
 
+> **归档状态（2026-10-20）：已实施。** AlwaysCenterSingleColumn P4 的 COLUMN_REINDEX 协议已实现并部署；验收随单列居中专项收尾，不另计独立开发任务。见 [实现记录](../../test/RUST_NATIVE_R7_SINGLE_COLUMN_CENTER_RESULTS.md)。 原设计正文保留为历史依据；移入 `done/` 不代表未执行的验收已通过。
+
 2026-10-13；AlwaysCenterSingleColumn 的 P4，先于实现记录。
 
 ## Authority 与消息

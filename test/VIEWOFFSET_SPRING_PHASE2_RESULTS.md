@@ -1,7 +1,7 @@
 # ViewOffset Spring — Phase 2 SCROLL Plan
 
 2026-10-01，`codex/native-view-offset-scroll`，起点 Phase 1 `02545c3`。
-设计：[ViewOffset Spring](../doc/todo/cc-niri_niri_viewoffset_spring_implementation.md)，
+设计：[ViewOffset Spring](../doc/done/cc-niri_niri_viewoffset_spring_implementation.md)，
 本阶段对应 Commit 2：发布 logical column SCROLL plan，原生端只校验、记录，不改变视觉。
 
 ## 数据与边界

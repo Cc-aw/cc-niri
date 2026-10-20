@@ -1,11 +1,13 @@
 # CC-Niri：4K 60Hz 动画流畅度优化实施规范
 
+> **归档状态（2026-10-20）：已实施。** A0–A5 已实现并部署；A6 综合收尾、完整实机性能 / 缩放矩阵及资源验收仍 Pending。阶段依据见 [A0/A1](../../test/ANIMATION_60HZ_RESULTS.md)、[A2](../../test/RUST_NATIVE_R7_ANIMATION_A2_RESULTS.md)、[A3](../../test/RUST_NATIVE_R7_ANIMATION_A3_RESULTS.md)、[A4](../../test/RUST_NATIVE_R7_ANIMATION_A4_RESULTS.md)、[A5](../../test/RUST_NATIVE_R7_ANIMATION_A5_RESULTS.md)。 原设计正文保留为历史依据；移入 `done/` 不代表未执行的验收已通过。
+
 > **交付对象：Codex**\
 > **文档版本：1.0**\
 > **日期：2026-10-07**\
 > **核查基线：`Cc-aw/cc-niri`，`main`，`f3650b286198c0a189f0e32f59f249b2c9b43e88`**\
-> **性质：待实施设计，不是已完成优化或实机验收报告。**\
-> **建议保存位置：`doc/cc-niri_4K60Hz_Animation_Codex_Spec.md`**
+> **性质：原始实施设计；当前实现与未验收边界见页首归档说明，不是完整实机验收报告。**\
+> **当前归档位置：`doc/done/cc-niri_4K60Hz_Animation_Codex_Spec.md`**
 
 ---
 

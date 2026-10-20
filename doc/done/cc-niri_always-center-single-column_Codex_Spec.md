@@ -1,5 +1,7 @@
 # CC-Niri：`always-center-single-column` 实施设计与 Codex 任务规范
 
+> **归档状态（2026-10-20）：已实施。** P1–P4 已实现、部署并在本机开启；S01–S14 实机视觉、mixed DPI 与资源验收仍 Pending。见 [开发与部署结果](../../test/RUST_NATIVE_R7_SINGLE_COLUMN_CENTER_RESULTS.md)。 原设计正文保留为历史依据；移入 `done/` 不代表未执行的验收已通过。
+
 > 文档类型：可直接交给 Codex 的工程实施规格；**不是已完成实现或验收记录**\
 > 编写日期：2026-10-12\
 > 目标仓库：[Cc-aw/cc-niri](https://github.com/Cc-aw/cc-niri)\

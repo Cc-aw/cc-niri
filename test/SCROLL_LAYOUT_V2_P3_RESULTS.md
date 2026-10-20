@@ -4,7 +4,7 @@
 分支 `scroll-layout-v2-p0`。本阶段保留 P0/P1/P2 与用户规范，工作树未提交。
 
 **状态：P3 同尺寸 camera/partial 核心、隔离集成与完整离线门禁 PASS。V2 仍默认关闭，未部署。**
-本报告覆盖 [规范 P3](../doc/todo/cc-niri_Scroll_Layout_V2_Implementation_Spec.md) 的
+本报告覆盖 [规范 P3](../doc/done/cc-niri_Scroll_Layout_V2_Implementation_Spec.md) 的
 same-size camera / partial 核心。生产 main 保留 V1 composition；V2 模块的实际接线须等待
 P4 typed geometry、P5 persistence/recovery 和 P6 用户实机验收，手动改配置也不启用完整 V2。
 

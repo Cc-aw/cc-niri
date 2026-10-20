@@ -44,7 +44,7 @@ def source_files(root):
     names = subprocess.check_output(["git", "ls-files", "--cached", "--others", "--exclude-standard"], cwd=root, text=True).splitlines()
     return sorted(p for p in set(names) if "-evidence/" not in p and "__pycache__/" not in p and
         (p.startswith(("src/", "native/", "bridge/", "cmake/", "package/", "effect/", "tools/", "plasmoid/", "test/")) or
-         p in {"install.sh", "uninstall.sh", "cc-niri", "rust-toolchain.toml", "AGENTS.md", "README.md", "doc/README.md", "doc/SCROLL_LAYOUT_V2_P6_RUNBOOK.md"}))
+         p in {"install.sh", "uninstall.sh", "cc-niri", "rust-toolchain.toml", "AGENTS.md", "README.md", "doc/README.md", "doc/done/SCROLL_LAYOUT_V2_P6_RUNBOOK.md"}))
 
 
 def installed_paths():

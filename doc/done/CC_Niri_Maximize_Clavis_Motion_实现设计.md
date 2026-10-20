@@ -1,5 +1,7 @@
 # CC Niri Maximize — Clavis Motion 动画系统移植与实现设计
 
+> **归档状态（2026-10-20）：停止推进，非完成验收。** 按用户要求移出待办，停止推进旧 Clavis Motion 提案；Dock UI Motion、OSD、Spotlight 等未实现部分不再自动列入计划，Quickshell 后续路线也已取消。 当前唯一待办为 [全项目低内存规范](../todo/iA%20Writer.md)。
+
 > **归档状态（2026-10-01）：** 部分实现；窗口 MotionController、retarget、MotionTransaction、native clip 已有，Dock UI Motion、OSD、Spotlight 等尚未完成。后续视觉工作优先参考 Quickshell 升级设计。
 > 文档状态与阅读顺序见 [文档索引](../README.md)。原设计正文保留作为历史依据。
 

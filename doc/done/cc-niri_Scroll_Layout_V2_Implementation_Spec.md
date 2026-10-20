@@ -1,12 +1,14 @@
 # CC-Niri Scroll Layout V2：niri 风格连续列布局实现规范
 
+> **归档状态（2026-10-20）：已实施。** P0–P5 与 P6 准备工具已实现，已获授权部署并启用；完整真实交互、4K60、mixed DPI 和全项目资源验收仍 Pending。结果见 [P6 记录](../../test/SCROLL_LAYOUT_V2_P6_LIVE_RESULTS.md)，恢复重试的后续修复见 [热重载记录](../../test/SCROLL_LAYOUT_V2_RELOAD_RESULTS.md)。 原设计正文保留为历史依据；移入 `done/` 不代表未执行的验收已通过。
+
 > **文档用途**：直接交给 Codex 按阶段实施的设计与验收规范，不是已实施结果。<br>
 > **基线日期**：2026-10-14<br>
 > **基线仓库**：[`Cc-aw/cc-niri`](https://github.com/Cc-aw/cc-niri) / `main`<br>
 > **锁定提交**：[`8056cfe6b4a023ac8dcbfb01e4495a5acf4c2c4e`](https://github.com/Cc-aw/cc-niri/commit/8056cfe6b4a023ac8dcbfb01e4495a5acf4c2c4e)<br>
 > **目标环境**：Fedora 44、KWin/Plasma Wayland、主屏 3840×2160@60Hz/150%、副屏 2560×1440@60Hz/100%、内存 16 GiB<br>
 > **核心约束**：保留 Rust Core/JS Control Plane/C++ KWin Adapter 分权、既有单列居中、4K60 动画、Focus Ring、工作区 J/K、安全停用与低内存契约。<br>
-> **状态**：**DESIGN / NOT IMPLEMENTED / 实机验收 PENDING**。文中的数值为设计测试样例，不是新功能的实机结果。
+> **设计编写时状态（2026-10-14）**：**DESIGN / NOT IMPLEMENTED / 实机验收 PENDING**。当前实施状态见页首归档说明。文中的数值为设计测试样例，不是新功能的实机结果。
 
 ---
 

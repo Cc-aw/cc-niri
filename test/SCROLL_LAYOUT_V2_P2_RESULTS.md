@@ -4,7 +4,7 @@
 开发分支：`scroll-layout-v2-p0`。P0/P1 和用户规范保留，工作树未提交。
 
 **状态：P2 离线事件模型与完整门禁 PASS；V2 运行时 NOT READY / 未部署。**
-本阶段按 [实现规范](../doc/todo/cc-niri_Scroll_Layout_V2_Implementation_Spec.md) 的 P2 交付模拟矩阵。
+本阶段按 [实现规范](../doc/done/cc-niri_Scroll_Layout_V2_Implementation_Spec.md) 的 P2 交付模拟矩阵。
 生产 main 仍执行 P1 的 V1 保护入口，未构造/启用 V2 控制器，没有向当前桌面加载或安装组件。
 
 ## 代码与权威

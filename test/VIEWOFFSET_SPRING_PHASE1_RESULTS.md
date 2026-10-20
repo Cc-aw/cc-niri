@@ -2,7 +2,7 @@
 
 2026-10-01，分支 `codex/native-view-offset-scroll`。
 用户指定先实现 ViewOffset Spring，再实现新的 Focus Ring。
-设计依据：[ViewOffset Spring 设计](../doc/todo/cc-niri_niri_viewoffset_spring_implementation.md)。
+设计依据：[ViewOffset Spring 设计](../doc/done/cc-niri_niri_viewoffset_spring_implementation.md)。
 
 ## 基线与范围
 

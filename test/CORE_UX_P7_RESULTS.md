@@ -1,6 +1,6 @@
 # Core UX P7 — Dockless Core
 
-日期：2026-10-08。依据 [Core UX 设计](../doc/todo/CC-Niri%20Core%20UX%20下一阶段实施设计.md) 的 P7 / §§35–40、64 实施。P6 已完成并部署。P8 Bridge 命名 / 清理和延期分数列宽不在本轮范围。
+日期：2026-10-08。依据 [Core UX 设计](../doc/done/CC-Niri%20Core%20UX%20下一阶段实施设计.md) 的 P7 / §§35–40、64 实施。P6 已完成并部署。P8 Bridge 命名 / 清理和延期分数列宽不在本轮范围。
 
 ## 行为与边界
 

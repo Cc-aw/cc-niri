@@ -1,5 +1,7 @@
 # cc-niri × Quickshell 视觉与动画升级：模块化 Codex 实现设计
 
+> **归档状态（2026-10-20）：停止推进，非完成验收。** 用户明确取消 Quickshell 视觉升级，V2–V11 不再作为开发任务；原设计仅供历史查阅。 当前唯一待办为 [全项目低内存规范](../todo/iA%20Writer.md)。
+
 > **当前状态（2026-10-16）：** V1 曾新增独立 MotionProfiles 表（bde8a03），后续确认只有自检测试读取、生产动画从未消费，已在无用代码清理中移除。实际 MotionTokens、控制器与动画参数保留。下文保留原设计作为历史提案，不能据此认定当前存在 MotionProfiles 运行时层；V2–V11 尚未完整实施。
 > 文档状态与阅读顺序见 [文档索引](../README.md)。原设计正文保留作为历史依据。
 
@@ -2738,7 +2740,7 @@ DockPresentation/DockController 继续发送现有命令。
 仓库现有：
 
 ```text
-doc/todo/CC_Niri_Maximize_Clavis_Motion_实现设计.md
+doc/done/CC_Niri_Maximize_Clavis_Motion_实现设计.md
 ```
 
 主要针对早期 alpha.30：

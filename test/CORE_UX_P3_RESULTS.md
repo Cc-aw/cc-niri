@@ -1,6 +1,6 @@
 # Core UX P3 — Column Width Controls 实现与验收记录
 
-日期：2026-10-07。依据 [Core UX 设计](../doc/todo/CC-Niri%20Core%20UX%20下一阶段实施设计.md) 实施。**最新范围：按用户要求撤回 third / twoThirds，只保留 Meta+R / Meta+F 的 half ↔ Full；niri resize 协调和部分可见窗口裁剪暂停。下文四档与实验验收记录为历史，不代表当前生产实现。** 最新验证与部署见文末。
+日期：2026-10-07。依据 [Core UX 设计](../doc/done/CC-Niri%20Core%20UX%20下一阶段实施设计.md) 实施。**最新范围：按用户要求撤回 third / twoThirds，只保留 Meta+R / Meta+F 的 half ↔ Full；niri resize 协调和部分可见窗口裁剪暂停。下文四档与实验验收记录为历史，不代表当前生产实现。** 最新验证与部署见文末。
 
 ## 原四档实现行为与持久化（已延期）
 
@@ -117,7 +117,7 @@ KWin 6.7 的 [原生 hit testing](https://github.com/KDE/kwin/blob/Plasma/6.7/sr
 
 人工观感、真实点击 / 拖动 / 多点 touch / tablet、fullscreen / Overview 以及缩放动画中客户端坐标命中尚未逐项实机验收；现有 KWin 动画输入坐标仍使用实际 frame，未增加动画逆变换或手写 surface 路由。未测 FPS / GPU 性能、热插拔、长期压力。已有会话显示正常和自动命中查询不替代这些检查。
 
-证据与回滚备份：`/tmp/cc-niri-redeploy-20261007-jo2dv968`（animation-results / frames / windows / journal / partial-final）；完整门禁 `/tmp/cc-niri-partial-native-gate-final.log`，安装 `/tmp/cc-niri-partial-install.log`，实机 `/tmp/cc-niri-partial-live.log`。回滚使用该目录 `rollback.py`，按原有 stop / 旧 immutable 插件与 Bridge / 两个 JS 包 / 偏好 / start 流程整体恢复；不要只替换单个 ABI 消费者。`/tmp` 可能随重启清除，用户自己的 `doc/todo/cc-niri_4K60Hz_Animation_Codex_Spec.md` 未修改。
+证据与回滚备份：`/tmp/cc-niri-redeploy-20261007-jo2dv968`（animation-results / frames / windows / journal / partial-final）；完整门禁 `/tmp/cc-niri-partial-native-gate-final.log`，安装 `/tmp/cc-niri-partial-install.log`，实机 `/tmp/cc-niri-partial-live.log`。回滚使用该目录 `rollback.py`，按原有 stop / 旧 immutable 插件与 Bridge / 两个 JS 包 / 偏好 / start 流程整体恢复；不要只替换单个 ABI 消费者。`/tmp` 可能随重启清除，用户自己的 `doc/done/cc-niri_4K60Hz_Animation_Codex_Spec.md` 未修改。
 
 
 ## 2026-10-07 用户要求暂停三分之一宽度

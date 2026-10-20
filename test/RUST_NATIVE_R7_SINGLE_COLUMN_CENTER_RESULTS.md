@@ -1,6 +1,6 @@
 # AlwaysCenterSingleColumn 开发与部署结果（实机视觉验收待确认）
 
-日期：2026-10-13；HEAD 基线 `b77a40eb1e0a0fd66d053c5996a13bc88e75518b`，当前工作区未提交。依据[居中规范](../doc/todo/cc-niri_always-center-single-column_Codex_Spec.md)、根/native AGENTS 和 [16GB 资源规范](../doc/todo/iA%20Writer.md)。
+日期：2026-10-13；HEAD 基线 `b77a40eb1e0a0fd66d053c5996a13bc88e75518b`，当前工作区未提交。依据[居中规范](../doc/done/cc-niri_always-center-single-column_Codex_Spec.md)、根/native AGENTS 和 [16GB 资源规范](../doc/todo/iA%20Writer.md)。
 
 **P1–P4 的代码实现已补齐，默认关闭；必需离线门禁全部通过，包含最后 JS 边界补充后的完整复跑。已在后续授权下部署并开启，S01–S14 实机视觉验收尚待确认，不标记功能 DoD 完成。** 开发阶段遵照用户保留桌面的要求，没有配置写入、安装、stop/start、KWin/Plasma 重启或真实窗口操作。后续部署授权及结果见文末。内存 B0/B1 测量仍暂停。
 
@@ -19,7 +19,7 @@ W=2512、gap=8 时 half=1252、L=630。单 half 的 logicalX=630 / camera=0；�
 
 ## P4 协议、投影与回退
 
-先记录[协议与回滚设计](../doc/todo/cc-niri_single-column-reindex-protocol.md)，再实现独立 `COLUMN_REINDEX`（protocol 2）。它复用原 IPC endpoint、Rust sequence/runtime、Spring、output presentation clock、paint/clip context 和 Ring transform。额外字段只有 sourceWindowId/sourceLogicalX；entries 使用新 logical 基准，old/new wire offsets 仍有限且非负。
+先记录[协议与回滚设计](../doc/done/cc-niri_single-column-reindex-protocol.md)，再实现独立 `COLUMN_REINDEX`（protocol 2）。它复用原 IPC endpoint、Rust sequence/runtime、Spring、output presentation clock、paint/clip context 和 Ring transform。额外字段只有 sourceWindowId/sourceLogicalX；entries 使用新 logical 基准，old/new wire offsets 仍有限且非负。
 
 Rust 校验唯一旧 visible 源、同宽半列、最多两个 entries、placement、数值和 epoch。新类型仅允许完整可见的源和目标；ordinary SCROLL validator 与冻结 Golden 不变。Adapter 转换 Qt 值、核对实际输出/桌面/源 frame，管理 FFI handle 和 ownership，不加入布局或 Spring policy。
 

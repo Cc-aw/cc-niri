@@ -1,6 +1,8 @@
 # Scroll Layout V2 P6 实机验收操作单
 
-当前阶段：2026-10-16 用户明确授权后，候选已部署并在本机开启 V2，启动核验通过；交互/性能/资源实机验收仍 Pending。源码 V2 默认关闭。结果见 [P6 记录](../test/SCROLL_LAYOUT_V2_P6_LIVE_RESULTS.md)。以下部署、stop、模式切换、采样与回滚步骤仅在明确授权的实机验收时执行。前一准备阶段只执行离线检查、私有 KWin、只读备份和 rollback dry-run；本次部署使用刷新后的 `/tmp/cc-niri-p6-20261016-deploy` 配套备份。
+> **归档说明（2026-10-20）：** P6 部署、实机验收与回滚操作手册，随已实施的 Scroll Layout V2 归档。文中未完成的实机 / 性能 / 资源验收仍保持 Pending，不因归档视为通过。
+
+当前阶段：2026-10-16 用户明确授权后，候选已部署并在本机开启 V2，启动核验通过；交互/性能/资源实机验收仍 Pending。源码 V2 默认关闭。结果见 [P6 记录](../../test/SCROLL_LAYOUT_V2_P6_LIVE_RESULTS.md)。以下部署、stop、模式切换、采样与回滚步骤仅在明确授权的实机验收时执行。前一准备阶段只执行离线检查、私有 KWin、只读备份和 rollback dry-run；本次部署使用刷新后的 `/tmp/cc-niri-p6-20261016-deploy` 配套备份。
 
 ## 1. 固定候选与退路
 
@@ -50,7 +52,7 @@ gdbus call --session --dest org.cc.CCNiriBridge --object-path /CCNiriBridge \
 
 在目标 GPU、4K60/150% 主屏 + 2K60/100% 副屏上保存 `kscreen-doctor -j`、KWin supportInformation、组件 SHA、运行开关、工作区数量、窗口 UUID/应用/标题与几何。记录真实刷新率，不能用私有 Mesa 的 100%/150% 分别通过代替真实 mixed-DPI 验收。
 
-使用五个相同应用/内容的普通测试窗口 A–E，固定宽度 `[half,twoThirds,full,half,twoThirds]`；同样的窗口负载运行 V1 对照（V1 投影为 half/full）。准备空、单 half、单 twoThirds 和混合列工作区。逐项填写 [设计第 10 节的 V2-01…28](todo/cc-niri_Scroll_Layout_V2_Implementation_Spec.md#10-回归测试矩阵与验收标准)，每项记录实际操作、观察、原始数据和结论。
+使用五个相同应用/内容的普通测试窗口 A–E，固定宽度 `[half,twoThirds,full,half,twoThirds]`；同样的窗口负载运行 V1 对照（V1 投影为 half/full）。准备空、单 half、单 twoThirds 和混合列工作区。逐项填写 [设计第 10 节的 V2-01…28](cc-niri_Scroll_Layout_V2_Implementation_Spec.md#10-回归测试矩阵与验收标准)，每项记录实际操作、观察、原始数据和结论。
 
 优先顺序：
 
@@ -78,7 +80,7 @@ Scroll 最多 10 秒，Workspace 最多 3 秒；分别保留原始 JSON 和离�
 
 ## 5. 全项目资源 B0/V1/V2
 
-遵守 [全项目规范](todo/iA%20Writer.md)。结束所有大型构建和隔离测试，使用生产构建，同一负载、同一环境、同样的 Blur/Dock/Workspace 开关，先稳定 3–5 分钟。B0 是原生 KDE、CC-Niri Script/Effect/Clip/Ring/Bridge 全部退出；建立 B0 会停止组件，需明确授权。每个模式至少三轮，窗口内容和数量保持一致。原始观测不能当作归因净增量。
+遵守 [全项目规范](<../todo/iA Writer.md>)。结束所有大型构建和隔离测试，使用生产构建，同一负载、同一环境、同样的 Blur/Dock/Workspace 开关，先稳定 3–5 分钟。B0 是原生 KDE、CC-Niri Script/Effect/Clip/Ring/Bridge 全部退出；建立 B0 会停止组件，需明确授权。每个模式至少三轮，窗口内容和数量保持一致。原始观测不能当作归因净增量。
 
 每轮创建 context JSON，例如 V2：
 

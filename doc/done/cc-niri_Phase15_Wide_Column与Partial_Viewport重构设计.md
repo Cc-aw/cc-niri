@@ -1,5 +1,7 @@
 # CC Niri Phase 15：Wide Column 模型重构与 Partial Viewport 设计
 
+> **归档状态（2026-10-20）：停止推进，非完成验收。** 已被现行布局路线替代，按用户要求移出待办，不再按本文进行 Wide / Partial Viewport 重构。 当前唯一待办为 [全项目低内存规范](../todo/iA%20Writer.md)。
+
 > **归档状态（2026-10-01）：** 未按本文完整实施；当前采用 Wide Preference + Contextual Viewport。这是已被替代的候选方案，保留作参考，不作为默认下一阶段任务。
 > 文档状态与阅读顺序见 [文档索引](../README.md)。原设计正文保留作为历史依据。
 

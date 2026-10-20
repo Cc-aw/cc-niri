@@ -24,7 +24,7 @@ P0–P5 已实现并通过自动化和私有 KWin 回归；P6 的候选校验、
 
 V2 启用后，Meta+R 为 `half → twoThirds → full → half`，Meta+F 在 full 与此前非 full 档之间往返；Z/原 Wide 命令居中当前列，不再扩为 72%。V1 的 Wide 偏好保留，切回可恢复。partial 邻窗采用两次点击退路：首次只聚焦，到位后再次点击操作。用户主要使用的 H/L 沿用同一焦点入口。第三宽度不属于本轮范围。
 
-阶段结果见 [P5](test/SCROLL_LAYOUT_V2_P5_RESULTS.md)、[P6](test/SCROLL_LAYOUT_V2_P6_LIVE_RESULTS.md)，候选安装、Fcitx5、帧/内存对照和完整回滚步骤见 [P6 操作单](doc/SCROLL_LAYOUT_V2_P6_RUNBOOK.md)。实机发现的顶栏遮挡与150%客户端ACK取整问题已修复并重载，见 [修复记录](test/SCROLL_LAYOUT_V2_PANEL_FIX_RESULTS.md)。顶部可独立使用 `ScrollLayoutTopGap`（-1继承统一间距）；本机已配置仅顶部8、其他间距16；经用户明确批准逐窗恢复确认后已完成热重载并生效，用户已确认当前顶部留白与重载后观感正常，见[顶部调整](test/SCROLL_LAYOUT_V2_TOP_GAP_RESULTS.md)。首次部署记录见 [部署核验](test/scroll-layout-v2-p6-evidence/20261016/deployment/deployment.json)，后续重部署仍按操作单执行。
+阶段结果见 [P5](test/SCROLL_LAYOUT_V2_P5_RESULTS.md)、[P6](test/SCROLL_LAYOUT_V2_P6_LIVE_RESULTS.md)，候选安装、Fcitx5、帧/内存对照和完整回滚步骤见 [P6 操作单](doc/done/SCROLL_LAYOUT_V2_P6_RUNBOOK.md)。实机发现的顶栏遮挡与150%客户端ACK取整问题已修复并重载，见 [修复记录](test/SCROLL_LAYOUT_V2_PANEL_FIX_RESULTS.md)。顶部可独立使用 `ScrollLayoutTopGap`（-1继承统一间距）；本机已配置仅顶部8、其他间距16；经用户明确批准逐窗恢复确认后已完成热重载并生效，用户已确认当前顶部留白与重载后观感正常，见[顶部调整](test/SCROLL_LAYOUT_V2_TOP_GAP_RESULTS.md)。首次部署记录见 [部署核验](test/scroll-layout-v2-p6-evidence/20261016/deployment/deployment.json)，后续重部署仍按操作单执行。
 
 ## 安装与控制
 

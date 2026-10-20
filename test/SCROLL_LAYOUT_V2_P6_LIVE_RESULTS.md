@@ -11,7 +11,7 @@
 - `tools/scroll-layout-v2-p6.py prepare/verify` 冻结源码、三个 Native 产物、构建缓存、完整原安装包、配置/快捷键/快照与 rollback；候选安装校验通过后复用已测产物。当前仓库、完整源码集合、产物、缓存、用户前缀任一变化都拒绝候选安装。
 - rollback 默认 dry-run，执行模式先安全 stop，再恢复原 immutable Native 链接及配套完整组件/配置/布局。备份在私有目录，不提交用户配置。恢复会替换试用期间的新配置/布局。
 - 复用现有 10s Scroll/3s Workspace 有界 capture；离线统计转场呈现 P50/P95/P99/max、≥25ms 和33–50ms。内存采样可附固定负载 context；缺 B0、PSS、同负载/同环境证明时标 INCONCLUSIVE，不以 RSS 替代。
-- README、设计索引与 [P6 操作单](../doc/SCROLL_LAYOUT_V2_P6_RUNBOOK.md) 明确 V1/V2 差异、H/L、两次点击和 Fcitx5、开启顺序及验收范围。
+- README、设计索引与 [P6 操作单](../doc/done/SCROLL_LAYOUT_V2_P6_RUNBOOK.md) 明确 V1/V2 差异、H/L、两次点击和 Fcitx5、开启顺序及验收范围。
 
 ## 离线与隔离验证
 

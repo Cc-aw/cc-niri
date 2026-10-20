@@ -12,7 +12,7 @@ Core Debug/Release、umbrella、OFF与编译器拒绝路径使用 [P5 已通过�
 
 没有新增服务、线程、图像/纹理、FFI handle 或动画时钟。恢复等待仅事件连接与一个有界 deadline，完成/关闭/超时释放；Bridge 仅一个有界当前状态，命令继续使用既有有界队列。零生产资源新增与局部清理不等于项目总预算通过，PSS/Private_Dirty、Qt/Scene/纹理、GPU、4K60与长期增长仍 NOT MEASURED。
 
-回滚按 [操作单](../doc/SCROLL_LAYOUT_V2_P6_RUNBOOK.md) 使用配套 immutable 旧组件、配置与持久快照；原准备阶段只做备份验证和 dry-run；现已完成用户授权部署和启动核验，见 [部署记录](scroll-layout-v2-p6-evidence/20261016/deployment/deployment.json)。实际加载的两个新 Native immutable 路径已确认，安装后的Bridge/Clip/Ring生产边界通过；用户桌面V2安全启停完整矩阵、回滚执行与视觉尚未验收。
+回滚按 [操作单](../doc/done/SCROLL_LAYOUT_V2_P6_RUNBOOK.md) 使用配套 immutable 旧组件、配置与持久快照；原准备阶段只做备份验证和 dry-run；现已完成用户授权部署和启动核验，见 [部署记录](scroll-layout-v2-p6-evidence/20261016/deployment/deployment.json)。实际加载的两个新 Native immutable 路径已确认，安装后的Bridge/Clip/Ring生产边界通过；用户桌面V2安全启停完整矩阵、回滚执行与视觉尚未验收。
 
 P6实机后续纯JS修复：可见Plasma边缘面板避让与150%客户端尺寸共同网格已修复部署，见[专项结果](SCROLL_LAYOUT_V2_PANEL_FIX_RESULTS.md)。最终233项JS、37项私有KWin和真实几何核对通过；Native/Rust/FFI/Bridge/构建缓存与原验证的SHA未变，沿用原Native门禁，无Native参数或协议改动。
 

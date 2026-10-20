@@ -1,6 +1,6 @@
 # Core UX P6 — 数字键直接移动列
 
-日期：2026-10-08。依据 [Core UX 设计](../doc/todo/CC-Niri%20Core%20UX%20下一阶段实施设计.md) 的 P6 / §27 实施。此前 Full 邻窗外推副屏短闪已由用户确认修复。P7 Dockless、P8 Bridge 清理与延期分数列宽保留后续范围。
+日期：2026-10-08。依据 [Core UX 设计](../doc/done/CC-Niri%20Core%20UX%20下一阶段实施设计.md) 的 P6 / §27 实施。此前 Full 邻窗外推副屏短闪已由用户确认修复。P7 Dockless、P8 Bridge 清理与延期分数列宽保留后续范围。
 
 ## 行为与实现
 

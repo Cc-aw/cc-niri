@@ -1,12 +1,14 @@
 # CC-Niri：J/K 工作区动画掉帧诊断与优化实施规范
 
+> **归档状态（2026-10-20）：已实施。** D0、D1a 与 D2 已按限定范围实现，D1a / D2 已部署且当前选项关闭，短功能与用户目测通过；Blur 调整未采用，长期测试按用户要求跳过。D3 完整性能 / 资源验收仍 Pending，不能宣称真实长帧已经消除。见 [D0](../../test/JK_4K60_STUTTER_D0_RESULTS.md)、[D1a](../../test/RUST_NATIVE_R7_JK_D1A_RESULTS.md)、[D2](../../test/RUST_NATIVE_R7_JK_D2_RESULTS.md)。 原设计正文保留为历史依据；移入 `done/` 不代表未执行的验收已通过。
+
 > **交付对象**：Codex（按阶段执行、验证、记录，再由用户决定是否部署）\
 > **编写日期**：2026-10-13\
 > **核查基线**：`Cc-aw/cc-niri` 远程 `main`：`b77a40eb1e0a0fd66d053c5996a13bc88e75518b`\
 > **实机平台**：Fedora 44 / Plasma Wayland / KWin 6.7.5；主屏 3840×2160@60Hz、150% 缩放；副屏 2560×1440@60Hz、100% 缩放\
-> **实施状态**：**设计与诊断方案；不是已经完成的性能优化或实机验收报告**。\
+> **原始文档性质**：**设计与诊断方案；当前实现与未验收边界见页首归档说明，不是完整性能验收报告**。\
 > **关联资料**：`JK_STUTTER_DIAGNOSTIC_20261013.md`、`test/RUST_NATIVE_R7_ANIMATION_A3_RESULTS.md`、`test/RUST_NATIVE_R7_ANIMATION_A5_RESULTS.md`、全项目 16GB 低内存规范。\
-> **建议存放路径**：`doc/todo/cc-niri_JK_4K60Hz_掉帧诊断与优化_Codex_Spec.md`
+> **当前归档目录**：`doc/done/`（保留原文件名）
 
 ---
 
