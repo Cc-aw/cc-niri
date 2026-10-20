@@ -41,7 +41,9 @@ def isolated(destination, scale, ime=False, scenario=None):
         for directory in ["config", "data", "cache", "state", "runtime"]:
             (base / directory).mkdir(mode=0o700)
         (base / "config/kwinrc").write_text("[Script-cc-niri-maximize]\nScrollLayoutV2Enabled=true\n"
-                                            "[Effect-cc-niri-viewport-clip]\nAnimationProfile=smooth60\n")
+                                            "[Effect-cc-niri-viewport-clip]\nAnimationProfile=smooth60\n" +
+                                            ("OptimizedWorkspaceAnimation=true\nWorkspaceDuration=420\n"
+                                             "[Plugins]\nslideEnabled=false\n" if scenario in {"p5", "p6"} else ""))
         if ime:
             profile = base / "config/fcitx5/profile"
             profile.parent.mkdir()
@@ -67,7 +69,7 @@ def isolated(destination, scale, ime=False, scenario=None):
         process = subprocess.Popen(args, env=env, start_new_session=True, text=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
-            stdout, stderr = process.communicate(timeout=45)
+            stdout, stderr = process.communicate(timeout=70 if scenario in {"p5", "p6"} else 45)
             code = process.returncode
         except subprocess.TimeoutExpired:
             os.killpg(process.pid, signal.SIGTERM)
@@ -256,7 +258,7 @@ timer.timeout.connect(() => {
         processes.append(monitor)
         client_log = log("clients.log")
         client_env = dict(os.environ, WAYLAND_DISPLAY="cc-niri-p0", QT_QPA_PLATFORM="wayland", WAYLAND_DEBUG="client")
-        if scenario: client_env["CC_NIRI_P0_CLIENT_LIFETIME_MS"]="40000"
+        if scenario: client_env["CC_NIRI_P0_CLIENT_LIFETIME_MS"]="60000" if scenario in {"p5", "p6"} else "40000"
         if ime:
             client_env["QT_IM_MODULE"] = "fcitx"
         client = subprocess.Popen([sys.executable, str(p0.ROOT / "tools/scroll-layout-v2-p0-input-probe.py"), "--clients"],

@@ -46,14 +46,14 @@ def run(e):
         assert row["enabled"] and not row["errors"], row
         return row
 
-    def action(name, timeout=5):
+    def action(name, timeout=5, **fields):
         nonlocal serial
         serial += 1
         state = json.loads(bridge("GetState"))
         before = len(records())
         command = dict(protocol=1, type="focus-column-right", commandId=f"p5-{serial}",
             sessionId=state["sessionId"], baseGeneration=state["generation"], windowUuid="p5-private",
-            p5Action=name)
+            p5Action=name, **fields)
         assert bridge("RequestCommand", json.dumps(command))
         row = latest(name, before, timeout); report.setdefault("p5_actions", []).append(row)
         if name != "stop": assert row["enabled"] and not row["errors"], row
@@ -139,6 +139,23 @@ def run(e):
     v2 = load(True)
     checks["v2_reenable_recovers_two_thirds_and_signed_view"] = v2["columns"][0]["widthMode"] == "twoThirds" and v2["snapshot"]["viewportAnchorV2"]["delta"] == -440
     checks["root_and_active_workspace_width_metadata_identical"] = v2["snapshot"]["columns"] == next(w["columns"] for w in v2["snapshot"]["workspaces"] if w["id"] == v2["workspaceId"])
+    action("workspace-prev")
+    action("move-workspace-next")
+    action("move-left")
+    action("focus-next")
+    for delay in [40]:
+        action("workspace-prev")
+        interrupted = action("workspace-next-focus-prev", p5Delay=delay)
+        report.setdefault("workspace_focus_interruptions", []).append(interrupted)
+        half = next(c for c in interrupted["columns"] if c["uuid"] == interrupted["focusedUuid"])
+        interruption = next(r for r in reversed(records()) if r.get("kind") == "p5-workspace-interruption")
+        report.setdefault("workspace_interruption_status", []).append(interruption)
+        checks[f"h_during_workspace_animation_{delay}ms"] = interruption["status"]["workspaceAnimationActive"]
+        checks[f"half_fits_left_after_workspace_h_{delay}ms"] = (
+            half["widthMode"] == "half" and half["frame"]["x"] == 16 and
+            interrupted["activeUuid"] == half["uuid"] and not interrupted["pending"])
+        assert checks[f"half_fits_left_after_workspace_h_{delay}ms"], interrupted
+        action("focus-next")
     checks["full_entry_secondary_output_stays_black"] = e["capture"]("p-five-final", {})
     ring = json.loads(call("/ccNiriFocusRing", "org.cc.NiriFocusRing1.GetFocusRingStatus")); report["p5_ring"] = ring
     checks["real_ring_still_draws_with_shared_native_frame"] = ring["drawCount"] > 0 and ring["sharedFrameSamples"] > 0

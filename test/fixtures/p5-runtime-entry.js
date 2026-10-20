@@ -1,10 +1,10 @@
 // Appended only to the full generated entry in the guarded private compositor.
 (function () {
     const record = value => callDBus("org.cc.CCNiriP0Fixture", "/P0", "org.cc.CCNiriP0Fixture1", "Record", JSON.stringify(value), () => {});
-    let label = "initial", staticAction = !continuousLayout, remaining = 1400, handle = null;
+    let label = "initial", staticAction = !continuousLayout, remaining = 1400, handle = null, waitingAction = false;
     const copy = r => ({ x: r.x, y: r.y, width: r.width, height: r.height });
     function checkpoint() {
-        if (!label) return;
+        if (!label || waitingAction) return;
         const snapshot = createRuntimeSnapshot();
         record({ kind: "p5-checkpoint", label, v2: Boolean(continuousLayout), enabled: mainScreenState.enabled,
             epoch: layoutTransaction.currentEpoch(), workspaceId: mainScreenState.activeWorkspaceId,
@@ -46,6 +46,17 @@
             if (workspace.desktops.length < 2) workspace.createDesktop(workspace.desktops.length, "P5 private");
             workspaceSwitchController.next(); break;
         case "workspace-prev": workspaceSwitchController.previous(); break;
+        case "workspace-next-focus-prev":
+            // Interrupt the incoming workspace before its vertical motion ends.
+            waitingAction = true;
+            workspaceSwitchController.next();
+            setRuntimeTimer(() => runtimeBridge.scrollMotionStatus(raw => {
+                record({ kind: "p5-workspace-interruption", status: JSON.parse(raw),
+                    camera: mainScreenState.scrollOffsetX,
+                    observed: continuousLayout.coordinator.getPainted() });
+                waitingAction = false; focusRelativeColumn(-1);
+            }), command.p5Delay);
+            break;
         case "move-workspace-next": workspaceMoveController.moveNext(); break;
         case "maximize": staticAction = true; setPresentationMode(normalizeWindowUuid(window.internalId), "maximized", "p5-private-maximize"); break;
         case "normal": setPresentationMode(normalizeWindowUuid(window.internalId), "normal", "p5-private-normal"); break;

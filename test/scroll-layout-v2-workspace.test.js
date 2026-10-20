@@ -70,6 +70,33 @@ test("workspace mounts and empty workspaces preserve mixed widths and signed foc
     r.nativeSwitch(2, null); assert.deepEqual(r.ids(), []); assert.equal(r.state.scrollOffsetX, 0); check(r);
     r.nativeSwitch(0, r.a[0]); r.paintV2(); check(r);
 });
+test("H after J fits the left half before or after the incoming workspace's first paint", () => {
+    for (const painted of [false, true]) {
+        const r = fixture({ PrimaryWindowCount: 2, OtherWorkspaceWindowCount: 5 });
+        r.nativeSwitch(1, r.b[0]); r.paintV2();
+        key(r, "FocusNextColumn"); r.paintV2();
+        key(r, "CycleColumnWidth"); r.paintV2();
+        key(r, "FocusNextColumn"); r.paintV2();
+        key(r, "CycleColumnWidth"); r.paintV2();
+        key(r, "FocusPreviousColumn"); r.paintV2();
+        assert.equal(r.state.scrollOffsetX, 1484);
+        r.nativeSwitch(0, r.a[0]); r.paintV2();
+        r.workspace.setCurrentDesktopForScreen = desktop =>
+            r.nativeSwitch(r.desktops.indexOf(desktop), r.b[1]);
+        r.setWorkspaceTransitionActive(true);
+        key(r, "WorkspaceNext");
+        if (painted) r.paintV2();
+        key(r, "FocusPreviousColumn");
+        assert.equal(r.state.focusedColumnIndex, 0);
+        assert.equal(r.state.scrollOffsetX, 636);
+        r.paintV2();
+        assert.equal(r.workspace.activeWindow, r.b[0]);
+        assert.equal(r.b[0].frameGeometry.x, 16);
+        assert.deepEqual(Array.from(r.state.columns, c => c.widthMode),
+            ["half", "twoThirds", "twoThirds", "half", "half"]);
+        check(r);
+    }
+});
 test("membership transfer carries V2 width to the sleeping workspace and closes clear references", () => {
     const r = fixture(); key(r, "CycleColumnWidth"); r.paintV2();
     r.move(r.a[0], ["B"]);

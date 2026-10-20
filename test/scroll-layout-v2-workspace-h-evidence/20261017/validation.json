@@ -1,0 +1,598 @@
+{
+  "baseline": "a0f5853",
+  "issue_status": "INCONCLUSIVE",
+  "production_changes": false,
+  "deployed": false,
+  "user_desktop_modified": false,
+  "js_gate": {
+    "result": "PASS",
+    "tests": 240,
+    "files": 117,
+    "log": "/tmp/cc-niri-workspace-h-check-full-20261017.log"
+  },
+  "direct_workspace_tests": {
+    "result": "PASS",
+    "tests": 18,
+    "log": "/tmp/cc-niri-workspace-h-direct-20261017.log"
+  },
+  "isolated": [
+    {
+      "evidence": "/tmp/cc-niri-workspace-h-confirm-20261017",
+      "result": "PASS",
+      "passed": 36,
+      "checks": {
+        "raw_injector_has_no_p0_projection": true,
+        "exact_build_tree_plugins_loaded": true,
+        "native_capability_explicit": true,
+        "bridge_requires_membership": true,
+        "actual_painted_camera_and_scope": true,
+        "p4_source_has_real_per_client_frames": true,
+        "p4_source_uses_actual_camera_and_pass": true,
+        "p4_source_preserves_natural_partial_visual": true,
+        "right_partial_strict_output": true,
+        "full_generated_entry_owns_live_four_client_model": true,
+        "real_entry_r_changes_active_to_two_thirds": true,
+        "actual_output_scale_preserved_in_snapshot": true,
+        "versioned_negative_anchor_published": true,
+        "real_entry_f_restores_previous_two_thirds": true,
+        "half_swapped_left_of_two_thirds_fits_left_edge": true,
+        "half_reorder_native_source_valid": true,
+        "half_reorder_no_secondary_leak": true,
+        "half_swapped_right_fits_right_edge": true,
+        "hl_uses_actual_client_paint_before_activation": true,
+        "meta_z_only_centers_without_wide_mutation": true,
+        "fullscreen_native_suspended": true,
+        "fullscreen_exact_width_restored": true,
+        "safe_area_maximize_separate_from_v2_full": true,
+        "dialog_never_adopted_or_reframed": true,
+        "jk_restores_signed_anchor_and_width": true,
+        "move_and_follow_preserves_versioned_width": true,
+        "stop_1_confirmed": true,
+        "v1_reads_projection_and_retains_v2_preference": true,
+        "v2_reenable_recovers_two_thirds_and_signed_view": true,
+        "root_and_active_workspace_width_metadata_identical": true,
+        "h_during_workspace_animation_40ms": true,
+        "half_fits_left_after_workspace_h_40ms": true,
+        "full_entry_secondary_output_stays_black": true,
+        "real_ring_still_draws_with_shared_native_frame": true,
+        "stop_3_confirmed": true,
+        "no_fixture_faults": true
+      },
+      "interruption": [
+        {
+          "phase": "bootstrap",
+          "kind": "p5-workspace-interruption",
+          "status": {
+            "active": true,
+            "animationProfile": "smooth60",
+            "animationProfileFallback": "",
+            "clipHandoffActive": false,
+            "clipPartial": true,
+            "clockFallbackCount": 0,
+            "clockFallbackReasons": {
+              "invalidPrediction": 0,
+              "missingPrediction": 0,
+              "regressedPrediction": 0
+            },
+            "completed": true,
+            "decorationGeometryBackend": "Rust",
+            "epoch": 7,
+            "lastRetarget": {
+              "brakeDistance": 0,
+              "brakeMs": 0,
+              "initialVelocity": 0,
+              "lower": 0,
+              "reason": "none",
+              "savedVelocity": 0,
+              "strategy": "rest",
+              "upper": 1696
+            },
+            "nativeProtocolBackend": "Rust",
+            "paintClip": "strict-output",
+            "retargetBrakedCount": 0,
+            "retargetCarriedCount": 0,
+            "retargetDegradedCount": 0,
+            "retargetDegradedReasons": {
+              "coverage": 0,
+              "invalidMath": 0,
+              "noBrakeSpace": 0
+            },
+            "retargetKeptCount": 0,
+            "scrollClockSource": "predicted-presentation",
+            "scrollContinuousFullRepaintRequests": 0,
+            "scrollOutputRepaintRequests": 237,
+            "scrollRepaintFallbackFullRequests": 0,
+            "scrollRepaintScope": "target-output-continuation",
+            "scrollRetargetPolicy": "bounded-last-painted-position-and-velocity",
+            "scrollRuntimeBackend": "Rust",
+            "scrollSpringStiffness": 600,
+            "scrollTargetOutput": "Virtual-0",
+            "scrollVisualCompletedCount": 9,
+            "scrollVisualSettleEnabled": true,
+            "scrollVisualSettleFallback": "none",
+            "scrollVisualSettleFallbackReasons": {
+              "invalidScale": 0,
+              "missingOutput": 10,
+              "unknownRefresh": 0
+            },
+            "scrollVisualSettleOutputScale": 1.5,
+            "scrollVisualSettlePhysicalPx": 0.25,
+            "scrollVisualSettleRefreshHz": 60,
+            "sessionId": "1a14989ce3e-99dbd7df",
+            "targetOutput": "Virtual-0",
+            "workspaceAnimationActive": true,
+            "workspaceAnimationBackend": "RustFiniteCurve",
+            "workspaceAnimationDuration": 420,
+            "workspaceAnimationEnabled": true,
+            "workspaceDepartureVisual": "freeze-wide-until-compositor-idle",
+            "workspaceId": "b33e735a-af83-481d-a6e5-0d6b92b75bd1",
+            "workspaceMotion": {
+              "acceleration": {
+                "x": 0,
+                "y": 0
+              },
+              "active": false,
+              "brakeDistanceCells": {
+                "x": 0,
+                "y": 0
+              },
+              "brakeXMs": 0,
+              "brakeYMs": 0,
+              "brakedC1": 0,
+              "carriedC1": 0,
+              "carriedC2": 0,
+              "durationMs": 420,
+              "epoch": 14,
+              "frameDeltaClampingEnabled": false,
+              "frameDeltaClampingRequiresSmooth60": true,
+              "gesture": false,
+              "initialAcceleration": {
+                "x": 0,
+                "y": 0
+              },
+              "initialVelocity": {
+                "x": 0,
+                "y": 0
+              },
+              "kept": 0,
+              "liveBinding": false,
+              "origin": {
+                "x": 1,
+                "y": 0
+              },
+              "point": {
+                "x": 1,
+                "y": 0
+              },
+              "projectionCacheEnabled": false,
+              "reasons": [
+                "none",
+                "none"
+              ],
+              "reset": 0,
+              "sampleNs": 172814933803246,
+              "samplingClock": {
+                "clampedFrames": 0,
+                "enabled": false,
+                "fallbackCount": 0,
+                "fallbackReason": 0,
+                "lagMs": 0,
+                "limiting": false,
+                "logicalNs": 0,
+                "realNs": 0
+              },
+              "savedAcceleration": {
+                "x": 0,
+                "y": 0
+              },
+              "savedVelocity": {
+                "x": 0,
+                "y": 0
+              },
+              "startNs": 172814933803246,
+              "strategies": [
+                "rest",
+                "rest"
+              ],
+              "target": {
+                "x": 1,
+                "y": 0
+              },
+              "velocity": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "workspaceRemovalGate": "compositor-idle",
+            "workspaceRetargetPolicy": "bounded-last-painted-quintic-derivatives"
+          },
+          "camera": 1484,
+          "observed": {
+            "active": true,
+            "cameraX": 1484,
+            "clipPartial": true,
+            "completed": true,
+            "entries": [
+              {
+                "uuid": "2f8948a2-0d30-48d2-a4e4-59b5eaf220e4",
+                "visualRect": {
+                  "height": 1408,
+                  "width": 1256,
+                  "x": -832,
+                  "y": 16
+                }
+              },
+              {
+                "uuid": "45adaf89-0a75-48d1-9fdd-7f06c13f17b9",
+                "visualRect": {
+                  "height": 1408,
+                  "width": 1680,
+                  "x": 440,
+                  "y": 16
+                }
+              }
+            ],
+            "epoch": 7,
+            "layoutRect": {
+              "height": 1408,
+              "width": 2560,
+              "x": 0,
+              "y": 16
+            },
+            "maxCamera": 1696,
+            "protocol": 4,
+            "sampleSerial": 320,
+            "scopeRevision": 4,
+            "sessionId": "1a14989ce3e-99dbd7df",
+            "targetOutput": "Virtual-0",
+            "type": "COLUMN_GEOMETRY_SOURCE",
+            "valid": true,
+            "viewport": {
+              "height": 1440,
+              "width": 2560,
+              "x": 0,
+              "y": 0
+            },
+            "workspaceId": "b33e735a-af83-481d-a6e5-0d6b92b75bd1"
+          }
+        }
+      ],
+      "final": [
+        {
+          "camera": 636,
+          "focusedUuid": "2f8948a2-0d30-48d2-a4e4-59b5eaf220e4",
+          "activeUuid": "2f8948a2-0d30-48d2-a4e4-59b5eaf220e4",
+          "pending": false,
+          "columns": [
+            {
+              "uuid": "2f8948a2-0d30-48d2-a4e4-59b5eaf220e4",
+              "caption": "CC_NIRI_P0_B",
+              "widthMode": "half",
+              "previous": "half",
+              "persistentWide": false,
+              "fullScreen": false,
+              "opacity": 1,
+              "minimized": false,
+              "frame": {
+                "x": 16,
+                "y": 16,
+                "width": 1256,
+                "height": 1408
+              }
+            },
+            {
+              "uuid": "45adaf89-0a75-48d1-9fdd-7f06c13f17b9",
+              "caption": "CC_NIRI_P0_A",
+              "widthMode": "twoThirds",
+              "previous": "twoThirds",
+              "persistentWide": false,
+              "fullScreen": false,
+              "opacity": 1,
+              "minimized": false,
+              "frame": {
+                "x": 880,
+                "y": 16,
+                "width": 1680,
+                "height": 1408
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "evidence": "/tmp/cc-niri-workspace-h-p6-ime-20261017",
+      "result": "PASS",
+      "passed": 46,
+      "checks": {
+        "raw_injector_has_no_p0_projection": true,
+        "exact_build_tree_plugins_loaded": true,
+        "native_capability_explicit": true,
+        "bridge_requires_membership": true,
+        "actual_painted_camera_and_scope": true,
+        "p4_source_has_real_per_client_frames": true,
+        "p4_source_uses_actual_camera_and_pass": true,
+        "p4_source_preserves_natural_partial_visual": true,
+        "right_partial_strict_output": true,
+        "full_generated_entry_owns_live_four_client_model": true,
+        "real_entry_r_changes_active_to_two_thirds": true,
+        "actual_output_scale_preserved_in_snapshot": true,
+        "versioned_negative_anchor_published": true,
+        "real_entry_f_restores_previous_two_thirds": true,
+        "full_entry_real_fcitx5_candidate": true,
+        "full_entry_candidate_avoids_partial_focus": true,
+        "full_entry_candidate_commits_real_text": true,
+        "half_swapped_left_of_two_thirds_fits_left_edge": true,
+        "half_reorder_native_source_valid": true,
+        "half_reorder_no_secondary_leak": true,
+        "half_swapped_right_fits_right_edge": true,
+        "hl_uses_actual_client_paint_before_activation": true,
+        "meta_z_only_centers_without_wide_mutation": true,
+        "fullscreen_native_suspended": true,
+        "fullscreen_exact_width_restored": true,
+        "safe_area_maximize_separate_from_v2_full": true,
+        "dialog_never_adopted_or_reframed": true,
+        "jk_restores_signed_anchor_and_width": true,
+        "move_and_follow_preserves_versioned_width": true,
+        "stop_1_confirmed": true,
+        "v1_reads_projection_and_retains_v2_preference": true,
+        "v2_reenable_recovers_two_thirds_and_signed_view": true,
+        "root_and_active_workspace_width_metadata_identical": true,
+        "h_during_workspace_animation_40ms": true,
+        "half_fits_left_after_workspace_h_40ms": true,
+        "full_entry_secondary_output_stays_black": true,
+        "real_ring_still_draws_with_shared_native_frame": true,
+        "p6_real_cli_stop_succeeds_after_js_native_and_client_proof": true,
+        "p6_proof_matches_exact_live_cli_request": true,
+        "p6_cli_unloads_script_only_after_recovery": true,
+        "p6_cli_unloads_both_native_plugins_without_kwin_crash": true,
+        "p6_recovery_ack_not_in_durable_workspace_snapshot": true,
+        "recovery_preserves_accepted_size_despite_stale_odd_height": true,
+        "p6_repeat_stop_1_fresh_session_and_exact_proof": true,
+        "p6_repeat_stop_2_fresh_session_and_exact_proof": true,
+        "no_fixture_faults": true
+      },
+      "interruption": [
+        {
+          "phase": "p-five-ime",
+          "kind": "p5-workspace-interruption",
+          "status": {
+            "active": true,
+            "animationProfile": "smooth60",
+            "animationProfileFallback": "",
+            "clipHandoffActive": false,
+            "clipPartial": true,
+            "clockFallbackCount": 0,
+            "clockFallbackReasons": {
+              "invalidPrediction": 0,
+              "missingPrediction": 0,
+              "regressedPrediction": 0
+            },
+            "completed": true,
+            "decorationGeometryBackend": "Rust",
+            "epoch": 7,
+            "lastRetarget": {
+              "brakeDistance": 0,
+              "brakeMs": 0,
+              "initialVelocity": 0,
+              "lower": 0,
+              "reason": "none",
+              "savedVelocity": 0,
+              "strategy": "rest",
+              "upper": 1696
+            },
+            "nativeProtocolBackend": "Rust",
+            "paintClip": "strict-output",
+            "retargetBrakedCount": 0,
+            "retargetCarriedCount": 0,
+            "retargetDegradedCount": 0,
+            "retargetDegradedReasons": {
+              "coverage": 0,
+              "invalidMath": 0,
+              "noBrakeSpace": 0
+            },
+            "retargetKeptCount": 0,
+            "scrollClockSource": "predicted-presentation",
+            "scrollContinuousFullRepaintRequests": 0,
+            "scrollOutputRepaintRequests": 239,
+            "scrollRepaintFallbackFullRequests": 0,
+            "scrollRepaintScope": "target-output-continuation",
+            "scrollRetargetPolicy": "bounded-last-painted-position-and-velocity",
+            "scrollRuntimeBackend": "Rust",
+            "scrollSpringStiffness": 600,
+            "scrollTargetOutput": "Virtual-0",
+            "scrollVisualCompletedCount": 9,
+            "scrollVisualSettleEnabled": true,
+            "scrollVisualSettleFallback": "none",
+            "scrollVisualSettleFallbackReasons": {
+              "invalidScale": 0,
+              "missingOutput": 10,
+              "unknownRefresh": 0
+            },
+            "scrollVisualSettleOutputScale": 1.5,
+            "scrollVisualSettlePhysicalPx": 0.25,
+            "scrollVisualSettleRefreshHz": 60,
+            "sessionId": "1a1498a8ddd-f7f1da29",
+            "targetOutput": "Virtual-0",
+            "workspaceAnimationActive": true,
+            "workspaceAnimationBackend": "RustFiniteCurve",
+            "workspaceAnimationDuration": 420,
+            "workspaceAnimationEnabled": true,
+            "workspaceDepartureVisual": "freeze-wide-until-compositor-idle",
+            "workspaceId": "65386f5a-c676-4274-a001-c1b44cf39660",
+            "workspaceMotion": {
+              "acceleration": {
+                "x": 0,
+                "y": 0
+              },
+              "active": false,
+              "brakeDistanceCells": {
+                "x": 0,
+                "y": 0
+              },
+              "brakeXMs": 0,
+              "brakeYMs": 0,
+              "brakedC1": 0,
+              "carriedC1": 0,
+              "carriedC2": 0,
+              "durationMs": 420,
+              "epoch": 14,
+              "frameDeltaClampingEnabled": false,
+              "frameDeltaClampingRequiresSmooth60": true,
+              "gesture": false,
+              "initialAcceleration": {
+                "x": 0,
+                "y": 0
+              },
+              "initialVelocity": {
+                "x": 0,
+                "y": 0
+              },
+              "kept": 0,
+              "liveBinding": false,
+              "origin": {
+                "x": 1,
+                "y": 0
+              },
+              "point": {
+                "x": 1,
+                "y": 0
+              },
+              "projectionCacheEnabled": false,
+              "reasons": [
+                "none",
+                "none"
+              ],
+              "reset": 0,
+              "sampleNs": 172863983089815,
+              "samplingClock": {
+                "clampedFrames": 0,
+                "enabled": false,
+                "fallbackCount": 0,
+                "fallbackReason": 0,
+                "lagMs": 0,
+                "limiting": false,
+                "logicalNs": 0,
+                "realNs": 0
+              },
+              "savedAcceleration": {
+                "x": 0,
+                "y": 0
+              },
+              "savedVelocity": {
+                "x": 0,
+                "y": 0
+              },
+              "startNs": 172863983089815,
+              "strategies": [
+                "rest",
+                "rest"
+              ],
+              "target": {
+                "x": 1,
+                "y": 0
+              },
+              "velocity": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "workspaceRemovalGate": "compositor-idle",
+            "workspaceRetargetPolicy": "bounded-last-painted-quintic-derivatives"
+          },
+          "camera": 1484,
+          "observed": {
+            "active": true,
+            "cameraX": 1484,
+            "clipPartial": true,
+            "completed": true,
+            "entries": [
+              {
+                "uuid": "cdfad3e1-e348-4ecc-87cf-04488baeb91f",
+                "visualRect": {
+                  "height": 1408,
+                  "width": 1256,
+                  "x": -832,
+                  "y": 16
+                }
+              },
+              {
+                "uuid": "4e93902e-29b5-412a-b5af-f5dff4585e40",
+                "visualRect": {
+                  "height": 1408,
+                  "width": 1680,
+                  "x": 440,
+                  "y": 16
+                }
+              }
+            ],
+            "epoch": 7,
+            "layoutRect": {
+              "height": 1408,
+              "width": 2560,
+              "x": 0,
+              "y": 16
+            },
+            "maxCamera": 1696,
+            "protocol": 4,
+            "sampleSerial": 360,
+            "scopeRevision": 4,
+            "sessionId": "1a1498a8ddd-f7f1da29",
+            "targetOutput": "Virtual-0",
+            "type": "COLUMN_GEOMETRY_SOURCE",
+            "valid": true,
+            "viewport": {
+              "height": 1440,
+              "width": 2560,
+              "x": 0,
+              "y": 0
+            },
+            "workspaceId": "65386f5a-c676-4274-a001-c1b44cf39660"
+          }
+        }
+      ],
+      "final": [
+        {
+          "camera": 636,
+          "focusedUuid": "cdfad3e1-e348-4ecc-87cf-04488baeb91f",
+          "activeUuid": "cdfad3e1-e348-4ecc-87cf-04488baeb91f",
+          "pending": false,
+          "columns": [
+            {
+              "uuid": "cdfad3e1-e348-4ecc-87cf-04488baeb91f",
+              "caption": "CC_NIRI_P0_B",
+              "widthMode": "half",
+              "previous": "half",
+              "persistentWide": false,
+              "fullScreen": false,
+              "opacity": 1,
+              "minimized": false,
+              "frame": {
+                "x": 16,
+                "y": 16,
+                "width": 1256,
+                "height": 1408
+              }
+            },
+            {
+              "uuid": "4e93902e-29b5-412a-b5af-f5dff4585e40",
+              "caption": "CC_NIRI_P0_A",
+              "widthMode": "twoThirds",
+              "previous": "twoThirds",
+              "persistentWide": false,
+              "fullScreen": false,
+              "opacity": 1,
+              "minimized": false,
+              "frame": {
+                "x": 880,
+                "y": 16,
+                "width": 1680,
+                "height": 1408
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
