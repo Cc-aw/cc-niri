@@ -10,6 +10,7 @@ RING_PATH="${HOME}/.local/lib64/qt6/plugins/kwin/effects/plugins/${RING_ID}.so"
 SERVICE=cc-niri-bridge.service
 LEGACY_SERVICE=cc-scroll-dock-bridge.service
 COMPAT_GROUP=CCNiriCompatibility
+ROUND_CORNERS_ID=kwin4_effect_shapecorners
 INSTALLED_MAIN="${XDG_DATA_HOME:-${HOME}/.local/share}/kwin/scripts/${PLUGIN_ID}/contents/code/main.js"
 
 usage() { echo 'Usage: cc-niri {start|stop|restart|status|help} | focus-ring {on|off|status} | workspace {primary|global|status}'; }
@@ -120,6 +121,66 @@ squash SquashWasEnabled
 magiclamp MagicLampWasEnabled
 EFFECTS
     workspace_animation_compatibility "$mode"
+    if [[ "$mode" == stop ]]; then round_corners_compatibility stop; fi
+}
+
+round_corners_compatibility() {
+    local mode="$1" key index previous current loaded pending=false
+    local keys=(DisableRoundTile UseSquircleShape) saved=()
+    loaded="$(kwin /Effects org.kde.kwin.Effects.isEffectLoaded "$ROUND_CORNERS_ID")" || return 1
+    [[ "$mode" != start || "$loaded" == '(true,)' ]] || return 0
+    # Missing entries must be restored by deletion, not by pinning a plugin
+    # default. Validate both keys before writing any compatibility state.
+    for key in "${keys[@]}"; do
+        previous="$(kreadconfig6 --file kwinrc --group "$COMPAT_GROUP" --key "RoundCorners${key}Previous" --default unsaved)" || return 1
+        if [[ "$mode" == start && "$previous" == unsaved ]]; then
+            previous="$(kreadconfig6 --file kwinrc --group Round-Corners --key "$key" --default absent)" || return 1
+            [[ "$previous" != unsaved ]] || return 1
+        fi
+        [[ "$previous" =~ ^(true|false|absent|unsaved)$ ]] || {
+            echo "cc-niri: Invalid saved or current Rounded Corners setting: $key" >&2; return 1;
+        }
+        saved+=("$previous")
+    done
+    for index in "${!keys[@]}"; do
+        previous="${saved[$index]}"
+        key="${keys[$index]}"
+        [[ "$previous" != unsaved ]] || continue
+        pending=true
+        current="$(kreadconfig6 --file kwinrc --group Round-Corners --key "$key" --default absent)" || return 1
+        if [[ "$mode" == start ]]; then
+            if ! kwriteconfig6 --file kwinrc --group "$COMPAT_GROUP" --key "RoundCorners${key}Previous" "$previous"; then
+                round_corners_compatibility stop || true
+                return 1
+            fi
+            if [[ "$current" != false ]]; then
+                if ! kwriteconfig6 --file kwinrc --group Round-Corners --key "$key" --type bool false; then
+                    round_corners_compatibility stop || true
+                    return 1
+                fi
+            fi
+        elif [[ "$current" == false ]]; then
+            # Preserve edits made by the user while cc-niri was running.
+            if [[ "$previous" == absent ]]; then
+                kwriteconfig6 --file kwinrc --group Round-Corners --key "$key" --delete || return 1
+            else
+                kwriteconfig6 --file kwinrc --group Round-Corners --key "$key" --type bool "$previous" || return 1
+            fi
+        fi
+    done
+    $pending || return 0
+    if [[ "$loaded" == '(true,)' ]]; then
+        if ! kwin /Effects org.kde.kwin.Effects.reconfigureEffect "$ROUND_CORNERS_ID" >/dev/null; then
+            if [[ "$mode" == start ]]; then round_corners_compatibility stop || true; fi
+            echo 'cc-niri: Cannot apply Rounded Corners settings; saved preferences retained if restoration is pending.' >&2
+            return 1
+        fi
+    fi
+    if [[ "$mode" == stop ]]; then
+        for key in "${keys[@]}"; do
+            kwriteconfig6 --file kwinrc --group "$COMPAT_GROUP" --key "RoundCorners${key}Previous" --delete || return 1
+        done
+    fi
 }
 
 workspace_animation_compatibility() {
@@ -214,6 +275,7 @@ workspace_mode() {
 start_niri() {
     [[ -f "$INSTALLED_MAIN" ]] || fail 'Script is not installed. Run ./install.sh in the repository first.'
     if script_loaded; then
+        round_corners_compatibility start
         if [[ "$(kreadconfig6 --file kwinrc --group "$RING_GROUP" --key EnabledByUser --default false)" == true ]]; then load_ring; fi
         echo 'cc-niri is already loaded. Use cc-niri restart to reload it.'
         return
@@ -257,6 +319,7 @@ start_niri() {
     kwin "/Scripting/Script${script_id}" org.kde.kwin.Script.run >/dev/null
     enable_plugin "$PLUGIN_ID" true
     script_loaded || fail 'KWin did not keep the script loaded.'
+    round_corners_compatibility start
     if [[ "$(kreadconfig6 --file kwinrc --group "$RING_GROUP" --key EnabledByUser --default false)" == true ]]; then load_ring; fi
     echo 'cc-niri started. Meta+J: down; Meta+K: up.'
 }

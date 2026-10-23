@@ -65,3 +65,7 @@ python3 tools/sample-memory.py --duration 300 --interval 10 \
 ### 2026-10-16 P6 基线准备
 
 已增加固定负载 context 与 B0/V1/V2 离线校验工具。尚未停止用户组件建立同负载原生 KDE B0，也未采集受控 V1/V2 PSS/Private_Dirty；M0 仍 **NOT MEASURED / Pending**。单个当前进程读数不作为归因基线。
+
+### 2026-10-23 平铺圆角局部观测
+
+圆角修复前/后各 20 秒、10 秒间隔、3 次观测，见 [before](rounded-corners-evidence/20261023/memory-before.json) / [after](rounded-corners-evidence/20261023/memory-after.json)。KWin PID 2119，PSS / Private_Dirty 均不可读；RSS 中位数 319756 → 329980 KiB 仅作辅助，不能解释为圆角的 PSS 增量。Bridge PSS 中位数两侧均 1694 KiB，Private_Dirty 均 820 KiB。Plasma PSS 中位数 296755 → 296413 KiB、Private_Dirty 250768 → 250548 KiB，均为整进程观测。用户正常操作、改变窗口宽度，前侧还存在 CLI 测试进程，因此不满足同负载 A/B；归因结果 **INCONCLUSIVE**。未执行 B0 组件停用，M0 仍 Pending。详见 [圆角修复记录](RUST_NATIVE_R7_ROUNDED_CORNERS_RESULTS.md)。

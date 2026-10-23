@@ -1,0 +1,199 @@
+{
+  "schema": 1,
+  "units": "KiB",
+  "scenario": "rounded-corners-after",
+  "commit": "80900500972e4f6beacb2eec4079fff659e6dcdf",
+  "attribution": "Whole-process data; B0/B1 differences not calculated.",
+  "requested_duration_s": 20.0,
+  "interval_s": 10.0,
+  "completed": true,
+  "samples": [
+    {
+      "utc": "2026-10-23T10:39:04.286826+00:00",
+      "elapsed_s": 1.3150274753570557e-06,
+      "system_kib": {
+        "MemTotal": 16222348,
+        "MemAvailable": 5642084,
+        "SwapTotal": 8388604,
+        "SwapFree": 2740216
+      },
+      "processes": [
+        {
+          "component": "KWin",
+          "pid": 2119,
+          "start_ticks": 4577,
+          "cpu_percent_one_core": null,
+          "status_kib": {
+            "VmRSS": 329980,
+            "VmSwap": 110260
+          },
+          "pss_status": "UNAVAILABLE",
+          "pss_error": "[Errno 13] Permission denied: '/proc/2119/smaps_rollup'"
+        },
+        {
+          "component": "Plasma",
+          "pid": 2281,
+          "start_ticks": 4870,
+          "cpu_percent_one_core": null,
+          "status_kib": {
+            "VmRSS": 365324,
+            "VmSwap": 383032
+          },
+          "smaps_kib": {
+            "Rss": 332252,
+            "Pss": 296329,
+            "Private_Clean": 33776,
+            "Private_Dirty": 250420,
+            "Swap": 383032,
+            "SwapPss": 383032
+          },
+          "pss_status": "AVAILABLE"
+        },
+        {
+          "component": "Bridge",
+          "pid": 616754,
+          "start_ticks": 8676874,
+          "cpu_percent_one_core": null,
+          "status_kib": {
+            "VmRSS": 6552,
+            "VmSwap": 1048
+          },
+          "smaps_kib": {
+            "Rss": 6552,
+            "Pss": 1694,
+            "Private_Clean": 720,
+            "Private_Dirty": 820,
+            "Swap": 1048,
+            "SwapPss": 1048
+          },
+          "pss_status": "AVAILABLE"
+        }
+      ]
+    },
+    {
+      "utc": "2026-10-23T10:39:14.315841+00:00",
+      "elapsed_s": 10.02902063599322,
+      "system_kib": {
+        "MemTotal": 16222348,
+        "MemAvailable": 5646036,
+        "SwapTotal": 8388604,
+        "SwapFree": 2740780
+      },
+      "processes": [
+        {
+          "component": "KWin",
+          "pid": 2119,
+          "start_ticks": 4577,
+          "cpu_percent_one_core": 20.14155058787427,
+          "status_kib": {
+            "VmRSS": 329996,
+            "VmSwap": 110260
+          },
+          "pss_status": "UNAVAILABLE",
+          "pss_error": "[Errno 13] Permission denied: '/proc/2119/smaps_rollup'"
+        },
+        {
+          "component": "Plasma",
+          "pid": 2281,
+          "start_ticks": 4870,
+          "cpu_percent_one_core": 2.5924768083402525,
+          "status_kib": {
+            "VmRSS": 365516,
+            "VmSwap": 383032
+          },
+          "smaps_kib": {
+            "Rss": 332444,
+            "Pss": 296521,
+            "Private_Clean": 33776,
+            "Private_Dirty": 250612,
+            "Swap": 383032,
+            "SwapPss": 383032
+          },
+          "pss_status": "AVAILABLE"
+        },
+        {
+          "component": "Bridge",
+          "pid": 616754,
+          "start_ticks": 8676874,
+          "cpu_percent_one_core": 0.0,
+          "status_kib": {
+            "VmRSS": 6552,
+            "VmSwap": 1048
+          },
+          "smaps_kib": {
+            "Rss": 6552,
+            "Pss": 1694,
+            "Private_Clean": 720,
+            "Private_Dirty": 820,
+            "Swap": 1048,
+            "SwapPss": 1048
+          },
+          "pss_status": "AVAILABLE"
+        }
+      ]
+    },
+    {
+      "utc": "2026-10-23T10:39:24.286906+00:00",
+      "elapsed_s": 20.00008472899208,
+      "system_kib": {
+        "MemTotal": 16222348,
+        "MemAvailable": 5603960,
+        "SwapTotal": 8388604,
+        "SwapFree": 2740828
+      },
+      "processes": [
+        {
+          "component": "KWin",
+          "pid": 2119,
+          "start_ticks": 4577,
+          "cpu_percent_one_core": 19.155427968225563,
+          "status_kib": {
+            "VmRSS": 327556,
+            "VmSwap": 110260
+          },
+          "pss_status": "UNAVAILABLE",
+          "pss_error": "[Errno 13] Permission denied: '/proc/2119/smaps_rollup'"
+        },
+        {
+          "component": "Plasma",
+          "pid": 2281,
+          "start_ticks": 4870,
+          "cpu_percent_one_core": 2.4069647708765105,
+          "status_kib": {
+            "VmRSS": 365452,
+            "VmSwap": 383032
+          },
+          "smaps_kib": {
+            "Rss": 332380,
+            "Pss": 296413,
+            "Private_Clean": 33776,
+            "Private_Dirty": 250548,
+            "Swap": 383032,
+            "SwapPss": 383032
+          },
+          "pss_status": "AVAILABLE"
+        },
+        {
+          "component": "Bridge",
+          "pid": 616754,
+          "start_ticks": 8676874,
+          "cpu_percent_one_core": 0.0,
+          "status_kib": {
+            "VmRSS": 6552,
+            "VmSwap": 1048
+          },
+          "smaps_kib": {
+            "Rss": 6552,
+            "Pss": 1693,
+            "Private_Clean": 720,
+            "Private_Dirty": 820,
+            "Swap": 1048,
+            "SwapPss": 1048
+          },
+          "pss_status": "AVAILABLE"
+        }
+      ]
+    }
+  ],
+  "actual_duration_s": 20.047246575006284
+}

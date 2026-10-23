@@ -149,3 +149,7 @@ JS RecoveryCompletionGate 仅在恢复时保存按当前窗口数有界的 Set�
 ### P6 顶栏避让修复
 
 可见边缘面板的rect数组只在布局事件中构造，不保留额外窗口缓存。隐藏/最小化信号复用RuntimeLifecycle，每个当前dock窗口最多新增两条连接，关闭/stop按owner释放；没有新增轮询、timer、时钟、Native句柄或纹理。纵向客户端网格为有界算术。详见[修复记录](SCROLL_LAYOUT_V2_PANEL_FIX_RESULTS.md)；真实PSS/Private_Dirty、对象/纹理/GPU与长期增长仍NOT MEASURED。
+
+### 2026-10-23 平铺圆角兼容账本
+
+CLI 新增两项有界的原值/缺省标记，start/stop 同步应用和恢复；无新服务、线程、timer、时钟或 Native 对象。第三方 Rounded Corners 对平铺窗口恢复 OffscreenEffect redirect，可能新增其已有路径的窗口尺寸 render target，属于整项目功能依赖成本。以两扇 1256×1364 logical、150%、单份 RGBA8 估算约 29.41 MiB，仅为容量估算，不含 shadow/格式/缓存，不能当作实际显存或 PSS。复用现有特效的架构取舍及限制见 [修复记录](RUST_NATIVE_R7_ROUNDED_CORNERS_RESULTS.md)。真实纹理数量/大小、关闭后 GPU 回收、30–60 分钟收敛均 **NOT MEASURED**；M1/M3 Pending。

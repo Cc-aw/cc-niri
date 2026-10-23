@@ -32,6 +32,7 @@ if (name === 'kreadconfig6') {
     const method = argument('--method');
     const value = args.at(-1);
     if (method.endsWith('isScriptLoaded')) console.log('('+state.loaded+',)');
+    else if (method.endsWith('isEffectLoaded')) console.log('('+state.effects.includes(value)+',)');
     else if (method.endsWith('unloadScript')) { state.loaded = false; console.log('(true,)'); }
     else if (method.endsWith('loadScript')) console.log('(7,)');
     else if (method.endsWith('Script.run')) {

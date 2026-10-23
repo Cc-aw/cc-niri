@@ -120,3 +120,7 @@ P5 持久化/兼容与生产主入口接线完成，详见 [P5 报告](SCROLL_LA
 ### 2026-10-16 P6 授权部署后
 
 V2经授权部署并开启，启动/协议/实际Native路径核验PASS，详见[P6部署记录](scroll-layout-v2-p6-evidence/20261016/deployment/deployment.json)。未运行受控B0/V1/V2采样或长测，PSS/Private_Dirty/GPU/对象/纹理、正常动画峰值、4K60与30–60分钟增长均仍 **NOT MEASURED / Pending**；M0–M3未转为PASS。
+
+### 2026-10-23 平铺圆角兼容结果
+
+局部热应用使用第三方特效现有绘制路径；KWin / Bridge PID 未变化。前/后低频观测与账本分别见上述 BASELINE / AUDIT 的同日期条目及 [修复记录](RUST_NATIVE_R7_ROUNDED_CORNERS_RESULTS.md)。KWin PSS / Private_Dirty 权限不足、两侧窗口宽度/用户负载变化，功能内存归因 **INCONCLUSIVE**；实际 GPU 纹理计数、帧时间与 30–60 分钟收敛 **NOT MEASURED**。现有 third-party redirect 成本必须计入项目预算，不能据 CLI 无新纹理宣称低内存通过。M0–M3 和 32/64 MiB 预算验收保持 Pending。
