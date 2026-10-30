@@ -33,8 +33,8 @@ I2026-10-27 20:27:05.745789 classicui.cpp:110] Created classicui for wayland dis
 I2026-10-27 20:27:05.745828 addonmanager.cpp:208] Loaded addon classicui
 I2026-10-27 20:27:05.746337 addonmanager.cpp:208] Loaded addon notificationitem
 I2026-10-27 20:27:05.750856 dbusmodule.cpp:844] Service name change: org.fcitx.Fcitx5  :1.10
-I2026-10-27 20:27:05.751847 kimpanel.cpp:138] Kimpanel new owner: 
-I2026-10-27 20:27:05.751891 virtualkeyboard.cpp:230] VirtualKeyboard new owner: 
+I2026-10-27 20:27:05.751847 kimpanel.cpp:138] Kimpanel new owner:
+I2026-10-27 20:27:05.751891 virtualkeyboard.cpp:230] VirtualKeyboard new owner:
 cc.niri.viewport.clip: [VIEWPORT_CLIP_NATIVE] READY scrollRuntimeBackend= "Rust"
 cc.niri.focus.ring: [FOCUS_RING] READY isolated post-window border coreBackend= Rust
 I2026-10-27 20:27:06.017477 portalsettingmonitor.cpp:97] A new portal show up, start a new query.
@@ -486,7 +486,7 @@ ProcessID: 690795
 /lib64/libc.so.6(+0x3681) [0x7fca5fe0a681]
 /lib64/libc.so.6(__libc_start_main+0x88) [0x7fca5fe0a798]
 /usr/bin/fcitx5(+0xcc15) [0x560e77befc15]
-I2026-10-27 20:27:20.750635 waylandmodule.cpp:405] Connection removed 
+I2026-10-27 20:27:20.750635 waylandmodule.cpp:405] Connection removed
 I2026-10-27 20:27:20.751058 instance.cpp:1498] Save before exiting...
 I2026-10-27 20:27:20.752799 addonmanager.cpp:312] Unloading addon spell
 I2026-10-27 20:27:20.752985 addonmanager.cpp:312] Unloading addon chttrans
