@@ -43,7 +43,10 @@ def isolated(destination, scale, ime=False, scenario=None):
         (base / "config/kwinrc").write_text("[Script-cc-niri-maximize]\nScrollLayoutV2Enabled=true\n"
                                             "[Effect-cc-niri-viewport-clip]\nAnimationProfile=smooth60\n" +
                                             ("OptimizedWorkspaceAnimation=true\nWorkspaceDuration=420\n"
-                                             "[Plugins]\nslideEnabled=false\n" if scenario in {"p5", "p6"} else ""))
+                                             "[Plugins]\nslideEnabled=false\n" if scenario in {"p5", "p6", "workspace-visibility"} else "") +
+                                            ("[Round-Corners]\nDisableRoundTile=false\nUseSquircleShape=false\nSize=12\nInactiveCornerRadius=12\n"
+                                             "OutlineThickness=0\nSecondOutlineThickness=0\nInactiveOutlineThickness=0\nInactiveSecondOutlineThickness=0\n"
+                                             if scenario == "workspace-visibility" else ""))
         if ime:
             profile = base / "config/fcitx5/profile"
             profile.parent.mkdir()
@@ -351,7 +354,7 @@ timer.timeout.connect(() => {
             checks["lifecycle_cancel_restores_native_input"] = len(clicks) == 2 and all(
                 r["title"] == "CC_NIRI_P0_A" and r["x"] == 560 and r["y"] == 234 for r in clicks)
             raise P4ScenarioComplete()
-        if scenario in {"p4", "p5", "p6"}:
+        if scenario in {"p4", "p5", "p6", "workspace-visibility"}:
             scenario_spec=importlib.util.spec_from_file_location("p4scenario",ROOT / f"tools/scroll-layout-v2-{'p5' if scenario == 'p6' else scenario}-scenario.py")
             scenario_module=importlib.util.module_from_spec(scenario_spec);scenario_spec.loader.exec_module(scenario_module)
             try:
@@ -529,7 +532,7 @@ def main():
     parser.add_argument("--output", type=Path, default=DEST)
     parser.add_argument("--scale", type=float, choices=[1.0,1.5], default=1.0)
     parser.add_argument("--ime", action="store_true")
-    parser.add_argument("--scenario",choices=["p4", "p5", "p6", "input-lifecycle"])
+    parser.add_argument("--scenario",choices=["p4", "p5", "p6", "input-lifecycle", "workspace-visibility"])
     args = parser.parse_args()
     return inside(args.output, args.scale, args.ime, args.scenario) if args.inside else isolated(args.output, args.scale, args.ime, args.scenario)
 

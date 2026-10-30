@@ -3491,13 +3491,19 @@ class ColumnGeometryCoordinator {
     }
     hydrate(intent, guard) {
         // Unknown/different basis is a static bootstrap, after confirmed disarm.
-        // Keep the fully fitting focused client visible throughout preparation.
+        // Reveal fully fitting clients as their individual configure ACKs arrive.
         this.clear(this.flight); this.flight = null;
         const initial = Object.assign({}, intent, { continuity: "initial", source: null });
         const envelope = createPartialScrollPlan(initial, { capability: this.partialCapability, issuedAt: this.now() });
         if (!envelope) { this.failed(intent, { cancelled: false, reason: "invalid-bootstrap" }); return; }
         envelope.geometryBootstrap = true;
         const targets = partialScrollSafeTargets(envelope), disposers = [];
+        // Partial clients use clamped real anchors. Showing those before Native
+        // owns the projection would expose the wrong region of the window.
+        const revealTargets = targets.filter(target => {
+            const entry = intent.entries.find(row => row.uuid === target.windowId);
+            return entry && columnGeometrySameRect(entry.visualRect, target.rect);
+        });
         const lease = { intent, phase: "cancel", timer: null, live: true, committing: false };
         lease.dispose = () => {
             if (!lease.live) return; lease.live = false; this.clear(lease.timer);
@@ -3522,6 +3528,21 @@ class ColumnGeometryCoordinator {
         });
         const check = () => {
             if (!lease.live || !guard() || lease.committing || lease.phase !== "configure") return;
+            lease.committing = true;
+            try {
+                for (const target of revealTargets) {
+                    if (!lease.live || !guard()) return;
+                    const column = this.columnFor(target.windowId);
+                    if (target.revealed || !column || !this.eligible(column.window, intent) ||
+                            !columnGeometrySameRect(column.window.frameGeometry, target.rect)) continue;
+                    // Unminimize can emit synchronous signals. Mark first and
+                    // keep the lease guarded through that callback boundary.
+                    target.revealed = true;
+                    this.setVisibility(column.window, true);
+                }
+            } catch (_error) { fail("bootstrap-reveal"); return; }
+            finally { lease.committing = false; }
+            if (!lease.live || !guard()) return;
             if (!targets.every(t => { const c = this.columnFor(t.windowId); return c && this.eligible(c.window, intent) && columnGeometrySameRect(c.window.frameGeometry, t.rect); })) return;
             lease.phase = "publish";
             this.bridge.publishMotionPlan(envelope, accepted => {
@@ -3560,7 +3581,6 @@ class ColumnGeometryCoordinator {
                             const c = this.columnFor(t.windowId);
                             if (this.prepareClient) this.prepareClient(c.window);
                             this.committer.commitGeometry(c, t.rect, intent.reason, () => guard() && lease.live);
-                            if (t.windowId === intent.focusedUuid && columnGeometrySameRect(c.window.frameGeometry, t.rect)) this.setVisibility(c.window, true);
                         });
                         lease.committing = false; check();
                     } catch (_error) { fail("bootstrap-write"); }

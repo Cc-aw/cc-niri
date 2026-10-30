@@ -142,6 +142,15 @@ def clients():
                     return True
             return False
 
+        @Slot(str, result=bool)
+        def RepaintClient(self, name):
+            # Explicit diagnostic damage on a bounded private client only.
+            for window in windows:
+                if window.windowTitle() == name:
+                    window.update()
+                    return True
+            return False
+
         @Slot(result=bool)
         def BeginIME(self):
             self.edit = QLineEdit(windows[0])

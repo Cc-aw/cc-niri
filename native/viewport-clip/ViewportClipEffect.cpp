@@ -1082,6 +1082,18 @@ void CcNiriViewportClipEffect::watchPartialNativeInteraction(EffectWindow *windo
 {
     auto *client=window->window();
     if (!client) return;
+    connect(window, &EffectWindow::windowOpacityChanged, this,
+        [this](EffectWindow *window, qreal oldOpacity, qreal newOpacity) {
+            if (!m_partialScrollEnabled || window->isDeleted() || !window->isNormalWindow()
+                || oldOpacity == newOpacity || (oldOpacity != 0 && newOpacity != 0)) return;
+            // Item opacity is baked into OffscreenEffect's cached pixels. A
+            // transparent preparation frame can therefore outlive unpark:
+            // changing opacity alone doesn't invalidate that content cache.
+            // Invalidate at the transparent boundary, after WindowItem updated
+            // its opacity: preparation must stay hidden and reveal must rebuild.
+            // This is render-cache damage, never a client configure/paint ACK.
+            Q_EMIT window->windowDamaged(window);
+        });
     const auto id=scrollWindowId(window);
     connect(client,&Window::frameGeometryChanged,this,[this,client,id]() {
         if (m_scrollRuntime.columnGeometryActive() && !m_scrollRuntime.role(id).isEmpty()) {
