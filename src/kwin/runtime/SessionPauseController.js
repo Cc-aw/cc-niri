@@ -19,6 +19,10 @@ class SessionPauseController {
         this.faultReason = null;
         this.sawLock = false;
         this.deadlineMs = options.deadlineMs || 500;
+        this.resume = null;
+        this.resumeTimer = null;
+        this.resumeAttempts = 0;
+        this.resumeDeadlineMs = options.resumeDeadlineMs || 4000;
     }
 
     report(state, reason) {
@@ -27,12 +31,20 @@ class SessionPauseController {
     }
     publish() { this.health({ state: this.phase, reason: this.reason, sequence: ++this.sequence }); }
     clear() { if (this.timer) this.clearTimer(this.timer); this.timer = null; }
+    retireResume() {
+        this.resume = null;
+        if (this.resumeTimer) this.clearTimer(this.resumeTimer);
+        this.resumeTimer = null;
+    }
+    current(resume) { return !this.stopped && !this.terminal && this.resume === resume; }
     pause() {
         if (this.paused) return;
         this.paused = true;
         this.onPause();
     }
     block(reason) {
+        ++this.token; this.reading = false; this.queuedReason = null;
+        this.retireResume();
         this.clear(); this.pause(); this.report("blocked", reason);
         this.warn(`[cc-session] blocked reason=${reason}`);
     }
@@ -60,7 +72,11 @@ class SessionPauseController {
             if (this.native && facts.sequence < this.native.sequence) { this.block("session-sequence-regressed"); return; }
             // A coalesced unlock wake can be the first delivered event after
             // global shortcuts were disabled. A higher sequence proves a cycle.
-            if (facts.locked || (this.native && facts.sequence > this.native.sequence)) this.sawLock = true;
+            if (this.native && facts.sequence > this.native.sequence) {
+                this.resumeAttempts = 0;
+                this.sawLock = true;
+            }
+            if (facts.locked) this.sawLock = true;
             this.native = facts;
             done(facts);
         };
@@ -74,6 +90,7 @@ class SessionPauseController {
         const token = ++this.token;
         this.query(token, facts => {
             if (facts.locked) {
+                this.retireResume();
                 this.pause(); this.report("locked", reason);
                 this.release(() => {}, this.deadlineMs);
                 return;
@@ -83,41 +100,91 @@ class SessionPauseController {
                 this.block(this.faultReason); this.onFault(this.faultReason, this.faultCancelled);
                 return;
             }
+            const resume = this.resume;
+            if (resume) {
+                if (facts.sequence !== resume.sequence) {
+                    this.retireResume(); this.pause();
+                } else {
+                    if (resume.stage === "released") this.reconcile(resume);
+                    else if (resume.stage === "verified-layout") {
+                        this.retireResume(); this.resumeAttempts = 0;
+                        this.sawLock = false; this.faultReason = null;
+                        this.report("running", "session-ready");
+                    }
+                    return;
+                }
+            }
             if (this.phase === "running" && !this.sawLock) return;
             this.pause(); this.report("resuming", reason);
-            this.attempt(token, 1);
+            this.attempt();
         });
         return true;
     }
-    attempt(token, count) {
+    attempt() {
+        if (this.resumeAttempts >= 3) { this.block("resume-attempts-exhausted"); return; }
+        ++this.resumeAttempts;
+        const resume = { sequence: this.native.sequence, stage: "release" };
+        this.resume = resume;
         this.release(confirmed => {
-            if (token !== this.token || this.stopped) return;
+            if (!this.current(resume) || resume.stage !== "release") return;
             if (!confirmed) {
-                if (count >= 3) { this.block("release-unconfirmed"); return; }
-                this.timer = this.setTimer(() => {
-                    this.timer = null;
-                    if (token === this.token && !this.stopped) this.attempt(token, count + 1);
+                if (this.resumeAttempts >= 3) { this.block("release-unconfirmed"); return; }
+                resume.stage = "retry";
+                this.resumeTimer = this.setTimer(() => {
+                    if (!this.current(resume)) return;
+                    this.resumeTimer = null;
+                    this.attempt();
                 }, 0);
                 return;
             }
-            this.query(token, facts => {
-                if (facts.locked) { this.report("locked", "relocked-during-resume"); return; }
-                this.paused = false; this.sawLock = false; this.faultReason = null;
-                this.report("running", "session-ready");
-                if (this.onResume() === false) this.block("layout-resume-rejected");
-            });
+            resume.stage = "released";
+            this.refresh("release-confirmed");
         }, this.deadlineMs);
+    }
+    reconcile(resume) {
+        resume.stage = "layout";
+        this.paused = false;
+        // The existing coordinator supplies the first current-epoch completion.
+        // Keep lock provenance until that proof and a final fresh session read.
+        const finish = confirmed => {
+            if (!this.current(resume) || resume.stage !== "layout") return;
+            if (this.resumeTimer) this.clearTimer(this.resumeTimer);
+            this.resumeTimer = null;
+            if (confirmed !== true) { this.fault("layout-resume-rejected", false); return; }
+            resume.stage = "verified-layout";
+            this.refresh("layout-confirmed");
+        };
+        this.resumeTimer = this.setTimer(() => {
+            if (!this.current(resume)) return;
+            this.resumeTimer = null;
+            this.fault("layout-resume-deadline", false);
+        }, this.resumeDeadlineMs);
+        // Empty layouts may confirm synchronously. Finish only after all mount
+        // work returns, so a subsequent rejection cannot publish a false ready.
+        let invoking = true, completed = false, completion;
+        const complete = confirmed => {
+            if (!invoking) { finish(confirmed); return; }
+            if (!completed) { completed = true; completion = confirmed; }
+        };
+        let accepted;
+        try { accepted = this.onResume(complete); }
+        catch (_error) { accepted = false; }
+        invoking = false;
+        if (accepted === false) finish(false);
+        else if (completed) finish(completion);
     }
     fault(reason, cancelled) {
         if (this.stopped || this.terminal) return;
         this.faultReason = String(reason).slice(0, 256);
         this.faultCancelled = cancelled;
+        this.retireResume();
         this.pause(); this.report("checking", this.faultReason);
         this.refresh("fault-session-check");
     }
     stop() {
         if (this.stopped) return;
         this.stopped = true; ++this.token; this.clear(); this.pause();
+        this.retireResume();
         this.queuedReason = null;
         this.report("stopped", "runtime-stop");
     }

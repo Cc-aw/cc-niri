@@ -131,3 +131,95 @@ python test/lock-resume-evidence/20261019/recurrence/output-drag-probe/runner.py
 其中 12ms 延迟只存在于该诊断 fixture，原始无延迟 fixture 另存为 `fixture-baseline.js`。早期 Meta+拖动没有激活纳入列；首次 system move 探针只检查列数、没有检查 pending，虽原始报告 PASS，不能用它宣称布局已稳定。后续等高与 150% 探针补上了 pending 检查并等待超过 bootstrap 截止时间。
 
 修复方向收敛为：对所有可管理普通窗口在交互开始时同步记录事实并暂停接管，不依赖已经纳入列或已有 maximize/tile 状态；输出和 adoption 在 move / resize 期间延后；finished 按真实输出、当前桌面、Floating 策略重新协调一次。JS 发布后 / arm 前还应重新核对几何，漂移时先确认取消，再用新 epoch 等待有效事实；保留 Native 校验与 ACK 顺序。需要同时验证副屏拖入、主屏拖出、快速来回、松手在副屏以及既有 managed 窗口拖动的 Floating 行为。生产修复与实机验收仍 Pending，本轮没有部署或重载真实桌面。
+
+## 2026-10-27：解锁后 empty-disarm 持续停用
+
+本次先经用户明确允许，执行现有 `./cc-niri restart`：窗口恢复得到确认，随后正常停止 / 启动；重启后以及排查结束前 health 均为 `running (session-ready)`。之后的排查只有日志读取、磁盘产物核对和隔离模型，没有修改生产源码、生成包、配置或安装产物，没有再次重载或操作真实锁屏。
+
+**结论：已确认“解锁后超时 → 持续停用”的处理链及可复现的恢复阶段缺口；现场 IPC 为什么未及时完成仍为 INCONCLUSIVE。** 用户确认故障前刚解锁，系统日志的密码验证时间也与故障相邻。不能把取消确认超时解释为 Native 已经返回拒绝，或认定 Rust / KWin 崩溃。
+
+### 现场时间线（北京时间）
+
+| 时间 | 观测 |
+| --- | --- |
+| 09:05:39.676000 | `unix_chkpwd` 密码验证成功；用户确认刚解锁屏幕 |
+| 09:05:40.247366 | `blocked reason=session-query-deadline` |
+| 09:05:40.263775–40.284425 | Dock 收到 generation 19201–19214，活动列数均为 0；这不证明窗口丢失或 Dock 导致故障 |
+| 09:05:40.590220 | `disarm deadline epoch=2158 timeoutMs=150` |
+| 09:05:40.590492 | `geometry failure reason=empty-disarm cancelled=false` |
+| 09:05:40.791318 | `blocked reason=empty-disarm` |
+| 16:41:12–13 | 经授权的安全恢复 / 重启成功，Bridge 接受新会话 |
+
+重启前 CLI 显示 Script、Clip、滚动特效、Ring 仍 loaded，Bridge active，health=`blocked (empty-disarm)`。因此直接故障是布局安全停用。故障窗口日志没有记录 GPU reset、OOM 或崩溃，但日志缺失不能排除所有平台阻塞因素。
+
+### 代码链与确定性重放
+
+1. `SessionPauseController.query()` 的默认查询截止时间为 500ms；超时会 pause，并忽略该查询迟到的回复。这一次超时自身没有设置 `terminal`。
+2. 恢复时，`attempt()` 在调用 `onResume()` **之前**清掉 `sawLock` 并发布 `running`（`src/kwin/runtime/SessionPauseController.js:103`）。`RuntimeEntry.js:797` 的 `onResume()` 此后才 mount 工作区，mount 的异步 Native 确认尚未完成。
+3. 空列布局在 `ColumnGeometryCoordinator.js:94` 仍需执行取消确认；其门禁默认 150ms。`RuntimeBridge.disarmColumnGeometry()` 顺序调用 `CancelScrollPlan` 和 `GetScrollMotionStatus`，后者核对 session / epoch / active / handoff。150ms 覆盖整条确认链，超时不区分请求未执行、回调未到或状态查询未到。
+4. 一旦该确认超时，coordinator 进入 quarantine 并报告 `empty-disarm`。若重新查询 Native 时仍为同实例、同 sequence、未锁定，刚刚清掉的 `sawLock` 不会恢复。`SessionPauseController.refresh()` 把它作为普通故障，设置 `terminal=true`；`RuntimeEntry.js:814` 的 `onFault()` 设置 `mainScreenState.enabled=false`。
+5. 已超时的 gate 不再接受迟到确认；后续快捷键触发的 `refresh()` 又因 `terminal` 直接返回。故障因而不会随 IPC 恢复自动消失。未知 ownership 时不写恢复几何仍是必要安全约束，不能跳过 ACK 来消除停用。
+
+通过既有 fixture 加载与安装盘上相同的完整生成入口，在空工作区注入查询 / 状态回调延迟。不是伪造 Native 拒绝，也没有连接真实 KWin：
+
+| 场景 | 模型观测 | 结论 |
+| --- | --- | --- |
+| 正常 lock / unlock | running、enabled=true，无遗留 timer | PASS |
+| 仅会话查询超时，随后新 wake，取消证明及时到达 | 从 session-query-deadline 恢复 running | PASS；第一次超时单独不足以解释持续停用 |
+| 解锁后仅空布局取消确认超时 | terminal=true、enabled=false；迟到的 inactive 证明和快捷键无效 | 停用链复现 PASS；功能恢复 FAIL |
+| 查询超时，再恢复，再空布局取消确认超时 | 按现场顺序产生相同四条 warning；最终 terminal=true、enabled=false | 停用链复现 PASS；实际 IPC 延迟原因 INCONCLUSIVE |
+
+这里的“恢复阶段缺口”是可复现的时序：控制器已经宣告恢复并退出锁屏恢复语义，布局重建的异步确认仍可能失败。现场没有保存中间 health、Native sequence 或每段 IPC 回调时刻，因此这条重放与日志一致，但不能断言现场每个内部状态完全相同。空列是活动布局无可管理列，不等同于全部工作区都无窗口。
+
+### 验证、证据与后续边界
+
+- `node test/lock-resume-evidence/20261027/replay.js`：PASS，四组断言通过；其中两组有意重现功能失败，不能计为修复通过。
+- `node --test test/session-pause.test.js test/scroll-layout-v2-coordinator.test.js test/runtime-bridge.test.js`：PASS，三个既有测试入口。
+- 完整 `node tools/check.js`：PASS，281 项 / 122 个入口，生成包一致性和 `git diff --check` 通过；见 `js-gate-unsandboxed.log`。首次沙箱执行因既有 CLI 测试 `spawnSync /usr/bin/bash EPERM` 失败并中止；允许测试子进程后重跑通过，该限制不是现场桌面故障。
+- 磁盘上的生成 Script / CLI 与仓库 SHA-256 完全相同：PASS。没有保存重启前 Native 内存映像，不能据此证明旧内存中的 Native 与当前构建逐字节一致。
+- Rust / Native 构建、fmt / clippy / CTest：NOT RUN；本次未改 Native、FFI、CMake、工具链或生产 JS。
+- 真实锁屏时序复现、混合缩放 / 4K60 验收：NOT RUN / Pending。PSS、Private_Dirty、GPU / 帧时间：NOT MEASURED。新增生产服务、线程、时钟和图形缓冲均为 0。
+
+证据目录：[20261027](lock-resume-evidence/20261027/)，包含选取的现场 journal、产物哈希、独立重放源码 / JSON 及检查日志。重放命令同上，无实际时间采样或长期 capture。回退本轮仅需删除该证据目录与本节，已恢复的桌面不依赖它们。
+
+后续修复应将解锁后的首个布局确认纳入同一有界恢复阶段；取得同实例、当前 epoch 的 Native 取消证明后再重建，失败保留 ownership 义务，并覆盖 relock / stop / 迟到回调。普通非锁屏故障仍须安全隔离，不应仅延长全局超时或无条件自动重启。现场延迟的进一步归因需要在显式诊断中有界记录查询、cancel 和 status 的起止及返回分支；现有日志不足以判定是 KWin 事件队列拥塞、D-Bus 排队还是回调投递延迟。**修复、部署与实机验收均保持 Pending。**
+
+## 2026-10-27 修复候选：首轮布局确认属于会话恢复
+
+用户要求开始修复后，修改限于 JS 会话恢复编排、既有 coordinator 完成回调的接线及对应测试；通过 `node tools/build.js` 重新生成包。Native / Rust / FFI / CMake / 工具链没有改动，经 `git diff --exit-code HEAD -- native bridge cmake rust-toolchain.toml` 核验。进入本轮前的其他未提交改动全部保留。
+
+`SessionPauseController` 在取消证明和新鲜的未锁定事实均成立后，启动布局重建，但保持 `resuming` 与锁屏来源标记。`ContinuousLayoutRuntime` 将当前 epoch 的既有 coordinator 完成事件接回会话 owner；空布局等待取消证明，普通布局等待首个有效 painted 完成，fullscreen / maximized 挂起不强制生成滚动计划。回调之后再读取会话事实，只有仍属同一 Native 实例和同一 sequence、且未锁定时才报告 `running`。同步空布局完成也必须等整个 mount 函数成功返回，避免后续拒绝被提前的成功覆盖。
+
+同一锁屏 sequence 的 release / 重建合计最多三轮。重建有一个 4000ms 单次 lifetime deadline，覆盖既有最长 3500ms 的几何确认；查询仍为 500ms，普通取消 ACK 仍为 150ms，未放宽 Native 校验或改变动画参数。每轮重试先 pause、保留释放义务并取得新的 Native 取消证明，再 remount；迟到的旧证明不能替新一轮解除暂停。反复用户 wake 不重置预算，耗尽后保持 paused / blocked 且清空本次恢复定时器，只有更新的实际锁屏 sequence 才开启新预算。非锁屏普通故障与 Native 实例替换仍走原终止路径。
+
+暂停、再次锁屏、超时、stop 均退休本轮 callback / deadline；取消后的旧 deadline 无权清掉新 deadline。正常 idle 新增 timer 为 0；恢复中新增最多一个有界单次 lifetime timer，不采样动画、不常驻轮询。新增生产状态为 O(1)，不按交互历史积累。
+
+| 检查 | 最终候选结果 |
+| --- | --- |
+| 新增 `test/session-resume-confirmation.test.js` | PASS，10 项；首轮证明 / 最终事实重读、release 和 layout 期间 wake、relock / Native 替换、迟到 callback / deadline、持续失败预算、同步完成后拒绝、现场连续超时、未知 ownership 不写几何、stop、fullscreen 挂起 |
+| `node tools/check.js` | PASS，291 项 / 123 个测试入口；含生成包一致性、既有功能回归及 whitespace；见 `20261027/fix-final-js-gate.log` |
+| 私有 Virtual/Mesa KWin，100%，P6 最终候选 | PASS，53/53；含真实取消证明延迟、三轮合成 lock / unlock、宽度 / 顺序 / signed anchor、Ring / 输入、副屏边界及 CLI 恢复证明后卸载 |
+| 私有 Virtual/Mesa KWin，150% + Fcitx5，P5 最终候选 | PASS，49/49；含相同解锁延迟场景、真实中文候选 / 提交与 safe stop |
+| Rust fmt / clippy / tests、Native 构建 / CTest | NOT RUN；纯 JS 修复，不修改 Native / FFI / 构建 / 工具链，复用已配置产物；未把 JS 门禁称为完整 Native 门禁 |
+| 真实锁屏、4K60 / mixed-DPI 主观交互、持续资源验收 | NOT RUN / Pending；不能由私有虚拟输出替代 |
+| A/B PSS、Private_Dirty、对象 / 纹理和 GPU 成本、帧时间 | NOT MEASURED；未宣称全项目资源目标达标 |
+
+私有 fixture 只在独立 D-Bus / Virtual 输出中，将一次**真实** `GetScrollMotionStatus` 回复延迟 240ms，超过既有 150ms 取消门禁；记录延迟时 `resuming + sawLock=true`，再取得新取消证明、重建、恢复 `running`。旧回复到达后仍保持 enabled / running，未伪造 Native 成功或把历史 IPC 延迟当作已测量。第一轮候选曾通过 100%=46/46、150%+IME=49/49；加入同步完成的额外防护后重新运行上述最终候选检查，最终结果不复用旧候选的通过数。
+
+模型中一个新增 stop 断言的中间失败来自假 timer 的 `emit()` 没有模拟真实 singleShot 自动退出 running；测试触发 helper 补上这一事实后通过，没有改变生产 deadline 或放宽 ownership 断言。原调查的 `replay.js / model.json` 记录修复前行为；当前候选用新增生产回归测试复跑，不将旧模型的“预期停用断言通过”当作修复成功。
+
+最终私有原始目录为 `/tmp/cc-niri-resume-fix-final-100`、`/tmp/cc-niri-resume-fix-final-150`；检查摘要、关键日志和候选完整性记录保存在 [本日证据](lock-resume-evidence/20261027/)。当前阶段为 **代码与隔离验证 PASS，部署待执行，真实锁屏验收 Pending**。完整回滚未执行，不能把 dry-run 记为回滚实测。
+
+部署前发现构建树 Clip / Ring 的 SHA-256 与当前安装的 immutable 文件不同，Bridge 则相同。纯 JS 修复不替换 Native；因此补用当前安装的两份 Native 文件，在保留私有总线 / 目录 / 输出所有 guard 的临时探针中重跑：100% P6 为 53/53 PASS，150% + IME P5 为 49/49 PASS。临时探针只调整 ROOT / 插件路径常量及仓库外产物的报告 key，没有更改生产 Native 或测试的成功条件；第一次因路径记录要求仓库内相对路径而未启动 KWin，修正后通过，不能算作生产失败。
+
+此次部署使用既有 P6 prepare / verify / rollback dry-run 冻结与备份，实际只调用 `install.sh` 已使用的 KPackage 脚本升级入口，沿用 `save-current-state → cc-niri stop → kpackagetool6 --type=KWin/Script --upgrade → cc-niri start`。不执行全量安装器的 Native 替换和其他配置迁移。准备或停止失败即中止；升级失败尝试恢复旧脚本包并启动。候选及全组件备份位于 `/tmp/cc-niri-unlock-script-fix-20261027`，完整回滚入口为该目录 `rollback.sh`，默认 dry-run，实际回滚仍须先通过当前窗口恢复证明；`/tmp` 清理后不能依赖该退路。
+
+### 2026-10-28 部署与启动核验
+
+上次 turn 在部署前被服务器重启中断。恢复任务后，核对无部署日志、安装脚本仍为旧 SHA、候选完整性及 rollback dry-run 均 PASS，旧桌面 health 为 running；没有假定先前操作已经完成。
+
+第一次实际部署在旧运行时恢复确认超时处安全中止，组件保持 loaded，脚本包仍为旧版本，没有强制卸载。随后通过当前 session / generation 重新提交真实恢复请求，唤醒原有命令泵后取得 `state=restored, restoredCount=1` 的恢复证明。一次诊断程序在解析 gdbus 的 `(true,)` 布尔回复时退出，请求实际已提交；继续唤醒该请求并读取真实证明，没有将解析错误作为拒绝或重复执行强制操作。初次请求未及时确认的具体原因尚未唯一归因，不能将重试成功称为 CLI 故障已修复。
+
+之后沿既有安全停止流程再次确认恢复，KPackage 脚本升级、start、两次 health 核验均 PASS：`running (session-ready)`，Bridge active，Clip / 滚动特效 / Ring 均 loaded。安装脚本 SHA-256 为 `6b857d7d48563893bc2a32e097376052128af0b074208b0cc79acec7df305c6b`，与已验证生成包完全一致。Clip、Ring、Bridge 和 CLI 的字节哈希均与部署前备份相同，未替换 Native 文件。
+
+最终状态：**代码 / 隔离回归 / 脚本部署 / 启动核验 PASS；真实锁屏、4K60 / mixed-DPI 交互与资源验收仍 Pending / NOT MEASURED**。结果及初次中止 / 成功重试日志见 `20261027/fix-deployment.json`、`fix-deployment.log`、`fix-deployment-retry.log`。完整回滚仍未执行。部署后仅补记此结果文档，未改变已安装的生产候选；manifest 的冻结源码用于部署当时校验，后续 `--current` 会因这份文档补记而不再匹配，备份完整性校验与 rollback dry-run 不受影响。

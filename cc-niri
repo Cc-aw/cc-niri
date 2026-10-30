@@ -11,6 +11,7 @@ SERVICE=cc-niri-bridge.service
 LEGACY_SERVICE=cc-scroll-dock-bridge.service
 COMPAT_GROUP=CCNiriCompatibility
 ROUND_CORNERS_ID=kwin4_effect_shapecorners
+ROUND_CORNERS_KEYS=(DisableRoundTile UseSquircleShape)
 INSTALLED_MAIN="${XDG_DATA_HOME:-${HOME}/.local/share}/kwin/scripts/${PLUGIN_ID}/contents/code/main.js"
 
 usage() { echo 'Usage: cc-niri {start|stop|restart|status|help} | focus-ring {on|off|status} | workspace {primary|global|status}'; }
@@ -121,65 +122,141 @@ squash SquashWasEnabled
 magiclamp MagicLampWasEnabled
 EFFECTS
     workspace_animation_compatibility "$mode"
-    if [[ "$mode" == stop ]]; then round_corners_compatibility stop; fi
+}
+
+round_corners_write() {
+    if [[ "$2" == absent ]]; then
+        kwriteconfig6 --file kwinrc --group Round-Corners --key "$1" --delete
+    else
+        kwriteconfig6 --file kwinrc --group Round-Corners --key "$1" --type bool "$2"
+    fi
+}
+
+round_corners_restore() {
+    local key index value pending loaded failed=false owned=false
+    local saved=() current=()
+    pending="$(kreadconfig6 --file kwinrc --group "$COMPAT_GROUP" --key RoundCornersPending --default none)" || return 1
+    [[ "$pending" =~ ^(none|start|stop)$ ]] || return 1
+    for key in "${ROUND_CORNERS_KEYS[@]}"; do
+        value="$(kreadconfig6 --file kwinrc --group "$COMPAT_GROUP" --key "RoundCorners${key}Previous" --default unsaved)" || return 1
+        [[ "$value" =~ ^(true|false|absent|unsaved)$ ]] || return 1
+        saved+=("$value")
+        [[ "$value" == unsaved ]] || owned=true
+    done
+    if ! $owned && [[ "$pending" == none ]]; then return 0; fi
+    # Keep a durable retry marker until config, runtime and metadata cleanup
+    # all succeed, including failures after the original keys are restored.
+    kwriteconfig6 --file kwinrc --group "$COMPAT_GROUP" --key RoundCornersPending stop || return 1
+    for key in "${ROUND_CORNERS_KEYS[@]}"; do
+        value="$(kreadconfig6 --file kwinrc --group Round-Corners --key "$key" --default absent)" || return 1
+        current+=("$value")
+    done
+    loaded="$(kwin /Effects org.kde.kwin.Effects.isEffectLoaded "$ROUND_CORNERS_ID")" || loaded=unknown
+    for index in "${!ROUND_CORNERS_KEYS[@]}"; do
+        [[ "${saved[$index]}" != unsaved && "${current[$index]}" == false ]] || continue
+        [[ "${saved[$index]}" != false ]] || continue
+        # A different current value belongs to a later user edit.
+        round_corners_write "${ROUND_CORNERS_KEYS[$index]}" "${saved[$index]}" || failed=true
+    done
+    case "$loaded" in
+        '(true,)') kwin /Effects org.kde.kwin.Effects.reconfigureEffect "$ROUND_CORNERS_ID" >/dev/null || failed=true ;;
+        '(false,)') ;;
+        *) failed=true ;;
+    esac
+    if $failed; then return 1; fi
+    for index in "${!ROUND_CORNERS_KEYS[@]}"; do
+        [[ "${saved[$index]}" != unsaved ]] || continue
+        kwriteconfig6 --file kwinrc --group "$COMPAT_GROUP" --key "RoundCorners${ROUND_CORNERS_KEYS[$index]}Previous" --delete || return 1
+    done
+    kwriteconfig6 --file kwinrc --group "$COMPAT_GROUP" --key RoundCornersPending --delete
 }
 
 round_corners_compatibility() {
-    local mode="$1" key index previous current loaded pending=false
-    local keys=(DisableRoundTile UseSquircleShape) saved=()
+    if [[ "$1" == stop ]]; then round_corners_restore; return $?; fi
+    local key index value loaded pending failed=false reload=false touched=false recovered=true
+    local saved=() current=() created=()
     loaded="$(kwin /Effects org.kde.kwin.Effects.isEffectLoaded "$ROUND_CORNERS_ID")" || return 1
-    [[ "$mode" != start || "$loaded" == '(true,)' ]] || return 0
-    # Missing entries must be restored by deletion, not by pinning a plugin
-    # default. Validate both keys before writing any compatibility state.
-    for key in "${keys[@]}"; do
-        previous="$(kreadconfig6 --file kwinrc --group "$COMPAT_GROUP" --key "RoundCorners${key}Previous" --default unsaved)" || return 1
-        if [[ "$mode" == start && "$previous" == unsaved ]]; then
-            previous="$(kreadconfig6 --file kwinrc --group Round-Corners --key "$key" --default absent)" || return 1
-            [[ "$previous" != unsaved ]] || return 1
-        fi
-        [[ "$previous" =~ ^(true|false|absent|unsaved)$ ]] || {
-            echo "cc-niri: Invalid saved or current Rounded Corners setting: $key" >&2; return 1;
-        }
-        saved+=("$previous")
+    [[ "$loaded" == '(true,)' ]] || return 0
+    pending="$(kreadconfig6 --file kwinrc --group "$COMPAT_GROUP" --key RoundCornersPending --default none)" || return 1
+    [[ "$pending" =~ ^(none|start|stop)$ ]] || return 1
+    [[ "$pending" == none && "${2:-}" != force ]] || reload=true
+    # Read the entire transaction before writing either setting or backup.
+    for key in "${ROUND_CORNERS_KEYS[@]}"; do
+        value="$(kreadconfig6 --file kwinrc --group "$COMPAT_GROUP" --key "RoundCorners${key}Previous" --default unsaved)" || return 1
+        [[ "$value" =~ ^(true|false|absent|unsaved)$ ]] || return 1
+        saved+=("$value")
+        value="$(kreadconfig6 --file kwinrc --group Round-Corners --key "$key" --default absent)" || return 1
+        [[ "$value" =~ ^(true|false|absent)$ ]] || return 1
+        current+=("$value")
+        [[ "$value" == false ]] || reload=true
     done
-    for index in "${!keys[@]}"; do
-        previous="${saved[$index]}"
-        key="${keys[$index]}"
-        [[ "$previous" != unsaved ]] || continue
-        pending=true
-        current="$(kreadconfig6 --file kwinrc --group Round-Corners --key "$key" --default absent)" || return 1
-        if [[ "$mode" == start ]]; then
-            if ! kwriteconfig6 --file kwinrc --group "$COMPAT_GROUP" --key "RoundCorners${key}Previous" "$previous"; then
-                round_corners_compatibility stop || true
-                return 1
-            fi
-            if [[ "$current" != false ]]; then
-                if ! kwriteconfig6 --file kwinrc --group Round-Corners --key "$key" --type bool false; then
-                    round_corners_compatibility stop || true
-                    return 1
-                fi
-            fi
-        elif [[ "$current" == false ]]; then
-            # Preserve edits made by the user while cc-niri was running.
-            if [[ "$previous" == absent ]]; then
-                kwriteconfig6 --file kwinrc --group Round-Corners --key "$key" --delete || return 1
-            else
-                kwriteconfig6 --file kwinrc --group Round-Corners --key "$key" --type bool "$previous" || return 1
-            fi
+    # Save both originals before the first mutation; repeated start skips this.
+    for index in "${!ROUND_CORNERS_KEYS[@]}"; do
+        [[ "${saved[$index]}" == unsaved ]] || continue
+        created+=("$index")
+        if ! kwriteconfig6 --file kwinrc --group "$COMPAT_GROUP" --key "RoundCorners${ROUND_CORNERS_KEYS[$index]}Previous" "${current[$index]}"; then
+            failed=true; break
         fi
     done
-    $pending || return 0
-    if [[ "$loaded" == '(true,)' ]]; then
-        if ! kwin /Effects org.kde.kwin.Effects.reconfigureEffect "$ROUND_CORNERS_ID" >/dev/null; then
-            if [[ "$mode" == start ]]; then round_corners_compatibility stop || true; fi
-            echo 'cc-niri: Cannot apply Rounded Corners settings; saved preferences retained if restoration is pending.' >&2
-            return 1
+    if ! $failed && $reload; then
+        if ! kwriteconfig6 --file kwinrc --group "$COMPAT_GROUP" --key RoundCornersPending start; then
+            failed=true
+        else
+            for index in "${!ROUND_CORNERS_KEYS[@]}"; do
+                [[ "${current[$index]}" != false ]] || continue
+                touched=true
+                if ! round_corners_write "${ROUND_CORNERS_KEYS[$index]}" false; then failed=true; break; fi
+            done
+            if ! $failed; then
+                touched=true
+                kwin /Effects org.kde.kwin.Effects.reconfigureEffect "$ROUND_CORNERS_ID" >/dev/null || failed=true
+            fi
         fi
     fi
-    if [[ "$mode" == stop ]]; then
-        for key in "${keys[@]}"; do
-            kwriteconfig6 --file kwinrc --group "$COMPAT_GROUP" --key "RoundCorners${key}Previous" --delete || return 1
+    if ! $failed; then
+        if $reload; then
+            kwriteconfig6 --file kwinrc --group "$COMPAT_GROUP" --key RoundCornersPending --delete || return 1
+        fi
+        return 0
+    fi
+    # Roll back this invocation's snapshot, preserving any older ownership.
+    if $touched; then
+        for index in "${!ROUND_CORNERS_KEYS[@]}"; do
+            round_corners_write "${ROUND_CORNERS_KEYS[$index]}" "${current[$index]}" || recovered=false
         done
+        kwin /Effects org.kde.kwin.Effects.reconfigureEffect "$ROUND_CORNERS_ID" >/dev/null || recovered=false
+    fi
+    if $recovered; then
+        for index in "${created[@]}"; do
+            kwriteconfig6 --file kwinrc --group "$COMPAT_GROUP" --key "RoundCorners${ROUND_CORNERS_KEYS[$index]}Previous" --delete || recovered=false
+        done
+        if $recovered && $reload; then
+            if [[ "$pending" == none ]]; then
+                kwriteconfig6 --file kwinrc --group "$COMPAT_GROUP" --key RoundCornersPending --delete || recovered=false
+            else
+                kwriteconfig6 --file kwinrc --group "$COMPAT_GROUP" --key RoundCornersPending "$pending" || recovered=false
+            fi
+        fi
+    fi
+    echo 'cc-niri: Rounded Corners apply failed; check status for pending recovery.' >&2
+    return 1
+}
+
+round_corners_status() {
+    local loaded pending key value saved owned=0 configured=true
+    loaded="$(kwin /Effects org.kde.kwin.Effects.isEffectLoaded "$ROUND_CORNERS_ID")" || loaded=unknown
+    pending="$(kreadconfig6 --file kwinrc --group "$COMPAT_GROUP" --key RoundCornersPending --default none)" || pending=unknown
+    echo "Rounded Corners loaded: $loaded"
+    for key in "${ROUND_CORNERS_KEYS[@]}"; do
+        value="$(kreadconfig6 --file kwinrc --group Round-Corners --key "$key" --default absent)" || value=unknown
+        saved="$(kreadconfig6 --file kwinrc --group "$COMPAT_GROUP" --key "RoundCorners${key}Previous" --default unsaved)" || saved=unknown
+        echo "Rounded Corners $key: $value"
+        [[ "$value" == false ]] || configured=false
+        [[ "$saved" == unsaved || "$saved" == unknown ]] || owned=$((owned+1))
+    done
+    echo "Rounded Corners compatibility configured: $configured; saved preferences: $owned; pending: $pending"
+    if [[ "$loaded" == '(true,)' ]] && ! $configured; then
+        echo 'Run cc-niri start to apply compatibility to the loaded corner effect.'
     fi
 }
 
@@ -319,7 +396,7 @@ start_niri() {
     kwin "/Scripting/Script${script_id}" org.kde.kwin.Script.run >/dev/null
     enable_plugin "$PLUGIN_ID" true
     script_loaded || fail 'KWin did not keep the script loaded.'
-    round_corners_compatibility start
+    round_corners_compatibility start force
     if [[ "$(kreadconfig6 --file kwinrc --group "$RING_GROUP" --key EnabledByUser --default false)" == true ]]; then load_ring; fi
     echo 'cc-niri started. Meta+J: down; Meta+K: up.'
 }
@@ -337,9 +414,15 @@ stop_niri() {
     kwin /Effects org.kde.kwin.Effects.unloadEffect "$EFFECT_ID" >/dev/null
     kwin /Effects org.kde.kwin.Effects.unloadEffect "$CLIP_ID" >/dev/null
     compatibility stop
-    kwin /KWin org.kde.KWin.reconfigure >/dev/null
+    local cleanup_failed=false
+    if ! round_corners_compatibility stop; then cleanup_failed=true; fi
+    if ! kwin /KWin org.kde.KWin.reconfigure >/dev/null; then cleanup_failed=true; fi
     systemctl --user disable --now "$SERVICE" >/dev/null 2>&1 || true
     systemctl --user disable --now "$LEGACY_SERVICE" >/dev/null 2>&1 || true
+    if $cleanup_failed; then
+        echo 'cc-niri: Layout stopped and Bridge cleanup completed; configuration restoration needs retry. Check cc-niri status.' >&2
+        return 1
+    fi
     echo 'cc-niri stopped; parked windows restored.'
 }
 
@@ -353,6 +436,7 @@ status_niri() {
         echo "$effect: $reply"
     done
     ring_status
+    round_corners_status
     echo "Bridge: $(systemctl --user is-active "$SERVICE" || true)"
     reply="$(gdbus call --session --timeout 2 --dest org.cc.CCNiriBridge --object-path /CCNiriBridge --method org.cc.CCNiriBridge1.GetRuntimeHealth 2>/dev/null || true)"
     printf '%s' "$reply" | python3 -c '

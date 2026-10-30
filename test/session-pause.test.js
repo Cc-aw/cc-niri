@@ -11,7 +11,7 @@ function fixture() {
     const c = new SessionPauseController({
         readState: done => { if (hold) queries.push(done); else done(JSON.stringify(facts)); },
         release: done => { releases.push(done); if (released !== null) done(released); },
-        onPause: () => { pauses++; }, onResume: () => { resumes++; },
+        onPause: () => { pauses++; }, onResume: done => { resumes++; done(true); },
         onFault: (...value) => faults.push(value), health: s => statuses.push(s), warn: () => {},
         setTimer: (fn, ms) => { const t = { fn, ms }; timers.add(t); return t; },
         clearTimer: t => timers.delete(t),

@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "timestampUtc": "2026-10-28T09:11:14.677862+00:00",
+  "scope": "Script-only deployment, matched tested generated entry; existing Native/Bridge/control bytes retained. Live lock acceptance Pending.",
+  "installedScriptSha256": "6b857d7d48563893bc2a32e097376052128af0b074208b0cc79acec7df305c6b",
+  "unchangedComponents": {
+    "clip": {
+      "sha256": "e846e4311a4d5a16902b9b6222132298d92217d86e8491831a1a6914f889472b",
+      "unchanged": true
+    },
+    "ring": {
+      "sha256": "f643f989b4929b3d3dca8bde9204f9874c1ec346748388a25320255dd8424759",
+      "unchanged": true
+    },
+    "bridge": {
+      "sha256": "76e1da9087317b4917542919cf9adff3cc3c845641339dd4bc4481ffdba4e947",
+      "unchanged": true
+    },
+    "control": {
+      "sha256": "95fd8f16f514e2439e7cdb16065a015f54a2ca27b5d0aa71cdac9c6bed5bb6c2",
+      "unchanged": true
+    }
+  },
+  "health": "running (session-ready)",
+  "rollback": "/tmp/cc-niri-unlock-script-fix-20261027/rollback.sh",
+  "firstAttempt": "Safety stop timed out; no component unloaded and no package replaced. Fresh real recovery request subsequently returned restored before retry."
+}

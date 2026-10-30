@@ -45,7 +45,7 @@ class ContinuousLayoutRuntime {
             recover: (_intent, proof) => this.fail(proof.reason, proof.cancelled),
             reissue: () => this.controller.reflow("v2-confirmed-recovery"),
             setTimer: this.setTimer, clearTimer: this.clearTimer, now: this.now, warn: this.warn,
-            onComplete: () => this.onSettled(),
+            onComplete: () => { this.completeSessionResume(); this.onSettled(); },
         });
         this.bridge.handlers["focus-partial-column"] = command => !this.blocked &&
             !this.presentationSuspended() && this.controller.focusPartialRequest(command);
@@ -112,18 +112,26 @@ class ContinuousLayoutRuntime {
     }
 
     pauseSession() {
+        this.sessionResumeDone = null;
         ++this.exclusiveSequence;
         this.blocked = true; this.actions.clear(); this.anchor = null;
         // Cancel leases immediately, even if the session query or wake is late.
         this.coordinator.pause();
     }
 
-    resumeSession() {
+    resumeSession(done) {
         if (this.stopped || !this.state.enabled || this.coordinator.releaseEpoch !== null) return false;
+        this.sessionResumeDone = done;
         this.coordinator.quarantined = false;
         this.coordinator.recovering = false;
         this.blocked = false;
         return true;
+    }
+
+    completeSessionResume() {
+        const done = this.sessionResumeDone;
+        this.sessionResumeDone = null;
+        if (done) done(true);
     }
 
     releaseForWorkspace() {
@@ -133,6 +141,7 @@ class ContinuousLayoutRuntime {
     }
 
     stop(done) {
+        this.sessionResumeDone = null;
         if (this.stopped && this.stopConfirmed === true) { done(true); return; }
         this.stopped = true; this.blocked = true; this.actions.clear(); this.anchor = null;
         ++this.exclusiveSequence;

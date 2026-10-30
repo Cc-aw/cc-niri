@@ -31,6 +31,18 @@ BRIDGE = ROOT / "build/bridge/cc-niri-bridge"
 DEST = ROOT / "test/scroll-layout-v2-p3-evidence/20261015"
 
 
+def same_artifact_paths(observed, expected):
+    """Accept build-tree symlinks, still reject missing or different artifacts."""
+    if not isinstance(observed, dict) or observed.keys() != expected.keys():
+        return False
+    try:
+        return all(isinstance(observed[key], str) and Path(observed[key]).is_absolute()
+                   and Path(observed[key]).resolve(strict=True) == path.resolve(strict=True)
+                   for key, path in expected.items())
+    except (OSError, RuntimeError, ValueError):
+        return False
+
+
 def isolated(destination, scale, ime=False, scenario=None):
     for artifact in [CLIP, BRIDGE, p0.PLUGIN, p0.RING]:
         if not artifact.is_file():
@@ -253,7 +265,8 @@ timer.timeout.connect(() => {
         report["capability"] = json.loads(native("GetPartialScrollCapability"))
         ring_identity = json.loads(call("/ccNiriFocusRing", "org.cc.NiriFocusRing1.GetFocusRingStatus"))
         report["loaded_binary_paths"] = {"clip": report["capability"].get("binaryPath"), "ring": ring_identity.get("binaryPath")}
-        checks["exact_build_tree_plugins_loaded"] = report["loaded_binary_paths"] == {"clip": str(CLIP), "ring": str(p0.RING)}
+        checks["exact_build_tree_plugins_loaded"] = same_artifact_paths(
+            report["loaded_binary_paths"], {"clip": CLIP, "ring": p0.RING})
         checks["native_capability_explicit"] = report["capability"]["enabled"] and report["capability"]["protocol"] == 3 and report["capability"]["inputPolicy"] == "two-click"
         signal_log = log("signals.log")
         monitor = subprocess.Popen(["stdbuf", "-oL", "gdbus", "monitor", "--address", bus, "--dest", "org.kde.KWin",

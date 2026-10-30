@@ -1,0 +1,21 @@
+Oct 27 09:05:39.676000 Cc audit[358974]: AUDIT1100 pid=358974 uid=1000 auid=1000 ses=3 subj=unconfined_u:unconfined_r:chkpwd_t:s0-s0:c0.c1023 msg='op=PAM:unix_chkpwd acct="cc" exe="/usr/bin/unix_chkpwd" hostname=? addr=? terminal=? res=success'
+Oct 27 09:05:39.681301 Cc kwin_wayland[2119]: [VIEWPORT_CLIP_NATIVE] CLEAR
+Oct 27 09:05:39.684304 Cc kwin_wayland[2119]: [VIEWPORT_CLIP_NATIVE] CLEAR
+Oct 27 09:05:40.247366 Cc kwin_wayland[2119]: [cc-niri-maximize] [runtime] blocked reason=session-query-deadline
+Oct 27 09:05:40.263775 Cc plasmashell[2281]: [cc-scroll-tasks] applied generation=19201 columns=0
+Oct 27 09:05:40.265249 Cc plasmashell[2281]: [cc-scroll-tasks] applied generation=19202 columns=0
+Oct 27 09:05:40.267432 Cc plasmashell[2281]: [cc-scroll-tasks] applied generation=19203 columns=0
+Oct 27 09:05:40.268793 Cc plasmashell[2281]: [cc-scroll-tasks] applied generation=19204 columns=0
+Oct 27 09:05:40.270171 Cc plasmashell[2281]: [cc-scroll-tasks] applied generation=19205 columns=0
+Oct 27 09:05:40.271424 Cc plasmashell[2281]: [cc-scroll-tasks] applied generation=19206 columns=0
+Oct 27 09:05:40.272666 Cc plasmashell[2281]: [cc-scroll-tasks] applied generation=19207 columns=0
+Oct 27 09:05:40.273815 Cc plasmashell[2281]: [cc-scroll-tasks] applied generation=19208 columns=0
+Oct 27 09:05:40.276198 Cc plasmashell[2281]: [cc-scroll-tasks] applied generation=19209 columns=0
+Oct 27 09:05:40.279108 Cc plasmashell[2281]: [cc-scroll-tasks] applied generation=19210 columns=0
+Oct 27 09:05:40.280469 Cc plasmashell[2281]: [cc-scroll-tasks] applied generation=19211 columns=0
+Oct 27 09:05:40.282020 Cc plasmashell[2281]: [cc-scroll-tasks] applied generation=19212 columns=0
+Oct 27 09:05:40.283392 Cc plasmashell[2281]: [cc-scroll-tasks] applied generation=19213 columns=0
+Oct 27 09:05:40.284425 Cc plasmashell[2281]: [cc-scroll-tasks] applied generation=19214 columns=0
+Oct 27 09:05:40.590220 Cc kwin_wayland[2119]: [cc-niri-maximize] [runtime] [SCROLL_PLAN] disarm deadline epoch=2158 timeoutMs=150
+Oct 27 09:05:40.590492 Cc kwin_wayland[2119]: [cc-niri-maximize] [runtime] geometry failure reason=empty-disarm cancelled=false
+Oct 27 09:05:40.791318 Cc kwin_wayland[2119]: [cc-niri-maximize] [runtime] blocked reason=empty-disarm

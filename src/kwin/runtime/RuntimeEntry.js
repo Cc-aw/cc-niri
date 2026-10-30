@@ -794,11 +794,14 @@ if (runtimeConfig.scrollLayoutV2Enabled) {
             workspaceSwitchController.pause();
             continuousLayout.pauseSession();
         },
-        onResume: () => {
+        onResume: done => {
             if (!mainScreenState.enabled || continuousLayout.stopped) return false;
             mainScreenState.sessionPaused = false;
-            if (!continuousLayout.resumeSession()) { mainScreenState.sessionPaused = true; return false; }
-            if (app.lifecycle.resumeInitialization()) return;
+            if (!continuousLayout.resumeSession(done)) { mainScreenState.sessionPaused = true; return false; }
+            if (app.lifecycle.resumeInitialization()) {
+                if (continuousLayout.presentationSuspended()) continuousLayout.completeSessionResume();
+                return;
+            }
             connectedManagedOutputs.forEach(output => app.lifecycle.disconnectOwner(output));
             connectedManagedOutputs = new Set();
             refreshMainScreenState();
@@ -810,6 +813,7 @@ if (runtimeConfig.scrollLayoutV2Enabled) {
             });
             dynamicWorkspaceController.request(); workspaceRecycleController.request();
             focusRingController.publish();
+            if (continuousLayout.presentationSuspended()) continuousLayout.completeSessionResume();
         },
         onFault: (_reason, cancelled) => {
             mainScreenState.enabled = false;

@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "scope": "candidate/backup integrity",
+  "deployed": false
+}
+Installed packages and Native binaries still match the rollback backup.
+cc-niri stopped; parked windows restored.
+Upgrading package from file: /tmp/cc-niri-unlock-script-fix-20261027/candidate/source/package
+Successfully upgraded /home/cc/.local/share/kwin/scripts/cc-niri-maximize/
+Created symlink '/home/cc/.config/systemd/user/cc-scroll-dock-bridge.service' → '/home/cc/.config/systemd/user/cc-niri-bridge.service'.
+Created symlink '/home/cc/.config/systemd/user/default.target.wants/cc-niri-bridge.service' → '/home/cc/.config/systemd/user/cc-niri-bridge.service'.
+cc-niri started. Meta+J: down; Meta+K: up.
+Script loaded: true; enabled at login: true
+cc-niri-maximize-scroll-transition: (true,)
+cc-niri-viewport-clip: (true,)
+Focus Ring preference: true
+Focus Ring loaded: (true,)
+Rounded Corners loaded: (true,)
+Rounded Corners DisableRoundTile: false
+Rounded Corners UseSquircleShape: false
+Rounded Corners compatibility configured: true; saved preferences: 2; pending: none
+Bridge: active
+Layout health: running (session-ready)

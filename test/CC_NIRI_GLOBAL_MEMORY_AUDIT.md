@@ -153,3 +153,5 @@ JS RecoveryCompletionGate 仅在恢复时保存按当前窗口数有界的 Set�
 ### 2026-10-23 平铺圆角兼容账本
 
 CLI 新增两项有界的原值/缺省标记，start/stop 同步应用和恢复；无新服务、线程、timer、时钟或 Native 对象。第三方 Rounded Corners 对平铺窗口恢复 OffscreenEffect redirect，可能新增其已有路径的窗口尺寸 render target，属于整项目功能依赖成本。以两扇 1256×1364 logical、150%、单份 RGBA8 估算约 29.41 MiB，仅为容量估算，不含 shadow/格式/缓存，不能当作实际显存或 PSS。复用现有特效的架构取舍及限制见 [修复记录](RUST_NATIVE_R7_ROUNDED_CORNERS_RESULTS.md)。真实纹理数量/大小、关闭后 GPU 回收、30–60 分钟收敛均 **NOT MEASURED**；M1/M3 Pending。
+
+同日后续 CLI 事务优化增加一个 `RoundCornersPending=start|stop` 固定配置项；与两项原值合计最多三个记录，成功恢复后清理，失败时保留用于重试。调用期间数组各仅两项，随 shell 进程退出释放。测试 shell 助手仅临时替代平台命令并 finally 清理；无新生产服务、线程、时钟、callback、图像或纹理。绘制路径与前述 third-party render target 成本不变。门禁耗时改善不等于生产内存节省；PSS/GPU/帧时间/长期收敛本轮 **NOT MEASURED**，详见 [后续记录](RUST_NATIVE_R7_ROUNDED_CORNERS_RESULTS.md#2026-10-23-后续配置事务停止清理与测试成本)。

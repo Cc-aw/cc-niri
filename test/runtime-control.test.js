@@ -36,7 +36,11 @@ if (command === 'gdbus') {
  else if (method.endsWith('.isEffectLoaded')) console.log(last === 'cc-niri-focus-ring' ? '(false,)' : '(true,)');
  else if (method.endsWith('.loadEffect')) console.log(last === 'cc-niri-focus-ring' && process.env.RING_LOAD_FAIL ? '(false,)' : '(true,)');
  else console.log('()');
-} else if (command === 'kreadconfig6') console.log((args.includes('CCNiriFocusRing') && process.env.RING_ENABLED) || (args.includes('ScrollLayoutV2Enabled') && process.env.V2_CONFIG) ? 'true' : 'false');
+} else if (command === 'kreadconfig6') {
+ const key=args[args.indexOf('--key')+1];
+ if (key.startsWith('RoundCorners')) console.log(args[args.indexOf('--default')+1]);
+ else console.log((args.includes('CCNiriFocusRing') && process.env.RING_ENABLED) || (args.includes('ScrollLayoutV2Enabled') && process.env.V2_CONFIG) ? 'true' : 'false');
+}
 else if (command === 'systemctl' && args.includes('is-active')) console.log('active');
 `;
 for (const command of ["gdbus", "kwriteconfig6", "kreadconfig6", "systemctl", "sleep"]) {

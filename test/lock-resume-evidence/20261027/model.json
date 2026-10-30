@@ -1,0 +1,246 @@
+{
+  "scope": "Deterministic failure-handling reproduction with injected callback delays; not a reproduction or measurement of historical D-Bus latency",
+  "scenarios": [
+    {
+      "name": "normal-unlock",
+      "assertionResult": "PASS",
+      "expectedBaselineFailure": false,
+      "stages": [
+        {
+          "stage": "startup",
+          "enabled": true,
+          "paused": false,
+          "columns": 0,
+          "phase": "running",
+          "reason": "session-ready",
+          "terminal": false,
+          "sawLock": false,
+          "liveTimers": 0
+        },
+        {
+          "stage": "locked",
+          "enabled": true,
+          "paused": true,
+          "columns": 0,
+          "phase": "locked",
+          "reason": "session-event",
+          "terminal": false,
+          "sawLock": true,
+          "liveTimers": 0
+        },
+        {
+          "stage": "after-unlock-reconciliation",
+          "enabled": true,
+          "paused": false,
+          "columns": 0,
+          "phase": "running",
+          "reason": "session-ready",
+          "terminal": false,
+          "sawLock": false,
+          "liveTimers": 0
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "name": "query-deadline-only",
+      "assertionResult": "PASS",
+      "expectedBaselineFailure": false,
+      "stages": [
+        {
+          "stage": "startup",
+          "enabled": true,
+          "paused": false,
+          "columns": 0,
+          "phase": "running",
+          "reason": "session-ready",
+          "terminal": false,
+          "sawLock": false,
+          "liveTimers": 0
+        },
+        {
+          "stage": "locked",
+          "enabled": true,
+          "paused": true,
+          "columns": 0,
+          "phase": "locked",
+          "reason": "session-event",
+          "terminal": false,
+          "sawLock": true,
+          "liveTimers": 0
+        },
+        {
+          "stage": "session-query-deadline",
+          "enabled": true,
+          "paused": true,
+          "columns": 0,
+          "phase": "blocked",
+          "reason": "session-query-deadline",
+          "terminal": false,
+          "sawLock": true,
+          "liveTimers": 0
+        },
+        {
+          "stage": "after-unlock-reconciliation",
+          "enabled": true,
+          "paused": false,
+          "columns": 0,
+          "phase": "running",
+          "reason": "session-ready",
+          "terminal": false,
+          "sawLock": false,
+          "liveTimers": 0
+        }
+      ],
+      "warnings": [
+        "[cc-niri-maximize] [runtime] blocked reason=session-query-deadline"
+      ]
+    },
+    {
+      "name": "empty-disarm-deadline-only",
+      "assertionResult": "PASS",
+      "expectedBaselineFailure": true,
+      "stages": [
+        {
+          "stage": "startup",
+          "enabled": true,
+          "paused": false,
+          "columns": 0,
+          "phase": "running",
+          "reason": "session-ready",
+          "terminal": false,
+          "sawLock": false,
+          "liveTimers": 0
+        },
+        {
+          "stage": "locked",
+          "enabled": true,
+          "paused": true,
+          "columns": 0,
+          "phase": "locked",
+          "reason": "session-event",
+          "terminal": false,
+          "sawLock": true,
+          "liveTimers": 0
+        },
+        {
+          "stage": "after-unlock-reconciliation",
+          "enabled": true,
+          "paused": false,
+          "columns": 0,
+          "phase": "running",
+          "reason": "session-ready",
+          "terminal": false,
+          "sawLock": false,
+          "liveTimers": 1
+        },
+        {
+          "stage": "empty-disarm-deadline",
+          "enabled": false,
+          "paused": true,
+          "columns": 0,
+          "phase": "blocked",
+          "reason": "empty-disarm",
+          "terminal": true,
+          "sawLock": false,
+          "liveTimers": 0
+        },
+        {
+          "stage": "late-success-and-user-shortcut",
+          "enabled": false,
+          "paused": true,
+          "columns": 0,
+          "phase": "blocked",
+          "reason": "empty-disarm",
+          "terminal": true,
+          "sawLock": false,
+          "liveTimers": 0
+        }
+      ],
+      "warnings": [
+        "[cc-niri-maximize] [runtime] [SCROLL_PLAN] disarm deadline epoch=2 timeoutMs=150",
+        "[cc-niri-maximize] [runtime] geometry failure reason=empty-disarm cancelled=false",
+        "[cc-niri-maximize] [runtime] blocked reason=empty-disarm"
+      ]
+    },
+    {
+      "name": "historical-warning-chain",
+      "assertionResult": "PASS",
+      "expectedBaselineFailure": true,
+      "stages": [
+        {
+          "stage": "startup",
+          "enabled": true,
+          "paused": false,
+          "columns": 0,
+          "phase": "running",
+          "reason": "session-ready",
+          "terminal": false,
+          "sawLock": false,
+          "liveTimers": 0
+        },
+        {
+          "stage": "locked",
+          "enabled": true,
+          "paused": true,
+          "columns": 0,
+          "phase": "locked",
+          "reason": "session-event",
+          "terminal": false,
+          "sawLock": true,
+          "liveTimers": 0
+        },
+        {
+          "stage": "session-query-deadline",
+          "enabled": true,
+          "paused": true,
+          "columns": 0,
+          "phase": "blocked",
+          "reason": "session-query-deadline",
+          "terminal": false,
+          "sawLock": true,
+          "liveTimers": 0
+        },
+        {
+          "stage": "after-unlock-reconciliation",
+          "enabled": true,
+          "paused": false,
+          "columns": 0,
+          "phase": "running",
+          "reason": "session-ready",
+          "terminal": false,
+          "sawLock": false,
+          "liveTimers": 1
+        },
+        {
+          "stage": "empty-disarm-deadline",
+          "enabled": false,
+          "paused": true,
+          "columns": 0,
+          "phase": "blocked",
+          "reason": "empty-disarm",
+          "terminal": true,
+          "sawLock": false,
+          "liveTimers": 0
+        },
+        {
+          "stage": "late-success-and-user-shortcut",
+          "enabled": false,
+          "paused": true,
+          "columns": 0,
+          "phase": "blocked",
+          "reason": "empty-disarm",
+          "terminal": true,
+          "sawLock": false,
+          "liveTimers": 0
+        }
+      ],
+      "warnings": [
+        "[cc-niri-maximize] [runtime] blocked reason=session-query-deadline",
+        "[cc-niri-maximize] [runtime] [SCROLL_PLAN] disarm deadline epoch=2 timeoutMs=150",
+        "[cc-niri-maximize] [runtime] geometry failure reason=empty-disarm cancelled=false",
+        "[cc-niri-maximize] [runtime] blocked reason=empty-disarm"
+      ]
+    }
+  ]
+}

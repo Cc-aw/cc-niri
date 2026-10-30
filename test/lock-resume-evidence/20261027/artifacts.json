@@ -1,0 +1,21 @@
+{
+  "script": {
+    "source": "/home/cc/cc_niri/package/contents/code/main.js",
+    "installed": "/home/cc/.local/share/kwin/scripts/cc-niri-maximize/contents/code/main.js",
+    "sourceSha256": "dceba6dd5df7415ebbdec2e941b84f94d0776222d67266a2f6a9f6890b161647",
+    "installedSha256": "dceba6dd5df7415ebbdec2e941b84f94d0776222d67266a2f6a9f6890b161647",
+    "same": true
+  },
+  "cli": {
+    "source": "/home/cc/cc_niri/cc-niri",
+    "installed": "/home/cc/.local/bin/cc-niri",
+    "sourceSha256": "95fd8f16f514e2439e7cdb16065a015f54a2ca27b5d0aa71cdac9c6bed5bb6c2",
+    "installedSha256": "95fd8f16f514e2439e7cdb16065a015f54a2ca27b5d0aa71cdac9c6bed5bb6c2",
+    "same": true
+  },
+  "scope": "Disk artifact identity only; does not identify the pre-restart in-memory Native binary.",
+  "packages": [
+    "kwin-6.7.5-1.fc44.x86_64",
+    "qt6-qtbase-6.11.2-2.fc44.x86_64"
+  ]
+}

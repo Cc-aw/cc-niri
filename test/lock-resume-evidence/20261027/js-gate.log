@@ -1,0 +1,394 @@
+
+== generated runtime bundles ==
+
+== production module regression suite ==
+TAP version 13
+# Subtest: test/always-center-single-column-runtime.test.js
+ok 1 - test/always-center-single-column-runtime.test.js
+  ---
+  duration_ms: 701.591544
+  type: 'test'
+  ...
+# Subtest: test/always-center-single-column-transition.test.js
+ok 2 - test/always-center-single-column-transition.test.js
+  ---
+  duration_ms: 966.078235
+  type: 'test'
+  ...
+# Subtest: test/always-center-single-column.test.js
+ok 3 - test/always-center-single-column.test.js
+  ---
+  duration_ms: 259.80915
+  type: 'test'
+  ...
+# Subtest: test/animation-capture-analysis.test.js
+ok 4 - test/animation-capture-analysis.test.js
+  ---
+  duration_ms: 463.585243
+  type: 'test'
+  ...
+# Subtest: test/column-width-runtime.test.js
+ok 5 - test/column-width-runtime.test.js
+  ---
+  duration_ms: 963.484674
+  type: 'test'
+  ...
+# Subtest: test/contextual-viewport-owner.test.js
+ok 6 - test/contextual-viewport-owner.test.js
+  ---
+  duration_ms: 255.861569
+  type: 'test'
+  ...
+# Subtest: test/contextual-viewport.test.js
+ok 7 - test/contextual-viewport.test.js
+  ---
+  duration_ms: 288.210992
+  type: 'test'
+  ...
+# Subtest: test/contextual-wide-coordinator.test.js
+ok 8 - test/contextual-wide-coordinator.test.js
+  ---
+  duration_ms: 313.679983
+  type: 'test'
+  ...
+# Subtest: test/controller-composition.test.js
+ok 9 - test/controller-composition.test.js
+  ---
+  duration_ms: 293.563992
+  type: 'test'
+  ...
+# Subtest: test/cross-output-drag.test.js
+ok 10 - test/cross-output-drag.test.js
+  ---
+  duration_ms: 775.268134
+  type: 'test'
+  ...
+# Subtest: test/deferred-scroll-parking.test.js
+ok 11 - test/deferred-scroll-parking.test.js
+  ---
+  duration_ms: 278.880314
+  type: 'test'
+  ...
+# Subtest: test/dock-fork-modules.test.js
+ok 12 - test/dock-fork-modules.test.js
+  ---
+  duration_ms: 287.32655
+  type: 'test'
+  ...
+# Subtest: test/dock-scroll-controller.test.js
+ok 13 - test/dock-scroll-controller.test.js
+  ---
+  duration_ms: 288.572423
+  type: 'test'
+  ...
+# Subtest: test/dock-state-protocol.test.js
+ok 14 - test/dock-state-protocol.test.js
+  ---
+  duration_ms: 314.040453
+  type: 'test'
+  ...
+# Subtest: test/dock-stepwise-scroll.test.js
+ok 15 - test/dock-stepwise-scroll.test.js
+  ---
+  duration_ms: 307.360133
+  type: 'test'
+  ...
+# Subtest: test/dock-sync-schema.test.js
+ok 16 - test/dock-sync-schema.test.js
+  ---
+  duration_ms: 278.588918
+  type: 'test'
+  ...
+# Subtest: test/dockless-install.test.js
+ok 17 - test/dockless-install.test.js
+  ---
+  duration_ms: 35950.504336
+  type: 'test'
+  ...
+# Subtest: test/dockless-runtime.test.js
+ok 18 - test/dockless-runtime.test.js
+  ---
+  duration_ms: 809.777032
+  type: 'test'
+  ...
+# Subtest: test/dynamic-workspace-runtime.test.js
+ok 19 - test/dynamic-workspace-runtime.test.js
+  ---
+  duration_ms: 456.560903
+  type: 'test'
+  ...
+# Subtest: test/dynamic-workspace.test.js
+ok 20 - test/dynamic-workspace.test.js
+  ---
+  duration_ms: 285.579914
+  type: 'test'
+  ...
+# Subtest: test/effect-output-target.test.js
+ok 21 - test/effect-output-target.test.js
+  ---
+  duration_ms: 285.752864
+  type: 'test'
+  ...
+# Subtest: test/floating-phase10.test.js
+ok 22 - test/floating-phase10.test.js
+  ---
+  duration_ms: 297.547113
+  type: 'test'
+  ...
+# Subtest: test/focus-ring-controller.test.js
+ok 23 - test/focus-ring-controller.test.js
+  ---
+  duration_ms: 295.525635
+  type: 'test'
+  ...
+# Subtest: test/focus-ring-runtime.test.js
+ok 24 - test/focus-ring-runtime.test.js
+  ---
+  duration_ms: 371.3507
+  type: 'test'
+  ...
+# Subtest: test/focused-feedback.test.js
+ok 25 - test/focused-feedback.test.js
+  ---
+  duration_ms: 277.518685
+  type: 'test'
+  ...
+# Subtest: test/full-column-runtime.test.js
+ok 26 - test/full-column-runtime.test.js
+  ---
+  duration_ms: 525.840894
+  type: 'test'
+  ...
+# Subtest: test/full-column.test.js
+ok 27 - test/full-column.test.js
+  ---
+  duration_ms: 284.105996
+  type: 'test'
+  ...
+# Subtest: test/full-half-partial.test.js
+ok 28 - test/full-half-partial.test.js
+  ---
+  duration_ms: 605.385633
+  type: 'test'
+  ...
+# Subtest: test/full-width-animation.test.js
+ok 29 - test/full-width-animation.test.js
+  ---
+  duration_ms: 955.209325
+  type: 'test'
+  ...
+# Subtest: test/fullscreen-controller.test.js
+ok 30 - test/fullscreen-controller.test.js
+  ---
+  duration_ms: 338.897285
+  type: 'test'
+  ...
+# Subtest: test/generated-package.test.js
+ok 31 - test/generated-package.test.js
+  ---
+  duration_ms: 558.266055
+  type: 'test'
+  ...
+# Subtest: test/geometry-v2.test.js
+ok 32 - test/geometry-v2.test.js
+  ---
+  duration_ms: 301.661739
+  type: 'test'
+  ...
+# Subtest: test/layout-plan.test.js
+ok 33 - test/layout-plan.test.js
+  ---
+  duration_ms: 341.430648
+  type: 'test'
+  ...
+# Subtest: test/memory-resource-lifecycle.test.js
+ok 34 - test/memory-resource-lifecycle.test.js
+  ---
+  duration_ms: 899.322997
+  type: 'test'
+  ...
+# Subtest: test/model-stores.test.js
+ok 35 - test/model-stores.test.js
+  ---
+  duration_ms: 286.274796
+  type: 'test'
+  ...
+# Subtest: test/motion-classifier.test.js
+ok 36 - test/motion-classifier.test.js
+  ---
+  duration_ms: 276.745252
+  type: 'test'
+  ...
+# Subtest: test/motion-controller.test.js
+ok 37 - test/motion-controller.test.js
+  ---
+  duration_ms: 291.914104
+  type: 'test'
+  ...
+# Subtest: test/motion-plan-commit-gate.test.js
+ok 38 - test/motion-plan-commit-gate.test.js
+  ---
+  duration_ms: 307.176667
+  type: 'test'
+  ...
+# Subtest: test/motion-retarget.test.js
+ok 39 - test/motion-retarget.test.js
+  ---
+  duration_ms: 285.548188
+  type: 'test'
+  ...
+# Subtest: test/motion-sampler.test.js
+ok 40 - test/motion-sampler.test.js
+  ---
+  duration_ms: 307.683949
+  type: 'test'
+  ...
+# Subtest: test/motion-tokens.test.js
+ok 41 - test/motion-tokens.test.js
+  ---
+  duration_ms: 303.96857
+  type: 'test'
+  ...
+# Subtest: test/motion-transaction.test.js
+ok 42 - test/motion-transaction.test.js
+  ---
+  duration_ms: 285.917967
+  type: 'test'
+  ...
+# Subtest: test/native-clip-install.test.js
+ok 43 - test/native-clip-install.test.js
+  ---
+  duration_ms: 1415.67741
+  type: 'test'
+  ...
+# Subtest: test/native-incoming-commit.test.js
+ok 44 - test/native-incoming-commit.test.js
+  ---
+  duration_ms: 301.381538
+  type: 'test'
+  ...
+# Subtest: test/native-scroll-ownership.test.js
+ok 45 - test/native-scroll-ownership.test.js
+  ---
+  duration_ms: 307.191205
+  type: 'test'
+  ...
+# Subtest: test/native-viewport-clip.test.js
+ok 46 - test/native-viewport-clip.test.js
+  ---
+  duration_ms: 277.31664
+  type: 'test'
+  ...
+# Subtest: test/output-controller.test.js
+ok 47 - test/output-controller.test.js
+  ---
+  duration_ms: 300.439747
+  type: 'test'
+  ...
+# Subtest: test/parking-animation-grabber.test.js
+ok 48 - test/parking-animation-grabber.test.js
+  ---
+  duration_ms: 280.209001
+  type: 'test'
+  ...
+# Subtest: test/presentation-controller.test.js
+ok 49 - test/presentation-controller.test.js
+  ---
+  duration_ms: 339.969306
+  type: 'test'
+  ...
+# Subtest: test/presentation-phase9_5.test.js
+ok 50 - test/presentation-phase9_5.test.js
+  ---
+  duration_ms: 305.976407
+  type: 'test'
+  ...
+# Subtest: test/reorder-controller.test.js
+ok 51 - test/reorder-controller.test.js
+  ---
+  duration_ms: 313.349563
+  type: 'test'
+  ...
+# node:assert:150
+#   throw new AssertionError(obj);
+#   ^
+# AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+# + actual - expected
+# + Error: spawnSync /usr/bin/bash EPERM
+# +     at Object.spawnSync (node:internal/child_process:1120:20)
+# +     at spawnSync (node:child_process:902:24)
+# +     at run (/home/cc/cc_niri/test/rounded-corners-cli.test.js:42:24)
+# +     at Object.<anonymous> (/home/cc/cc_niri/test/rounded-corners-cli.test.js:61:35)
+# +     at Module._compile (node:internal/modules/cjs/loader:1781:14)
+# +     at Module._extensions..js (node:internal/modules/cjs/loader:1913:10)
+# +     at Module.load (node:internal/modules/cjs/loader:1505:32)
+# +     at Module._load (node:internal/modules/cjs/loader:1309:12)
+# +     at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+# +     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5) {
+# +   code: 'EPERM',
+# +   errno: -1,
+# +   path: '/usr/bin/bash',
+# +   spawnargs: [
+# +     '/home/cc/cc_niri/cc-niri',
+# +     'start'
+# +   ],
+# +   syscall: 'spawnSync /usr/bin/bash'
+# + }
+# - undefined
+#     at run (/home/cc/cc_niri/test/rounded-corners-cli.test.js:47:16)
+#     at Object.<anonymous> (/home/cc/cc_niri/test/rounded-corners-cli.test.js:61:35)
+#     at Module._compile (node:internal/modules/cjs/loader:1781:14)
+#     at Module._extensions..js (node:internal/modules/cjs/loader:1913:10)
+#     at Module.load (node:internal/modules/cjs/loader:1505:32)
+#     at Module._load (node:internal/modules/cjs/loader:1309:12)
+#     at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+#     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)
+#     at node:internal/main/run_main_module:36:49 {
+#   generatedMessage: true,
+#   code: 'ERR_ASSERTION',
+#   actual: Error: spawnSync /usr/bin/bash EPERM
+#       at Object.spawnSync (node:internal/child_process:1120:20)
+#       at spawnSync (node:child_process:902:24)
+#       at run (/home/cc/cc_niri/test/rounded-corners-cli.test.js:42:24)
+#       at Object.<anonymous> (/home/cc/cc_niri/test/rounded-corners-cli.test.js:61:35)
+#       at Module._compile (node:internal/modules/cjs/loader:1781:14)
+#       at Module._extensions..js (node:internal/modules/cjs/loader:1913:10)
+#       at Module.load (node:internal/modules/cjs/loader:1505:32)
+#       at Module._load (node:internal/modules/cjs/loader:1309:12)
+#       at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+#       at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5) {
+#     errno: -1,
+#     code: 'EPERM',
+#     syscall: 'spawnSync /usr/bin/bash',
+#     path: '/usr/bin/bash',
+#     spawnargs: [ '/home/cc/cc_niri/cc-niri', 'start' ]
+#   },
+#   expected: undefined,
+#   operator: 'strictEqual',
+#   diff: 'simple'
+# }
+# Node.js v22.23.1
+# Subtest: test/rounded-corners-cli.test.js
+not ok 52 - test/rounded-corners-cli.test.js
+  ---
+  duration_ms: 465.617319
+  type: 'test'
+  location: '/home/cc/cc_niri/test/rounded-corners-cli.test.js:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: test/runtime-bridge.test.js
+ok 53 - test/runtime-bridge.test.js
+  ---
+  duration_ms: 278.387084
+  type: 'test'
+  ...
+# Subtest: test/runtime-config-output.test.js
+ok 54 - test/runtime-config-output.test.js
+  ---
+  duration_ms: 306.693754
+  type: 'test'
+  ...

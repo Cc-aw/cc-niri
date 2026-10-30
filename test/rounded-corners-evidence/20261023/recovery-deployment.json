@@ -1,0 +1,18 @@
+{
+  "settings": {
+    "tile": "false",
+    "shape": "false",
+    "tileOriginal": "absent",
+    "shapeOriginal": "absent",
+    "pending": "none"
+  },
+  "kwin_pid": "2119",
+  "bridge_pid": "616754",
+  "kwinrc_sha256": "d6ca4a809e137c8c6192c097107438cb5a2d6254a296b5518f0747bb83d97fc3",
+  "cli_sha256": "95fd8f16f514e2439e7cdb16065a015f54a2ca27b5d0aa71cdac9c6bed5bb6c2",
+  "start_seconds": [
+    0.08613178902305663,
+    0.08636668598046526
+  ],
+  "status": "Script loaded: true; enabled at login: true\ncc-niri-maximize-scroll-transition: (true,)\ncc-niri-viewport-clip: (true,)\nFocus Ring preference: true\nFocus Ring loaded: (true,)\nRounded Corners loaded: (true,)\nRounded Corners DisableRoundTile: false\nRounded Corners UseSquircleShape: false\nRounded Corners compatibility configured: true; saved preferences: 2; pending: none\nBridge: active\nLayout health: running (session-ready)"
+}

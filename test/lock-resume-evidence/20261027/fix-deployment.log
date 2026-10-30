@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "scope": "candidate/backup integrity",
+  "deployed": false
+}
+Installed packages and Native binaries still match the rollback backup.
+cc-niri: Recovery confirmation timed out; keeping all components loaded.

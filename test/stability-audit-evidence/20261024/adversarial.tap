@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: SA-01: retired startup replies and deadlines cannot initialize a restarted lifecycle
+ok 1 - SA-01: retired startup replies and deadlines cannot initialize a restarted lifecycle
+  ---
+  duration_ms: 8.080977
+  type: 'test'
+  ...
+# Subtest: SA-02: owner cleanup uses object identity and survives a destroyed signal wrapper
+ok 2 - SA-02: owner cleanup uses object identity and survives a destroyed signal wrapper
+  ---
+  duration_ms: 0.839528
+  type: 'test'
+  ...
+# Subtest: SA-03: restore proof requires all three facts in order frameGeometry,opacity,minimized
+ok 3 - SA-03: restore proof requires all three facts in order frameGeometry,opacity,minimized
+  ---
+  duration_ms: 4.031822
+  type: 'test'
+  ...
+# Subtest: SA-03: restore proof requires all three facts in order frameGeometry,minimized,opacity
+ok 4 - SA-03: restore proof requires all three facts in order frameGeometry,minimized,opacity
+  ---
+  duration_ms: 0.534785
+  type: 'test'
+  ...
+# Subtest: SA-03: restore proof requires all three facts in order opacity,frameGeometry,minimized
+ok 5 - SA-03: restore proof requires all three facts in order opacity,frameGeometry,minimized
+  ---
+  duration_ms: 0.548166
+  type: 'test'
+  ...
+# Subtest: SA-03: restore proof requires all three facts in order opacity,minimized,frameGeometry
+ok 6 - SA-03: restore proof requires all three facts in order opacity,minimized,frameGeometry
+  ---
+  duration_ms: 0.531093
+  type: 'test'
+  ...
+# Subtest: SA-03: restore proof requires all three facts in order minimized,frameGeometry,opacity
+ok 7 - SA-03: restore proof requires all three facts in order minimized,frameGeometry,opacity
+  ---
+  duration_ms: 0.493088
+  type: 'test'
+  ...
+# Subtest: SA-03: restore proof requires all three facts in order minimized,opacity,frameGeometry
+ok 8 - SA-03: restore proof requires all three facts in order minimized,opacity,frameGeometry
+  ---
+  duration_ms: 0.297392
+  type: 'test'
+  ...
+# Subtest: SA-04: reentrant recovery completion cannot let the old deadline retire a new proof
+ok 9 - SA-04: reentrant recovery completion cannot let the old deadline retire a new proof
+  ---
+  duration_ms: 1.212683
+  type: 'test'
+  ...
+# Subtest: SA-05: a partial signal subscription failure releases the already acquired listeners
+ok 10 - SA-05: a partial signal subscription failure releases the already acquired listeners
+  ---
+  duration_ms: 2.258254
+  type: 'test'
+  ...
+# Subtest: SA-06: close releases restore proof without reading a destroyed window's properties
+ok 11 - SA-06: close releases restore proof without reading a destroyed window's properties
+  ---
+  duration_ms: 0.676935
+  type: 'test'
+  ...
+# Subtest: SA-07: synchronous ACK reentry and nested failure share one epoch and release the guard
+ok 12 - SA-07: synchronous ACK reentry and nested failure share one epoch and release the guard
+  ---
+  duration_ms: 1.549124
+  type: 'test'
+  ...
+# Subtest: SA-08: a session reply already queued before stop cannot resume or publish running
+ok 13 - SA-08: a session reply already queued before stop cannot resume or publish running
+  ---
+  duration_ms: 1.301866
+  type: 'test'
+  ...
+# Subtest: SA-09: generated entry close churn returns owned signal and window state counts to baseline
+ok 14 - SA-09: generated entry close churn returns owned signal and window state counts to baseline
+  ---
+  duration_ms: 231.641724
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 292.009546

@@ -124,3 +124,5 @@ V2经授权部署并开启，启动/协议/实际Native路径核验PASS，详见
 ### 2026-10-23 平铺圆角兼容结果
 
 局部热应用使用第三方特效现有绘制路径；KWin / Bridge PID 未变化。前/后低频观测与账本分别见上述 BASELINE / AUDIT 的同日期条目及 [修复记录](RUST_NATIVE_R7_ROUNDED_CORNERS_RESULTS.md)。KWin PSS / Private_Dirty 权限不足、两侧窗口宽度/用户负载变化，功能内存归因 **INCONCLUSIVE**；实际 GPU 纹理计数、帧时间与 30–60 分钟收敛 **NOT MEASURED**。现有 third-party redirect 成本必须计入项目预算，不能据 CLI 无新纹理宣称低内存通过。M0–M3 和 32/64 MiB 预算验收保持 Pending。
+
+同日后续配置事务、恢复失败重试、Bridge 清理顺序、重复 start 零圆角写入及只读 status 的离线回归 **PASS**；CLI 热更新前后 kwinrc hash 与 KWin/Bridge PID 不变。测试耗时改善有日志支持，未测生产 PSS/GPU/帧时间/长期增长；M0–M3 与总体预算状态不变，见 [后续记录](RUST_NATIVE_R7_ROUNDED_CORNERS_RESULTS.md#2026-10-23-后续配置事务停止清理与测试成本)。

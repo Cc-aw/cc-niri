@@ -46,7 +46,7 @@ const geometryControls = new Map();
 let v2Plan = null, v2Painted = null, v2Serial = 0;
 class Timer {
     constructor() { this.timeout = signal(); timers.push(this); }
-    start() { this.running = true; }
+    start(delayMs) { this.interval = delayMs; this.running = true; }
     stop() { this.running = false; }
 }
 function windowFor(uuid, desktop) {

@@ -1,0 +1,2184 @@
+{
+  "date": "2026-10-24",
+  "baseline_commit": "95f69b0bcd8326ff319cc5b6df5ee1cb4ea331c3",
+  "karousel_commit": "8b9f0b62b2922703d7c25a79d5d49ae93cd3f93b",
+  "worktree": "/tmp/cc-niri-stability-audit-20261024",
+  "toolchain": {
+    "rust": "1.99.0",
+    "cargo": "1.99.0",
+    "cxx": "/usr/bin/g++",
+    "gcc": "16.2.1"
+  },
+  "baseline_gate": {
+    "status": "PASS",
+    "command": "CMAKE_BUILD_PARALLEL_LEVEL=2 node tools/check.js --native",
+    "raw_log": "/tmp/cc-niri-stability-audit-20261024-baseline-native.log",
+    "log_sha256": "57597293e18e0534f87d2ec08859c7e9b74a37392380097dc80e0269cd4b940e",
+    "node_tests": 262,
+    "node_files": 120,
+    "rust_tests": 109,
+    "ctest": {
+      "bridge": 18,
+      "viewport_clip": 18,
+      "focus_ring": 25
+    },
+    "rust_fmt": "PASS",
+    "rust_clippy_locked": "PASS",
+    "rust_test_locked": "PASS",
+    "production_boundary": "PASS",
+    "bridge_private_integration_entries": 7,
+    "node_duration_ms": 138897.484062
+  },
+  "final_gate": {
+    "status": "PASS",
+    "command": "CMAKE_BUILD_PARALLEL_LEVEL=2 node tools/check.js --native",
+    "raw_log": "/tmp/cc-niri-stability-audit-20261024-final-native.log",
+    "log_sha256": "acb57fd55002f1e3b468b713836a0097c8f45eef57a885bee8dfae09a71384c5",
+    "node_tests": 281,
+    "node_files": 122,
+    "rust_tests": 109,
+    "ctest": {
+      "bridge": 18,
+      "viewport_clip": 18,
+      "focus_ring": 25
+    },
+    "rust_fmt": "PASS",
+    "rust_clippy_locked": "PASS",
+    "rust_test_locked": "PASS",
+    "production_boundary": "PASS",
+    "bridge_private_integration_entries": 7,
+    "node_duration_ms": 143431.322369
+  },
+  "private_input_lifecycle": [
+    {
+      "phase": "before",
+      "scale": 1.0,
+      "status": "FAIL",
+      "classification": "diagnostic-path-alias-false-negative",
+      "checks": {
+        "raw_injector_has_no_p0_projection": true,
+        "exact_build_tree_plugins_loaded": false,
+        "native_capability_explicit": true,
+        "bridge_requires_membership": true,
+        "actual_painted_camera_and_scope": true,
+        "p4_source_has_real_per_client_frames": true,
+        "p4_source_uses_actual_camera_and_pass": true,
+        "p4_source_preserves_natural_partial_visual": true,
+        "right_partial_strict_output": true,
+        "active_0_closed_internal_retained_without_qwindow": true,
+        "active_0_pointer_motion_survives": true,
+        "active_1_closed_internal_retained_without_qwindow": true,
+        "active_1_pointer_motion_survives": true,
+        "active_2_closed_internal_retained_without_qwindow": true,
+        "active_2_pointer_motion_survives": true,
+        "active_3_closed_internal_retained_without_qwindow": true,
+        "active_3_pointer_motion_survives": true,
+        "active_4_closed_internal_retained_without_qwindow": true,
+        "active_4_pointer_motion_survives": true,
+        "active_5_closed_internal_retained_without_qwindow": true,
+        "active_5_pointer_motion_survives": true,
+        "active_6_closed_internal_retained_without_qwindow": true,
+        "active_6_pointer_motion_survives": true,
+        "active_7_closed_internal_retained_without_qwindow": true,
+        "active_7_pointer_motion_survives": true,
+        "frozen_handoff_exercised": true,
+        "handoff_0_closed_internal_retained_without_qwindow": true,
+        "handoff_0_pointer_motion_survives": true,
+        "handoff_1_closed_internal_retained_without_qwindow": true,
+        "handoff_1_pointer_motion_survives": true,
+        "handoff_2_closed_internal_retained_without_qwindow": true,
+        "handoff_2_pointer_motion_survives": true,
+        "handoff_3_closed_internal_retained_without_qwindow": true,
+        "handoff_3_pointer_motion_survives": true,
+        "handoff_4_closed_internal_retained_without_qwindow": true,
+        "handoff_4_pointer_motion_survives": true,
+        "handoff_5_closed_internal_retained_without_qwindow": true,
+        "handoff_5_pointer_motion_survives": true,
+        "handoff_6_closed_internal_retained_without_qwindow": true,
+        "handoff_6_pointer_motion_survives": true,
+        "handoff_7_closed_internal_retained_without_qwindow": true,
+        "handoff_7_pointer_motion_survives": true,
+        "lifecycle_cancel_drains_handoff": true,
+        "lifecycle_pairs_drained": true,
+        "lifecycle_cancel_restores_native_input": true
+      },
+      "started_utc": "2026-10-24T08:09:52.005654+00:00",
+      "ended_utc": "2026-10-24T08:10:06.840095+00:00",
+      "raw_report": "/tmp/cc-niri-stability-input-100-20261024/report.json",
+      "report_sha256": "d29cb3be5307134c8de5b2818ba44c7a29010a0f7cf04521fffed77fa22a945e",
+      "artifacts": {
+        "build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so": "ac303088098db2187898709e19db11960bd3553faa0eb4b067359cc3c2d571a8",
+        "build/bridge/cc-niri-bridge": "76e1da9087317b4917542919cf9adff3cc3c845641339dd4bc4481ffdba4e947",
+        "build/scroll-layout-v2-p0-fixture/plugins/kwin/effects/plugins/cc-niri-p0-input-fixture.so": "00d9eed88605107647c8c41b306b1fbc727de56f5d86362de52aee5b3a6d605d",
+        "build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so": "75988a833c8df7941d253959ca52320bd9287215625865852d67aa208e952c9e"
+      },
+      "loaded_binary_paths": {
+        "clip": "/home/cc/cc_niri/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+        "ring": "/home/cc/cc_niri/build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so"
+      },
+      "expected_alias_paths": {
+        "clip": "/tmp/cc-niri-stability-audit-20261024/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+        "ring": "/tmp/cc-niri-stability-audit-20261024/build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so"
+      },
+      "resolved_artifacts_match": true,
+      "internal_windows": [
+        {
+          "mode": "active",
+          "cycle": 0,
+          "live": {
+            "cycles": 1,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 1,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 1,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 1,
+          "live": {
+            "cycles": 2,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 2,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 2,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 2,
+          "live": {
+            "cycles": 3,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 3,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 3,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 3,
+          "live": {
+            "cycles": 4,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 4,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 4,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 4,
+          "live": {
+            "cycles": 5,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 5,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 5,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 5,
+          "live": {
+            "cycles": 6,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 6,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 6,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 6,
+          "live": {
+            "cycles": 7,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 7,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 7,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 7,
+          "live": {
+            "cycles": 8,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 8,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 8,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 0,
+          "live": {
+            "cycles": 9,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 9,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 9,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 1,
+          "live": {
+            "cycles": 10,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 10,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 10,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 2,
+          "live": {
+            "cycles": 11,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 11,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 11,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 3,
+          "live": {
+            "cycles": 12,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 12,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 12,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 4,
+          "live": {
+            "cycles": 13,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 13,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 13,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 5,
+          "live": {
+            "cycles": 14,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 14,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 14,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 6,
+          "live": {
+            "cycles": 15,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 15,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 15,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 7,
+          "live": {
+            "cycles": 16,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 16,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 16,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        }
+      ],
+      "kwin_alive_before_cleanup": true
+    },
+    {
+      "phase": "before",
+      "scale": 1.5,
+      "status": "FAIL",
+      "classification": "diagnostic-path-alias-false-negative",
+      "checks": {
+        "raw_injector_has_no_p0_projection": true,
+        "exact_build_tree_plugins_loaded": false,
+        "native_capability_explicit": true,
+        "bridge_requires_membership": true,
+        "actual_painted_camera_and_scope": true,
+        "p4_source_has_real_per_client_frames": true,
+        "p4_source_uses_actual_camera_and_pass": true,
+        "p4_source_preserves_natural_partial_visual": true,
+        "right_partial_strict_output": true,
+        "active_0_closed_internal_retained_without_qwindow": true,
+        "active_0_pointer_motion_survives": true,
+        "active_1_closed_internal_retained_without_qwindow": true,
+        "active_1_pointer_motion_survives": true,
+        "active_2_closed_internal_retained_without_qwindow": true,
+        "active_2_pointer_motion_survives": true,
+        "active_3_closed_internal_retained_without_qwindow": true,
+        "active_3_pointer_motion_survives": true,
+        "active_4_closed_internal_retained_without_qwindow": true,
+        "active_4_pointer_motion_survives": true,
+        "active_5_closed_internal_retained_without_qwindow": true,
+        "active_5_pointer_motion_survives": true,
+        "active_6_closed_internal_retained_without_qwindow": true,
+        "active_6_pointer_motion_survives": true,
+        "active_7_closed_internal_retained_without_qwindow": true,
+        "active_7_pointer_motion_survives": true,
+        "frozen_handoff_exercised": true,
+        "handoff_0_closed_internal_retained_without_qwindow": true,
+        "handoff_0_pointer_motion_survives": true,
+        "handoff_1_closed_internal_retained_without_qwindow": true,
+        "handoff_1_pointer_motion_survives": true,
+        "handoff_2_closed_internal_retained_without_qwindow": true,
+        "handoff_2_pointer_motion_survives": true,
+        "handoff_3_closed_internal_retained_without_qwindow": true,
+        "handoff_3_pointer_motion_survives": true,
+        "handoff_4_closed_internal_retained_without_qwindow": true,
+        "handoff_4_pointer_motion_survives": true,
+        "handoff_5_closed_internal_retained_without_qwindow": true,
+        "handoff_5_pointer_motion_survives": true,
+        "handoff_6_closed_internal_retained_without_qwindow": true,
+        "handoff_6_pointer_motion_survives": true,
+        "handoff_7_closed_internal_retained_without_qwindow": true,
+        "handoff_7_pointer_motion_survives": true,
+        "lifecycle_cancel_drains_handoff": true,
+        "lifecycle_pairs_drained": true,
+        "lifecycle_cancel_restores_native_input": true
+      },
+      "started_utc": "2026-10-24T08:10:07.076313+00:00",
+      "ended_utc": "2026-10-24T08:10:22.165597+00:00",
+      "raw_report": "/tmp/cc-niri-stability-input-150-20261024/report.json",
+      "report_sha256": "bf6b864f7d8c1e72c9f86f2ffe99c34ba33a336dc54205759cd2b5b3777d189e",
+      "artifacts": {
+        "build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so": "ac303088098db2187898709e19db11960bd3553faa0eb4b067359cc3c2d571a8",
+        "build/bridge/cc-niri-bridge": "76e1da9087317b4917542919cf9adff3cc3c845641339dd4bc4481ffdba4e947",
+        "build/scroll-layout-v2-p0-fixture/plugins/kwin/effects/plugins/cc-niri-p0-input-fixture.so": "00d9eed88605107647c8c41b306b1fbc727de56f5d86362de52aee5b3a6d605d",
+        "build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so": "75988a833c8df7941d253959ca52320bd9287215625865852d67aa208e952c9e"
+      },
+      "loaded_binary_paths": {
+        "clip": "/home/cc/cc_niri/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+        "ring": "/home/cc/cc_niri/build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so"
+      },
+      "expected_alias_paths": {
+        "clip": "/tmp/cc-niri-stability-audit-20261024/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+        "ring": "/tmp/cc-niri-stability-audit-20261024/build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so"
+      },
+      "resolved_artifacts_match": true,
+      "internal_windows": [
+        {
+          "mode": "active",
+          "cycle": 0,
+          "live": {
+            "cycles": 1,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 1,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 1,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 1,
+          "live": {
+            "cycles": 2,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 2,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 2,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 2,
+          "live": {
+            "cycles": 3,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 3,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 3,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 3,
+          "live": {
+            "cycles": 4,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 4,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 4,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 4,
+          "live": {
+            "cycles": 5,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 5,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 5,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 5,
+          "live": {
+            "cycles": 6,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 6,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 6,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 6,
+          "live": {
+            "cycles": 7,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 7,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 7,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 7,
+          "live": {
+            "cycles": 8,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 8,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 8,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 0,
+          "live": {
+            "cycles": 9,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 9,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 9,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 1,
+          "live": {
+            "cycles": 10,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 10,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 10,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 2,
+          "live": {
+            "cycles": 11,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 11,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 11,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 3,
+          "live": {
+            "cycles": 12,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 12,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 12,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 4,
+          "live": {
+            "cycles": 13,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 13,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 13,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 5,
+          "live": {
+            "cycles": 14,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 14,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 14,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 6,
+          "live": {
+            "cycles": 15,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 15,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 15,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 7,
+          "live": {
+            "cycles": 16,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 16,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 16,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        }
+      ],
+      "kwin_alive_before_cleanup": true
+    },
+    {
+      "phase": "after",
+      "scale": 1.0,
+      "status": "PASS",
+      "classification": "PASS",
+      "checks": {
+        "raw_injector_has_no_p0_projection": true,
+        "exact_build_tree_plugins_loaded": true,
+        "native_capability_explicit": true,
+        "bridge_requires_membership": true,
+        "actual_painted_camera_and_scope": true,
+        "p4_source_has_real_per_client_frames": true,
+        "p4_source_uses_actual_camera_and_pass": true,
+        "p4_source_preserves_natural_partial_visual": true,
+        "right_partial_strict_output": true,
+        "active_0_closed_internal_retained_without_qwindow": true,
+        "active_0_pointer_motion_survives": true,
+        "active_1_closed_internal_retained_without_qwindow": true,
+        "active_1_pointer_motion_survives": true,
+        "active_2_closed_internal_retained_without_qwindow": true,
+        "active_2_pointer_motion_survives": true,
+        "active_3_closed_internal_retained_without_qwindow": true,
+        "active_3_pointer_motion_survives": true,
+        "active_4_closed_internal_retained_without_qwindow": true,
+        "active_4_pointer_motion_survives": true,
+        "active_5_closed_internal_retained_without_qwindow": true,
+        "active_5_pointer_motion_survives": true,
+        "active_6_closed_internal_retained_without_qwindow": true,
+        "active_6_pointer_motion_survives": true,
+        "active_7_closed_internal_retained_without_qwindow": true,
+        "active_7_pointer_motion_survives": true,
+        "frozen_handoff_exercised": true,
+        "handoff_0_closed_internal_retained_without_qwindow": true,
+        "handoff_0_pointer_motion_survives": true,
+        "handoff_1_closed_internal_retained_without_qwindow": true,
+        "handoff_1_pointer_motion_survives": true,
+        "handoff_2_closed_internal_retained_without_qwindow": true,
+        "handoff_2_pointer_motion_survives": true,
+        "handoff_3_closed_internal_retained_without_qwindow": true,
+        "handoff_3_pointer_motion_survives": true,
+        "handoff_4_closed_internal_retained_without_qwindow": true,
+        "handoff_4_pointer_motion_survives": true,
+        "handoff_5_closed_internal_retained_without_qwindow": true,
+        "handoff_5_pointer_motion_survives": true,
+        "handoff_6_closed_internal_retained_without_qwindow": true,
+        "handoff_6_pointer_motion_survives": true,
+        "handoff_7_closed_internal_retained_without_qwindow": true,
+        "handoff_7_pointer_motion_survives": true,
+        "lifecycle_cancel_drains_handoff": true,
+        "lifecycle_pairs_drained": true,
+        "lifecycle_cancel_restores_native_input": true
+      },
+      "started_utc": "2026-10-24T08:22:19.370056+00:00",
+      "ended_utc": "2026-10-24T08:22:33.587406+00:00",
+      "raw_report": "/tmp/cc-niri-stability-input-100-verified-20261024/report.json",
+      "report_sha256": "fa2e4fe99ef1f7531244e39aeb09fe4c4b6e60c220d72e05d73dc89c43615dd9",
+      "artifacts": {
+        "build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so": "ac303088098db2187898709e19db11960bd3553faa0eb4b067359cc3c2d571a8",
+        "build/bridge/cc-niri-bridge": "76e1da9087317b4917542919cf9adff3cc3c845641339dd4bc4481ffdba4e947",
+        "build/scroll-layout-v2-p0-fixture/plugins/kwin/effects/plugins/cc-niri-p0-input-fixture.so": "00d9eed88605107647c8c41b306b1fbc727de56f5d86362de52aee5b3a6d605d",
+        "build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so": "75988a833c8df7941d253959ca52320bd9287215625865852d67aa208e952c9e"
+      },
+      "loaded_binary_paths": {
+        "clip": "/home/cc/cc_niri/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+        "ring": "/home/cc/cc_niri/build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so"
+      },
+      "expected_alias_paths": {
+        "clip": "/tmp/cc-niri-stability-audit-20261024/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+        "ring": "/tmp/cc-niri-stability-audit-20261024/build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so"
+      },
+      "resolved_artifacts_match": true,
+      "internal_windows": [
+        {
+          "mode": "active",
+          "cycle": 0,
+          "live": {
+            "cycles": 1,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 1,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 1,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 1,
+          "live": {
+            "cycles": 2,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 2,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 2,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 2,
+          "live": {
+            "cycles": 3,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 3,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 3,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 3,
+          "live": {
+            "cycles": 4,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 4,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 4,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 4,
+          "live": {
+            "cycles": 5,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 5,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 5,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 5,
+          "live": {
+            "cycles": 6,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 6,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 6,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 6,
+          "live": {
+            "cycles": 7,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 7,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 7,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 7,
+          "live": {
+            "cycles": 8,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 8,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 8,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 0,
+          "live": {
+            "cycles": 9,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 9,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 9,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 1,
+          "live": {
+            "cycles": 10,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 10,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 10,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 2,
+          "live": {
+            "cycles": 11,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 11,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 11,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 3,
+          "live": {
+            "cycles": 12,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 12,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 12,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 4,
+          "live": {
+            "cycles": 13,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 13,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 13,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 5,
+          "live": {
+            "cycles": 14,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 14,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 14,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 6,
+          "live": {
+            "cycles": 15,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 15,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 15,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 7,
+          "live": {
+            "cycles": 16,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 16,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 16,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        }
+      ],
+      "kwin_alive_before_cleanup": true
+    },
+    {
+      "phase": "after",
+      "scale": 1.5,
+      "status": "PASS",
+      "classification": "PASS",
+      "checks": {
+        "raw_injector_has_no_p0_projection": true,
+        "exact_build_tree_plugins_loaded": true,
+        "native_capability_explicit": true,
+        "bridge_requires_membership": true,
+        "actual_painted_camera_and_scope": true,
+        "p4_source_has_real_per_client_frames": true,
+        "p4_source_uses_actual_camera_and_pass": true,
+        "p4_source_preserves_natural_partial_visual": true,
+        "right_partial_strict_output": true,
+        "active_0_closed_internal_retained_without_qwindow": true,
+        "active_0_pointer_motion_survives": true,
+        "active_1_closed_internal_retained_without_qwindow": true,
+        "active_1_pointer_motion_survives": true,
+        "active_2_closed_internal_retained_without_qwindow": true,
+        "active_2_pointer_motion_survives": true,
+        "active_3_closed_internal_retained_without_qwindow": true,
+        "active_3_pointer_motion_survives": true,
+        "active_4_closed_internal_retained_without_qwindow": true,
+        "active_4_pointer_motion_survives": true,
+        "active_5_closed_internal_retained_without_qwindow": true,
+        "active_5_pointer_motion_survives": true,
+        "active_6_closed_internal_retained_without_qwindow": true,
+        "active_6_pointer_motion_survives": true,
+        "active_7_closed_internal_retained_without_qwindow": true,
+        "active_7_pointer_motion_survives": true,
+        "frozen_handoff_exercised": true,
+        "handoff_0_closed_internal_retained_without_qwindow": true,
+        "handoff_0_pointer_motion_survives": true,
+        "handoff_1_closed_internal_retained_without_qwindow": true,
+        "handoff_1_pointer_motion_survives": true,
+        "handoff_2_closed_internal_retained_without_qwindow": true,
+        "handoff_2_pointer_motion_survives": true,
+        "handoff_3_closed_internal_retained_without_qwindow": true,
+        "handoff_3_pointer_motion_survives": true,
+        "handoff_4_closed_internal_retained_without_qwindow": true,
+        "handoff_4_pointer_motion_survives": true,
+        "handoff_5_closed_internal_retained_without_qwindow": true,
+        "handoff_5_pointer_motion_survives": true,
+        "handoff_6_closed_internal_retained_without_qwindow": true,
+        "handoff_6_pointer_motion_survives": true,
+        "handoff_7_closed_internal_retained_without_qwindow": true,
+        "handoff_7_pointer_motion_survives": true,
+        "lifecycle_cancel_drains_handoff": true,
+        "lifecycle_pairs_drained": true,
+        "lifecycle_cancel_restores_native_input": true
+      },
+      "started_utc": "2026-10-24T08:22:33.828007+00:00",
+      "ended_utc": "2026-10-24T08:22:48.470504+00:00",
+      "raw_report": "/tmp/cc-niri-stability-input-150-verified-20261024/report.json",
+      "report_sha256": "0446365f56225174939df1c03d4446945a71f98bbfe4a4a38a99d131a5331398",
+      "artifacts": {
+        "build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so": "ac303088098db2187898709e19db11960bd3553faa0eb4b067359cc3c2d571a8",
+        "build/bridge/cc-niri-bridge": "76e1da9087317b4917542919cf9adff3cc3c845641339dd4bc4481ffdba4e947",
+        "build/scroll-layout-v2-p0-fixture/plugins/kwin/effects/plugins/cc-niri-p0-input-fixture.so": "00d9eed88605107647c8c41b306b1fbc727de56f5d86362de52aee5b3a6d605d",
+        "build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so": "75988a833c8df7941d253959ca52320bd9287215625865852d67aa208e952c9e"
+      },
+      "loaded_binary_paths": {
+        "clip": "/home/cc/cc_niri/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+        "ring": "/home/cc/cc_niri/build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so"
+      },
+      "expected_alias_paths": {
+        "clip": "/tmp/cc-niri-stability-audit-20261024/build/native-viewport-clip/bin/kwin/effects/plugins/cc-niri-viewport-clip.so",
+        "ring": "/tmp/cc-niri-stability-audit-20261024/build/native-focus-ring/bin/kwin/effects/plugins/cc-niri-focus-ring.so"
+      },
+      "resolved_artifacts_match": true,
+      "internal_windows": [
+        {
+          "mode": "active",
+          "cycle": 0,
+          "live": {
+            "cycles": 1,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 1,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 1,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 1,
+          "live": {
+            "cycles": 2,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 2,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 2,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 2,
+          "live": {
+            "cycles": 3,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 3,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 3,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 3,
+          "live": {
+            "cycles": 4,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 4,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 4,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 4,
+          "live": {
+            "cycles": 5,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 5,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 5,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 5,
+          "live": {
+            "cycles": 6,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 6,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 6,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 6,
+          "live": {
+            "cycles": 7,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 7,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 7,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "active",
+          "cycle": 7,
+          "live": {
+            "cycles": 8,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 8,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 8,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 0,
+          "live": {
+            "cycles": 9,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 9,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 9,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 1,
+          "live": {
+            "cycles": 10,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 10,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 10,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 2,
+          "live": {
+            "cycles": 11,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 11,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 11,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 3,
+          "live": {
+            "cycles": 12,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 12,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 12,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 4,
+          "live": {
+            "cycles": 13,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 13,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 13,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 5,
+          "live": {
+            "cycles": 14,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 14,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 14,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 6,
+          "live": {
+            "cycles": 15,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 15,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 15,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        },
+        {
+          "mode": "handoff",
+          "cycle": 7,
+          "live": {
+            "cycles": 16,
+            "deleted": false,
+            "effectWindow": true,
+            "handlePresent": true,
+            "held": false,
+            "inStackingOrder": true
+          },
+          "closed": {
+            "cycles": 16,
+            "deleted": true,
+            "effectWindow": true,
+            "handlePresent": false,
+            "held": true,
+            "inStackingOrder": true
+          },
+          "released": {
+            "cycles": 16,
+            "deleted": false,
+            "effectWindow": false,
+            "handlePresent": false,
+            "held": false,
+            "inStackingOrder": false
+          }
+        }
+      ],
+      "kwin_alive_before_cleanup": true
+    }
+  ],
+  "added_test_cases": 19,
+  "source_sha256": {
+    "tools/scroll-layout-v2-p3-probe.py": "912537718069cd9a1ee7d49519ea18b9d9fd4e3e32ba63d847903addb5c0ac4a",
+    "test/stability-lifecycle-adversarial.test.js": "7bd094dbb31d34d71efde3faa426ba1e572f356d5a204c8cbf1ef0156706df3f",
+    "test/stability-probe-isolation.test.js": "7f42e7e7da3d5bcc0f72163e372c2567036ee363cf88abc61012eca5b32840aa"
+  },
+  "confirmed_new_production_defects": 0,
+  "confirmed_diagnostic_defects": [
+    "D-01"
+  ],
+  "pending_verification": [
+    "V-01",
+    "V-02"
+  ],
+  "real_desktop_acceptance": "NOT RUN / Pending",
+  "memory_and_gpu_measurements": "NOT MEASURED",
+  "production_changes": [],
+  "build_tree_reuse": "original configured build trees; Native/Bridge/cmake/plasmoid/toolchain sources match baseline",
+  "intermediate_gate": {
+    "raw_log": "/tmp/cc-niri-stability-audit-20261024-intermediate-native.log",
+    "node_tests": 280,
+    "note": "PASS; superseded by final gate including SA-11"
+  },
+  "evidence_limits": [
+    "Virtual/Mesa is not real desktop acceptance",
+    "raw private logs/screenshots remain bounded temporary files; summarized facts and final gate log are retained",
+    "model container counts are not PSS/Private_Dirty/GPU or a long-duration measurement"
+  ],
+  "delivery": {
+    "root": "/home/cc/cc_niri",
+    "source_hashes_verified": true,
+    "original_pending_files_preserved": 11,
+    "targeted_tests_after_copy": "PASS 19/19",
+    "generated_bundles": "PASS --check",
+    "whitespace": "PASS git diff --check",
+    "sandbox_retry": "Initial 5 isolation tests BLOCKED by spawnSync python3 EPERM; unchanged command PASS with subprocess execution allowed",
+    "initial_blocked_log": "/tmp/cc-niri-stability-delivered-isolation-sandbox-20261024.tap"
+  }
+}

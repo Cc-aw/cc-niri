@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: unlock stays resuming until layout proof and a fresh unlocked observation
+ok 1 - unlock stays resuming until layout proof and a fresh unlocked observation
+  ---
+  duration_ms: 6.217866
+  type: 'test'
+  ...
+# Subtest: activation wakes during release and layout neither restart recovery nor retire its proof
+ok 2 - activation wakes during release and layout neither restart recovery nor retire its proof
+  ---
+  duration_ms: 1.101203
+  type: 'test'
+  ...
+# Subtest: relock and a new cycle retire old completion and deadline without losing the new deadline
+ok 3 - relock and a new cycle retire old completion and deadline without losing the new deadline
+  ---
+  duration_ms: 0.627298
+  type: 'test'
+  ...
+# Subtest: persistent unlock reconciliation failures consume one finite budget across user wakes
+ok 4 - persistent unlock reconciliation failures consume one finite budget across user wakes
+  ---
+  duration_ms: 1.315064
+  type: 'test'
+  ...
+# Subtest: final verification observes a missed relock, and Native replacement remains terminal
+ok 5 - final verification observes a missed relock, and Native replacement remains terminal
+  ---
+  duration_ms: 0.69705
+  type: 'test'
+  ...
+# Subtest: query deadline during layout retires completion, and ordinary post-recovery faults still stop
+ok 6 - query deadline during layout retires completion, and ordinary post-recovery faults still stop
+  ---
+  duration_ms: 2.851911
+  type: 'test'
+  ...
+# Subtest: a synchronous empty proof cannot publish ready before remaining mount work rejects
+ok 7 - a synchronous empty proof cannot publish ready before remaining mount work rejects
+  ---
+  duration_ms: 0.759769
+  type: 'test'
+  ...
+# Subtest: real entry recovers historical query plus empty-disarm deadlines only after a new cancel proof
+ok 8 - real entry recovers historical query plus empty-disarm deadlines only after a new cancel proof
+  ---
+  duration_ms: 53.885952
+  type: 'test'
+  ...
+# Subtest: real entry unknown ownership stays paused with bounded retries; stop makes late proofs inert
+ok 9 - real entry unknown ownership stays paused with bounded retries; stop makes late proofs inert
+  ---
+  duration_ms: 16.718677
+  type: 'test'
+  ...
+# Subtest: real entry waits for current painted layout after relock and preserves fullscreen suspension
+ok 10 - real entry waits for current painted layout after relock and preserves fullscreen suspension
+  ---
+  duration_ms: 51.191215
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 165.035056

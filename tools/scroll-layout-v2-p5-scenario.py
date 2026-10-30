@@ -175,6 +175,20 @@ def run(e):
         checks[f"synthetic_lock_cycle_{cycle}_preserves_width_order_workspace"] = all(
             restored[key] == session_before[key] for key in ["columns", "workspaceId", "targetOutput"])
     report["session_lifecycle_scope"] = "Synthetic KWin lock signals on private Virtual outputs; real screen lock acceptance remains Pending"
+    empty = action("resume-empty-workspace")
+    checks["unlock_deadline_fixture_workspace_is_empty"] = not empty["columns"]
+    action("resume-delay-empty-proof")
+    assert e["fixture"]("ObserveSessionLockForTest", "true")
+    wait(lambda: json.loads(bridge("GetRuntimeHealth")).get("state") == "locked")
+    assert e["fixture"]("ObserveSessionLockForTest", "false")
+    delayed = wait(lambda: next((r for r in records() if r.get("kind") == "p5-delayed-session-proof"), None))
+    late = wait(lambda: next((r for r in records() if r.get("kind") == "p5-late-session-proof"), None))
+    wait(lambda: json.loads(bridge("GetRuntimeHealth")).get("state") == "running")
+    resumed_empty = action("inspect")
+    checks["unlock_first_layout_proof_keeps_lock_provenance"] = delayed["health"] == "resuming" and delayed["sawLock"]
+    checks["unlock_empty_deadline_recovers_after_new_native_proof"] = resumed_empty["enabled"] and not resumed_empty["columns"] and not resumed_empty["pending"]
+    checks["unlock_late_proof_does_not_disable_layout"] = late["enabled"] and not late["paused"] and late["health"] == "running"
+    action("resume-return-workspace")
     if e.get("scenario") == "p6":
         action("recovery-probe")
         report["scroll_capture"] = json.loads(native("GetScrollFrameCapture"))

@@ -2,6 +2,7 @@
 (function () {
     const record = value => callDBus("org.cc.CCNiriP0Fixture", "/P0", "org.cc.CCNiriP0Fixture1", "Record", JSON.stringify(value), () => {});
     let label = "initial", staticAction = !continuousLayout, remaining = 1400, handle = null, waitingAction = false;
+    let resumeReturnDesktop = null, delayedProofTimer = null;
     const copy = r => ({ x: r.x, y: r.y, width: r.width, height: r.height });
     function checkpoint() {
         if (!label || waitingAction) return;
@@ -46,6 +47,37 @@
             if (workspace.desktops.length < 2) workspace.createDesktop(workspace.desktops.length, "P5 private");
             workspaceSwitchController.next(); break;
         case "workspace-prev": workspaceSwitchController.previous(); break;
+        case "resume-empty-workspace":
+            resumeReturnDesktop = virtualDesktopTopology.current(mainScreenState.targetOutput);
+            workspace.createDesktop(workspace.desktops.length, "P5 resume empty");
+            workspaceSwitchController.requestTo(workspace.desktops[workspace.desktops.length - 1]);
+            break;
+        case "resume-return-workspace": workspaceSwitchController.requestTo(resumeReturnDesktop); break;
+        case "resume-delay-empty-proof": {
+            staticAction = true;
+            const invoke = runtimeBridge.invoke;
+            let delayed = false;
+            runtimeBridge.invoke = (...args) => {
+                if (delayed || args[3] !== "GetScrollMotionStatus" || mainScreenState.columns.length ||
+                        !sessionPause.resume || sessionPause.resume.stage !== "layout") return invoke(...args);
+                delayed = true;
+                const callback = args.pop();
+                return invoke(...args, raw => {
+                    record({ kind: "p5-delayed-session-proof", health: sessionPause.phase,
+                        sawLock: sessionPause.sawLock, proof: JSON.parse(raw) });
+                    // Delay a genuine Native status reply beyond the 150ms gate.
+                    // Retain the one-shot handle only inside this private fixture.
+                    delayedProofTimer = setRuntimeTimer(() => {
+                        clearRuntimeTimer(delayedProofTimer); delayedProofTimer = null;
+                        runtimeBridge.invoke = invoke;
+                        callback(raw);
+                        record({ kind: "p5-late-session-proof", health: sessionPause.phase,
+                            enabled: mainScreenState.enabled, paused: mainScreenState.sessionPaused });
+                    }, 240);
+                });
+            };
+            break;
+        }
         case "workspace-next-focus-prev":
             // Interrupt the incoming workspace before its vertical motion ends.
             waitingAction = true;
